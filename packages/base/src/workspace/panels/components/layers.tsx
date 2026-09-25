@@ -6,6 +6,7 @@ import {
   IJGISLayerTree,
   IJupyterGISModel,
   ISelection,
+  JupyterGISModel,
   ProcessingMerge,
   SelectionType,
 } from '@jupytergis/schema';
@@ -32,6 +33,7 @@ import { CommandIDs, icons } from '@/src/constants';
 import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
 import { Slider } from '@/src/shared/components/Slider';
 import {
+  columns2Icon,
   nonVisibilityIcon,
   targetWithCenterIcon,
   visibilityIcon,
@@ -116,6 +118,25 @@ function createContextMenu(
     selector: GIS_LAYER_ITEM,
     rank: 5,
   });
+
+  const compareSubmenu = new Menu({ commands });
+  compareSubmenu.title.label = translator.load('jupyterlab').__('Compare With');
+  compareSubmenu.id = 'jp-gis-contextmenu-compare';
+
+  gisContextMenu.addItem({
+    type: 'submenu',
+    selector: GIS_LAYER_ITEM,
+    rank: 5.1,
+    submenu: compareSubmenu,
+  });
+
+  gisContextMenu.addItem({
+    command: CommandIDs.stopComparing,
+    selector: GIS_LAYER_ITEM,
+    rank: 5.2,
+  });
+
+  gisContextMenu.opened.connect(() => buildCompareMenu(gisContextMenu, model));
 
   gisContextMenu.addItem({
     command: CommandIDs.zoomToLayer,
@@ -236,6 +257,52 @@ function createContextMenu(
   });
 
   return gisContextMenu;
+}
+
+/**
+ * Populate the "Compare With" submenu with every other layer in the document.
+ */
+function buildCompareMenu(contextMenu: ContextMenu, model: IJupyterGISModel) {
+  const submenu =
+    contextMenu.menu.items.find(
+      item =>
+        item.type === 'submenu' &&
+        item.submenu?.id === 'jp-gis-contextmenu-compare',
+    )?.submenu ?? null;
+
+  if (!submenu) {
+    return;
+  }
+
+  submenu.clearItems();
+
+  const selected = model.localState?.selected?.value ?? {};
+  const selectedIds = Object.keys(selected);
+  const layerId =
+    selectedIds.length === 1 && selected[selectedIds[0]].type === 'layer'
+      ? selectedIds[0]
+      : undefined;
+
+  if (!layerId) {
+    return;
+  }
+
+  for (const otherLayerId of JupyterGISModel.getOrderedLayerIds(model)) {
+    const layer = model.getLayer(otherLayerId);
+
+    if (!layer || otherLayerId === layerId) {
+      continue;
+    }
+
+    submenu.addItem({
+      command: CommandIDs.compareLayers,
+      args: {
+        layerIdLeft: layerId,
+        layerIdRight: otherLayerId,
+        label: layer.name,
+      },
+    });
+  }
 }
 
 /**
@@ -722,6 +789,27 @@ interface ILayerProps {
   onClick: ({ type, item }: ILeftPanelClickHandlerParams) => void;
 }
 
+type ComparedSide = 'left' | 'right' | null;
+
+function getComparedSide(
+  layerId: string,
+  model: IJupyterGISModel | undefined,
+): ComparedSide {
+  const layers = model?.getComparison()?.layers;
+
+  if (!layers) {
+    return null;
+  }
+
+  if (layers[0] === layerId) {
+    return 'left';
+  } else if (layers[1] === layerId) {
+    return 'right';
+  } else {
+    return null;
+  }
+}
+
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
   return (
     (model?.localState?.selected?.value &&
@@ -744,6 +832,9 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   const [selected, setSelected] = useState<boolean>(
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(layerId, gisModel),
+  );
+  const [comparedSide, setComparedSide] = useState<ComparedSide>(
+    getComparedSide(layerId, gisModel),
   );
   const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -787,6 +878,21 @@ const LayerComponent: React.FC<ILayerProps> = props => {
 
     return () => {
       gisModel?.selectedChanged.disconnect(handleSelectedChanged);
+    };
+  }, [gisModel, layerId]);
+
+  /**
+   * Listen to the layers being compared in the map view.
+   */
+  useEffect(() => {
+    const handleComparisonChanged = () => {
+      setComparedSide(getComparedSide(layerId, gisModel));
+    };
+    gisModel?.sharedOptionsChanged.connect(handleComparisonChanged);
+    handleComparisonChanged();
+
+    return () => {
+      gisModel?.sharedOptionsChanged.disconnect(handleComparisonChanged);
     };
   }, [gisModel, layerId]);
 
@@ -991,6 +1097,19 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           <LabIcon.resolveReact
             {...icons.get(layer.type)}
             className={LAYER_ICON_CLASS}
+          />
+        )}
+
+        {comparedSide && (
+          <LabIcon.resolveReact
+            icon={columns2Icon}
+            className={LAYER_ICON_CLASS}
+            tag="span"
+            title={
+              comparedSide === 'left'
+                ? 'Comparing, shown left of the swipe divider'
+                : 'Comparing, shown right of the swipe divider'
+            }
           />
         )}
 

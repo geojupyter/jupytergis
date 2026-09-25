@@ -51,12 +51,18 @@ import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
 import { MainViewSidePanels } from './components/MainViewSidePanels';
 import { MainViewStoryStage } from './components/MainViewStoryStage';
 import { PositionedFloater } from './components/PositionedFloater';
+import { SwipeDivider } from './components/SwipeDivider';
 import {
   createGeoJSONFeaturePatcher,
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
-import { createMapAdapter, IMapAdapter, MapAdapterType } from './mapAdapter';
+import {
+  createMapAdapter,
+  IMapAdapter,
+  IMapLayerComparison,
+  MapAdapterType,
+} from './mapAdapter';
 import { getFeatureIdentifier } from '../features/identify/utils/getFeatureIdentifier';
 import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
@@ -99,6 +105,7 @@ interface IStates {
   identifyFeatureFloatersVersion: number;
   /** List story segment handoff for the map stage overlay; null when off. */
   segmentTransition: IListStorySegmentTransition | null;
+  comparison: IMapLayerComparison | null;
 }
 
 export class MainView extends React.Component<IMainViewProps, IStates> {
@@ -225,6 +232,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       initialLayersReady: false,
       identifyFeatureFloatersVersion: 0,
       segmentTransition: null,
+      comparison: null,
     };
 
     this._commands = new CommandRegistry();
@@ -252,6 +260,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(lonLat, zoom, projection);
+
+    this._syncComparison();
 
     if (window.jupytergisMaps !== undefined) {
       // The shared model only emits a path change when the document is renamed,
@@ -923,6 +933,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.updateOptions(options);
       this._isPositionInitialized = true;
     }
+
+    this._syncComparison();
   }
 
   private async _syncSettingsFromRegistry() {
@@ -1007,7 +1019,50 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mapAdapter?.updateLayers(
       JupyterGISModel.getOrderedLayerIds(this._model),
     );
+    this._syncComparison();
   }
+
+  /** Hands the map the document's comparison, keeping the divider where it is. */
+  private _syncComparison(): void {
+    if (!this._mapAdapter) {
+      return;
+    }
+
+    const stored = this._model.getComparison();
+    const current = this.state.comparison;
+    // A compared layer may have been deleted since the comparison was stored.
+    const isStoredComparisonUsable =
+      stored && stored.layers.every(id => this._model.getLayer(id));
+
+    const comparison: IMapLayerComparison | null = isStoredComparisonUsable
+      ? { layers: stored.layers, position: current?.position ?? 0.5 }
+      : null;
+
+    if (
+      comparison?.layers[0] === current?.layers[0] &&
+      comparison?.layers[1] === current?.layers[1]
+    ) {
+      return;
+    }
+
+    this.setState({ comparison });
+    this._mapAdapter.setLayerComparison(comparison);
+  }
+
+  private _handleStopComparison = (): void => {
+    this._model.setComparison(undefined);
+  };
+
+  private _handleComparisonSwipe = (position: number): void => {
+    const current = this.state.comparison;
+    if (!current || !this._mapAdapter) {
+      return;
+    }
+
+    const comparison = { ...current, position };
+    this.setState({ comparison });
+    this._mapAdapter.setLayerComparison(comparison);
+  };
 
   /**
    * Rebuild every OpenEO tile source in this document whose `serverUrl`
@@ -1537,6 +1592,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   render(): JSX.Element {
     const {
       clientPointers,
+      comparison,
       displayTemporalController,
       drawGeometryLabel,
       isDrawing,
@@ -1622,6 +1678,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                   }
                 />
               </div>
+            ) : null}
+            {comparison ? (
+              <SwipeDivider
+                position={comparison.position}
+                onPositionChange={this._handleComparisonSwipe}
+                onStop={this._handleStopComparison}
+              />
             ) : null}
           </MainViewMapSurface>
           {!isSpectaPresentation ? (

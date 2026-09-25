@@ -1337,6 +1337,74 @@ export function addCommands(
     },
   });
 
+  commands.addCommand(CommandIDs.compareLayers, {
+    label: args =>
+      args['label'] ? (args['label'] as string) : trans.__('Compare With'),
+    caption: 'Swipe to compare two layers in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          layerIdLeft: { type: 'string' },
+          layerIdRight: { type: 'string' },
+          label: { type: 'string' },
+        },
+      },
+    },
+    execute: (args?: {
+      filePath?: string;
+      layerIdLeft?: string;
+      layerIdRight?: string;
+    }) => {
+      const { filePath, layerIdRight } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable || !layerIdRight) {
+        return;
+      }
+
+      const layerIdLeft =
+        args?.layerIdLeft ?? Private.getSelectedLayerId(model);
+      if (!layerIdLeft || layerIdLeft === layerIdRight) {
+        return;
+      }
+
+      model.setComparison({
+        mode: 'swipe',
+        layers: [layerIdLeft, layerIdRight],
+      });
+      commands.notifyCommandChanged(CommandIDs.stopComparing);
+    },
+  });
+
+  commands.addCommand(CommandIDs.stopComparing, {
+    label: trans.__('Stop Comparing'),
+    caption: 'Stop comparing layers.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: { filePath: { type: 'string' } },
+      },
+    },
+    isVisible: () => Private.isSelectedLayerCompared(tracker),
+    execute: (args?: { filePath?: string }) => {
+      const model = args?.filePath
+        ? tracker.find(w => w.model.filePath === args.filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model) {
+        return;
+      }
+
+      model.setComparison(undefined);
+      commands.notifyCommandChanged(CommandIDs.stopComparing);
+    },
+  });
+
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
@@ -2470,6 +2538,26 @@ namespace Private {
           break;
       }
     }
+  }
+
+  /** The single layer selected in the layer tree. If multiple are selected, returns `undefined`. */
+  export function getSelectedLayerId(
+    model: IJupyterGISModel | undefined,
+  ): string | undefined {
+    const selected = model?.localState?.selected?.value;
+    const ids = selected ? Object.keys(selected) : [];
+
+    return ids.length === 1 && selected?.[ids[0]].type === 'layer'
+      ? ids[0]
+      : undefined;
+  }
+
+  export function isSelectedLayerCompared(tracker: JupyterGISTracker): boolean {
+    const model = tracker.currentWidget?.model;
+    const layerId = getSelectedLayerId(model);
+    const current = model?.getComparison()?.layers;
+
+    return !!layerId && !!current && current.includes(layerId);
   }
 
   export async function renameSelectedItem(

@@ -9,6 +9,7 @@ import Ajv from 'ajv';
 import { FeatureLike } from 'ol/Feature';
 
 import {
+  IJGISComparison,
   IJGISContent,
   IJGISLayer,
   IJGISLayerGroup,
@@ -37,6 +38,7 @@ import {
   IDrawCustomAttributePresets,
   IDrawCustomAttributesByLayer,
   IDrawCustomAttributesLayerState,
+  IDict,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -1246,6 +1248,19 @@ export class JupyterGISModel implements IJupyterGISModel {
       );
     } else {
       console.error('Layer group rename failed -- could not get layer tree.');
+    }
+  }
+
+  getComparison(): IJGISComparison | undefined {
+    return this.getOptions().comparison ?? undefined;
+  }
+
+  /** Compare two layers in the map view, or stop comparing with `undefined`. */
+  setComparison(comparison: IJGISComparison | undefined): void {
+    if (comparison) {
+      this._sharedModel.setOption('comparison', comparison as IDict);
+    } else {
+      this._sharedModel.removeOption('comparison');
     }
   }
 
