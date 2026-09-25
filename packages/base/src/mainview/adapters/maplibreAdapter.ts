@@ -107,6 +107,29 @@ export class MapLibreAdapter implements IMapAdapter {
       this._map.once('load', () => resolve());
     });
 
+    console.log('[MapLibre] INITIALIZE START', {
+      loaded: this._map.loaded(),
+      styleLoaded: this._map.isStyleLoaded(),
+    });
+
+    if (!this._map.loaded()) {
+      await new Promise<void>(resolve => {
+        this._map.once('load', () => {
+          console.log('[MapLibre] INITIAL MAP LOAD FIRED', {
+            loaded: this._map.loaded(),
+            styleLoaded: this._map.isStyleLoaded(),
+          });
+
+          resolve();
+        });
+      });
+    }
+
+    console.log('[MapLibre] INITIALIZE COMPLETE', {
+      loaded: this._map.loaded(),
+      styleLoaded: this._map.isStyleLoaded(),
+    });
+
     this._map.resize();
   }
 
@@ -323,18 +346,64 @@ export class MapLibreAdapter implements IMapAdapter {
       },
     });
 
+    this._map.on('sourcedataloading', event => {
+      if (event.sourceId !== sourceId) {
+        return;
+      }
+
+      console.log('[MapLibre] GEOJSON SOURCE LOADING', {
+        sourceId: event.sourceId,
+        sourceDataType: event.sourceDataType,
+        isSourceLoaded: this._map.isSourceLoaded(sourceId),
+        loaded: this._map.loaded(),
+        styleLoaded: this._map.isStyleLoaded(),
+      });
+    });
+
+    this._map.on('sourcedata', event => {
+      if (event.sourceId !== sourceId) {
+        return;
+      }
+
+      console.log('[MapLibre] GEOJSON SOURCE DATA', {
+        sourceId: event.sourceId,
+        sourceDataType: event.sourceDataType,
+        isSourceLoaded: this._map.isSourceLoaded(sourceId),
+        loaded: this._map.loaded(),
+        styleLoaded: this._map.isStyleLoaded(),
+      });
+    });
+
+    this._map.on('render', () => {
+      console.log('[MapLibre] RENDER', {
+        sourceLoaded: this._map.isSourceLoaded(sourceId),
+        loaded: this._map.loaded(),
+        styleLoaded: this._map.isStyleLoaded(),
+      });
+    });
+
     this._layerSubIds.set(id, [id]);
 
-    console.log('[MapLibre] GEOJSON LAYER AFTER ADD', {
-      id,
-      sourceId,
-      layerExists: !!this._map.getLayer(id),
-      visibility: this._map.getLayoutProperty(id, 'visibility'),
-      fillColor: this._map.getPaintProperty(id, 'fill-color'),
-      fillOpacity: this._map.getPaintProperty(id, 'fill-opacity'),
-      sourceExists: !!this._map.getSource(sourceId),
-      zoom: this._map.getZoom(),
-      center: this._map.getCenter(),
+    const source = this._map.getSource(sourceId);
+    const mapLayer = this._map.getLayer(id);
+
+    console.log('[MapLibre] GEOJSON DEBUG AFTER ADD', {
+      mapLoaded: this._map.loaded(),
+      styleLoaded: this._map.isStyleLoaded(),
+
+      sourceExists: !!source,
+      layerExists: !!mapLayer,
+
+      sourceLoaded: this._map.isSourceLoaded(sourceId),
+
+      layerVisibility: this._map.getLayoutProperty(id, 'visibility'),
+
+      sourceData: this._geojsonData.get(sourceId),
+
+      layerPaint: {
+        fillColor: this._map.getPaintProperty(id, 'fill-color'),
+        fillOpacity: this._map.getPaintProperty(id, 'fill-opacity'),
+      },
     });
   }
 
@@ -363,6 +432,11 @@ export class MapLibreAdapter implements IMapAdapter {
     this._log('info', `MapLibreAdapter: adding layer ${id}`);
 
     try {
+      console.log('[MapLibre] ADD LAYER STATE', {
+        layerId: id,
+        loaded: this._map.loaded(),
+        styleLoaded: this._map.isStyleLoaded(),
+      });
       await this._buildMapLayer(id, layer, index);
 
       this._logMapLayers(`After adding: ${id}`);
