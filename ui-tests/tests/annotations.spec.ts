@@ -27,12 +27,16 @@ test.describe('#annotations', () => {
     // Open Annotations tab in side panel
     await page.getByText('Annotations').click();
 
-    // Right-click on the map canvas to open context menu
-    const canvas = page.locator('canvas');
-    await canvas.click({ button: 'right', position: { x: 348, y: 348 } });
+    // Right-click on the map to open context menu
+    const map = page.locator('.jGIS-Mainview .ol-viewport');
+    const addAnnotation = page.getByText('Add annotation');
+    await expect(async () => {
+      await map.click({ button: 'right', position: { x: 348, y: 348 } });
+      await expect(addAnnotation).toBeVisible({ timeout: 2000 });
+    }).toPass();
 
     // Click "Add annotation" from context menu
-    await page.getByText('Add annotation').click();
+    await addAnnotation.click();
 
     // Get the annotations panel and wait for the annotation to appear in the side panel
     const annotationsPanel = page.getByRole('tabpanel', {

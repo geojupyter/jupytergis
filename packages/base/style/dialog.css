@@ -31,3 +31,28 @@
 .jp-gis-object-properties-dialog .jp-Dialog-body {
   overflow: auto;
 }
+
+/* A dialog mirrored from the collaborator we are following. It is a view of
+ * what they are doing, so it may never be submitted. Cancel stays, so the
+ * mirror can always be dismissed. Interaction inside the body is blocked in
+ * `makeReadOnly`. */
+.jgis-follow-mirror .jp-Dialog-footer .jp-mod-accept {
+  display: none;
+}
+
+.jgis-follow-mirror .jp-Dialog-body {
+  cursor: default;
+}
+
+/* The followed collaborator's focused field, painted in their colour. */
+.jgis-follow-mirror .jgis-follow-focus {
+  outline: 2px solid var(--jgis-follow-color, var(--jp-brand-color1));
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Their mouse, drawn over the mirrored dialog. */
+.jgis-follow-mirror .jgis-follow-pointer {
+  pointer-events: none;
+  z-index: 100;
+}

@@ -36,6 +36,7 @@ import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
+import { FollowDialogMirror } from '@/src/features/follow';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import {
   getStoryPresentationMode,
@@ -51,12 +52,19 @@ import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
 import { MainViewSidePanels } from './components/MainViewSidePanels';
 import { MainViewStoryStage } from './components/MainViewStoryStage';
 import { PositionedFloater } from './components/PositionedFloater';
+import { SwipeDivider } from './components/SwipeDivider';
 import {
   createGeoJSONFeaturePatcher,
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
-import { createMapAdapter, IMapAdapter, MapAdapterType } from './mapAdapter';
+import {
+  createMapAdapter,
+  IMapAdapter,
+  IMapLayerComparison,
+  MapAdapterType,
+  VIEWPORT_SYNC_INTERVAL,
+} from './mapAdapter';
 import { getFeatureIdentifier } from '../features/identify/utils/getFeatureIdentifier';
 import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
@@ -99,6 +107,7 @@ interface IStates {
   identifyFeatureFloatersVersion: number;
   /** List story segment handoff for the map stage overlay; null when off. */
   segmentTransition: IListStorySegmentTransition | null;
+  comparison: IMapLayerComparison | null;
 }
 
 export class MainView extends React.Component<IMainViewProps, IStates> {
@@ -166,6 +175,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     remoteUserSignals.forEach(signal =>
       signal.connect(this._handleRemoteUserChanged, this),
     );
+    this._followDialogMirror = new FollowDialogMirror(this._model);
     this._model.pointerChanged.connect(this._handlePointerChanged, this);
     this._model.selectedChanged.connect(
       this._handleTemporalControllerActiveChanged,
@@ -225,6 +235,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       initialLayersReady: false,
       identifyFeatureFloatersVersion: 0,
       segmentTransition: null,
+      comparison: null,
     };
 
     this._commands = new CommandRegistry();
@@ -252,6 +263,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(lonLat, zoom, projection);
+
+    this._syncComparison();
 
     if (window.jupytergisMaps !== undefined) {
       // The shared model only emits a path change when the document is renamed,
@@ -346,6 +359,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     remoteUserSignals.forEach(signal =>
       signal.disconnect(this._handleRemoteUserChanged, this),
     );
+    this._followDialogMirror?.dispose();
+    this._followDialogMirror = null;
     openEOEvents.connected.disconnect(this._onOpenEOConnected, this);
     this._model.pointerChanged.disconnect(this._handlePointerChanged, this);
     this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
@@ -793,6 +808,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
+  private _followDialogMirror: FollowDialogMirror | null = null;
+
   private _handleRemoteUserChanged(): void {
     const localState = this._model.localState;
     if (!localState) {
@@ -821,7 +838,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         }));
       }
 
-      // Ease into the first jump only: tracking updates arrive every 200ms.
       const startedFollowing = this._followedClientId !== remoteUser;
       this._followedClientId = remoteUser;
 
@@ -829,16 +845,29 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       if (remoteViewport.value) {
         const { x, y } = remoteViewport.value.coordinates;
         const zoom = remoteViewport.value.zoom;
+        const target = this._followedViewport;
+        if (
+          !startedFollowing &&
+          target &&
+          target.x === x &&
+          target.y === y &&
+          target.zoom === zoom
+        ) {
+          return;
+        }
+        this._followedViewport = { x, y, zoom };
         this._mapAdapter?.moveToPosition(
           { x, y },
           zoom,
-          startedFollowing ? FOLLOW_JUMP_DURATION : 0,
+          startedFollowing ? FOLLOW_JUMP_DURATION : VIEWPORT_SYNC_INTERVAL,
+          startedFollowing ? 'ease' : 'linear',
         );
       }
       return;
     }
 
     this._followedClientId = null;
+    this._followedViewport = null;
 
     // If we are unfollowing, reset to local viewport and clear follow UI.
     if (this.state.remoteUser !== null) {
@@ -923,6 +952,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.updateOptions(options);
       this._isPositionInitialized = true;
     }
+
+    this._syncComparison();
   }
 
   private async _syncSettingsFromRegistry() {
@@ -1007,7 +1038,50 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mapAdapter?.updateLayers(
       JupyterGISModel.getOrderedLayerIds(this._model),
     );
+    this._syncComparison();
   }
+
+  /** Hands the map the document's comparison, keeping the divider where it is. */
+  private _syncComparison(): void {
+    if (!this._mapAdapter) {
+      return;
+    }
+
+    const stored = this._model.getComparison();
+    const current = this.state.comparison;
+    // A compared layer may have been deleted since the comparison was stored.
+    const isStoredComparisonUsable =
+      stored && stored.layers.every(id => this._model.getLayer(id));
+
+    const comparison: IMapLayerComparison | null = isStoredComparisonUsable
+      ? { layers: stored.layers, position: current?.position ?? 0.5 }
+      : null;
+
+    if (
+      comparison?.layers[0] === current?.layers[0] &&
+      comparison?.layers[1] === current?.layers[1]
+    ) {
+      return;
+    }
+
+    this.setState({ comparison });
+    this._mapAdapter.setLayerComparison(comparison);
+  }
+
+  private _handleStopComparison = (): void => {
+    this._model.setComparison(undefined);
+  };
+
+  private _handleComparisonSwipe = (position: number): void => {
+    const current = this.state.comparison;
+    if (!current || !this._mapAdapter) {
+      return;
+    }
+
+    const comparison = { ...current, position };
+    this.setState({ comparison });
+    this._mapAdapter.setLayerComparison(comparison);
+  };
 
   /**
    * Rebuild every OpenEO tile source in this document whose `serverUrl`
@@ -1537,6 +1611,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   render(): JSX.Element {
     const {
       clientPointers,
+      comparison,
       displayTemporalController,
       drawGeometryLabel,
       isDrawing,
@@ -1623,6 +1698,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 />
               </div>
             ) : null}
+            {comparison ? (
+              <SwipeDivider
+                position={comparison.position}
+                onPositionChange={this._handleComparisonSwipe}
+                onStop={this._handleStopComparison}
+              />
+            ) : null}
           </MainViewMapSurface>
           {!isSpectaPresentation ? (
             <StatusBar
@@ -1648,6 +1730,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private storyScrollContainerRef = React.createRef<HTMLDivElement>();
   private _mapAdapter: IMapAdapter | undefined;
   private _followedClientId: number | null = null;
+  private _followedViewport: { x: number; y: number; zoom: number } | null =
+    null;
   private _model: IJupyterGISModel;
   private _mainViewModel: MainViewModel;
   private _ready = false;

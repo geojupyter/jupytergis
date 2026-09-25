@@ -2,6 +2,27 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.6
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.5...156ae9738bcc49b6e07f7d52ff01cd08daccb0bf))
+
+### Enhancements made
+
+- Smooth pan/zoom in follow mode [#1883](https://github.com/geojupyter/jupytergis/pull/1883) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Collaborative Dialogs in follow mode [#1877](https://github.com/geojupyter/jupytergis/pull/1877) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Add a swipe comparison for two layers [#1873](https://github.com/geojupyter/jupytergis/pull/1873) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-09-22&to=2026-09-25&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-09-22..2026-09-25&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-09-22..2026-09-25&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-09-22..2026-09-25&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.5
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.4...12b7e6e888f109f8f7f045cc3d4a65b3d8384c45))
@@ -26,8 +47,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-09-18&to=2026-09-22&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-09-18..2026-09-22&type=Issues)) | @costajohnt ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Acostajohnt+updated%3A2026-09-18..2026-09-22&type=Issues)) | @ghostiee-11 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aghostiee-11+updated%3A2026-09-18..2026-09-22&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-09-18..2026-09-22&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-09-18..2026-09-22&type=Issues)) | @MMesch ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AMMesch+updated%3A2026-09-18..2026-09-22&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.4
 

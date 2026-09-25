@@ -77,6 +77,99 @@ describe('awareness field signals', () => {
     });
   });
 
+  it('emits openDialogChanged when a dialog opens', () => {
+    const events: any[] = [];
+    model.openDialogChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.syncOpenDialog(
+      { kind: 'symbology', params: { layerId: 'layer-a' } },
+      'test',
+    );
+
+    expect(events).toHaveLength(1);
+    expect(events[0].field).toBe('openDialog');
+    expect(events[0].isLocalClient).toBe(true);
+    expect(events[0].currentValue?.value).toEqual({
+      kind: 'symbology',
+      params: { layerId: 'layer-a' },
+    });
+  });
+
+  it('emits openDialogChanged with a null value when the dialog closes', () => {
+    const events: any[] = [];
+    model.openDialogChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.syncOpenDialog({ kind: 'layerBrowser' }, 'test');
+    model.syncOpenDialog(null, 'test');
+
+    expect(events).toHaveLength(2);
+    expect(events[1].currentValue?.value).toBeNull();
+  });
+
+  it('emits dialogStateChanged when the open dialog contents change', () => {
+    const events: any[] = [];
+    model.dialogStateChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.setDialogStateKey('symbology:layers', [{ id: 'a' }], 'test');
+
+    expect(events).toHaveLength(1);
+    expect(events[0].field).toBe('dialogState');
+    expect(events[0].currentValue?.value).toEqual({
+      'symbology:layers': [{ id: 'a' }],
+    });
+  });
+
+  it('merges dialog state keys instead of replacing them', () => {
+    model.setDialogStateKey('symbology:layers', [{ id: 'a' }], 'test');
+    model.setDialogStateKey('form:IRasterLayer', { opacity: 0.5 }, 'test');
+
+    expect(model.localState?.dialogState?.value).toEqual({
+      'symbology:layers': [{ id: 'a' }],
+      'form:IRasterLayer': { opacity: 0.5 },
+    });
+  });
+
+  it('emits dialogViewChanged when the pointer moves over a dialog', () => {
+    const events: any[] = [];
+    model.dialogViewChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.syncDialogView({ kind: 'symbology' }, 'test');
+    model.updateDialogView({ pointer: { x: 0.5, y: 0.25 } }, 'test');
+
+    expect(events).toHaveLength(2);
+    expect(events[0].field).toBe('dialogView');
+    expect(events[1].currentValue?.value).toEqual({
+      kind: 'symbology',
+      pointer: { x: 0.5, y: 0.25 },
+    });
+  });
+
+  it('keeps the pointer and the scroll offsets on the same dialog view', () => {
+    model.syncDialogView({ kind: 'layerBrowser' }, 'test');
+    model.updateDialogView({ pointer: { x: 0.1, y: 0.2 } }, 'test');
+    model.updateDialogView({ scroll: { '0.1': 0.75 } }, 'test');
+
+    expect(model.localState?.dialogView?.value).toEqual({
+      kind: 'layerBrowser',
+      pointer: { x: 0.1, y: 0.2 },
+      scroll: { '0.1': 0.75 },
+    });
+  });
+
+  it('ignores a dialog view update when no dialog is open', () => {
+    model.updateDialogView({ pointer: { x: 0.1, y: 0.2 } }, 'test');
+
+    expect(model.localState?.dialogView?.value).toBeUndefined();
+  });
+
   it('emits drawCustomAttributesChanged when draw custom attributes change', () => {
     const events: any[] = [];
     model.drawCustomAttributesChanged.connect((_, args) => {

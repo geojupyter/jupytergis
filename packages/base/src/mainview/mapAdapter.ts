@@ -18,9 +18,18 @@ import { ClientPointer } from './CollaboratorPointers';
 
 export type MapAdapterType = 'openlayers' | 'maplibre';
 
+export const VIEWPORT_SYNC_INTERVAL = 200;
+
 export interface IMapProjection {
   code: string;
   units: string;
+}
+
+export interface IMapLayerComparison {
+  /** The compared layers: the first shows on the left, the second on the right. */
+  layers: [string, string];
+  /** Divider position, expressed as proportion of map width between 0 and 1. */
+  position: number;
 }
 
 /**
@@ -70,6 +79,7 @@ export interface IMapAdapter {
     center: JgisCoordinates,
     zoom: number,
     duration?: number,
+    easing?: 'ease' | 'linear',
   ): void;
 
   applyOptions(
@@ -92,6 +102,9 @@ export interface IMapAdapter {
 
   /** Enables or disables pan/zoom navigation (used while following a user). */
   setNavigationEnabled(enabled: boolean): void;
+
+  /** Clips each compared layer to its side of a divider; `null` clears it. */
+  setLayerComparison(comparison: IMapLayerComparison | null): void;
 
   /** Removes the FullScreen control. */
   enterPresentationMode(): void;
