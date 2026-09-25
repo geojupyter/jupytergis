@@ -26,7 +26,7 @@ import {
 import { showErrorMessage } from '@jupyterlab/apputils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { IObservableMap, ObservableMap } from '@jupyterlab/observables';
-import { ServerConnection, User } from '@jupyterlab/services';
+import { User } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { JSONValue } from '@lumino/coreutils';
@@ -43,7 +43,7 @@ import {
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import { useIsMobile } from '@/src/shared/hooks/useIsMobile';
-import { debounce, isLightTheme } from '@/src/tools';
+import { isLightTheme } from '@/src/tools';
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
 import { ClientPointer } from './CollaboratorPointers';
 import TemporalSlider from './TemporalSlider';
@@ -245,7 +245,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._commands = new CommandRegistry();
     this._contextMenu = new ContextMenu({
       commands: this._commands,
-    });    
+    });
   }
 
   async componentDidMount(): Promise<void> {
@@ -1129,19 +1129,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     change.sourceChange?.forEach(srcChange => {
       if (!srcChange.newValue || Object.keys(srcChange.newValue).length === 0) {
         this._mapAdapter?.removeSource(srcChange.id);
-      } else {
-        const source = this._model.getSource(srcChange.id);
-        if (!source) {
-          return;
-        }
-        if (
-          this._model.currentMode === 'drawing' &&
-          srcChange.id === this._mapAdapter?.drawTool.currentDrawSourceId
-        ) {
-          return;
-        }
-        void this._mapAdapter?.updateSource(srcChange.id, source);
+        return;
       }
+
+      const source = this._model.getSource(srcChange.id);
+      if (!source) {
+        return;
+      }
+
+      if (
+        this._model.currentMode === 'drawing' &&
+        srcChange.id === this._mapAdapter?.drawTool.currentDrawSourceId &&
+        source.type !== 'FeatureStoreSource'
+      ) {
+        return;
+      }
+
+      void this._mapAdapter?.updateSource(srcChange.id, source);
     });
 
     this.setState(old => ({
@@ -1614,7 +1618,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _onFeatureStoresChanged() {
-    this._mapAdapter?.onFeatureStoresChanged()
+    this._mapAdapter?.onFeatureStoresChanged();
   }
 
   render(): JSX.Element {

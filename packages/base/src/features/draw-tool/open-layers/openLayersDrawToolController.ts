@@ -1,4 +1,3 @@
-import { showErrorMessage } from '@jupyterlab/apputils';
 import type {
   IDrawCustomAttribute,
   IFeatureStoreGeometry,
@@ -6,6 +5,7 @@ import type {
   IJGISSource,
   IJupyterGISModel,
 } from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 import type { Map as OlMap } from 'ol';
 import Feature from 'ol/Feature';

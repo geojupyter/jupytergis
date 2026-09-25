@@ -39,8 +39,7 @@ export function getVectorSourceFromLayer(
     return undefined;
   }
 
-  const source =
-    (matchingLayer as Layer).getSource?.() ?? matchingLayer.get('source');
+  const source = matchingLayer.getSource?.() ?? matchingLayer.get('source');
 
   return source instanceof VectorSource ? source : undefined;
 }

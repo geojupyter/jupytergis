@@ -506,19 +506,21 @@ export class OpenLayersAdapter implements IMapAdapter {
 
     switch (jgisLayer?.type) {
       case 'VectorLayer':
-        // Overlay (VectorImageLayer) is handled by selectInteraction.
-        // Feature-store tipg baseline (VectorTileLayer) is hit-tested here.
-        const sourceId = jgisLayer.parameters?.source;
-        const jgisSource = sourceId
-          ? this._model.getSource(sourceId)
-          : undefined;
+        {
+          // Overlay (VectorImageLayer) is handled by selectInteraction.
+          // Feature-store tipg baseline (VectorTileLayer) is hit-tested here.
+          const sourceId = jgisLayer.parameters?.source;
+          const jgisSource = sourceId
+            ? this._model.getSource(sourceId)
+            : undefined;
 
-        if (jgisSource?.type === 'FeatureStoreSource') {
-          this._identifyFeatureStoreBaseline(
-            e,
-            layerId,
-            jgisSource.parameters as IFeatureStoreSource,
-          );
+          if (jgisSource?.type === 'FeatureStoreSource') {
+            this._identifyFeatureStoreBaseline(
+              e,
+              layerId,
+              jgisSource.parameters as IFeatureStoreSource,
+            );
+          }
         }
         break;
 
