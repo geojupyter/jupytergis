@@ -1055,6 +1055,10 @@ export class MapLibreAdapter implements IMapAdapter {
     this._model.updateLayerViewState(layerId, view);
   }
 
+  setLayerComparison(): void {
+    this._notImplemented('setLayerComparison');
+  }
+
   handleLocationIndicatorToggled(): void {
     this._notImplemented('handleLocationIndicatorToggled');
   }
