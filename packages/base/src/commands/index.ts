@@ -28,6 +28,7 @@ import { fromLonLat } from 'ol/proj';
 import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
+import { launchFollowable, registerFollowDialogs } from '../features/follow';
 import { LayerBrowserWidget } from '../features/layer-browser';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
 import {
@@ -161,6 +162,16 @@ export function addCommands(
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
+
+  registerFollowDialogs({
+    formSchemaRegistry,
+    layerBrowserRegistry,
+    state,
+    commands,
+    editorServices,
+    rendermime,
+    urlResolverFactory,
+  });
 
   addLayerCreationCommands({ tracker, commands, trans });
   /**
@@ -386,12 +397,20 @@ export function addCommands(
       // Unlike editing, describing a layer is the same for every layer type, so
       // this deliberately bypasses `getLayerEditHandler`: types with their own
       // editor (e.g. OpenEO) still get a Metadata tab.
+      const objectId = Object.keys(model.localState?.selected?.value ?? {})[0];
       const dialog = new ObjectPropertiesWidget({
         model,
         formSchemaRegistry,
         initialTab: 'metadata',
       });
-      await dialog.launch();
+      await launchFollowable(
+        model,
+        {
+          kind: 'layerProperties',
+          params: { objectId, initialTab: 'metadata' },
+        },
+        dialog,
+      );
     },
     ...icons.get(CommandIDs.showLayerMetadata),
   });
@@ -1671,7 +1690,20 @@ export function addCommands(
           },
         });
 
-        dialog.launch();
+        void launchFollowable(
+          model,
+          {
+            kind: 'processing',
+            params: {
+              title: 'Download GeoJSON',
+              schemaId: 'ExportGeoJSONSchema',
+              sourceData: { exportFormat: 'GeoJSON' },
+              formContext: 'create',
+              processingType: 'Export',
+            },
+          },
+          dialog,
+        ).catch(() => undefined);
       });
 
       if (!formValues || !selectedLayer.parameters) {
@@ -2462,7 +2494,7 @@ namespace Private {
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry,
       });
-      await dialog.launch();
+      await launchFollowable(current.model, { kind: 'layerBrowser' }, dialog);
     };
   }
 
@@ -2477,11 +2509,18 @@ namespace Private {
         return;
       }
 
+      const layerId = Object.keys(
+        current.model.localState?.selected?.value ?? {},
+      )[0];
       const dialog = new SymbologyWidget({
         model: current.model,
         state,
       });
-      await dialog.launch();
+      await launchFollowable(
+        current.model,
+        { kind: 'symbology', params: { layerId } },
+        dialog,
+      );
     };
   }
 
@@ -2514,7 +2553,22 @@ namespace Private {
         layerType,
         formSchemaRegistry,
       });
-      await dialog.launch();
+      await launchFollowable(
+        current.model,
+        {
+          kind: 'layerCreation',
+          params: {
+            title,
+            createLayer,
+            createSource,
+            sourceData,
+            layerData,
+            sourceType,
+            layerType,
+          },
+        },
+        dialog,
+      );
     };
   }
 

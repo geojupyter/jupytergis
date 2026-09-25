@@ -36,6 +36,7 @@ import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
+import { FollowDialogMirror } from '@/src/features/follow';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import {
   getStoryPresentationMode,
@@ -173,6 +174,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     remoteUserSignals.forEach(signal =>
       signal.connect(this._handleRemoteUserChanged, this),
     );
+    this._followDialogMirror = new FollowDialogMirror(this._model);
     this._model.pointerChanged.connect(this._handlePointerChanged, this);
     this._model.selectedChanged.connect(
       this._handleTemporalControllerActiveChanged,
@@ -356,6 +358,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     remoteUserSignals.forEach(signal =>
       signal.disconnect(this._handleRemoteUserChanged, this),
     );
+    this._followDialogMirror?.dispose();
+    this._followDialogMirror = null;
     openEOEvents.connected.disconnect(this._onOpenEOConnected, this);
     this._model.pointerChanged.disconnect(this._handlePointerChanged, this);
     this._model.updateLayerSignal.disconnect(this._triggerLayerUpdate, this);
@@ -802,6 +806,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       );
     }
   }
+
+  private _followDialogMirror: FollowDialogMirror | null = null;
 
   private _handleRemoteUserChanged(): void {
     const localState = this._model.localState;

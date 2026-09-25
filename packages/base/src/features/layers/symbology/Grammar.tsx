@@ -27,6 +27,7 @@ import {
 import { UUID } from '@lumino/coreutils';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useFollowedState } from '@/src/features/follow/useFollowedState';
 import MappingRow, {
   IGrammarRow,
   WhenRow,
@@ -657,6 +658,11 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
       })),
     );
   }, [params]);
+
+  // Declared after the effect above so that, in a mirrored dialog, the
+  // collaborator's in-progress rules win over the document's saved ones on
+  // mount.
+  useFollowedState(model, 'symbology:layers', layers, setLayers);
 
   const handleOk = () => {
     if (!layerId || !layer?.parameters) {
