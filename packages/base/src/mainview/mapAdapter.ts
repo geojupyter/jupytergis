@@ -112,7 +112,8 @@ export interface IMapAdapter {
   /** Restores whatever enterPresentationMode() removed. */
   exitPresentationMode(): void;
 
-  readonly drawTool: IDrawToolAdapter;
+  drawTool: IDrawToolAdapter;
+  onFeatureStoresChanged(): void;
 }
 
 export interface IMapAdapterOptions {

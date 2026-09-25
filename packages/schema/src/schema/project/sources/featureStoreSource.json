@@ -1,0 +1,31 @@
+{
+  "type": "object",
+  "description": "FeatureStoreSource",
+  "title": "IFeatureStoreSource",
+  "required": ["storeId"],
+  "additionalProperties": false,
+  "properties": {
+    "storeId": {
+      "type": "string",
+      "description": "Stable id for the feature store (maps to PostGIS table jgis_store_<slug>).",
+      "default": ""
+    },
+    "tileUrlTemplate": {
+      "type": "string",
+      "description": "MVT URL template with {z}/{x}/{y} for the live tipg baseline (usually jupytergis_core/tiles/collections/…). Prefixed with the Jupyter base URL at runtime. Append ?v= from baselineVersion for cache busting.",
+      "default": ""
+    },
+    "baselineVersion": {
+      "type": "integer",
+      "description": "Monotonic baseline version; bump after each fold and append as ?v= on tile requests.",
+      "default": 0,
+      "minimum": 0
+    },
+    "attribution": {
+      "type": "string",
+      "readOnly": true,
+      "description": "Attribution for the feature store source.",
+      "default": ""
+    }
+  }
+}

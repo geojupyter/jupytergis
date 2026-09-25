@@ -6,6 +6,7 @@ from typing import Any
 from jupyter_ydoc.ybasedoc import YBaseDoc
 from pycrdt import Array, Map
 
+from .fold import FeatureStoreFold
 from .migrations import migrate
 from .schema import SCHEMA_VERSION
 
@@ -21,7 +22,16 @@ class YJGIS(YBaseDoc):
         self._ydoc["layerTree"] = self._ylayerTree = Array()
         self._ydoc["annotations"] = self._yannotations = Map()
         self._ydoc["presets"] = self._ypresets = Map()
+        self._ydoc["featureStores"] = self._yfeatureStores = Map()
         self._ydoc["metadata"] = self._ymetadata = Map()
+        # Private observer: not in observe() / _subscriptions so overlay
+        # points do not dirty the .jGIS file, and unobserve()
+        # does not drop the fold subscription.
+        self._feature_store_fold = FeatureStoreFold(
+            self._ydoc,
+            self._yfeatureStores,
+            self._ysources,
+        )
 
     @property
     def version(self) -> str:

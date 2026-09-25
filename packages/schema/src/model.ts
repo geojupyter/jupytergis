@@ -27,6 +27,7 @@ import {
   DEFAULT_WORLD_EXTENT_3857,
   JupyterGISDoc,
 } from './doc';
+import { isOverlayNearSoftLimit } from './featureStores';
 import {
   AWARENESS_FIELD_KEYS,
   AWARENESS_STATE_FIELDS,
@@ -59,7 +60,15 @@ import {
 } from './interfaces';
 import { migrateDocument } from './migrations';
 import jgisSchema from './schema/project/jgis.json';
-import { IViewState, Modes } from './types';
+import type {
+  IFeatureStoreFeature,
+  IFeatureStoreGeometry,
+  IFeatureStore,
+  IFeatureStoreMeta,
+  FeatureStoreAddBlockReason,
+  IViewState,
+  Modes,
+} from './types';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
@@ -105,6 +114,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       this,
     );
     this._sharedModel.presetsChanged.connect(this._presetsChangedHandler, this);
+    this._sharedModel.featureStoresChanged.connect(
+      this._featureStoresChangedHandler,
+      this,
+    );
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
@@ -417,6 +430,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._sharedPresetsChanged.emit(args);
   }
 
+  private _featureStoresChangedHandler(_: IJupyterGISDoc, args: MapChange) {
+    this._featureStoresChanged.emit(args);
+  }
+
   dispose(): void {
     this._storyPreviewActive = false;
     if (this._isDisposed) {
@@ -469,6 +486,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       };
       this.sharedModel.annotations = jsonData.annotations ?? {};
       this.sharedModel.presets = jsonData.presets ?? {};
+      this.sharedModel.featureStores = {};
       this.sharedModel.metadata = jsonData.metadata ?? {};
     });
     this.dirty = true;
@@ -881,6 +899,78 @@ export class JupyterGISModel implements IJupyterGISModel {
       return;
     }
     this.syncDialogView({ ...current, ...patch }, emitter);
+  }
+
+  getFeatureStore(storeId: string): IFeatureStore | undefined {
+    return this.sharedModel.getFeatureStore(storeId);
+  }
+
+  getFeatureStoreFeatures(
+    storeId: string,
+  ): Record<string, IFeatureStoreFeature> {
+    return this.sharedModel.getFeatureStoreFeatures(storeId);
+  }
+
+  setFeatureStoreFeature(
+    storeId: string,
+    feature: IFeatureStoreFeature,
+  ): { ok: true } | { ok: false; reason: FeatureStoreAddBlockReason } {
+    return this.sharedModel.setFeatureStoreFeature(storeId, feature);
+  }
+
+  addFeatureStoreFeature(args: {
+    storeId: string;
+    geometry: IFeatureStoreGeometry;
+    props?: IFeatureStoreFeature['props'];
+    id?: string;
+  }):
+    | { ok: true; nearSoftLimit: boolean; feature: IFeatureStoreFeature }
+    | { ok: false; reason: FeatureStoreAddBlockReason } {
+    const feature: IFeatureStoreFeature = {
+      id: args.id ?? UUID.uuid4(),
+      geometry: args.geometry,
+      props: args.props ?? {},
+      updatedAt: new Date().toISOString(),
+      updatedBy: this.getClientId().toString(),
+    };
+
+    const result = this.setFeatureStoreFeature(args.storeId, feature);
+    if (!result.ok) {
+      return result;
+    }
+
+    const store = this.getFeatureStore(args.storeId);
+    return {
+      ok: true,
+      feature,
+      nearSoftLimit: store ? isOverlayNearSoftLimit(store) : false,
+    };
+  }
+
+  removeFeatureStoreFeature(
+    storeId: string,
+    featureId: string,
+    options: { tombstone?: boolean } = {},
+  ): void {
+    this.sharedModel.removeFeatureStoreFeature(storeId, featureId, {
+      tombstone: options.tombstone,
+      updatedBy: this.getClientId().toString(),
+    });
+  }
+
+  clearFeatureStoreOverlay(storeId: string): void {
+    this.sharedModel.clearFeatureStoreOverlay(storeId);
+  }
+
+  updateFeatureStoreMeta(
+    storeId: string,
+    meta: Partial<IFeatureStoreMeta>,
+  ): void {
+    this.sharedModel.updateFeatureStoreMeta(storeId, meta);
+  }
+
+  get featureStoresChanged(): ISignal<IJupyterGISModel, MapChange> {
+    return this._featureStoresChanged;
   }
 
   setUserToFollow(userId?: number): void {
@@ -1607,10 +1697,17 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   checkIfIsADrawVectorLayer(layer: IJGISLayer): boolean {
     const selectedSource = this.getSource(layer.parameters?.source);
+    if (!selectedSource) {
+      return false;
+    }
+
+    if (selectedSource.type === 'FeatureStoreSource') {
+      return true;
+    }
 
     return (
-      selectedSource?.type === 'GeoJSONSource' &&
-      selectedSource?.parameters?.data?.type === 'FeatureCollection'
+      selectedSource.type === 'GeoJSONSource' &&
+      selectedSource.parameters?.data?.type === 'FeatureCollection'
     );
   }
 
@@ -1701,6 +1798,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
   private _sharedAnnotationsChanged = new Signal<this, MapChange>(this);
   private _sharedPresetsChanged = new Signal<this, MapChange>(this);
+  private _featureStoresChanged = new Signal<this, MapChange>(this);
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);

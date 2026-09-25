@@ -1,29 +1,47 @@
-import { Layer, Vector as VectorLayer } from 'ol/layer';
+import type { IFeatureStoreSource, IJupyterGISModel } from '@jupytergis/schema';
+import { Layer } from 'ol/layer';
 import LayerGroup from 'ol/layer/Group';
 import { Vector as VectorSource } from 'ol/source';
 
 export function getVectorSourceFromLayer(
-  getLayer: (layerId: string) => Layer | undefined,
+  getOlLayer: (layerId: string) => Layer | undefined,
   layerId: string,
+  model: IJupyterGISModel,
+  getFeatureStoreOverlay: (storeId: string) => VectorSource | undefined,
 ): VectorSource | undefined {
-  const matchingLayer = getLayer(layerId);
-  let source: VectorSource | undefined;
+  const matchingLayer = getOlLayer(layerId);
 
-  if (matchingLayer instanceof LayerGroup) {
-    for (const sub of matchingLayer.getLayers().getArray()) {
-      if (typeof (sub as VectorLayer).getSource === 'function') {
-        source = (sub as VectorLayer).getSource() as VectorSource;
-        break;
-      }
-    }
-  } else if (
-    matchingLayer &&
-    typeof (matchingLayer as VectorLayer).getSource === 'function'
-  ) {
-    source = (matchingLayer as VectorLayer).getSource() as VectorSource;
+  if (!matchingLayer) {
+    return undefined;
   }
 
-  return source;
+  // Feature-store layers are LayerGroups. The baseline child is a
+  // VectorTileSource, the overlay child is the VectorSource to draw on.
+  if (matchingLayer instanceof LayerGroup) {
+    for (const child of matchingLayer.getLayers().getArray()) {
+      const childSource = (child as Layer).getSource?.();
+      if (childSource instanceof VectorSource) {
+        return childSource;
+      }
+    }
+
+    const jgisLayer = model.getLayer(layerId);
+    const sourceId = (
+      jgisLayer as { parameters?: { source?: string } } | undefined
+    )?.parameters?.source;
+    const jgisSource = sourceId ? model.getSource(sourceId) : undefined;
+
+    if (jgisSource?.type === 'FeatureStoreSource') {
+      const storeId = (jgisSource.parameters as IFeatureStoreSource).storeId;
+      return storeId ? getFeatureStoreOverlay(storeId) : undefined;
+    }
+
+    return undefined;
+  }
+
+  const source = matchingLayer.getSource?.() ?? matchingLayer.get('source');
+
+  return source instanceof VectorSource ? source : undefined;
 }
 
 export function isDrawLayer(

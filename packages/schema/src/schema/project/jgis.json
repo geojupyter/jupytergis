@@ -67,6 +67,7 @@
         "GeoPackageVectorSource",
         "GeoPackageRasterSource",
         "GeoParquetSource",
+        "FeatureStoreSource",
         "MarkerSource",
         "OpenEOTileSource"
       ]
