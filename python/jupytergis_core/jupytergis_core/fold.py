@@ -93,7 +93,7 @@ def _copy_and_release_overlay(ydoc: Doc, store: Map) -> list[dict[str, Any]]:
 
 def bump_feature_store_sources(ysources: Map, store_id: str) -> None:
     """Bump baselineVersion / tileUrlTemplate on matching sources."""
-    for source_id in list(ysources):
+    for source_id in list(ysources.keys()):
         source = ysources.get(source_id)
         if isinstance(source, Map):
             plain = source.to_py() or {}
@@ -152,7 +152,7 @@ class FeatureStoreFold:
             )
 
     def _scan(self) -> None:
-        for store_id in list(self._yfeature_stores):
+        for store_id in list(self._yfeature_stores.keys()):
             self._maybe_begin_fold(store_id)
 
     def _maybe_begin_fold(self, store_id: str) -> None:
