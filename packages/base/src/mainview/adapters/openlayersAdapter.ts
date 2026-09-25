@@ -37,6 +37,7 @@ import {
   buildFeatureStoreTileUrlTemplate,
 } from '@jupytergis/schema';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
+import { ServerConnection } from '@jupyterlab/services';
 import { UUID } from '@lumino/coreutils';
 import { Feature as GeoJSONFeature, Geometry } from 'geojson';
 import {
@@ -160,7 +161,6 @@ import {
   isValidExtent,
   transformExtentToViewProjection,
 } from '../utils/olLayerZoomExtent';
-import { ServerConnection } from '@jupyterlab/services';
 
 type OlLayerTypes =
   | TileLayer
@@ -1204,7 +1204,8 @@ export class OpenLayersAdapter implements IMapAdapter {
           newMapLayer = new LayerGroup({
             layers: children,
             visible: layer.visible,
-          }); {
+          });
+        } else {
           newMapLayer = new VectorImageLayer({
             opacity: layerParameters.opacity,
             visible: layer.visible,
@@ -1215,9 +1216,40 @@ export class OpenLayersAdapter implements IMapAdapter {
         }
 
         break;
-      }}
+      }
       case 'VectorTileLayer': {
         layerParameters = layer.parameters as IVectorLayer;
+
+        if (source?.type === 'FeatureStoreSource') {
+          const storeParams = source.parameters as IFeatureStoreSource;
+          const style = this.vectorLayerStyleRuleBuilder(layer);
+          const children: Layer[] = [];
+          const baseline = this._featureStoreSources.get(
+            storeParams.storeId,
+          )?.baseline;
+
+          if (baseline) {
+            children.push(
+              new VectorTileLayer({
+                opacity: layerParameters.opacity,
+                source: baseline,
+                style,
+              }),
+            );
+          }
+          children.push(
+            new VectorImageLayer({
+              opacity: layerParameters.opacity,
+              source: this._sources.get(layerParameters.source),
+              style,
+            }),
+          );
+          newMapLayer = new LayerGroup({
+            layers: children,
+            visible: layer.visible,
+          });
+          break;
+        }
 
         newMapLayer = new VectorTileLayer({
           opacity: layerParameters.opacity,
@@ -1365,14 +1397,14 @@ export class OpenLayersAdapter implements IMapAdapter {
     newMapLayer.set('id', id);
 
     // STAC layers don't have source
-      if (layerParameters && 'source' in layerParameters) {
-        this._sourceToLayerMap.set(layerParameters.source, id);
-      }
+    if (layerParameters && 'source' in layerParameters) {
+      this._sourceToLayerMap.set(layerParameters.source, id);
+    }
 
-      if (newMapLayer instanceof Layer) {
-        this.addProjection(newMapLayer);
-        await this._waitForLayerReady(newMapLayer);
-      }
+    if (newMapLayer instanceof Layer) {
+      this.addProjection(newMapLayer);
+      await this._waitForLayerReady(newMapLayer);
+    }
 
     this._loadingLayers.delete(id);
 
@@ -2909,46 +2941,46 @@ export class OpenLayersAdapter implements IMapAdapter {
     // create updated source
     await this.addSource(id, source);
 
-      // Collaborative sources use a LayerGroup (baseline VT + overlay).
-      if (
-        mapLayer instanceof LayerGroup &&
-        source.type === 'FeatureStoreSource'
-      ) {
-        const parameters = source.parameters as IFeatureStoreSource;
-        const storeSources = this._featureStoreSources.get(parameters.storeId);
-        const overlay = storeSources?.overlay;
-        const baseline = storeSources?.baseline;
-  
-        if (!overlay) {
-          return;
-        }
-  
-        const style = this.vectorLayerStyleRuleBuilder(
-          this._model.getLayer(layerId)!,
-        );
-  
-        const children: Layer[] = [];
-  
-        if (baseline) {
-          children.push(
-            new VectorTileLayer({
-              source: baseline,
-              style,
-            }),
-          );
-        }
-  
+    // Collaborative sources use a LayerGroup (baseline VT + overlay).
+    if (
+      mapLayer instanceof LayerGroup &&
+      source.type === 'FeatureStoreSource'
+    ) {
+      const parameters = source.parameters as IFeatureStoreSource;
+      const storeSources = this._featureStoreSources.get(parameters.storeId);
+      const overlay = storeSources?.overlay;
+      const baseline = storeSources?.baseline;
+
+      if (!overlay) {
+        return;
+      }
+
+      const style = this.vectorLayerStyleRuleBuilder(
+        this._model.getLayer(layerId)!,
+      );
+
+      const children: Layer[] = [];
+
+      if (baseline) {
         children.push(
-          new VectorImageLayer({
-            source: overlay,
+          new VectorTileLayer({
+            source: baseline,
             style,
           }),
         );
-  
-        mapLayer.getLayers().clear();
-        children.forEach(child => mapLayer.getLayers().push(child));
-        return;
       }
+
+      children.push(
+        new VectorImageLayer({
+          source: overlay,
+          style,
+        }),
+      );
+
+      mapLayer.getLayers().clear();
+      children.forEach(child => mapLayer.getLayers().push(child));
+      return;
+    }
 
     // change source of target layer
     mapLayer.setSource(this._sources.get(id));
@@ -3401,7 +3433,6 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
   }
 
-
   get drawTool(): IDrawToolAdapter {
     return this._drawTool;
   }
@@ -3434,9 +3465,9 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _locationIndicatorActive = false;
   private _featureAttributeCache: Map<string | number, any> = new Map();
   private _featureStoreSources = new Map<
-  string,
-  { overlay: VectorSource; baseline: VectorTileSource }
->();
+    string,
+    { overlay: VectorSource; baseline: VectorTileSource }
+  >();
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
