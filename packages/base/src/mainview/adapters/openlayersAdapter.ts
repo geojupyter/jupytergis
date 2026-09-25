@@ -33,6 +33,8 @@ import {
   IJGISUIState,
   JgisCoordinates,
   IIdentifiedFeature,
+  IFeatureStoreSource,
+  buildFeatureStoreTileUrlTemplate,
 } from '@jupytergis/schema';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import { UUID } from '@lumino/coreutils';
@@ -158,6 +160,7 @@ import {
   isValidExtent,
   transformExtentToViewProjection,
 } from '../utils/olLayerZoomExtent';
+import { ServerConnection } from '@jupyterlab/services';
 
 type OlLayerTypes =
   | TileLayer
@@ -500,7 +503,20 @@ export class OpenLayersAdapter implements IMapAdapter {
 
     switch (jgisLayer?.type) {
       case 'VectorLayer':
-        // Handled by selectInteraction (createSelectInteraction).
+        // Overlay (VectorImageLayer) is handled by selectInteraction.
+        // Feature-store tipg baseline (VectorTileLayer) is hit-tested here.
+        const sourceId = jgisLayer.parameters?.source;
+        const jgisSource = sourceId
+          ? this._model.getSource(sourceId)
+          : undefined;
+
+        if (jgisSource?.type === 'FeatureStoreSource') {
+          this._identifyFeatureStoreBaseline(
+            e,
+            layerId,
+            jgisSource.parameters as IFeatureStoreSource,
+          );
+        }
         break;
 
       case 'VectorTileLayer':
@@ -1160,7 +1176,35 @@ export class OpenLayersAdapter implements IMapAdapter {
             false,
             className,
           ) as OlLayerTypes;
-        } else {
+        } else if (source?.type === 'FeatureStoreSource') {
+          const storeParams = source.parameters as IFeatureStoreSource;
+          const style = this.vectorLayerStyleRuleBuilder(layer);
+          const children: Layer[] = [];
+          const baseline = this._featureStoreSources.get(
+            storeParams.storeId,
+          )?.baseline;
+
+          if (baseline) {
+            children.push(
+              new VectorTileLayer({
+                opacity: layerParameters.opacity,
+                source: baseline,
+                style,
+              }),
+            );
+          }
+          children.push(
+            new VectorImageLayer({
+              opacity: layerParameters.opacity,
+              source: this._sources.get(layerParameters.source),
+              style,
+            }),
+          );
+
+          newMapLayer = new LayerGroup({
+            layers: children,
+            visible: layer.visible,
+          }); {
           newMapLayer = new VectorImageLayer({
             opacity: layerParameters.opacity,
             visible: layer.visible,
@@ -1171,7 +1215,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         }
 
         break;
-      }
+      }}
       case 'VectorTileLayer': {
         layerParameters = layer.parameters as IVectorLayer;
 
@@ -1321,16 +1365,14 @@ export class OpenLayersAdapter implements IMapAdapter {
     newMapLayer.set('id', id);
 
     // STAC layers don't have source
-    if (newMapLayer instanceof Layer) {
-      // we need to keep track of which source has which layers
-      // Only set sourceToLayerMap if 'source' exists on layerParameters
-      if ('source' in layerParameters) {
+      if (layerParameters && 'source' in layerParameters) {
         this._sourceToLayerMap.set(layerParameters.source, id);
       }
 
-      this.addProjection(newMapLayer);
-      await this._waitForLayerReady(newMapLayer);
-    }
+      if (newMapLayer instanceof Layer) {
+        this.addProjection(newMapLayer);
+        await this._waitForLayerReady(newMapLayer);
+      }
 
     this._loadingLayers.delete(id);
 
@@ -1839,6 +1881,23 @@ export class OpenLayersAdapter implements IMapAdapter {
 
         if (Array.isArray(layerParams.symbologyState?.layers)) {
           this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
+          break;
+        }
+
+        if (mapLayer instanceof LayerGroup) {
+          mapLayer.setVisible(layer.visible);
+          const style = this.vectorLayerStyleRuleBuilder(layer);
+
+          mapLayer.getLayers().forEach(child => {
+            const sub = child as Layer;
+            sub.setOpacity(layerParams.opacity ?? 1);
+            if (
+              sub instanceof VectorImageLayer ||
+              sub instanceof VectorTileLayer
+            ) {
+              sub.setStyle(style);
+            }
+          });
           break;
         }
 
@@ -2487,6 +2546,76 @@ export class OpenLayersAdapter implements IMapAdapter {
 
           break;
         }
+
+        case 'FeatureStoreSource': {
+          const parameters = source.parameters as IFeatureStoreSource;
+          const storeId = parameters.storeId;
+          if (!storeId) {
+            throw new Error('FeatureStoreSource requires storeId');
+          }
+
+          newSource = new VectorSource();
+          this._syncFeatureStoreOverlaySource(storeId, newSource);
+
+          // Live tipg MVT baseline (under the Ydoc overlay).
+          const relativeTemplate =
+            parameters.tileUrlTemplate?.trim() ||
+            buildFeatureStoreTileUrlTemplate(
+              storeId,
+              parameters.baselineVersion ?? 0,
+            );
+
+          const settings = ServerConnection.makeSettings();
+          const base = settings.baseUrl.endsWith('/')
+            ? settings.baseUrl
+            : `${settings.baseUrl}/`;
+
+          const tileUrl = `${base}${relativeTemplate.replace(/^\//, '')}`;
+          const baselineSource = new VectorTileSource({
+            attributions: parameters.attribution,
+            url: tileUrl,
+            format: new MVT({
+              featureClass: RenderFeature,
+            }),
+            tileLoadFunction: (tile, url) => {
+              const vtTile = tile as VectorTile<RenderFeature>;
+              vtTile.setLoader((extent, _resolution, projection) => {
+                return ServerConnection.makeRequest(url, {}, settings)
+                  .then(response => {
+                    if (!response.ok) {
+                      throw new Error(
+                        `Baseline tile request failed: ${response.status}`,
+                      );
+                    }
+                    return response.arrayBuffer();
+                  })
+                  .then(data => {
+                    const features = vtTile.getFormat().readFeatures(data, {
+                      extent,
+                      featureProjection: projection,
+                    });
+                    vtTile.setFeatures(features);
+                    return features;
+                  })
+                  .catch((err: Error) => {
+                    this._log(
+                      'debug',
+                      `Collaborative baseline tile error: ${err.message}`,
+                    );
+                    tile.setState(TileState.ERROR);
+                    return [];
+                  });
+              });
+            },
+          });
+
+          baselineSource.set('id', `${id}:baseline`);
+          this._featureStoreSources.set(storeId, {
+            overlay: newSource,
+            baseline: baselineSource,
+          });
+          break;
+        }
       }
     } catch (err: any) {
       this._log(
@@ -2529,6 +2658,15 @@ export class OpenLayersAdapter implements IMapAdapter {
    * @param id - the source id.
    */
   removeSource(id: string): void {
+    const jgisSource = this._model.getSource(id);
+
+    if (jgisSource?.type === 'FeatureStoreSource') {
+      const storeId = (jgisSource.parameters as IFeatureStoreSource).storeId;
+      if (storeId) {
+        this._featureStoreSources.delete(storeId);
+      }
+    }
+
     this._sources.delete(id);
   }
 
@@ -2770,6 +2908,48 @@ export class OpenLayersAdapter implements IMapAdapter {
     this.removeSource(id);
     // create updated source
     await this.addSource(id, source);
+
+      // Collaborative sources use a LayerGroup (baseline VT + overlay).
+      if (
+        mapLayer instanceof LayerGroup &&
+        source.type === 'FeatureStoreSource'
+      ) {
+        const parameters = source.parameters as IFeatureStoreSource;
+        const storeSources = this._featureStoreSources.get(parameters.storeId);
+        const overlay = storeSources?.overlay;
+        const baseline = storeSources?.baseline;
+  
+        if (!overlay) {
+          return;
+        }
+  
+        const style = this.vectorLayerStyleRuleBuilder(
+          this._model.getLayer(layerId)!,
+        );
+  
+        const children: Layer[] = [];
+  
+        if (baseline) {
+          children.push(
+            new VectorTileLayer({
+              source: baseline,
+              style,
+            }),
+          );
+        }
+  
+        children.push(
+          new VectorImageLayer({
+            source: overlay,
+            style,
+          }),
+        );
+  
+        mapLayer.getLayers().clear();
+        children.forEach(child => mapLayer.getLayers().push(child));
+        return;
+      }
+
     // change source of target layer
     mapLayer.setSource(this._sources.get(id));
   }
@@ -3075,6 +3255,153 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._model.updateLayerViewState(layerId, view);
   }
 
+  onFeatureStoresChanged = (): void => {
+    for (const [storeId, { overlay }] of this._featureStoreSources) {
+      this._syncFeatureStoreOverlaySource(storeId, overlay);
+    }
+  };
+
+  private _syncFeatureStoreOverlaySource(
+    storeId: string,
+    source: VectorSource,
+  ): void {
+    const features = this._model.getFeatureStoreFeatures(storeId);
+    const viewProj = this._map.getView().getProjection();
+    const format = new GeoJSON();
+    const olFeatures: Feature[] = [];
+
+    for (const feature of Object.values(features)) {
+      if (feature.deleted) {
+        continue;
+      }
+
+      const geometry = format.readGeometry(feature.geometry, {
+        // Overlay geometries are always stored in EPSG:4326 (matches PostGIS).
+        dataProjection: 'EPSG:4326',
+        featureProjection: viewProj,
+      });
+
+      const olFeature = new Feature({ geometry });
+      olFeature.setId(feature.id);
+      olFeature.setProperties({ ...feature.props, _id: feature.id });
+      olFeatures.push(olFeature);
+    }
+
+    source.clear(true);
+    source.addFeatures(olFeatures);
+  }
+
+  /**
+   * Normalize tipg MVT attributes from PostGIS for identify tool.
+   */
+  private _normalizeTipgBaselineProperties(
+    raw: Record<string, unknown>,
+  ): IIdentifiedFeature | undefined {
+    const drop = new Set(['layer', 'geometry']);
+    const out: IIdentifiedFeature = {};
+
+    for (const [key, value] of Object.entries(raw)) {
+      if (drop.has(key)) {
+        continue;
+      }
+
+      if (key === 'id') {
+        if (typeof value === 'string' || typeof value === 'number') {
+          out._id = String(value);
+        }
+        continue;
+      }
+
+      out[key] = value;
+    }
+
+    return Object.keys(out).length > 0 ? out : undefined;
+  }
+
+  /**
+   * Identify tipg MVT baseline features for a feature store layer.
+   * Overlay identify uses Select interaction
+   * This only hit-tests the baseline VectorTileLayer.
+   */
+  private _identifyFeatureStoreBaseline(
+    e: MapBrowserEvent<any>,
+    layerId: string,
+    parameters: IFeatureStoreSource,
+  ): void {
+    const storeId = parameters.storeId;
+    if (!storeId) {
+      return;
+    }
+
+    const baselineSource = this._featureStoreSources.get(storeId)?.baseline;
+    const mapLayer = this.getLayer(layerId);
+    if (!baselineSource || !(mapLayer instanceof LayerGroup)) {
+      return;
+    }
+
+    const baselineLayer = mapLayer
+      .getLayers()
+      .getArray()
+      .find(
+        child =>
+          child instanceof VectorTileLayer &&
+          child.getSource() === baselineSource,
+      ) as VectorTileLayer | undefined;
+
+    if (!baselineLayer) {
+      return;
+    }
+
+    const geometries: OLGeometry[] = [];
+    const features: IIdentifiedFeatureEntry[] = [];
+
+    this._map.forEachFeatureAtPixel(
+      e.pixel,
+      (feature: FeatureLike) => {
+        let geom: OLGeometry | undefined;
+        if (feature instanceof RenderFeature) {
+          geom = toGeometry(feature);
+        }
+
+        const rawProps = feature.getProperties() as Record<string, unknown>;
+        const normalized = this._normalizeTipgBaselineProperties(rawProps);
+
+        if (normalized) {
+          features.push({
+            feature: normalized,
+            floaterOpen: false,
+          });
+        }
+
+        if (geom) {
+          geometries.push(geom);
+        }
+
+        return true;
+      },
+      {
+        layerFilter: layer => layer === baselineLayer,
+        hitTolerance: 3,
+      },
+    );
+
+    // Only sync when we actually hit baseline features so we do not wipe
+    // overlay identify results produced by Select on the same click.
+    if (features.length === 0) {
+      return;
+    }
+
+    this._model.syncIdentifiedFeatures(
+      features,
+      this._model.getClientId().toString(),
+    );
+
+    for (const geom of geometries) {
+      this._model.highlightFeatureSignal.emit(geom);
+    }
+  }
+
+
   get drawTool(): IDrawToolAdapter {
     return this._drawTool;
   }
@@ -3106,6 +3433,10 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _geolocationAccuracyFeature?: Feature;
   private _locationIndicatorActive = false;
   private _featureAttributeCache: Map<string | number, any> = new Map();
+  private _featureStoreSources = new Map<
+  string,
+  { overlay: VectorSource; baseline: VectorTileSource }
+>();
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
