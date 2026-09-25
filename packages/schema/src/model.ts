@@ -39,7 +39,6 @@ import {
   IDrawCustomAttributePresets,
   IDrawCustomAttributesByLayer,
   IDrawCustomAttributesLayerState,
-  IDict,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
