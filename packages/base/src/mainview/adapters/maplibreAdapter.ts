@@ -97,7 +97,7 @@ export class MapLibreAdapter implements IMapAdapter {
       bearing: rotation,
       pitch: 0,
     });
-    (window as any).mapDebug = this._map;
+
     if (zoomButtonsEnabled) {
       this._navigationControl = new NavigationControl({
         showCompass: true,
@@ -307,8 +307,8 @@ export class MapLibreAdapter implements IMapAdapter {
         visibility: visible ? 'visible' : 'none',
       },
       paint: {
-        'fill-color': '#ff0000',
-        'fill-opacity': 0.8,
+        'fill-color': color,
+        'fill-opacity': opacity,
       },
     });
 
