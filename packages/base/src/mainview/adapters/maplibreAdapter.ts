@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import type {
   IDict,
+  IGrammarSymbologyState,
   IIdentifiedFeature,
   IJGISLayer,
   IJGISOptions,
@@ -30,6 +31,11 @@ import {
 } from 'maplibre-gl';
 
 import { IDrawToolAdapter } from '@/src/features/draw-tool';
+import { extractEncodingFieldValues } from '@/src/features/layers/symbology/grammarToOLStyle';
+import {
+  grammarToMapLibreLayers,
+  MapLibreSubLayerType,
+} from '@/src/features/layers/symbology/grammerToMLStyle';
 import { loadFile } from '@/src/tools';
 import { ClientPointer } from '.././CollaboratorPointers';
 import { IMapAdapter, IMapAdapterOptions, IMapProjection } from '../mapAdapter';
@@ -294,25 +300,38 @@ export class MapLibreAdapter implements IMapAdapter {
     sourceId: string,
     visible: boolean,
     opacity: number,
-    color: string,
-    index?: number,
+    symbologyState?: IGrammarSymbologyState,
     sourceLayer?: string,
+    beforeId?: string,
   ): void {
-    // For GeoJSON sources, do not set `source-layer`.
-    this._map.addLayer({
-      id,
-      type: 'fill',
-      source: sourceId,
-      layout: {
-        visibility: visible ? 'visible' : 'none',
-      },
-      paint: {
-        'fill-color': color,
-        'fill-opacity': opacity,
-      },
-    });
+    // Same feature values OL reads from its source; needed for graduated/categorized scales.
+    const data = this._geojsonData.get(sourceId);
+    const rows =
+      data?.type === 'FeatureCollection'
+        ? data.features.map(f => f.properties ?? {})
+        : data?.type === 'Feature'
+          ? [data.properties ?? {}]
+          : [];
+    const featureValues = symbologyState
+      ? extractEncodingFieldValues(symbologyState, rows)
+      : [];
 
-    this._layerSubIds.set(id, [id]);
+    const specs = grammarToMapLibreLayers({
+      id,
+      sourceId,
+      state: symbologyState,
+      featureValues,
+      opacity,
+      visible,
+      sourceLayer,
+    });
+    for (const spec of specs) {
+      this._map.addLayer(spec as any, beforeId);
+    }
+    this._layerSubIds.set(
+      id,
+      specs.map(s => s.id),
+    );
   }
 
   async addLayer(id: string, layer: IJGISLayer, index?: number): Promise<void> {
@@ -410,8 +429,7 @@ export class MapLibreAdapter implements IMapAdapter {
             sourceId,
             visible,
             parameters.opacity ?? 1,
-            parameters.color?.hex ?? '#3388ff',
-            index,
+            parameters.symbologyState as IGrammarSymbologyState,
           );
 
           break;
@@ -435,8 +453,7 @@ export class MapLibreAdapter implements IMapAdapter {
             sourceId,
             visible,
             parameters.opacity ?? 1,
-            parameters.color?.hex ?? '#3388ff',
-            index,
+            parameters.symbologyState as IGrammarSymbologyState,
             sourceLayer,
           );
 
@@ -511,17 +528,43 @@ export class MapLibreAdapter implements IMapAdapter {
 
       case 'VectorLayer':
       case 'VectorTileLayer': {
-        const [fillId] = subIds;
-        const layerParameters = layer.parameters as IVectorLayer;
+        const params = layer.parameters as IVectorLayer;
+        const opacity = params.opacity ?? 1;
 
-        this._map.setPaintProperty(
-          fillId,
-          'fill-opacity',
-          layerParameters.opacity ?? 1,
-        );
-
-        this._map.setLayoutProperty(fillId, 'visibility', visibility);
-
+        if (Array.isArray(params.symbologyState?.layers)) {
+          // Same as OL's _syncGrammarSubLayers: recompile and swap, keep z-position.
+          const ids = this._map.getStyle().layers.map(l => l.id);
+          const beforeId = ids[ids.indexOf(subIds[subIds.length - 1]) + 1];
+          for (const subId of subIds) {
+            this._map.removeLayer(subId);
+          }
+          this._addVectorLayerGroup(
+            id,
+            params.source,
+            layer.visible ?? true,
+            opacity,
+            params.symbologyState as IGrammarSymbologyState,
+            this._resolveVectorSourceLayer(params.source),
+            beforeId,
+          );
+        } else {
+          for (const subId of subIds) {
+            const type = this._map.getLayer(subId)
+              ?.type as MapLibreSubLayerType;
+            if (!type) {
+              continue;
+            }
+            this._map.setPaintProperty(subId, `${type}-opacity`, opacity);
+            if (type === 'circle') {
+              this._map.setPaintProperty(
+                subId,
+                'circle-stroke-opacity',
+                opacity,
+              );
+            }
+            this._map.setLayoutProperty(subId, 'visibility', visibility);
+          }
+        }
         break;
       }
 
