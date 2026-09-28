@@ -94,14 +94,12 @@ export const drawFeaturesMenu = (commands: CommandRegistry) => {
 
   menu.addItem({
     type: 'command',
-    command: CommandIDs.toggleDrawFeatures,
-    args: { target: 'selected' },
+    command: CommandIDs.drawFeaturesOnSelectedLayer,
   });
 
   menu.addItem({
     type: 'command',
-    command: CommandIDs.toggleDrawFeatures,
-    args: { target: 'new' },
+    command: CommandIDs.drawFeaturesOnNewLayer,
   });
 
   return menu;

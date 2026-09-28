@@ -166,7 +166,7 @@ function createContextMenu(
   gisContextMenu.opened.connect(() => buildGroupsMenu(gisContextMenu, model));
 
   gisContextMenu.addItem({
-    command: CommandIDs.toggleDrawFeatures,
+    command: CommandIDs.drawFeaturesOnSelectedLayer,
     selector: GIS_LAYER_ITEM,
     rank: 8,
   });
@@ -381,7 +381,8 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     // Notify commands that need updating
     commands.notifyCommandChanged(CommandIDs.identify);
     commands.notifyCommandChanged(CommandIDs.temporalController);
-    commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
+    commands.notifyCommandChanged(CommandIDs.drawFeaturesOnSelectedLayer);
+    commands.notifyCommandChanged(CommandIDs.drawFeaturesOnNewLayer);
   };
 
   const _onContextMenu = (e: React.MouseEvent) => {
