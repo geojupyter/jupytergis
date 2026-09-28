@@ -86,9 +86,9 @@ function notifyInteractionModeCommands(commands: CommandRegistry): void {
   }
 }
 
-function getDrawingContext(tracker: JupyterGISTracker):
-  | { widget: JupyterGISDocumentWidget; model: IJupyterGISModel }
-  | undefined {
+function getDrawingContext(
+  tracker: JupyterGISTracker,
+): { widget: JupyterGISDocumentWidget; model: IJupyterGISModel } | undefined {
   const widget = tracker.currentWidget;
   if (!(widget instanceof JupyterGISDocumentWidget)) {
     return undefined;
@@ -2105,7 +2105,6 @@ export function addCommands(
   commands.addCommand(CommandIDs.drawFeaturesOnNewLayer, {
     label: trans.__('Draw features on new layer'),
     caption: 'Create an empty draw layer and toggle feature editing.',
-    isToggled: () => isDrawing(tracker),
     isEnabled: () => isDocumentEditable(tracker),
     execute: () => {
       const context = getDrawingContext(tracker);
@@ -2113,11 +2112,12 @@ export function addCommands(
         return;
       }
 
-      if (context.model.currentMode !== 'drawing') {
-        Private.createDrawLayer(context.model);
-      }
+      const wasDrawing = context.model.currentMode === 'drawing';
+      Private.createDrawLayer(context.model);
 
-      toggleDrawing(context.widget, context.model, commands);
+      if (!wasDrawing) {
+        toggleDrawing(context.widget, context.model, commands);
+      }
     },
     ...icons.get(CommandIDs.drawFeaturesOnNewLayer),
   });
