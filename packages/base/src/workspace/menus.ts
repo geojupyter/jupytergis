@@ -88,3 +88,21 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
 
   return subMenu;
 };
+
+export const drawFeaturesMenu = (commands: CommandRegistry) => {
+  const menu = new Menu({ commands });
+
+  menu.addItem({
+    type: 'command',
+    command: CommandIDs.toggleDrawFeatures,
+    args: { target: 'selected' },
+  });
+
+  menu.addItem({
+    type: 'command',
+    command: CommandIDs.toggleDrawFeatures,
+    args: { target: 'new' },
+  });
+
+  return menu;
+};

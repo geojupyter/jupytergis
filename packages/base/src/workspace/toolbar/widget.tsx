@@ -20,10 +20,15 @@ import * as React from 'react';
 import { CommandIDs } from '@/src/constants';
 import {
   helpIcon,
+  pencilSolidIcon,
   targetWithCenterIcon,
   terminalToolbarIcon,
 } from '@/src/shared/icons';
-import { rasterSubMenu, vectorSubMenu } from '@/src/workspace/menus';
+import {
+  drawFeaturesMenu,
+  rasterSubMenu,
+  vectorSubMenu,
+} from '@/src/workspace/menus';
 
 export const TOOLBAR_SEPARATOR_CLASS = 'jGIS-Toolbar-Separator';
 export const TOOLBAR_GROUPNAME_CLASS = 'jGIS-Toolbar-GroupName';
@@ -194,10 +199,20 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('addMarker', addMarkerButton);
       addMarkerButton.node.dataset.testid = 'add-marker-controller-button';
 
-      const toggleDrawFeaturesButton = new CommandToolbarButton({
-        id: CommandIDs.toggleDrawFeatures,
-        label: '',
-        commands: options.commands,
+      const drawMenu = drawFeaturesMenu(options.commands);
+
+      const toggleDrawFeaturesButton = new ToolbarButton({
+        icon: pencilSolidIcon,
+        noFocusOnClick: false,
+        tooltip: 'Draw features',
+        onClick: () => {
+          const bbox = toggleDrawFeaturesButton.node.getBoundingClientRect();
+          drawMenu.open(bbox.x, bbox.bottom);
+        },
+      });
+
+      drawMenu.aboutToClose.connect(() => {
+        toggleDrawFeaturesButton.pressed = false;
       });
 
       this.addItem('toggleDrawFeatures', toggleDrawFeaturesButton);

@@ -560,8 +560,7 @@ export function addCommands(
       }
 
       const luminoEvent = args['_luminoEvent'] as
-        | ReadonlyPartialJSONObject
-        | undefined;
+        ReadonlyPartialJSONObject | undefined;
 
       if (luminoEvent) {
         const keysPressed = luminoEvent.keys as string[] | undefined;
@@ -2028,7 +2027,17 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.toggleDrawFeatures, {
-    label: trans.__('Edit Features'),
+    label: args => {
+      if (args['target'] === 'selected') {
+        return trans.__('Draw features on selected layer');
+      }
+
+      if (args['target'] === 'new') {
+        return trans.__('Draw features on new layer');
+      }
+
+      return trans.__('Edit Features');
+    },
     caption:
       'Toggle feature editing. Creates an empty draw layer if the selection is not draw-compatible.',
     describedBy: {
