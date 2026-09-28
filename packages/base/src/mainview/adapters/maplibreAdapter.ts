@@ -14,6 +14,7 @@ import type {
   IViewState,
   JgisCoordinates,
 } from '@jupytergis/schema';
+import { PageConfig } from '@jupyterlab/coreutils';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import type {
   Feature as GeoJSONFeature,
@@ -69,11 +70,19 @@ export class MapLibreAdapter implements IMapAdapter {
       );
     }
 
+    // MapLibre v6 derives its default worker URL from its own
+    // import.meta.url, which the JupyterLab build rewrites to a non-http
+    // (file://) value. MapLibre then falls back to an empty string and
+    // constructs `new Worker('', {type: 'module'})`, i.e. a worker whose
+    // script is the JupyterLab page itself, which never replies. Point it
+    // at a real served copy instead (copied into the labextension static
+    // folder at build time, see the cp:maplibreworker script). The worker
+    // imports ./maplibre-gl-shared.mjs, so that file must sit beside it.
     setWorkerUrl(
       new URL(
-        'maplibre-gl/dist/maplibre-gl-worker.mjs',
-        import.meta.url,
-      ).toString(),
+        `${PageConfig.getOption('fullLabextensionsUrl')}/@jupytergis/jupytergis-core/static/maplibre-gl-worker.mjs`,
+        window.location.href,
+      ).href,
     );
 
     this._map = new MlMap({
@@ -105,29 +114,6 @@ export class MapLibreAdapter implements IMapAdapter {
         return;
       }
       this._map.once('load', () => resolve());
-    });
-
-    console.log('[MapLibre] INITIALIZE START', {
-      loaded: this._map.loaded(),
-      styleLoaded: this._map.isStyleLoaded(),
-    });
-
-    if (!this._map.loaded()) {
-      await new Promise<void>(resolve => {
-        this._map.once('load', () => {
-          console.log('[MapLibre] INITIAL MAP LOAD FIRED', {
-            loaded: this._map.loaded(),
-            styleLoaded: this._map.isStyleLoaded(),
-          });
-
-          resolve();
-        });
-      });
-    }
-
-    console.log('[MapLibre] INITIALIZE COMPLETE', {
-      loaded: this._map.loaded(),
-      styleLoaded: this._map.isStyleLoaded(),
     });
 
     this._map.resize();
@@ -196,29 +182,9 @@ export class MapLibreAdapter implements IMapAdapter {
 
           this._geojsonData.set(id, data as GeoJSONFeature | FeatureCollection);
 
-          //   Debug logs
-          console.log('[MapLibre] GEOJSON BEFORE addSource', {
-            id,
-            type: data?.type,
-            featureCount: data?.features?.length,
-            firstFeature: data?.features?.[0],
-          });
-
           this._map.addSource(id, {
             type: 'geojson',
             data,
-          });
-
-          console.log('[MapLibre] GEOJSON SOURCE ADDED', {
-            id,
-            data,
-            source: this._map.getSource(id),
-          });
-
-          console.log('[MapLibre] GEOJSON SOURCE STATE', {
-            sourceId: id,
-            sourceExists: !!this._map.getSource(id),
-            mapLoaded: this._map.loaded(),
           });
 
           break;
@@ -346,83 +312,7 @@ export class MapLibreAdapter implements IMapAdapter {
       },
     });
 
-    this._map.on('sourcedataloading', event => {
-      if (event.sourceId !== sourceId) {
-        return;
-      }
-
-      console.log('[MapLibre] GEOJSON SOURCE LOADING', {
-        sourceId: event.sourceId,
-        sourceDataType: event.sourceDataType,
-        isSourceLoaded: this._map.isSourceLoaded(sourceId),
-        loaded: this._map.loaded(),
-        styleLoaded: this._map.isStyleLoaded(),
-      });
-    });
-
-    this._map.on('sourcedata', event => {
-      if (event.sourceId !== sourceId) {
-        return;
-      }
-
-      console.log('[MapLibre] GEOJSON SOURCE DATA', {
-        sourceId: event.sourceId,
-        sourceDataType: event.sourceDataType,
-        isSourceLoaded: this._map.isSourceLoaded(sourceId),
-        loaded: this._map.loaded(),
-        styleLoaded: this._map.isStyleLoaded(),
-      });
-    });
-
-    this._map.on('render', () => {
-      console.log('[MapLibre] RENDER', {
-        sourceLoaded: this._map.isSourceLoaded(sourceId),
-        loaded: this._map.loaded(),
-        styleLoaded: this._map.isStyleLoaded(),
-      });
-    });
-
     this._layerSubIds.set(id, [id]);
-
-    const source = this._map.getSource(sourceId);
-    const mapLayer = this._map.getLayer(id);
-
-    console.log('[MapLibre] GEOJSON DEBUG AFTER ADD', {
-      mapLoaded: this._map.loaded(),
-      styleLoaded: this._map.isStyleLoaded(),
-
-      sourceExists: !!source,
-      layerExists: !!mapLayer,
-
-      sourceLoaded: this._map.isSourceLoaded(sourceId),
-
-      layerVisibility: this._map.getLayoutProperty(id, 'visibility'),
-
-      sourceData: this._geojsonData.get(sourceId),
-
-      layerPaint: {
-        fillColor: this._map.getPaintProperty(id, 'fill-color'),
-        fillOpacity: this._map.getPaintProperty(id, 'fill-opacity'),
-      },
-    });
-  }
-
-  private _logMapLayers(context: string): void {
-    const layers = this._map.getStyle().layers ?? [];
-
-    console.log(`[MapLibre] ${context} - MAP LAYERS`, {
-      count: layers.length,
-      layers: layers.map(layer => ({
-        id: layer.id,
-        type: layer.type,
-        source: 'source' in layer ? layer.source : undefined,
-        sourceLayer:
-          'source-layer' in layer ? layer['source-layer'] : undefined,
-        visibility: this._map.getLayoutProperty(layer.id, 'visibility'),
-        layout: layer.layout,
-        paint: layer.paint,
-      })),
-    });
   }
 
   async addLayer(id: string, layer: IJGISLayer, index?: number): Promise<void> {
@@ -432,14 +322,7 @@ export class MapLibreAdapter implements IMapAdapter {
     this._log('info', `MapLibreAdapter: adding layer ${id}`);
 
     try {
-      console.log('[MapLibre] ADD LAYER STATE', {
-        layerId: id,
-        loaded: this._map.loaded(),
-        styleLoaded: this._map.isStyleLoaded(),
-      });
       await this._buildMapLayer(id, layer, index);
-
-      this._logMapLayers(`After adding: ${id}`);
 
       const sourceId = layer.parameters?.source;
 
@@ -580,7 +463,6 @@ export class MapLibreAdapter implements IMapAdapter {
     }
 
     this._layerVisibility.set(id, visible);
-    console.log('layer visibility', id, visible);
   }
   removeLayer(id: string): void {
     const subIds = this._layerSubIds.get(id) ?? [id];
@@ -632,14 +514,6 @@ export class MapLibreAdapter implements IMapAdapter {
         const [fillId] = subIds;
         const layerParameters = layer.parameters as IVectorLayer;
 
-        console.log('[MapLibre] updating vector layer', {
-          id,
-          fillId,
-          opacity: layerParameters.opacity,
-          visibility,
-          layer: this._map.getLayer(fillId),
-        });
-
         this._map.setPaintProperty(
           fillId,
           'fill-opacity',
@@ -647,12 +521,6 @@ export class MapLibreAdapter implements IMapAdapter {
         );
 
         this._map.setLayoutProperty(fillId, 'visibility', visibility);
-
-        console.log('[MapLibre] vector layer updated', {
-          fillId,
-          opacity: this._map.getPaintProperty(fillId, 'fill-opacity'),
-          visibility: this._map.getLayoutProperty(fillId, 'visibility'),
-        });
 
         break;
       }
