@@ -60,7 +60,7 @@ export const launchFeatureTour = 'jupytergis:launchFeatureTour';
 // Map Commands
 export const addAnnotation = 'jupytergis:addAnnotation';
 export const zoomToLayer = 'jupytergis:zoomToLayer';
-export const downloadGeoJSON = 'jupytergis:downloadGeoJSON';
+export const exportGeoJSON = 'jupytergis:exportGeoJSON';
 
 // Panel toggles
 export const toggleLeftPanel = 'jupytergis:toggleLeftPanel';
