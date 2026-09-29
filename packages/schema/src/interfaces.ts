@@ -566,6 +566,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setUIState(value: Partial<IJGISUIState>): void;
   getUIState(): IJGISUIState;
   uiStateChanged: ISignal<IJupyterGISModel, IJGISUIState>;
+  tileFeaturesChanged: ISignal<IJupyterGISModel, string>;
 }
 
 export interface IUserData {

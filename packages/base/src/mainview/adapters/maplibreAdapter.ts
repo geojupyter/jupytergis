@@ -29,6 +29,7 @@ import {
   NavigationControl,
   setWorkerUrl,
 } from 'maplibre-gl';
+import { FeatureLike } from 'ol/Feature';
 
 import { IDrawToolAdapter } from '@/src/features/draw-tool';
 import { extractEncodingFieldValues } from '@/src/features/layers/symbology/grammarToOLStyle';
@@ -103,7 +104,7 @@ export class MapLibreAdapter implements IMapAdapter {
       bearing: rotation,
       pitch: 0,
     });
-
+    (window as any).mapDebug = this._map;
     if (zoomButtonsEnabled) {
       this._navigationControl = new NavigationControl({
         showCompass: true,
@@ -210,6 +211,23 @@ export class MapLibreAdapter implements IMapAdapter {
             minzoom: sourceParameters.minZoom,
             maxzoom: sourceParameters.maxZoom,
             attribution: sourceParameters.attribution,
+          });
+
+          this._map.on('sourcedata', e => {
+            if (e.sourceId !== id || !e.isSourceLoaded) {
+              return;
+            }
+            const sourceLayer = this._resolveVectorSourceLayer(id);
+            const features = this._map.querySourceFeatures(id, { sourceLayer });
+            if (features.length > 0) {
+              this._model.syncTileFeatures({
+                sourceId: id,
+                features: features.map(f => ({
+                  ...f,
+                  getProperties: () => f.properties ?? {},
+                })) as unknown as FeatureLike[],
+              });
+            }
           });
 
           break;

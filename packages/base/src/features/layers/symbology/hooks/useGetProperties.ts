@@ -134,7 +134,22 @@ export const useGetProperties = ({
   };
 
   useEffect(() => {
-    getProperties();
+    if (!layerId) {
+      return;
+    }
+    const sourceId = model.getLayer(layerId)?.parameters?.source;
+    if (!sourceId) {
+      return;
+    }
+    const handler = (_: IJupyterGISModel, changed: string) => {
+      if (changed === sourceId) {
+        getProperties();
+      }
+    };
+    model.tileFeaturesChanged.connect(handler);
+    return () => {
+      model.tileFeaturesChanged.disconnect(handler);
+    };
   }, [model, layerId]);
 
   return { featureProperties, isLoading, error };
