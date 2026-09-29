@@ -1709,6 +1709,13 @@ export class OpenLayersAdapter implements IMapAdapter {
         this._map.getLayers().insertAt(safeIndex, newMapLayer);
         this._trackLayerViewState(id, newMapLayer);
 
+        if (
+          this._model.currentMode === 'drawing' &&
+          id === this._drawTool.currentDrawLayerId
+        ) {
+          this._drawTool.enterLayer();
+        }
+
         this._callbacks?.onLayerInserted?.(numLayers + 1);
       }
 
