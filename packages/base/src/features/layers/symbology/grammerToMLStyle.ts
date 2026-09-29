@@ -62,12 +62,39 @@ export function toMapLibreExpr(value: any): any {
     if (op === 'band') {
       return undefined;
     }
+    if (
+      op === 'case' &&
+      args.length === 3 &&
+      Array.isArray(args[0]) &&
+      args[0][0] === 'has' &&
+      typeof args[0][1] === 'string' &&
+      Array.isArray(args[1]) &&
+      args[1][0] === 'interpolate'
+    ) {
+      const ramp = toMapLibreExpr(args[1]);
+      const fallback = toMapLibreExpr(args[2]);
+
+      if (ramp === undefined || fallback === undefined) {
+        return undefined;
+      }
+
+      const numericRamp =
+        Array.isArray(ramp) &&
+        ramp[0] === 'interpolate' &&
+        Array.isArray(ramp[2]) &&
+        ramp[2][0] === 'get'
+          ? [...ramp.slice(0, 2), ['to-number', ramp[2]], ...ramp.slice(3)]
+          : ramp;
+
+      return ['case', ['has', args[0][1]], numericRamp, fallback];
+    }
     const translated = args.map(toMapLibreExpr);
     if (translated.some(a => a === undefined)) {
       return undefined;
     }
     return [op === 'color' ? 'rgba' : op, ...translated];
   }
+
   if (isNumberArray(value)) {
     const [r, g, b, a = 1] = value;
     return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`;
