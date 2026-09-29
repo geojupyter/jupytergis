@@ -1969,6 +1969,10 @@ export class OpenLayersAdapter implements IMapAdapter {
    * @param id Layer to retrieve
    */
   private getLayer(id: string) {
+    if (!id) {
+      return undefined;
+    }
+
     return this._map
       .getLayers()
       .getArray()
@@ -2604,7 +2608,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const json = JSON.parse(args);
     const { id: layerId, selectedFeature } = json;
     const olLayer = this.getLayer(layerId);
-    const source = olLayer.getSource() as VectorSource;
+    const source = olLayer?.getSource() as VectorSource;
 
     if (typeof source.forEachFeature !== 'function') {
       return;
@@ -2725,8 +2729,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     feature: IIdentifiedFeature,
   ): { x: number; y: number } | undefined {
     const geometry = (feature?.geometry ?? feature?._geometry) as
-      | Geometry
-      | OLGeometry;
+      Geometry | OLGeometry;
 
     if (!geometry) {
       return undefined;
@@ -2851,13 +2854,9 @@ export class OpenLayersAdapter implements IMapAdapter {
     mapLayer: Layer | LayerGroup,
   ): void {
     const layerParams = layer.parameters as
-      | IVectorLayer
-      | IGeoTiffLayer
-      | IGeoZarrLayer
-      | undefined;
+      IVectorLayer | IGeoTiffLayer | IGeoZarrLayer | undefined;
     const grammarState = layerParams?.symbologyState as
-      | IGrammarSymbologyState
-      | undefined;
+      IGrammarSymbologyState | undefined;
 
     if (!grammarState || !Array.isArray(grammarState.layers)) {
       return;
