@@ -1983,7 +1983,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     return this._map
       .getLayers()
       .getArray()
-      .find(layer => layer.get('id') === id) as Layer;
+      .find(layer => layer.get('id') === id) as Layer | undefined;
   }
 
   /**
@@ -2615,9 +2615,9 @@ export class OpenLayersAdapter implements IMapAdapter {
     const json = JSON.parse(args);
     const { id: layerId, selectedFeature } = json;
     const olLayer = this.getLayer(layerId);
-    const source = olLayer?.getSource() as VectorSource;
+    const source = olLayer?.getSource() as VectorSource | undefined;
 
-    if (typeof source.forEachFeature !== 'function') {
+    if (!source) {
       return;
     }
 

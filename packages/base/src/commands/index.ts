@@ -620,8 +620,7 @@ export function addCommands(
       }
 
       const luminoEvent = args['_luminoEvent'] as
-        | ReadonlyPartialJSONObject
-        | undefined;
+        ReadonlyPartialJSONObject | undefined;
 
       if (luminoEvent) {
         const keysPressed = luminoEvent.keys as string[] | undefined;
@@ -2105,7 +2104,7 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.drawFeaturesOnNewLayer, {
     label: trans.__('Draw features on new layer'),
-    caption: 'Create an empty draw layer and toggle feature editing.',
+    caption: 'Create an empty draw layer and start feature editing.',
     isEnabled: () => isDocumentEditable(tracker),
     execute: () => {
       const context = getDrawingContext(tracker);
@@ -2113,10 +2112,10 @@ export function addCommands(
         return;
       }
 
-      const wasDrawing = context.model.currentMode === 'drawing';
+      const currentMode = context.model.currentMode;
       Private.createDrawLayer(context.model);
 
-      if (!wasDrawing) {
+      if (currentMode !== 'drawing') {
         toggleDrawing(context.widget, context.model, commands);
       }
     },

@@ -14,7 +14,7 @@ import {
   addIcon,
 } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
-import { Widget } from '@lumino/widgets';
+import { Menu, Widget } from '@lumino/widgets';
 import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
@@ -77,6 +77,7 @@ export class ToolbarWidget extends ReactiveToolbar {
   private _hasSetSpectaVisibility = false;
   private _togglePanelButton: CommandToolbarButton | null = null;
   private _drawFeaturesButton: ToolbarButton | null = null;
+  private _drawFeaturesMenu: Menu | null = null;
 
   constructor(options: ToolbarWidget.IOptions) {
     super();
@@ -201,7 +202,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('addMarker', addMarkerButton);
       addMarkerButton.node.dataset.testid = 'add-marker-controller-button';
 
-      const drawMenu = drawFeaturesMenu(options.commands);
+      this._drawFeaturesMenu = drawFeaturesMenu(options.commands);
 
       const toggleDrawFeaturesButton = new ToolbarButton({
         icon: pencilSolidIcon,
@@ -215,15 +216,12 @@ export class ToolbarWidget extends ReactiveToolbar {
           }
 
           const bbox = toggleDrawFeaturesButton.node.getBoundingClientRect();
-          drawMenu.open(bbox.x, bbox.bottom);
+          this._drawFeaturesMenu?.open(bbox.x, bbox.bottom);
         },
       });
       this._drawFeaturesButton = toggleDrawFeaturesButton;
 
-      drawMenu.aboutToClose.connect(() => {
-        toggleDrawFeaturesButton.pressed =
-          this._model.currentMode === 'drawing';
-      });
+      this._drawFeaturesMenu.aboutToClose.connect(this._onDrawMenuClosed, this);
 
       this.addItem('toggleDrawFeatures', toggleDrawFeaturesButton);
       toggleDrawFeaturesButton.node.dataset.testid =
@@ -342,6 +340,14 @@ export class ToolbarWidget extends ReactiveToolbar {
     this._drawFeaturesButton.pressed = this._model.currentMode === 'drawing';
   };
 
+  private _onDrawMenuClosed = (): void => {
+    if (!this._drawFeaturesButton) {
+      return;
+    }
+
+    this._drawFeaturesButton.pressed = this._model.currentMode === 'drawing';
+  };
+
   private _onSettingsChanged = (sender: JupyterGISModel, key: string): void => {
     if (key === 'storyMapsDisabled') {
       this._updateStorySegmentMenuItem();
@@ -362,6 +368,15 @@ export class ToolbarWidget extends ReactiveToolbar {
   };
 
   dispose(): void {
+    if (this._drawFeaturesMenu) {
+      this._drawFeaturesMenu.aboutToClose.disconnect(
+        this._onDrawMenuClosed,
+        this,
+      );
+      this._drawFeaturesMenu.dispose();
+      this._drawFeaturesMenu = null;
+    }
+
     if (this._model) {
       this._model.settingsChanged.disconnect(this._onSettingsChanged, this);
       this._model.modeChanged.disconnect(this._onDrawModeChanged, this);
