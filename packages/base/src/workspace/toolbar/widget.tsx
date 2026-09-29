@@ -209,6 +209,11 @@ export class ToolbarWidget extends ReactiveToolbar {
         tooltip: 'Draw features',
         pressed: this._model.currentMode === 'drawing',
         onClick: () => {
+          if (this._model.currentMode === 'drawing') {
+            this._model.currentMode = 'panning';
+            return;
+          }
+
           const bbox = toggleDrawFeaturesButton.node.getBoundingClientRect();
           drawMenu.open(bbox.x, bbox.bottom);
         },

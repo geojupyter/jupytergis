@@ -1101,8 +1101,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         continue;
       }
       const sourceServerUrl = (source.parameters as any)?.serverUrl as
-        | string
-        | undefined;
+        string | undefined;
       if (!sourceServerUrl) {
         continue;
       }
@@ -1539,7 +1538,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     commands.notifyCommandChanged(CommandIDs.identify);
     commands.notifyCommandChanged(CommandIDs.addMarker);
     commands.notifyCommandChanged(CommandIDs.drawFeaturesOnSelectedLayer);
-    commands.notifyCommandChanged(CommandIDs.drawFeaturesOnNewLayer);
   }
 
   private _handleDrawGeometryTypeChange = (drawGeometryLabel: string): void => {

@@ -381,8 +381,6 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     // Notify commands that need updating
     commands.notifyCommandChanged(CommandIDs.identify);
     commands.notifyCommandChanged(CommandIDs.temporalController);
-    commands.notifyCommandChanged(CommandIDs.drawFeaturesOnSelectedLayer);
-    commands.notifyCommandChanged(CommandIDs.drawFeaturesOnNewLayer);
   };
 
   const _onContextMenu = (e: React.MouseEvent) => {
