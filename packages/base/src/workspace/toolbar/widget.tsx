@@ -76,6 +76,7 @@ export class ToolbarWidget extends ReactiveToolbar {
   private _newSubMenu: MenuSvg | null = null;
   private _hasSetSpectaVisibility = false;
   private _togglePanelButton: CommandToolbarButton | null = null;
+  private _drawFeaturesButton: ToolbarButton | null = null;
 
   constructor(options: ToolbarWidget.IOptions) {
     super();
@@ -86,6 +87,7 @@ export class ToolbarWidget extends ReactiveToolbar {
 
     // Listen for settings changes
     this._model.settingsChanged.connect(this._onSettingsChanged, this);
+    this._model.modeChanged.connect(this._onDrawModeChanged, this);
 
     // Listen for options change because it's the dependable signal
     // Update Specta mode visibility
@@ -205,14 +207,17 @@ export class ToolbarWidget extends ReactiveToolbar {
         icon: pencilSolidIcon,
         noFocusOnClick: false,
         tooltip: 'Draw features',
+        pressed: this._model.currentMode === 'drawing',
         onClick: () => {
           const bbox = toggleDrawFeaturesButton.node.getBoundingClientRect();
           drawMenu.open(bbox.x, bbox.bottom);
         },
       });
+      this._drawFeaturesButton = toggleDrawFeaturesButton;
 
       drawMenu.aboutToClose.connect(() => {
-        toggleDrawFeaturesButton.pressed = false;
+        toggleDrawFeaturesButton.pressed =
+          this._model.currentMode === 'drawing';
       });
 
       this.addItem('toggleDrawFeatures', toggleDrawFeaturesButton);
@@ -324,6 +329,14 @@ export class ToolbarWidget extends ReactiveToolbar {
       leftPanelDisabled && rightPanelDisabled ? 'none' : '';
   }
 
+  private _onDrawModeChanged = (): void => {
+    if (!this._drawFeaturesButton) {
+      return;
+    }
+
+    this._drawFeaturesButton.pressed = this._model.currentMode === 'drawing';
+  };
+
   private _onSettingsChanged = (sender: JupyterGISModel, key: string): void => {
     if (key === 'storyMapsDisabled') {
       this._updateStorySegmentMenuItem();
@@ -346,6 +359,7 @@ export class ToolbarWidget extends ReactiveToolbar {
   dispose(): void {
     if (this._model) {
       this._model.settingsChanged.disconnect(this._onSettingsChanged, this);
+      this._model.modeChanged.disconnect(this._onDrawModeChanged, this);
       this._model.sharedModel.storyMapsChanged.disconnect(
         this._onSpectaModeChanged,
         this,
