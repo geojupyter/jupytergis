@@ -1,3 +1,4 @@
+import { MenuSvg } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { Menu } from '@lumino/widgets';
 
@@ -90,7 +91,7 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
 };
 
 export const drawFeaturesMenu = (commands: CommandRegistry) => {
-  const menu = new Menu({ commands });
+  const menu = new MenuSvg({ commands });
 
   menu.addItem({
     type: 'command',
