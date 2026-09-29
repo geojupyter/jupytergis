@@ -1101,7 +1101,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         continue;
       }
       const sourceServerUrl = (source.parameters as any)?.serverUrl as
-        string | undefined;
+        | string
+        | undefined;
       if (!sourceServerUrl) {
         continue;
       }
