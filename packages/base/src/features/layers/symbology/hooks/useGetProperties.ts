@@ -134,6 +134,10 @@ export const useGetProperties = ({
   };
 
   useEffect(() => {
+    getProperties();
+  }, [model, layerId]);
+
+  useEffect(() => {
     if (!layerId) {
       return;
     }
