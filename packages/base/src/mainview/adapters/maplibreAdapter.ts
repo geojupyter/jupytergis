@@ -40,12 +40,18 @@ import {
   grammarToMapLibreLayers,
   MapLibreSubLayerType,
 } from '@/src/features/layers/symbology/grammerToMLStyle';
-import { loadFile } from '@/src/tools';
+import { debounce, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '.././CollaboratorPointers';
-import { IMapAdapter, IMapAdapterOptions, IMapProjection } from '../mapAdapter';
+import {
+  IMapAdapter,
+  IMapAdapterOptions,
+  IMapProjection,
+  VIEWPORT_SYNC_INTERVAL,
+} from '../mapAdapter';
 import { isValidExtent } from '../utils/olLayerZoomExtent';
 
 const WORLD_EXTENT = [-180, -85.051129, 180, 85.051129];
+type MLCoordinates = [number, number];
 
 export class MapLibreAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
@@ -148,12 +154,110 @@ export class MapLibreAdapter implements IMapAdapter {
    * feature-floater repositioning) stays in sync regardless of engine.
    */
   private _setupViewEvents(): void {
+    const emitBboxChanged = debounce(() => {
+      const extent = this._map.getBounds();
+
+      this._model.updateBboxSignal.emit([
+        extent.getWest(),
+        extent.getSouth(),
+        extent.getEast(),
+        extent.getNorth(),
+      ]);
+    }, 100);
+
+    const syncViewportThrottled = throttle(() => {
+      // Not syncing center if following someone else
+      if (this._model.localState?.remoteUser) {
+        return;
+      }
+
+      const center = this._map.getCenter();
+      const zoom = this._map.getZoom();
+      const bounds = this._map.getBounds();
+
+      this._model.syncViewport(
+        {
+          coordinates: {
+            x: center.lng,
+            y: center.lat,
+          },
+          zoom,
+          extent: [
+            bounds.getWest(),
+            bounds.getSouth(),
+            bounds.getEast(),
+            bounds.getNorth(),
+          ],
+        },
+        this._mainViewId,
+      );
+    }, VIEWPORT_SYNC_INTERVAL);
+
+    this._map.on('move', () => {
+      emitBboxChanged();
+
+      this._callbacks?.onClientPointerPositionChanged?.();
+
+      syncViewportThrottled();
+    });
+
     this._map.on('render', () => {
       this._callbacks?.onPostRender?.();
     });
 
+    this._map.on('moveend', () => {
+      const currentOptions = this._model.getOptions();
+
+      const center = this._map.getCenter();
+      const zoom = this._map.getZoom();
+      const bearing = this._map.getBearing();
+
+      const bounds = this._map.getBounds();
+
+      const updatedOptions: Partial<IJGISOptions> = {
+        latitude: center.lat,
+        longitude: center.lng,
+        bearing,
+        projection: 'EPSG:3857',
+        zoom,
+        extent: [
+          bounds.getWest(),
+          bounds.getSouth(),
+          bounds.getEast(),
+          bounds.getNorth(),
+        ],
+      };
+
+      this._model.setOptions({
+        ...currentOptions,
+        ...updatedOptions,
+      });
+
+      this._updateScale();
+    });
+
+    this._map.on('mousemove', event => {
+      const coordinates: MLCoordinates = [event.lngLat.lng, event.lngLat.lat];
+
+      this._lastPointerCoord = coordinates;
+      this._syncPointer(coordinates);
+    });
+
+    this._map.getCanvas().addEventListener('mouseleave', () => {
+      this._syncPointer(null);
+    });
+
+    this._map.on('click', event => {
+      //   this._identifyFeature(event);     TODO
+    });
+
+    this._map.on('click', event => {
+      //   this._addMarker(event);           TODO
+    });
+
     this._map.on('contextmenu', event => {
       event.preventDefault();
+
       this._callbacks?.onContextMenu?.(event.originalEvent, [
         event.lngLat.lng,
         event.lngLat.lat,
@@ -164,6 +268,31 @@ export class MapLibreAdapter implements IMapAdapter {
       console.error('MapLibre error:', event.error);
     });
   }
+
+  private _updateScale(): void {
+    const zoom = this._map.getZoom();
+    const latitude = this._map.getCenter().lat;
+
+    const earthCircumference = 40075016.686;
+
+    const metersPerPixel =
+      (earthCircumference * Math.cos((latitude * Math.PI) / 180)) /
+      (512 * Math.pow(2, zoom));
+
+    const dpi = 25.4 / 0.28;
+    const inchesPerMeter = 1000 / 25.4;
+
+    const scale = metersPerPixel * inchesPerMeter * dpi;
+
+    this._callbacks?.onScaleChange?.(scale);
+  }
+
+  private _syncPointer = throttle((coordinates: MLCoordinates | null) => {
+    const pointer = coordinates
+      ? { coordinates: { x: coordinates[0], y: coordinates[1] } }
+      : undefined;
+    this._model.syncPointer(pointer);
+  });
 
   async addSource(id: string, source: IJGISSource): Promise<void> {
     this._log('info', `Loading source "${source.name ?? id}" (${source.type})`);
@@ -703,7 +832,7 @@ export class MapLibreAdapter implements IMapAdapter {
     return { code: 'EPSG:3857', units: 'm' };
   }
 
-  getPixelFromCoordinate(coordinate: number[]): [number, number] {
+  getPixelFromCoordinate(coordinate: number[]): MLCoordinates {
     const point = this._map.project([coordinate[0], coordinate[1]]);
     return [point.x, point.y];
   }
@@ -721,7 +850,7 @@ export class MapLibreAdapter implements IMapAdapter {
     duration = 1000,
     transitionType?: 'linear' | 'immediate' | 'smooth',
   ): void {
-    const targetCenter: [number, number] = [center.x, center.y];
+    const targetCenter: MLCoordinates = [center.x, center.y];
 
     if (transitionType === 'linear') {
       this._map.easeTo({
@@ -1177,6 +1306,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _layerVisibility = new Map<string, boolean>();
   private _loadingLayers: Set<string>;
   private _pendingSourceAdds = new Map<string, Promise<void>>();
+  private _lastPointerCoord: MLCoordinates | null = null;
   private _sourceToLayerMap = new Map<string, string>();
   private _geojsonData = new Map<string, GeoJSONFeature | FeatureCollection>();
   private _layerSubIds = new Map<string, string[]>();
