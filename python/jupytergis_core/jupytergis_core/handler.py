@@ -579,7 +579,7 @@ async def refresh_tipg_catalog() -> bool:
 class TipgTilesHandler(APIHandler):
     """Authenticated reverse proxy to tipg for collaborative baseline tiles.
 
-    Maps ``/jupytergis_core/tiles/<path>`` -> ``$JGIS_TIPG_URL/<path>``.
+    Maps ``/jupytergis_core/tipg-featurestore-tiles/<path>`` -> ``$JGIS_TIPG_URL/<path>``.
     """
 
     _FORWARD_RESPONSE_HEADERS = (
@@ -676,7 +676,12 @@ def setup_handlers(web_app: Any) -> None:
 
     # Configure processing route
     processing_route = url_path_join(base_url, "jupytergis_core", "processing")
-    tiles_route = url_path_join(base_url, "jupytergis_core", "tiles", r"(.*)")
+    tiles_route = url_path_join(
+        base_url,
+        "jupytergis_core",
+        "tipg-featurestore-tiles",
+        r"(.*)",
+    )
 
     handlers = [
         (proxy_route, ProxyHandler),

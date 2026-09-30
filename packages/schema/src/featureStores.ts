@@ -117,7 +117,7 @@ export function buildFeatureStoreTileUrlTemplate(
 ): string {
   const collectionId = storeIdToTipgCollectionId(storeId);
   return (
-    `jupytergis_core/tiles/collections/${collectionId}` +
+    `jupytergis_core/tipg-featurestore-tiles/collections/${collectionId}` +
     `/tiles/WebMercatorQuad/{z}/{x}/{y}?v=${baselineVersion}`
   );
 }

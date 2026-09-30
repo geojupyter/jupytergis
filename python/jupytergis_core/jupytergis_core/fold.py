@@ -30,7 +30,7 @@ def build_feature_store_tile_url_template(
     collection_id = f"{TIPG_FEATURE_STORE_SCHEMA}.{store_id_to_table_name(store_id)}"
 
     return (
-        "jupytergis_core/tiles/collections/"
+        "jupytergis_core/tipg-featurestore-tiles/collections/"
         f"{collection_id}/tiles/WebMercatorQuad/{{z}}/{{x}}/{{y}}"
         f"?v={baseline_version}"
     )

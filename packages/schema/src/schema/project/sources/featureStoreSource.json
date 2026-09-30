@@ -12,7 +12,7 @@
     },
     "tileUrlTemplate": {
       "type": "string",
-      "description": "MVT URL template with {z}/{x}/{y} for the live tipg baseline (usually jupytergis_core/tiles/collections/…). Prefixed with the Jupyter base URL at runtime. Append ?v= from baselineVersion for cache busting.",
+      "description": "MVT URL template with {z}/{x}/{y} for the live tipg baseline (usually jupytergis_core/tipg-featurestore-tiles/collections/…). Prefixed with the Jupyter base URL at runtime. Append ?v= from baselineVersion for cache busting.",
       "default": ""
     },
     "baselineVersion": {
