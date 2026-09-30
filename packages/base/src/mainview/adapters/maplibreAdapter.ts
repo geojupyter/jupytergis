@@ -23,10 +23,13 @@ import type {
   Geometry,
 } from 'geojson';
 import {
+  FullscreenControl,
   GeoJSONSource,
+  IControl,
   LngLatBoundsLike,
   Map as MlMap,
   NavigationControl,
+  ScaleControl,
   setWorkerUrl,
 } from 'maplibre-gl';
 import { FeatureLike } from 'ol/Feature';
@@ -60,6 +63,7 @@ export class MapLibreAdapter implements IMapAdapter {
       lonLat,
       zoom = 1,
       rotation = 0,
+      controlsTarget,
       zoomButtonsEnabled = false,
       mainViewId,
       callbacks,
@@ -68,6 +72,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
     this._callbacks = callbacks;
     this._mainViewId = mainViewId;
+    this._controlsTarget = controlsTarget;
     this._loggerRegistry = loggerRegistry;
 
     if (projection !== 'EPSG:3857') {
@@ -105,12 +110,18 @@ export class MapLibreAdapter implements IMapAdapter {
       pitch: 0,
     });
     (window as any).mapDebug = this._map;
+    this._scaleControl = new ScaleControl({});
+    this._mountControl(this._scaleControl);
+
+    this._fullscreenControl = new FullscreenControl({});
+    this._mountControl(this._fullscreenControl);
+
     if (zoomButtonsEnabled) {
       this._navigationControl = new NavigationControl({
         showCompass: true,
         visualizePitch: true,
       });
-      this._map.addControl(this._navigationControl);
+      this._mountControl(this._navigationControl);
     }
 
     this._setupViewEvents();
@@ -652,6 +663,22 @@ export class MapLibreAdapter implements IMapAdapter {
     return undefined;
   }
 
+  private _mountControl(control: IControl): void {
+    if (this._controlsTarget) {
+      this._controlsTarget.appendChild(control.onAdd(this._map));
+    } else {
+      this._map.addControl(control);
+    }
+  }
+
+  private _unmountControl(control: IControl): void {
+    if (this._controlsTarget) {
+      control.onRemove(this._map);
+    } else {
+      this._map.removeControl(control);
+    }
+  }
+
   private _insertIntoLayerOrder(id: string, index?: number): void {
     const existing = this._layerOrder.indexOf(id);
     if (existing !== -1) {
@@ -764,9 +791,9 @@ export class MapLibreAdapter implements IMapAdapter {
     return updated;
   }
 
-  setZoomButtonsEnabled(enabled: boolean | undefined): void {
+  setZoomButtonsEnabled(enabled: boolean): void {
     if (!enabled && this._navigationControl) {
-      this._map.removeControl(this._navigationControl);
+      this._unmountControl(this._navigationControl);
       this._navigationControl = undefined;
       return;
     }
@@ -775,7 +802,7 @@ export class MapLibreAdapter implements IMapAdapter {
         showCompass: true,
         visualizePitch: true,
       });
-      this._map.addControl(this._navigationControl);
+      this._mountControl(this._navigationControl);
     }
   }
 
@@ -1157,4 +1184,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _pendingZoomLayerId: string | null = null;
   private _warnedOnce = new Set<string>();
   private _callbacks?: IMapAdapterOptions['callbacks'];
+  private _controlsTarget?: HTMLElement;
+  private _scaleControl?: ScaleControl;
+  private _fullscreenControl?: FullscreenControl;
 }
