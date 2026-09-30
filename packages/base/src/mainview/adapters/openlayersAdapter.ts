@@ -2605,59 +2605,63 @@ export class OpenLayersAdapter implements IMapAdapter {
           newSource = new VectorSource();
           this._syncFeatureStoreOverlaySource(storeId, newSource);
 
-          // Live tipg MVT baseline (under the Ydoc overlay).
-          const relativeTemplate =
-            parameters.tileUrlTemplate?.trim() ||
-            buildFeatureStoreTileUrlTemplate(
-              storeId,
-              parameters.baselineVersion ?? 0,
-            );
+          // The PostGIS table does not exist until the first fold, which
+          // bumps baselineVersion from 0. Skip tipg until then.
+          const baselineVersion = parameters.baselineVersion ?? 0;
+          let baselineSource: VectorTileSource | undefined;
 
-          const settings = ServerConnection.makeSettings();
-          const base = settings.baseUrl.endsWith('/')
-            ? settings.baseUrl
-            : `${settings.baseUrl}/`;
+          if (baselineVersion > 0) {
+            const relativeTemplate =
+              parameters.tileUrlTemplate?.trim() ||
+              buildFeatureStoreTileUrlTemplate(storeId, baselineVersion);
 
-          const tileUrl = `${base}${relativeTemplate.replace(/^\//, '')}`;
-          const baselineSource = new VectorTileSource({
-            attributions: parameters.attribution,
-            url: tileUrl,
-            format: new MVT({
-              featureClass: RenderFeature,
-            }),
-            tileLoadFunction: (tile, url) => {
-              const vtTile = tile as VectorTile<RenderFeature>;
-              vtTile.setLoader((extent, _resolution, projection) => {
-                return ServerConnection.makeRequest(url, {}, settings)
-                  .then(response => {
-                    if (!response.ok) {
-                      throw new Error(
-                        `Baseline tile request failed: ${response.status}`,
+            const settings = ServerConnection.makeSettings();
+            const base = settings.baseUrl.endsWith('/')
+              ? settings.baseUrl
+              : `${settings.baseUrl}/`;
+
+            const tileUrl = `${base}${relativeTemplate.replace(/^\//, '')}`;
+            baselineSource = new VectorTileSource({
+              attributions: parameters.attribution,
+              url: tileUrl,
+              format: new MVT({
+                featureClass: RenderFeature,
+              }),
+              tileLoadFunction: (tile, url) => {
+                const vtTile = tile as VectorTile<RenderFeature>;
+                vtTile.setLoader((extent, _resolution, projection) => {
+                  return ServerConnection.makeRequest(url, {}, settings)
+                    .then(response => {
+                      if (!response.ok) {
+                        throw new Error(
+                          `Baseline tile request failed: ${response.status}`,
+                        );
+                      }
+                      return response.arrayBuffer();
+                    })
+                    .then(data => {
+                      const features = vtTile.getFormat().readFeatures(data, {
+                        extent,
+                        featureProjection: projection,
+                      });
+                      vtTile.setFeatures(features);
+                      return features;
+                    })
+                    .catch((err: Error) => {
+                      this._log(
+                        'debug',
+                        `Collaborative baseline tile error: ${err.message}`,
                       );
-                    }
-                    return response.arrayBuffer();
-                  })
-                  .then(data => {
-                    const features = vtTile.getFormat().readFeatures(data, {
-                      extent,
-                      featureProjection: projection,
+                      tile.setState(TileState.ERROR);
+                      return [];
                     });
-                    vtTile.setFeatures(features);
-                    return features;
-                  })
-                  .catch((err: Error) => {
-                    this._log(
-                      'debug',
-                      `Collaborative baseline tile error: ${err.message}`,
-                    );
-                    tile.setState(TileState.ERROR);
-                    return [];
-                  });
-              });
-            },
-          });
+                });
+              },
+            });
 
-          baselineSource.set('id', `${id}:baseline`);
+            baselineSource.set('id', `${id}:baseline`);
+          }
+
           this._featureStoreSources.set(storeId, {
             overlay: newSource,
             baseline: baselineSource,
@@ -3482,7 +3486,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _featureAttributeCache: Map<string | number, any> = new Map();
   private _featureStoreSources = new Map<
     string,
-    { overlay: VectorSource; baseline: VectorTileSource }
+    { overlay: VectorSource; baseline?: VectorTileSource }
   >();
 
   private _log(
