@@ -2,7 +2,7 @@
 
 A feature store layer draws two things, an overlay of current features kept in the JupyterGIS document, and a folded baseline stored in a PostGIS table. [tipg](https://github.com/developmentseed/tipg) serves that baseline as vector tiles. Jupyter proxies those tiles, so the browser never talks to tipg directly.
 
-You need both containers for the baseline tiles and for **Fold to Feature Store**. The Edit Features button creates a feature-store layer only when `JGIS_POSTGIS_URL` is set. Otherwise it creates an inline GeoJSON layer.
+You need both containers for the baseline tiles and for **Fold to Feature Store**. The Edit Features button creates a feature-store layer only when `JGIS_POSTGIS_URL` and `JGIS_TIPG_URL` are both set. Otherwise it creates an inline GeoJSON layer.
 
 ## Containers
 
