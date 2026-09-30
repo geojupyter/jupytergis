@@ -1580,7 +1580,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const commands = this._mainViewModel.commands;
     commands.notifyCommandChanged(CommandIDs.identify);
     commands.notifyCommandChanged(CommandIDs.addMarker);
-    commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
+    commands.notifyCommandChanged(CommandIDs.drawFeaturesOnSelectedLayer);
   }
 
   private _handleDrawGeometryTypeChange = (drawGeometryLabel: string): void => {
