@@ -237,10 +237,9 @@ export class MapLibreAdapter implements IMapAdapter {
     });
 
     this._map.on('mousemove', event => {
-      const coordinates: MLCoordinates = [event.lngLat.lng, event.lngLat.lat];
+      this._lastPointerCoord = [event.lngLat.lng, event.lngLat.lat];
 
-      this._lastPointerCoord = coordinates;
-      this._syncPointer(coordinates);
+      this._syncPointer(this._lastPointerCoord);
     });
 
     this._map.getCanvas().addEventListener('mouseleave', () => {
@@ -258,10 +257,10 @@ export class MapLibreAdapter implements IMapAdapter {
     this._map.on('contextmenu', event => {
       event.preventDefault();
 
-      this._callbacks?.onContextMenu?.(event.originalEvent, [
-        event.lngLat.lng,
-        event.lngLat.lat,
-      ]);
+      this._callbacks?.onContextMenu?.(
+        event.originalEvent,
+        this._lastPointerCoord,
+      );
     });
 
     this._map.on('error', event => {
