@@ -72,7 +72,8 @@ const iconObject = {
   [CommandIDs.addMarker]: { icon: markerIcon },
   [CommandIDs.foldFeatureStore]: { icon: dbIcon },
   [CommandIDs.openNewFeatureStoreDialog]: { iconClass: 'fa fa-store' },
-  [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
+  [CommandIDs.drawFeaturesOnSelectedLayer]: { icon: pencilSolidIcon },
+  [CommandIDs.drawFeaturesOnNewLayer]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
   [CommandIDs.openStoryEditor]: {
     // iconClass is ignored when `icon` is a LabIcon, bind className instead.

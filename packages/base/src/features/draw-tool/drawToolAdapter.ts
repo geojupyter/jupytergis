@@ -1,3 +1,10 @@
+import type { IDict } from '@jupytergis/schema';
+
+export interface IDrawFeatureAttributes {
+  featureId: string;
+  attributes: IDict<any>;
+}
+
 export interface IDrawToolAdapter {
   readonly currentDrawLayerId: string | undefined;
   readonly currentDrawSourceId: string | undefined;
@@ -5,6 +12,10 @@ export interface IDrawToolAdapter {
   enterLayer(): void;
   leaveDrawMode(): void;
   deleteAtCoordinate(coordinate: number[]): boolean;
+  getFeatureAtCoordinate(
+    coordinate: number[],
+  ): IDrawFeatureAttributes | undefined;
+  updateFeatureAttributes(featureId: string, attributes: IDict<any>): boolean;
   hasFeatureAtCoordinate(coordinate: number[]): boolean;
   setDrawLayerId(layerId: string): void;
 }

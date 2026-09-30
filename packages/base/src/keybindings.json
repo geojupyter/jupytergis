@@ -40,7 +40,7 @@
     "selector": ".data-jgis-keybinding"
   },
   {
-    "command": "jupytergis:toggleDrawFeatures",
+    "command": "jupytergis:drawFeaturesOnSelectedLayer",
     "keys": ["Accel Shift D"],
     "selector": ".data-jgis-keybinding"
   },
