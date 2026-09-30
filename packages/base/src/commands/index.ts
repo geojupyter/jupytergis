@@ -2111,6 +2111,14 @@ export function addCommands(
     label: trans.__('Fold to Feature Store'),
     caption: trans.__('Fold overlay features into the feature store baseline.'),
     isEnabled: () => {
+      const useFeatureStore = Boolean(
+        PageConfig.getOption('jgis_feature_store'),
+      );
+
+      if (!useFeatureStore) {
+        return false;
+      }
+
       const current = tracker.currentWidget;
       if (!current?.model.sharedModel.editable) {
         return false;
@@ -2591,7 +2599,7 @@ namespace Private {
   export function createDrawLayer(model: IJupyterGISModel): string {
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
-    const useFeatureStore = Boolean(PageConfig.getOption('jgis_postgis'));
+    const useFeatureStore = Boolean(PageConfig.getOption('jgis_feature_store'));
 
     let sourceModel: IJGISSource;
     if (useFeatureStore) {
