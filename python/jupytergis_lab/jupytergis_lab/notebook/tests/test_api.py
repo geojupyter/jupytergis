@@ -312,9 +312,13 @@ class TestQgisUnsupportedFeatures(TestDocument):
         assert self.doc.layers[layer_id]
 
 
+def _feature_stores(doc: GISDocument) -> dict:
+    return doc._featureStores.to_py() or {}
+
+
 class TestFeatureStores(TestDocument):
     def test_feature_stores_empty_by_default(self):
-        assert self.doc.feature_stores == {}
+        assert _feature_stores(self.doc) == {}
 
     def test_feature_stores_reads_overlay(self):
         store = Map()
@@ -334,7 +338,7 @@ class TestFeatureStores(TestDocument):
             "updatedBy": "u",
         }
 
-        stores = self.doc.feature_stores
+        stores = _feature_stores(self.doc)
         assert stores["store-1"]["features"]["f1"]["id"] == "f1"
         assert stores["store-1"]["meta"]["compacting"] is False
 

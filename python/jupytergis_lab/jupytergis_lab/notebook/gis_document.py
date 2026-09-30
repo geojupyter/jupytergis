@@ -299,11 +299,6 @@ class GISDocument(CommWidget):
         return self._layerTree.to_py()
 
     @property
-    def feature_stores(self) -> dict[str, Any]:
-        """Collaborative overlay feature stores"""
-        return self._featureStores.to_py() or {}
-
-    @property
     def _is_qgis_document(self) -> bool:
         """Whether the document is backed by a QGIS (`.qgs`/`.qgz`) file."""
         return str(self._path or "").lower().endswith((".qgs", ".qgz"))
