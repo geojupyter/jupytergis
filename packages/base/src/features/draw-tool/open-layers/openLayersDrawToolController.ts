@@ -6,6 +6,7 @@ import { Coordinate } from 'ol/coordinate';
 import { GeoJSON } from 'ol/format';
 import { Type } from 'ol/geom/Geometry';
 import Draw, { DrawEvent } from 'ol/interaction/Draw';
+import { primaryAction } from 'ol/events/condition';
 import Modify from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import { Layer } from 'ol/layer';
@@ -377,6 +378,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
         style: drawInteractionStyle,
         type: this._currentDrawGeometry,
         source: drawSource,
+        // Only draw on left click
+        condition: primaryAction,
       });
       this._draw.on('drawend', this._handleDrawEnd);
       map.addInteraction(this._draw);
