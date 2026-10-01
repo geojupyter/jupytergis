@@ -112,6 +112,8 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.editOpenEOLayer,
   // GeoZarr layers
   CommandIDs.openNewGeoZarrDialog,
+  // 3D terrain layers
+  CommandIDs.openNewTerrainDialog,
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
@@ -843,6 +845,34 @@ export function addCommands(
       layerType: 'HillshadeLayer',
     }),
     ...icons.get(CommandIDs.openNewHillshadeDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewTerrainDialog, {
+    label: trans.__('3D Terrain'),
+    caption:
+      'Open a dialog to create a new 3D terrain layer and DEM source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create 3D Terrain Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom 3D Terrain Layer' },
+      sourceType: 'RasterDemSource',
+      layerType: 'TerrainLayer',
+    }),
+    ...icons.get(CommandIDs.openNewTerrainDialog),
   });
 
   commands.addCommand(CommandIDs.openNewOpenEODialog, {

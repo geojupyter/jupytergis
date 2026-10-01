@@ -35,6 +35,7 @@ from jupytergis_core.schema import (
     IRasterLayer,
     IRasterSource,
     IStorySegmentLayer,
+    ITerrainLayer,
     IVectorLayer,
     IVectorTileLayer,
     IVectorTileSource,
@@ -836,6 +837,58 @@ class GISDocument(CommWidget):
             zoom_to=zoom_to,
         )
 
+    def add_terrain_layer(
+        self,
+        url: str,
+        name: str | None = None,
+        exaggeration: float = 1.0,
+        urlParameters: dict | None = None,
+        attribution: str = "",
+        zoom_to: bool = False,
+    ):
+        """Add a 3D terrain layer
+
+        :param url: URL of the DEM (raster-dem) tiles, e.g. Terrarium-encoded elevation tiles
+        :param name: The name that will be used for the object in the document, defaults to "3D Terrain Layer"
+        :param exaggeration: Vertical exaggeration of the terrain, defaults to 1.0
+        :param urlParameters: Parameters to substitute in the URL template.
+        :param attribution: The attribution.
+        :param zoom_to: When True, zoom the map to the layer once it is added.
+        """
+        self._assert_is_ready()
+
+        if urlParameters is None:
+            urlParameters = {}
+        # Extract name from URL if not provided
+        if name is None:
+            name = _extract_layer_name(url)
+
+        source = {
+            "type": SourceType.RasterDemSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "attribution": attribution,
+                "urlParameters": urlParameters,
+            },
+        }
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.TerrainLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {
+                "source": source_id,
+                "exaggeration": exaggeration,
+            },
+        }
+
+        return self._add_layer(
+            OBJECT_FACTORY.create_layer(layer, self),
+            zoom_to=zoom_to,
+        )
+
     def add_geoparquet_layer(
         self,
         path: str,
@@ -1422,6 +1475,7 @@ class JGISLayer(BaseModel):
         | IGeoZarrLayer
         | IStorySegmentLayer
         | IOpenEOTileLayer
+        | ITerrainLayer
     )
     _parent = GISDocument | None
 
@@ -1541,6 +1595,7 @@ OBJECT_FACTORY.register_factory(LayerType.GeoZarrLayer, IGeoZarrLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 OBJECT_FACTORY.register_factory(LayerType.OpenEOTileLayer, IOpenEOTileLayer)
+OBJECT_FACTORY.register_factory(LayerType.TerrainLayer, ITerrainLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)

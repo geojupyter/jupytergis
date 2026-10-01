@@ -2,6 +2,7 @@
 import type {
   IDict,
   IGrammarSymbologyState,
+  IHillshadeLayer,
   IIdentifiedFeature,
   IJGISLayer,
   IJGISOptions,
@@ -9,6 +10,8 @@ import type {
   IJupyterGISModel,
   IRasterLayer,
   IRasterSource,
+  IRasterDemSource,
+  ITerrainLayer,
   IVectorLayer,
   IVectorTileLayer,
   IVectorTileSource,
@@ -29,6 +32,7 @@ import {
   LngLatBoundsLike,
   Map as MlMap,
   NavigationControl,
+  RasterDEMSourceSpecification,
   ScaleControl,
   setWorkerUrl,
 } from 'maplibre-gl';
@@ -114,6 +118,7 @@ export class MapLibreAdapter implements IMapAdapter {
       zoom,
       bearing: rotation,
       pitch: 0,
+      maxPitch: 85,
     });
     (window as any).mapDebug = this._map;
     this._scaleControl = new ScaleControl({});
@@ -211,6 +216,7 @@ export class MapLibreAdapter implements IMapAdapter {
       const center = this._map.getCenter();
       const zoom = this._map.getZoom();
       const bearing = this._map.getBearing();
+      const pitch = this._map.getPitch();
 
       const bounds = this._map.getBounds();
 
@@ -218,6 +224,7 @@ export class MapLibreAdapter implements IMapAdapter {
         latitude: center.lat,
         longitude: center.lng,
         bearing,
+        pitch,
         projection: 'EPSG:3857',
         zoom,
         extent: [
@@ -385,6 +392,18 @@ export class MapLibreAdapter implements IMapAdapter {
           break;
         }
 
+        case 'RasterDemSource': {
+          const sourceParameters = source.parameters as IRasterDemSource;
+          this._map.addSource(id, {
+            type: 'raster-dem',
+            tiles: [this._computeSourceUrl(source)],
+            tileSize: 256,
+            encoding: 'terrarium',
+            attribution: sourceParameters.attribution,
+          });
+          break;
+        }
+
         default: {
           this._log(
             'warning',
@@ -405,6 +424,13 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   removeSource(id: string): void {
+    const terrainSourceId = this._terrainSourceIdFor(id);
+    if (this._map.getSource(terrainSourceId)) {
+      if (this._map.getTerrain()?.source === terrainSourceId) {
+        this._clearTerrain();
+      }
+      this._map.removeSource(terrainSourceId);
+    }
     if (this._map.getSource(id)) {
       this._map.removeSource(id);
     }
@@ -617,6 +643,42 @@ export class MapLibreAdapter implements IMapAdapter {
           break;
         }
 
+        case 'HillshadeLayer': {
+          const parameters = layer.parameters as IHillshadeLayer;
+
+          this._map.addLayer({
+            id,
+            type: 'hillshade',
+            source: sourceId,
+            layout: {
+              visibility: visible ? 'visible' : 'none',
+            },
+            paint: {
+              'hillshade-shadow-color': parameters.shadowColor ?? '#473B24',
+              'hillshade-exaggeration': parameters.opacity ?? 0.3,
+            },
+          });
+
+          this._layerSubIds.set(id, [id]);
+          break;
+        }
+
+        case 'TerrainLayer': {
+          const parameters = layer.parameters as ITerrainLayer;
+
+          this._applyTerrain(
+            id,
+            sourceId,
+            parameters.exaggeration ?? 1,
+            visible,
+          );
+
+          // Terrain is a map-level setting, not a style layer, so there are
+          // no sub-layers; the entry keeps ordering/removal logic working.
+          this._layerSubIds.set(id, []);
+          break;
+        }
+
         default:
           this._log(
             'warning',
@@ -639,6 +701,10 @@ export class MapLibreAdapter implements IMapAdapter {
     this._layerVisibility.set(id, visible);
   }
   removeLayer(id: string): void {
+    if (this._terrainLayerId === id) {
+      this._clearTerrain();
+    }
+
     const subIds = this._layerSubIds.get(id) ?? [id];
     for (const subId of subIds) {
       if (this._map.getLayer(subId)) {
@@ -680,6 +746,33 @@ export class MapLibreAdapter implements IMapAdapter {
           layerParameters.opacity ?? 1,
         );
         this._map.setLayoutProperty(id, 'visibility', visibility);
+        break;
+      }
+
+      case 'HillshadeLayer': {
+        const params = layer.parameters as IHillshadeLayer;
+        this._map.setPaintProperty(
+          id,
+          'hillshade-shadow-color',
+          params.shadowColor ?? '#473B24',
+        );
+        this._map.setPaintProperty(
+          id,
+          'hillshade-exaggeration',
+          params.opacity ?? 0.3,
+        );
+        this._map.setLayoutProperty(id, 'visibility', visibility);
+        break;
+      }
+
+      case 'TerrainLayer': {
+        const params = layer.parameters as ITerrainLayer;
+        this._applyTerrain(
+          id,
+          params.source,
+          params.exaggeration ?? 1,
+          visible,
+        );
         break;
       }
 
@@ -817,6 +910,67 @@ export class MapLibreAdapter implements IMapAdapter {
     } else {
       this._layerOrder.splice(index, 0, id);
     }
+  }
+
+  /**
+   * Id of the internal DEM source used for terrain.
+   */
+  private _terrainSourceIdFor(sourceId: string): string {
+    return `${sourceId}__terrain`;
+  }
+
+  /**
+   * Enables or disables 3D terrain. MapLibre supports a single terrain per
+   * map, so enabling a second terrain layer replaces the first.
+   */
+  private _applyTerrain(
+    layerId: string,
+    sourceId: string,
+    exaggeration: number,
+    visible: boolean,
+  ): void {
+    if (!visible) {
+      if (this._terrainLayerId === layerId) {
+        this._clearTerrain();
+      }
+      return;
+    }
+
+    if (this._terrainLayerId && this._terrainLayerId !== layerId) {
+      this._log(
+        'warning',
+        `MapLibre supports one terrain at a time; "${layerId}" replaces "${this._terrainLayerId}".`,
+      );
+    }
+
+    const terrainSourceId = this._terrainSourceIdFor(sourceId);
+    if (!this._map.getSource(terrainSourceId)) {
+      const spec = this._map.getStyle().sources[sourceId];
+      if (!spec) {
+        this._log(
+          'error',
+          `MapLibreAdapter: DEM source "${sourceId}" not found for terrain "${layerId}".`,
+        );
+        return;
+      }
+      this._map.addSource(terrainSourceId, {
+        ...spec,
+      } as RasterDEMSourceSpecification);
+    }
+
+    const wasActive = this._terrainLayerId === layerId;
+    this._map.setTerrain({ source: terrainSourceId, exaggeration });
+    this._terrainLayerId = layerId;
+
+    // Terrain looks flat from straight above, so tilt when first enabled.
+    if (!wasActive && this._map.getPitch() === 0) {
+      this._map.easeTo({ pitch: 60, duration: 800 });
+    }
+  }
+
+  private _clearTerrain(): void {
+    this._map.setTerrain(null);
+    this._terrainLayerId = null;
   }
 
   getZoom(): number {
@@ -1308,6 +1462,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _lastPointerCoord: MLCoordinates | null = null;
   private _sourceToLayerMap = new Map<string, string>();
   private _geojsonData = new Map<string, GeoJSONFeature | FeatureCollection>();
+  private _terrainLayerId: string | null = null;
   private _layerSubIds = new Map<string, string[]>();
   private _layerOrder: string[] = [];
   private _pendingZoomLayerId: string | null = null;

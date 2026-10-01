@@ -59,6 +59,7 @@ import {
   IGeoTiffLayer,
   IGeoZarrLayer,
   Modes,
+  ITerrainLayer,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
@@ -652,7 +653,8 @@ export type ILayerGalleryEntry = {
     | IVectorTileLayer
     | IGeoTiffLayer
     | IGeoZarrLayer
-    | IOpenEOTileLayer;
+    | IOpenEOTileLayer
+    | ITerrainLayer;
   sourceType: SourceType;
   sourceParameters:
     | IGeoJSONSource

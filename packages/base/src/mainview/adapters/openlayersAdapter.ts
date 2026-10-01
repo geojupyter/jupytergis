@@ -1315,6 +1315,11 @@ export class OpenLayersAdapter implements IMapAdapter {
         // Special layer not for this
         return;
       }
+
+      case 'TerrainLayer': {
+        // 3D terrain is only supported by the MapLibre adapter.
+        return;
+      }
     }
 
     // OpenLayers doesn't have name/id field so add it

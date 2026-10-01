@@ -30,6 +30,7 @@ export { IVectorTileLayer } from './_interface/project/layers/vectorTileLayer';
 export { IGeoTiffLayer } from './_interface/project/layers/geoTiffLayer';
 export { IGeoZarrLayer } from './_interface/project/layers/geoZarrLayer';
 export { IOpenEOTileLayer } from './_interface/project/layers/openeoTileLayer';
+export { ITerrainLayer } from './_interface/project/layers/terrainLayer';
 
 // Processing
 export * from './processing/_generated/exportProcessingSchema';
