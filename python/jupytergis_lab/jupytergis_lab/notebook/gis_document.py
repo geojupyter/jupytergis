@@ -1041,7 +1041,7 @@ class GISDocument(CommWidget):
         data_array: DataArray,
         *,
         name: str = "Data Array layer",
-        colormap_name: str | None,
+        colormap_name: str | None = None,
         colormap: ColorMapType | None = None,
         colormap_range: tuple[float, float] | None = None,
         opacity: float = 1,
