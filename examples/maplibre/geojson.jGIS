@@ -1,0 +1,223 @@
+{
+  "annotations": {},
+  "layerTree": [
+    "04264dfb-10c4-4bd8-9444-1130ce3cf10e",
+    "5bf0ca9c-e9db-4c6f-9bf7-1f6e639bd225"
+  ],
+  "layers": {
+    "04264dfb-10c4-4bd8-9444-1130ce3cf10e": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 0.86,
+        "source": "1c5665b7-3931-473d-9f11-9e32de596dbd"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "5bf0ca9c-e9db-4c6f-9bf7-1f6e639bd225": {
+      "name": "france_regions",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "63e357b0-e16b-4883-855c-aee5564bcb55",
+        "symbologyState": {
+          "layers": [
+            {
+              "id": "3de5a246-6c7b-4e92-9645-47ec0dba4e45",
+              "rules": [
+                {
+                  "fields": [
+                    "code"
+                  ],
+                  "id": "d85f73a0-8acf-4cb7-b99e-c263006a892f",
+                  "mappings": [
+                    {
+                      "encodings": [
+                        "fill-color",
+                        "circle-fill-color"
+                      ],
+                      "scale": {
+                        "params": {
+                          "colorStops": [
+                            {
+                              "color": [
+                                66.0,
+                                105.0,
+                                208.0,
+                                1.0
+                              ],
+                              "stop": 0.0
+                            },
+                            {
+                              "color": [
+                                239.0,
+                                177.0,
+                                24.0,
+                                1.0
+                              ],
+                              "stop": 12.222222222222221
+                            },
+                            {
+                              "color": [
+                                255.0,
+                                114.0,
+                                92.0,
+                                1.0
+                              ],
+                              "stop": 24.444444444444443
+                            },
+                            {
+                              "color": [
+                                108.0,
+                                197.0,
+                                176.0,
+                                1.0
+                              ],
+                              "stop": 36.666666666666664
+                            },
+                            {
+                              "color": [
+                                60.0,
+                                169.0,
+                                81.0,
+                                1.0
+                              ],
+                              "stop": 48.888888888888886
+                            },
+                            {
+                              "color": [
+                                255.0,
+                                138.0,
+                                183.0,
+                                1.0
+                              ],
+                              "stop": 61.11111111111111
+                            },
+                            {
+                              "color": [
+                                164.0,
+                                99.0,
+                                242.0,
+                                1.0
+                              ],
+                              "stop": 73.33333333333333
+                            },
+                            {
+                              "color": [
+                                151.0,
+                                187.0,
+                                245.0,
+                                1.0
+                              ],
+                              "stop": 85.55555555555554
+                            },
+                            {
+                              "color": [
+                                156.0,
+                                107.0,
+                                78.0,
+                                1.0
+                              ],
+                              "stop": 97.77777777777777
+                            },
+                            {
+                              "color": [
+                                148.0,
+                                152.0,
+                                160.0,
+                                1.0
+                              ],
+                              "stop": 110.0
+                            }
+                          ],
+                          "domain": [
+                            0.0,
+                            110.0
+                          ],
+                          "fallback": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            0.0
+                          ],
+                          "mode": "equal interval",
+                          "nShades": 9.0,
+                          "name": "schemeObservable10",
+                          "reverse": false
+                        },
+                        "scheme": "colorMap"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "62a140bf-545b-4f0b-a840-706deaf98f14",
+                  "mappings": [
+                    {
+                      "encodings": [
+                        "stroke-color"
+                      ],
+                      "scale": {
+                        "params": {
+                          "value": [
+                            255.0,
+                            255.0,
+                            255.0,
+                            1.0
+                          ]
+                        },
+                        "scheme": "constant_rgba"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -11.92523655052895,
+      40.65863871491416,
+      16.381356725061494,
+      51.674364979145054
+    ],
+    "latitude": 46.4440103157761,
+    "longitude": 2.2280600872663854,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 4.904801063320002
+  },
+  "presets": {},
+  "schemaVersion": "0.6.0",
+  "sources": {
+    "1c5665b7-3931-473d-9f11-9e32de596dbd": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "63e357b0-e16b-4883-855c-aee5564bcb55": {
+      "name": "france_regions Source",
+      "parameters": {
+        "httpHeaders": "",
+        "path": "../data/france_regions.geojson",
+        "useProxy": false
+      },
+      "type": "GeoJSONSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}

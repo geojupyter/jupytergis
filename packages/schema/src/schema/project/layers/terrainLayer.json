@@ -13,8 +13,7 @@
       "type": "number",
       "description": "Vertical exaggeration of the terrain",
       "default": 1,
-      "minimum": 0,
-      "maximum": 10
+      "minimum": 0
     }
   }
 }
