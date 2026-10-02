@@ -178,21 +178,10 @@ function createContextMenu(
     rank: 8.5,
   });
 
-  // Create the Download submenu
-  const downloadSubmenu = new Menu({ commands: commands });
-  downloadSubmenu.title.label = translator.load('jupyterlab').__('Download');
-  downloadSubmenu.id = 'jp-gis-contextmenu-download';
-
-  downloadSubmenu.addItem({
-    command: CommandIDs.downloadGeoJSON,
-  });
-
-  // Add the Download submenu to the context menu
   gisContextMenu.addItem({
-    type: 'submenu',
+    command: CommandIDs.exportGeoJSON,
     selector: GIS_LAYER_ITEM,
     rank: 9,
-    submenu: downloadSubmenu,
   });
 
   // Create the Processing submenu
