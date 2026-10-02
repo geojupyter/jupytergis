@@ -3,14 +3,16 @@ import * as React from 'react';
 
 import { EditorAwareDialog } from '@/src/shared/editorAwareDialog';
 import { fetchBackendCatalog, IBackendCatalog } from '@/src/tools';
-import {
-  connect as openEOConnect,
-  IOpenEOConnectionInfo,
-  listOpenEOConnections,
-} from './OpenEOTileLayer';
 import { CodeExportPanel } from './codeExportPanel';
 import { JsonEditor } from './jsonEditor';
 import { ProcessGraphView } from './processGraphView';
+import {
+  // connect as openEOConnect,
+  IOpenEOConnectionInfo,
+  listOpenEOConnections,
+  // OpenEOSigninOIDC,
+  // Signin,
+} from './signin';
 import {
   IOpenEOTemplate,
   IOpenEOTemplateParams,
@@ -413,8 +415,6 @@ const Form: React.FC<IFormProps> = ({
   );
   const [serverBusy, setServerBusy] = React.useState(false);
   const [serverError, setServerError] = React.useState<string | null>(null);
-  const [serverUsername, setServerUsername] = React.useState('');
-  const [serverPassword, setServerPassword] = React.useState('');
   // Server section has three explicit modes: pick/enter a URL, enter
   // credentials, or already connected. Credentials inputs are only
   // visible in 'signin' so they don't clutter the dialog when not
@@ -492,43 +492,45 @@ const Form: React.FC<IFormProps> = ({
   // Step 2: user submits credentials. Calls connect() with the inline
   // signIn payload so it doesn't try to open a nested sign-in dialog
   // (JupyterLab queues those behind the currently-open dialog).
-  const onLogin = async () => {
-    const raw = serverInput.trim();
-    if (!raw) {
-      setServerError('Enter an OpenEO server URL.');
-      return;
-    }
-    if (!serverUsername || !serverPassword) {
-      setServerError('Enter username and password.');
-      return;
-    }
-    setServerBusy(true);
-    setServerError(null);
-    const next: IOpenEOConnectionInfo = {
-      url: raw,
-      signIn: {
-        serverUrl: raw,
-        username: serverUsername,
-        password: serverPassword,
-      },
-    };
-    try {
-      await openEOConnect(next);
-    } catch (err: any) {
-      setServerError(err?.message ?? String(err));
-      setServerBusy(false);
-      return;
-    }
-    // connect() may normalize the url (e.g. add https://) — reflect
-    // that back so downstream references match.
-    const resolved = next.url ?? raw;
-    setServerInput(resolved);
-    setServers(prev => (prev.includes(resolved) ? prev : [...prev, resolved]));
-    setConnectionInfo(next);
-    setServerPassword('');
-    setServerBusy(false);
-    setServerMode('connected');
-  };
+  // const onLogin = async () => {
+  //   const raw = serverInput.trim();
+  //   if (!raw) {
+  //     setServerError('Enter an OpenEO server URL.');
+  //     return;
+  //   }
+  //   if (!serverUsername || !serverPassword) {
+  //     setServerError('Enter username and password.');
+  //     return;
+  //   }
+  //   setServerBusy(true);
+  //   setServerError(null);
+  //   const next: IOpenEOConnectionInfo = {
+  //     url: raw,
+  //     signIn: {
+  //       // serverUrl: raw,
+  //       type: 'basic',
+  //       data: {
+  //         username: serverUsername,
+  //         password: serverPassword,
+  //       }
+  //     },
+  //   };
+  //   try {
+  //     await openEOConnect(next);
+  //   } catch (err: any) {
+  //     setServerError(err?.message ?? String(err));
+  //     setServerBusy(false);
+  //     return;
+  //   }
+  //   // connect() may normalize the url (e.g. add https://) — reflect
+  //   // that back so downstream references match.
+  //   const resolved = next.url ?? raw;
+  //   setServerInput(resolved);
+  //   setServers(prev => (prev.includes(resolved) ? prev : [...prev, resolved]));
+  //   setConnectionInfo(next);
+  //   setServerBusy(false);
+  //   setServerMode('connected');
+  // };
 
   const onChangeServer = () => {
     setServerError(null);
@@ -1022,71 +1024,9 @@ const Form: React.FC<IFormProps> = ({
                   </>
                 )}
 
-                {serverMode === 'signin' && (
-                  <>
-                    <div className="jp-openeo-signin-header">
-                      Sign in to <code>{serverInput.trim()}</code>
-                      <button
-                        type="button"
-                        className="jp-openeo-link-btn"
-                        onClick={onChangeServer}
-                        disabled={serverBusy}
-                      >
-                        Change server
-                      </button>
-                    </div>
-                    {serverError && (
-                      <div className="jp-openeo-server-alert jp-mod-error">
-                        {serverError}
-                      </div>
-                    )}
-                    <label className="jp-openeo-field">
-                      <span>Username</span>
-                      <input
-                        ref={usernameRef}
-                        type="text"
-                        autoComplete="username"
-                        value={serverUsername}
-                        onChange={e => setServerUsername(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            void onLogin();
-                          }
-                        }}
-                        disabled={serverBusy}
-                      />
-                    </label>
-                    <label className="jp-openeo-field">
-                      <span>Password</span>
-                      <input
-                        type="password"
-                        autoComplete="current-password"
-                        value={serverPassword}
-                        onChange={e => setServerPassword(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            void onLogin();
-                          }
-                        }}
-                        disabled={serverBusy}
-                      />
-                    </label>
-                    <div className="jp-openeo-signin-actions">
-                      <button
-                        type="button"
-                        className="jp-openeo-server-connect"
-                        onClick={onLogin}
-                        disabled={
-                          serverBusy || !serverUsername || !serverPassword
-                        }
-                      >
-                        {serverBusy ? 'Signing in…' : 'Log in'}
-                      </button>
-                    </div>
-                  </>
-                )}
+                {/* {serverMode === 'signin' && (
+                  <OpenEOSigninOIDC />
+                )} */}
               </div>
             </section>
 

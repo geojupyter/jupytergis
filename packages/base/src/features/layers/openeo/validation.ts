@@ -1,6 +1,6 @@
 import { ProcessGraph, ProcessRegistry } from '@openeo/js-processgraphs';
 
-import type { IOpenEOConnectionInfo } from './OpenEOTileLayer';
+import type { IOpenEOConnectionInfo } from './signin';
 
 export interface IValidationError {
   code?: string;
@@ -250,7 +250,7 @@ export async function validateProcessGraph(
   // Lazily imported so the pure validators above (used in unit tests) don't
   // pull OpenEOTileLayer's @jupyterlab/apputils dependency into the module
   // graph. Only the backend pass needs a live connection.
-  const { connect } = await import('./OpenEOTileLayer');
+  const { connect } = await import('./signin');
   const connection = await connect(connectionInfo);
   const result = await connection.validateProcess({
     id: 'jp-openeo-validation',

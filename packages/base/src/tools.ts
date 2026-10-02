@@ -22,7 +22,7 @@ import LAYER_GALLERY from '@/_generated/layer_gallery.json';
 import {
   connect as openEOConnect,
   IOpenEOConnectionInfo,
-} from '@/src/features/layers/openeo/OpenEOTileLayer';
+} from '@/src/features/layers/openeo/signin';
 import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
 import { getGdal } from './gdal';
 
