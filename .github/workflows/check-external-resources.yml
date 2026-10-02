@@ -1,0 +1,38 @@
+name: Check External Resources
+
+on:
+  push:
+    branches: main
+  pull_request:
+    branches: '*'
+  schedule:
+    - cron: '0 0 * * 0' # Run weekly on Sundays
+  workflow_dispatch: # Allow manual triggering
+
+permissions: {}
+
+jobs:
+  check-external-resources:
+    name: Check External Resources
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@0b93647769c7a72657e3b0d3845c4a69877e3c8e # v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: pip install pytest requests
+
+      - name: Run external resource checks
+        run: python -m pytest scripts/test_external_resources.py::test_all_examples -v --tb=short
+
+      - name: Run layer gallery checks
+        run: python -m pytest scripts/test_external_resources.py::test_layer_gallery -v --tb=short
