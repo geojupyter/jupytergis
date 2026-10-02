@@ -7,18 +7,18 @@ import type {
 
 import { MapAdapterType } from './mapAdapter';
 
-export interface IMapAdapterFeature {
+export interface IMapAdapterFeatures {
   readonly name: string;
   readonly sources: Readonly<Record<SourceType, boolean>>;
   readonly layers: Readonly<Record<LayerType, boolean>>;
+  readonly addMarker: boolean;
   readonly identify: boolean;
   readonly drawTool: boolean;
   readonly geolocation: boolean;
   readonly layerComparison: boolean;
-  readonly temporalController: boolean;
 }
 
-const MAPLIBRE_FEATURES: IMapAdapterFeature = {
+const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
   name: 'MapLibre',
   sources: {
     RasterSource: true,
@@ -49,14 +49,14 @@ const MAPLIBRE_FEATURES: IMapAdapterFeature = {
     OpenEOTileLayer: false,
     StacLayer: false,
   },
+  addMarker: false,
   identify: false,
   drawTool: false,
   geolocation: false,
   layerComparison: false,
-  temporalController: false,
 };
 
-const OPENLAYERS_FEATURES: IMapAdapterFeature = {
+const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
   name: 'OpenLayers',
   sources: {
     RasterSource: true,
@@ -87,15 +87,15 @@ const OPENLAYERS_FEATURES: IMapAdapterFeature = {
     OpenEOTileLayer: true,
     StacLayer: true,
   },
+  addMarker: true,
   identify: true,
   drawTool: true,
   geolocation: true,
   layerComparison: true,
-  temporalController: true,
 };
 
 export const MAP_ADAPTER_FEATURES: Readonly<
-  Record<MapAdapterType, IMapAdapterFeature>
+  Record<MapAdapterType, IMapAdapterFeatures>
 > = {
   maplibre: MAPLIBRE_FEATURES,
   openlayers: OPENLAYERS_FEATURES,
@@ -105,7 +105,7 @@ export const MAP_ADAPTER_FEATURES: Readonly<
  * Get the unsupported reason for a layer or source.
  */
 export function getUnsupportedReason(
-  features: IMapAdapterFeature,
+  features: IMapAdapterFeatures,
   layer: IJGISLayer,
   source?: IJGISSource,
 ): string | undefined {

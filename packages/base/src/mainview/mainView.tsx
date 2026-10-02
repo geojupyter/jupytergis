@@ -66,6 +66,7 @@ import {
   MapAdapterType,
   VIEWPORT_SYNC_INTERVAL,
 } from './mapAdapter';
+import { setMapFeatures } from './mapFeaturesRegistry';
 import { getFeatureIdentifier } from '../features/identify/utils/getFeatureIdentifier';
 import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
@@ -411,6 +412,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mapAdapter?.stopLocationIndicator();
     if (this._mapAdapter) {
       this._mapAdapter.destroy();
+      setMapFeatures(this._model, undefined);
     }
 
     this._mainViewModel.dispose();
@@ -433,6 +435,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._mapAdapter = await createMapAdapter(mapAdapterType, this._model);
+    setMapFeatures(this._model, this._mapAdapter.supportedFeatures);
 
     await this._mapAdapter.initialize(this.divRef.current, {
       projection,
