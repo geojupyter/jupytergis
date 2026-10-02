@@ -52,6 +52,10 @@ import {
   IMapProjection,
   VIEWPORT_SYNC_INTERVAL,
 } from '../mapAdapter';
+import {
+  MAP_ADAPTER_FEATURES,
+  getUnsupportedReason,
+} from '../mapAdapterFeatures';
 import { isValidExtent } from '../utils/olLayerZoomExtent';
 
 const WORLD_EXTENT = [-180, -85.051129, 180, 85.051129];
@@ -524,9 +528,24 @@ export class MapLibreAdapter implements IMapAdapter {
     this._log('info', `MapLibreAdapter: adding layer ${id}`);
 
     try {
-      await this._buildMapLayer(id, layer, index);
-
       const sourceId = layer.parameters?.source;
+      const source = sourceId ? this._model.getSource(sourceId) : undefined;
+
+      const unsupported = getUnsupportedReason(
+        this.supportedFeatures,
+        layer,
+        source,
+      );
+      if (unsupported) {
+        this._log(
+          'warning',
+          `MapLibreAdapter: skipping layer ${id}. ${unsupported}`,
+        );
+        this._callbacks?.onLayerError?.(id, unsupported);
+        return;
+      }
+
+      await this._buildMapLayer(id, layer, index);
 
       if (sourceId) {
         this._sourceToLayerMap.set(sourceId, id);
@@ -1415,6 +1434,10 @@ export class MapLibreAdapter implements IMapAdapter {
 
   get drawTool(): IDrawToolAdapter {
     return this._drawTool;
+  }
+
+  get supportedFeatures() {
+    return MAP_ADAPTER_FEATURES.maplibre;
   }
   private _notImplemented(name: string, ...args: unknown[]): void {
     if (this._warnedOnce.has(name)) {

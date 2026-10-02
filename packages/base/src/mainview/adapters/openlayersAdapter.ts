@@ -154,6 +154,10 @@ import {
 } from '@/src/tools';
 import { ClientPointer } from '.././CollaboratorPointers';
 import {
+  MAP_ADAPTER_FEATURES,
+  getUnsupportedReason,
+} from '../mapAdapterFeatures';
+import {
   getZoomExtentForOlLayer,
   isValidExtent,
   transformExtentToViewProjection,
@@ -1702,6 +1706,22 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     try {
+      const sourceId = layer.parameters?.source;
+      const source = sourceId ? this._model.getSource(sourceId) : undefined;
+      const unsupported = getUnsupportedReason(
+        this.supportedFeatures,
+        layer,
+        source,
+      );
+      if (unsupported) {
+        this._log(
+          'warning',
+          `OpenLayersAdapter: skipping layer ${id}. ${unsupported}`,
+        );
+        this._callbacks?.onLayerError?.(id, unsupported);
+        return;
+      }
+
       this.addProjection(layer);
       const newMapLayer = await this._buildMapLayer(id, layer);
 
@@ -3093,6 +3113,10 @@ export class OpenLayersAdapter implements IMapAdapter {
 
   get drawTool(): IDrawToolAdapter {
     return this._drawTool;
+  }
+
+  get supportedFeatures() {
+    return MAP_ADAPTER_FEATURES.openlayers;
   }
 
   private _map: OlMap;

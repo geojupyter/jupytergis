@@ -13,8 +13,10 @@ import type {
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
+
 import type { IDrawToolAdapter } from '@/src/features/draw-tool';
 import { ClientPointer } from './CollaboratorPointers';
+import { IMapAdapterFeature } from './mapAdapterFeatures';
 
 export type MapAdapterType = 'openlayers' | 'maplibre';
 
@@ -113,6 +115,8 @@ export interface IMapAdapter {
   exitPresentationMode(): void;
 
   readonly drawTool: IDrawToolAdapter;
+
+  readonly supportedFeatures: IMapAdapterFeature;
 }
 
 export interface IMapAdapterOptions {
