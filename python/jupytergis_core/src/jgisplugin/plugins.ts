@@ -341,6 +341,11 @@ const activate = async (
     });
 
     palette.addItem({
+      command: CommandIDs.openNewTerrainDialog,
+      category: 'JupyterGIS',
+    });
+
+    palette.addItem({
       command: CommandIDs.openNewOpenEODialog,
       category: 'JupyterGIS',
     });

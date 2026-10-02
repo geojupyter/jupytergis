@@ -59,6 +59,7 @@ import {
   IGeoTiffLayer,
   IGeoZarrLayer,
   Modes,
+  ITerrainLayer,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
@@ -566,6 +567,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setUIState(value: Partial<IJGISUIState>): void;
   getUIState(): IJGISUIState;
   uiStateChanged: ISignal<IJupyterGISModel, IJGISUIState>;
+  tileFeaturesChanged: ISignal<IJupyterGISModel, string>;
 }
 
 export interface IUserData {
@@ -651,7 +653,8 @@ export type ILayerGalleryEntry = {
     | IVectorTileLayer
     | IGeoTiffLayer
     | IGeoZarrLayer
-    | IOpenEOTileLayer;
+    | IOpenEOTileLayer
+    | ITerrainLayer;
   sourceType: SourceType;
   sourceParameters:
     | IGeoJSONSource

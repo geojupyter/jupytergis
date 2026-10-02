@@ -25,8 +25,15 @@ import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
+import {
+  getMapFeatures,
+  mapFeaturesChanged,
+} from '@/src/mainview/mapFeaturesRegistry';
 import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
-import { addLayerCreationCommands } from './operationCommands';
+import {
+  addLayerCreationCommands,
+  LayerCreationCommandIDs,
+} from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { launchFollowable, registerFollowDialogs } from '../features/follow';
 import { LayerBrowserWidget } from '../features/layer-browser';
@@ -172,6 +179,8 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.editOpenEOLayer,
   // GeoZarr layers
   CommandIDs.openNewGeoZarrDialog,
+  // 3D terrain layers
+  CommandIDs.openNewTerrainDialog,
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
@@ -182,6 +191,121 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.storyPrev,
   CommandIDs.storyNext,
 ]);
+
+type AdapterFlag = 'identify' | 'drawTool' | 'layerComparison' | 'geolocation';
+
+interface IAdapterRequirement {
+  sources?: SourceType[];
+  layers?: LayerType[];
+  flags?: AdapterFlag[];
+}
+
+const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
+  // Layer creation dialogs
+  [CommandIDs.openNewRasterDialog]: {
+    sources: ['RasterSource'],
+    layers: ['RasterLayer'],
+  },
+  [CommandIDs.openNewWmsDialog]: {
+    sources: ['WmsTileSource'],
+    layers: ['RasterLayer'],
+  },
+  [CommandIDs.openNewVectorTileDialog]: {
+    sources: ['VectorTileSource'],
+    layers: ['VectorTileLayer'],
+  },
+  [CommandIDs.openNewGeoJSONDialog]: {
+    sources: ['GeoJSONSource'],
+    layers: ['VectorLayer'],
+  },
+  [CommandIDs.openNewShapefileDialog]: {
+    sources: ['ShapefileSource'],
+    layers: ['VectorLayer'],
+  },
+  [CommandIDs.openNewGeoParquetDialog]: {
+    sources: ['GeoParquetSource'],
+    layers: ['VectorLayer'],
+  },
+  [CommandIDs.openNewHillshadeDialog]: {
+    sources: ['RasterDemSource'],
+    layers: ['HillshadeLayer'],
+  },
+  [CommandIDs.openNewTerrainDialog]: {
+    sources: ['RasterDemSource'],
+    layers: ['TerrainLayer'],
+  },
+  [CommandIDs.openNewImageDialog]: {
+    sources: ['ImageSource'],
+    layers: ['ImageLayer'],
+  },
+  [CommandIDs.openNewGeoTiffDialog]: {
+    sources: ['GeoTiffSource'],
+    layers: ['GeoTiffLayer'],
+  },
+  [CommandIDs.openNewGeoZarrDialog]: {
+    sources: ['GeoZarrSource'],
+    layers: ['GeoZarrLayer'],
+  },
+  [CommandIDs.openNewOpenEODialog]: {
+    sources: ['OpenEOTileSource'],
+    layers: ['OpenEOTileLayer'],
+  },
+  [CommandIDs.newGeoPackageVectorEntry]: {
+    sources: ['GeoPackageVectorSource'],
+    layers: ['VectorLayer'],
+  },
+  [CommandIDs.newGeoPackageRasterEntry]: {
+    sources: ['GeoPackageRasterSource'],
+    layers: ['RasterLayer'],
+  },
+
+  // Programmatic creation commands
+  [LayerCreationCommandIDs.newGeoJSONWithParams]: {
+    sources: ['GeoJSONSource'],
+    layers: ['VectorLayer'],
+  },
+  [LayerCreationCommandIDs.newRasterWithParams]: {
+    sources: ['RasterSource'],
+    layers: ['RasterLayer'],
+  },
+  [LayerCreationCommandIDs.newVectorTileWithParams]: {
+    sources: ['VectorTileSource'],
+    layers: ['VectorTileLayer'],
+  },
+  [LayerCreationCommandIDs.newGeoParquetWithParams]: {
+    sources: ['GeoParquetSource'],
+    layers: ['VectorLayer'],
+  },
+  [LayerCreationCommandIDs.newHillshadeWithParams]: {
+    sources: ['RasterDemSource'],
+    layers: ['HillshadeLayer'],
+  },
+  [LayerCreationCommandIDs.newImageWithParams]: {
+    sources: ['ImageSource'],
+    layers: ['ImageLayer'],
+  },
+  [LayerCreationCommandIDs.newGeoTiffWithParams]: {
+    sources: ['GeoTiffSource'],
+    layers: ['GeoTiffLayer'],
+  },
+  [LayerCreationCommandIDs.newGeoZarrWithParams]: {
+    sources: ['GeoZarrSource'],
+    layers: ['GeoZarrLayer'],
+  },
+  [LayerCreationCommandIDs.newShapefileWithParams]: {
+    sources: ['ShapefileSource'],
+    layers: ['VectorLayer'],
+  },
+
+  // Interaction features
+  [CommandIDs.addMarker]: { sources: ['MarkerSource'] },
+  [CommandIDs.identify]: { flags: ['identify'] },
+  [CommandIDs.drawFeaturesOnSelectedLayer]: { flags: ['drawTool'] },
+  [CommandIDs.drawFeaturesOnNewLayer]: { flags: ['drawTool'] },
+  [CommandIDs.compareLayers]: { flags: ['layerComparison'] },
+  [CommandIDs.getGeolocation]: { flags: ['geolocation'] },
+  [CommandIDs.toggleLocationIndicator]: { flags: ['geolocation'] },
+};
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -233,7 +357,6 @@ export function addCommands(
     urlResolverFactory,
   });
 
-  addLayerCreationCommands({ tracker, commands, trans });
   /**
    * Wraps a command definition to automatically disable it when the active
    * document does not support it: in Specta mode, or for JupyterGIS-only
@@ -253,6 +376,19 @@ export function addCommands(
       return (
         !!currentModel?.isQgisDocument && QGIS_UNSUPPORTED_COMMANDS.has(id)
       );
+    };
+
+    const unsupportedBy = (): string | undefined => {
+      const req = ADAPTER_REQUIREMENTS[id];
+      const features = getMapFeatures(tracker.currentWidget?.model);
+      if (!req || !features) {
+        return undefined;
+      }
+      const supported =
+        (req.sources ?? []).every(s => features.sources[s]) &&
+        (req.layers ?? []).every(l => features.layers[l]) &&
+        (req.flags ?? []).every(f => features[f]);
+      return supported ? undefined : features.name;
     };
 
     const resolveLabel = (args?: ReadonlyPartialJSONObject): string =>
@@ -279,6 +415,10 @@ export function addCommands(
         if (isQgisRestricted()) {
           return false;
         }
+        // Disable features the active map renderer cannot provide.
+        if (unsupportedBy()) {
+          return false;
+        }
         // Then check the original isEnabled if it exists
         if (originalIsEnabled) {
           return originalIsEnabled(args ?? {});
@@ -290,6 +430,10 @@ export function addCommands(
         // Hint the user how to regain access to the disabled feature.
         if (isQgisRestricted()) {
           return trans.__('(convert to .jGIS to enable)');
+        }
+        const by = unsupportedBy();
+        if (by) {
+          return trans.__('Not supported by the %1 renderer', by);
         }
         return typeof originalCaption === 'function'
           ? originalCaption(args ?? {})
@@ -306,6 +450,18 @@ export function addCommands(
   ) => {
     return originalAddCommand(id, createRestrictedCommand(id, options));
   };
+
+  const refreshAdapterCommands = () => {
+    Object.keys(ADAPTER_REQUIREMENTS).forEach(commandId => {
+      if (commands.hasCommand(commandId)) {
+        commands.notifyCommandChanged(commandId);
+      }
+    });
+  };
+  mapFeaturesChanged.connect(refreshAdapterCommands);
+  tracker.currentChanged.connect(refreshAdapterCommands);
+
+  addLayerCreationCommands({ tracker, commands, trans });
 
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
@@ -903,6 +1059,34 @@ export function addCommands(
       layerType: 'HillshadeLayer',
     }),
     ...icons.get(CommandIDs.openNewHillshadeDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewTerrainDialog, {
+    label: trans.__('3D Terrain'),
+    caption:
+      'Open a dialog to create a new 3D terrain layer and DEM source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create 3D Terrain Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom 3D Terrain Layer' },
+      sourceType: 'RasterDemSource',
+      layerType: 'TerrainLayer',
+    }),
+    ...icons.get(CommandIDs.openNewTerrainDialog),
   });
 
   commands.addCommand(CommandIDs.openNewOpenEODialog, {

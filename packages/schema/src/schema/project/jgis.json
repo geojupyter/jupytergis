@@ -49,7 +49,8 @@
         "ImageLayer",
         "StacLayer",
         "StorySegmentLayer",
-        "OpenEOTileLayer"
+        "OpenEOTileLayer",
+        "TerrainLayer"
       ]
     },
     "sourceType": {

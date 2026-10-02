@@ -1,0 +1,93 @@
+{
+  "annotations": {},
+  "layerTree": [
+    "e858aad5-5cb4-43bb-8202-e4d47aa4463a",
+    "39694df6-d906-4bc6-9b81-830bc6a0fe63",
+    "e749a26f-64d1-4a4d-b945-a7336393d8b6"
+  ],
+  "layers": {
+    "39694df6-d906-4bc6-9b81-830bc6a0fe63": {
+      "name": "Custom Hillshade Layer",
+      "parameters": {
+        "opacity": 0.7,
+        "shadowColor": "#473B24",
+        "source": "1b959d85-e025-4373-b21f-2c7fee09092e"
+      },
+      "type": "HillshadeLayer",
+      "visible": true
+    },
+    "e749a26f-64d1-4a4d-b945-a7336393d8b6": {
+      "name": "Custom 3D Terrain Layer",
+      "parameters": {
+        "exaggeration": 20.0,
+        "opacity": 1.0,
+        "source": "2324e503-45a6-47b3-aa36-374a92e9a74b"
+      },
+      "type": "TerrainLayer",
+      "visible": true
+    },
+    "e858aad5-5cb4-43bb-8202-e4d47aa4463a": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "4390a807-d69f-4133-bb37-3aa4edcd4cbc"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      25.132321079154167,
+      10.303800663082711,
+      121.16789098735296,
+      54.07827496924395
+    ],
+    "latitude": 35.03854669733647,
+    "longitude": 73.15010603325433,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 3.143566108180064
+  },
+  "presets": {},
+  "schemaVersion": "0.6.0",
+  "sources": {
+    "1b959d85-e025-4373-b21f-2c7fee09092e": {
+      "name": "Custom Hillshade Layer Source",
+      "parameters": {
+        "attribution": "",
+        "httpHeaders": "",
+        "interpolate": false,
+        "url": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
+        "useProxy": false
+      },
+      "type": "RasterDemSource"
+    },
+    "2324e503-45a6-47b3-aa36-374a92e9a74b": {
+      "name": "Custom 3D Terrain Layer Source",
+      "parameters": {
+        "attribution": "",
+        "httpHeaders": "",
+        "interpolate": false,
+        "url": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
+        "useProxy": false
+      },
+      "type": "RasterDemSource"
+    },
+    "4390a807-d69f-4133-bb37-3aa4edcd4cbc": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}

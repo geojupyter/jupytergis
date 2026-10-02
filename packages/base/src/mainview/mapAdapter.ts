@@ -15,8 +15,9 @@ import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
 import type { IDrawToolAdapter } from '@/src/features/draw-tool';
 import { ClientPointer } from './CollaboratorPointers';
+import { IMapAdapterFeatures } from './mapAdapterFeatures';
 
-export type MapAdapterType = 'openlayers';
+export type MapAdapterType = 'openlayers' | 'maplibre';
 
 export const VIEWPORT_SYNC_INTERVAL = 200;
 
@@ -113,6 +114,8 @@ export interface IMapAdapter {
   exitPresentationMode(): void;
 
   readonly drawTool: IDrawToolAdapter;
+
+  readonly supportedFeatures: IMapAdapterFeatures;
 }
 
 export interface IMapAdapterOptions {
@@ -167,6 +170,11 @@ export async function createMapAdapter(
       const { OpenLayersAdapter } =
         await import('./adapters/openlayersAdapter');
       return new OpenLayersAdapter(model);
+    }
+
+    case 'maplibre': {
+      const { MapLibreAdapter } = await import('./adapters/maplibreAdapter');
+      return new MapLibreAdapter(model);
     }
 
     default: {

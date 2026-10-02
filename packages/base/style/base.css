@@ -24,6 +24,7 @@
 @import url('./openeo.css');
 @import url('./shared/errorBanner.css');
 @import url('./shared/errorTip.css');
+@import url('maplibre-gl/dist/maplibre-gl.css');
 
 /* JupyterLab modal dialogs (.jp-Dialog) use z-index: 10000, which sits above
    the notification toast container (react-toastify default: 9999). Without this
@@ -309,6 +310,7 @@ button.jp-mod-styled.jp-mod-reject {
   bottom: 0.125rem;
   z-index: 1;
   padding: 0 0.125rem;
+  pointer-events: none;
 }
 
 .jgis-controls-toolbar .ol-control,
@@ -325,6 +327,22 @@ button.jp-mod-styled.jp-mod-reject {
 .jgis-controls-toolbar .ol-zoom {
   position: fixed;
   right: 0.125rem;
+}
+
+.jgis-controls-toolbar > .maplibregl-ctrl-group:last-child {
+  align-self: flex-start;
+  margin-left: auto;
+  margin-right: 0.1rem;
+  margin-bottom: 0.1rem;
+}
+
+.jgis-controls-toolbar .maplibregl-ctrl-group button {
+  width: 24px;
+  height: 24px;
+}
+
+.maplibregl-ctrl-bottom-right {
+  display: none;
 }
 
 /* Move controls toolbar to top of map so it's not behind the bottom sheet */
