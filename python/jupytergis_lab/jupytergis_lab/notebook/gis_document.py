@@ -57,6 +57,7 @@ from jupytergis_lab.notebook.utils import get_gpkg_layers
 if TYPE_CHECKING:
     from jupyter_tiler.titiler import (
         BaseAlgorithm,
+        ColorMapType,
         DataArray,
         TiTilerServer,
     )
@@ -1093,7 +1094,8 @@ class GISDocument(CommWidget):
         data_array: DataArray,
         *,
         name: str = "Data Array layer",
-        colormap_name: str = "viridis",
+        colormap_name: str | None = None,
+        colormap: ColorMapType | None = None,
         colormap_range: tuple[float, float] | None = None,
         opacity: float = 1,
         tile_dim_scale: int = 1,
@@ -1107,6 +1109,10 @@ class GISDocument(CommWidget):
         :param name: The layer's name
         :param colormap_name: A ``rio-tiler``-supported colormap name.
             See the `rio-tiler docs <https://cogeotiff.github.io/rio-tiler/latest/api/rio_tiler/colormap/#rio_tiler.colormap.ColorMaps.list>`_
+            for details.
+        :param colormap: A custom colormap definition.
+            See the `rio-tiler docs
+            <https://cogeotiff.github.io/rio-tiler/latest/api/rio_tiler/types/#rio_tiler.types.ColorMapType>`_
             for details.
         :param colormap_range: The range of data values ``(min, max)`` to be colormapped
         :param opacity: The opacity, between 0 and 1
@@ -1130,6 +1136,7 @@ class GISDocument(CommWidget):
         url = await add_data_array(
             data_array,
             colormap_name=colormap_name,
+            colormap=colormap,
             colormap_range=colormap_range,
             tile_dim_scale=tile_dim_scale,
             algorithm=algorithm,

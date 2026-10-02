@@ -1714,6 +1714,13 @@ export class OpenLayersAdapter implements IMapAdapter {
         this._map.getLayers().insertAt(safeIndex, newMapLayer);
         this._trackLayerViewState(id, newMapLayer);
 
+        if (
+          this._model.currentMode === 'drawing' &&
+          id === this._drawTool.currentDrawLayerId
+        ) {
+          this._drawTool.enterLayer();
+        }
+
         this._callbacks?.onLayerInserted?.(numLayers + 1);
       }
 
@@ -1974,10 +1981,14 @@ export class OpenLayersAdapter implements IMapAdapter {
    * @param id Layer to retrieve
    */
   private getLayer(id: string) {
+    if (!id) {
+      return undefined;
+    }
+
     return this._map
       .getLayers()
       .getArray()
-      .find(layer => layer.get('id') === id) as Layer;
+      .find(layer => layer.get('id') === id) as Layer | undefined;
   }
 
   /**
@@ -2609,9 +2620,9 @@ export class OpenLayersAdapter implements IMapAdapter {
     const json = JSON.parse(args);
     const { id: layerId, selectedFeature } = json;
     const olLayer = this.getLayer(layerId);
-    const source = olLayer.getSource() as VectorSource;
+    const source = olLayer?.getSource() as VectorSource | undefined;
 
-    if (typeof source.forEachFeature !== 'function') {
+    if (!source) {
       return;
     }
 

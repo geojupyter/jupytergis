@@ -70,7 +70,8 @@ const iconObject = {
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
-  [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
+  [CommandIDs.drawFeaturesOnSelectedLayer]: { icon: pencilSolidIcon },
+  [CommandIDs.drawFeaturesOnNewLayer]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
   [CommandIDs.openStoryEditor]: {
     // iconClass is ignored when `icon` is a LabIcon, bind className instead.

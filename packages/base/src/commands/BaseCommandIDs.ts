@@ -33,8 +33,11 @@ export const openNewGeoParquetDialog = 'jupytergis:openNewGeoParquetDialog';
 export const newGeoPackageRasterEntry = 'jupytergis:newGeoPackageRasterEntry';
 export const newGeoPackageVectorEntry = 'jupytergis:newGeoPackageVectorEntry';
 export const openNewOpenEODialog = 'jupytergis:openNewOpenEODialog';
-export const toggleDrawFeatures = 'jupytergis:toggleDrawFeatures';
+export const drawFeaturesOnSelectedLayer =
+  'jupytergis:drawFeaturesOnSelectedLayer';
+export const drawFeaturesOnNewLayer = 'jupytergis:drawFeaturesOnNewLayer';
 export const deleteSelectedFeatures = 'jupytergis:deleteSelectedFeatures';
+export const editSelectedFeature = 'jupytergis:editSelectedFeature';
 
 // Layer and group actions
 export const showLayerPropertiesDialog = 'jupytergis:showLayerPropertiesDialog';

@@ -76,13 +76,73 @@ const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 const INTERACTION_MODE_COMMANDS = [
   CommandIDs.identify,
   CommandIDs.addMarker,
-  CommandIDs.toggleDrawFeatures,
+  CommandIDs.drawFeaturesOnSelectedLayer,
+  CommandIDs.drawFeaturesOnNewLayer,
 ] as const;
 
 function notifyInteractionModeCommands(commands: CommandRegistry): void {
   for (const id of INTERACTION_MODE_COMMANDS) {
     commands.notifyCommandChanged(id);
   }
+}
+
+function getDrawingContext(
+  tracker: JupyterGISTracker,
+): { widget: JupyterGISDocumentWidget; model: IJupyterGISModel } | undefined {
+  const widget = tracker.currentWidget;
+  if (!(widget instanceof JupyterGISDocumentWidget)) {
+    return undefined;
+  }
+
+  return { widget, model: widget.model };
+}
+
+function isDocumentEditable(tracker: JupyterGISTracker): boolean {
+  const context = getDrawingContext(tracker);
+  if (!context) {
+    return false;
+  }
+
+  return context.model.sharedModel.editable;
+}
+
+function isDrawing(tracker: JupyterGISTracker): boolean {
+  const context = getDrawingContext(tracker);
+  if (!context) {
+    return false;
+  }
+
+  return context.model.currentMode === 'drawing';
+}
+
+/**
+ * True when the document is editable and the selection is a draw layer.
+ * Stays true while drawing so the command can turn drawing off.
+ */
+function canDrawOnSelectedLayer(tracker: JupyterGISTracker): boolean {
+  if (!isDocumentEditable(tracker)) {
+    return false;
+  }
+
+  if (isDrawing(tracker)) {
+    return true;
+  }
+
+  const context = getDrawingContext(tracker);
+  if (!context) {
+    return false;
+  }
+
+  return Private.selectedDrawLayerId(context.model, tracker) !== undefined;
+}
+
+function toggleDrawing(
+  widget: JupyterGISDocumentWidget,
+  model: IJupyterGISModel,
+  commands: CommandRegistry,
+): void {
+  model.toggleMode('drawing');
+  syncInteractionModeUi(widget, commands);
 }
 
 /**
@@ -2057,56 +2117,40 @@ export function addCommands(
     ...icons.get(CommandIDs.addMarker),
   });
 
-  commands.addCommand(CommandIDs.toggleDrawFeatures, {
-    label: trans.__('Edit Features'),
-    caption:
-      'Toggle feature editing. Creates an empty draw layer if the selection is not draw-compatible.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isToggled: () => {
-      if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
-        return false;
-      }
-
-      const model = tracker.currentWidget?.content?.currentViewModel
-        ?.jGISModel as IJupyterGISModel | undefined;
-
-      if (!model) {
-        return false;
-      }
-
-      return model.currentMode === 'drawing';
-    },
-    isEnabled: () => {
-      if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
-        return false;
-      }
-
-      return tracker.currentWidget.model.sharedModel.editable;
-    },
-    execute: async () => {
-      if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
+  commands.addCommand(CommandIDs.drawFeaturesOnSelectedLayer, {
+    label: trans.__('Draw features on selected layer'),
+    caption: 'Toggle feature editing on the selected draw layer.',
+    isToggled: () => isDrawing(tracker),
+    isEnabled: () => canDrawOnSelectedLayer(tracker),
+    execute: () => {
+      const context = getDrawingContext(tracker);
+      if (!context || !canDrawOnSelectedLayer(tracker)) {
         return;
       }
 
-      const current = tracker.currentWidget;
-      const model = current.content.currentViewModel?.jGISModel;
-      if (!model) {
-        return false;
-      }
-
-      if (model.currentMode !== 'drawing') {
-        Private.ensureDrawCompatibleLayer(model, tracker);
-      }
-
-      model.toggleMode('drawing');
-      syncInteractionModeUi(current, commands);
+      toggleDrawing(context.widget, context.model, commands);
     },
-    ...icons.get(CommandIDs.toggleDrawFeatures),
+    ...icons.get(CommandIDs.drawFeaturesOnSelectedLayer),
+  });
+
+  commands.addCommand(CommandIDs.drawFeaturesOnNewLayer, {
+    label: trans.__('Draw features on new layer'),
+    caption: 'Create an empty draw layer and start feature editing.',
+    isEnabled: () => isDocumentEditable(tracker),
+    execute: () => {
+      const context = getDrawingContext(tracker);
+      if (!context || !isDocumentEditable(tracker)) {
+        return;
+      }
+
+      const currentMode = context.model.currentMode;
+      Private.createDrawLayer(context.model);
+
+      if (currentMode !== 'drawing') {
+        toggleDrawing(context.widget, context.model, commands);
+      }
+    },
+    ...icons.get(CommandIDs.drawFeaturesOnNewLayer),
   });
 
   commands.addCommand(CommandIDs.addStorySegment, {
@@ -2449,14 +2493,12 @@ namespace Private {
   }
 
   /**
-   * Return the id of a draw-compatible selected layer, creating an empty
-   * inline GeoJSON layer when the current selection is
-   * missing or not editable for drawing.
+   * Return the selected layer id when that layer can be drawn on.
    */
-  export function ensureDrawCompatibleLayer(
+  export function selectedDrawLayerId(
     model: IJupyterGISModel,
     tracker: JupyterGISTracker,
-  ): string {
+  ): string | undefined {
     const selectedLayer = getSingleSelectedLayer(tracker);
     const selected = model.localState?.selected?.value;
     const selectedLayerId =
@@ -2472,6 +2514,13 @@ namespace Private {
       return selectedLayerId;
     }
 
+    return undefined;
+  }
+
+  /**
+   * Create an empty inline GeoJSON layer and select it for drawing.
+   */
+  export function createDrawLayer(model: IJupyterGISModel): string {
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
 

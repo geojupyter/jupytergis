@@ -36,6 +36,7 @@ import * as React from 'react';
 
 import { CommandIDs } from '@/src/constants';
 import AnnotationFloater from '@/src/features/annotations/components/AnnotationFloater';
+import { EditFeatureAttributesDialog } from '@/src/features/draw-tool/components/EditFeatureAttributesDialog';
 import { FollowDialogMirror } from '@/src/features/follow';
 import FeatureFloater from '@/src/features/identify/components/FeatureFloater';
 import {
@@ -108,6 +109,8 @@ interface IStates {
   /** List story segment handoff for the map stage overlay; null when off. */
   segmentTransition: IListStorySegmentTransition | null;
   comparison: IMapLayerComparison | null;
+  /** Feature whose attributes are being edited from the map context menu. */
+  editedFeature: { featureId: string; attributes: IDict<any> } | null;
 }
 
 export class MainView extends React.Component<IMainViewProps, IStates> {
@@ -236,6 +239,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       identifyFeatureFloatersVersion: 0,
       segmentTransition: null,
       comparison: null,
+      editedFeature: null,
     };
 
     this._commands = new CommandRegistry();
@@ -556,6 +560,38 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       },
     });
 
+    this._commands.addCommand(CommandIDs.editSelectedFeature, {
+      label: 'Edit feature',
+      isEnabled: () => {
+        if (
+          !this._clickCoords ||
+          !this._mapAdapter ||
+          this._model.currentMode !== 'drawing'
+        ) {
+          return false;
+        }
+
+        return !!this._mapAdapter.drawTool.getFeatureAtCoordinate(
+          this._clickCoords,
+        );
+      },
+      execute: () => {
+        if (!this._clickCoords) {
+          return;
+        }
+
+        const feature = this._mapAdapter?.drawTool.getFeatureAtCoordinate(
+          this._clickCoords,
+        );
+
+        if (!feature) {
+          return;
+        }
+
+        this.setState(old => ({ ...old, editedFeature: feature }));
+      },
+    });
+
     this._commands.addCommand(CommandIDs.addAnnotation, {
       label: 'Add annotation',
       describedBy: {
@@ -638,9 +674,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
 
     this._contextMenu.addItem({
-      command: CommandIDs.addAnnotation,
+      command: CommandIDs.editSelectedFeature,
       selector: '.ol-viewport',
       rank: 1,
+    });
+
+    this._contextMenu.addItem({
+      command: CommandIDs.addAnnotation,
+      selector: '.ol-viewport',
+      rank: 2,
     });
 
     const copyCoordinatesMenu = new Menu({ commands: this._commands });
@@ -659,7 +701,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       type: 'submenu',
       submenu: copyCoordinatesMenu,
       selector: '.ol-viewport',
-      rank: 2,
+      rank: 3,
     });
   };
 
@@ -1538,11 +1580,28 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const commands = this._mainViewModel.commands;
     commands.notifyCommandChanged(CommandIDs.identify);
     commands.notifyCommandChanged(CommandIDs.addMarker);
-    commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
+    commands.notifyCommandChanged(CommandIDs.drawFeaturesOnSelectedLayer);
   }
 
   private _handleDrawGeometryTypeChange = (drawGeometryLabel: string): void => {
     this._mapAdapter?.drawTool.handleGeometryTypeChange(drawGeometryLabel);
+  };
+
+  private _handleEditedFeatureSave = (attributeUpdates: IDict<any>): void => {
+    const editedFeature = this.state.editedFeature;
+
+    if (editedFeature && Object.keys(attributeUpdates).length > 0) {
+      this._mapAdapter?.drawTool.updateFeatureAttributes(
+        editedFeature.featureId,
+        attributeUpdates,
+      );
+    }
+
+    this._handleEditedFeatureClose();
+  };
+
+  private _handleEditedFeatureClose = (): void => {
+    this.setState(old => ({ ...old, editedFeature: null }));
   };
 
   /**
@@ -1614,6 +1673,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       comparison,
       displayTemporalController,
       drawGeometryLabel,
+      editedFeature,
       isDrawing,
       currentDrawLayerId,
       filterStates,
@@ -1651,6 +1711,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
           model={this._model}
         />
+
+        {editedFeature ? (
+          <EditFeatureAttributesDialog
+            attributes={editedFeature.attributes}
+            onSave={this._handleEditedFeatureSave}
+            onClose={this._handleEditedFeatureClose}
+          />
+        ) : null}
 
         <div className="jGIS-Mainview-Container" ref={this.props.containerRef}>
           {displayTemporalController ? (

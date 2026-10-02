@@ -1,4 +1,4 @@
-import type { IJupyterGISModel, IJGISSource } from '@jupytergis/schema';
+import type { IDict, IJupyterGISModel, IJGISSource } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import type { Map as OlMap } from 'ol';
 import Feature from 'ol/Feature';
@@ -12,7 +12,10 @@ import { Layer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
 
 import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
-import type { IDrawToolAdapter } from '../drawToolAdapter';
+import type {
+  IDrawFeatureAttributes,
+  IDrawToolAdapter,
+} from '../drawToolAdapter';
 import { drawInteractionStyle } from './drawInteractionStyle';
 import { getVectorSourceFromLayer, isDrawLayer } from './drawToolUtils';
 
@@ -121,6 +124,71 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     }
 
     this._currentVectorSource = source;
+    this._persist(source);
+
+    return true;
+  }
+
+  getFeatureAtCoordinate(
+    coordinate: Coordinate,
+  ): IDrawFeatureAttributes | undefined {
+    const map = this._host.getMap();
+    if (!this._currentDrawLayerId || !map) {
+      return undefined;
+    }
+
+    const pixel = map.getPixelFromCoordinate(coordinate);
+    if (!pixel) {
+      return undefined;
+    }
+
+    const hits = map.getFeaturesAtPixel(pixel, {
+      hitTolerance: 10,
+      layerFilter: layer => this._isDrawLayerFilter(layer),
+    });
+
+    for (const hit of hits) {
+      if (!(hit instanceof Feature)) {
+        continue;
+      }
+
+      const featureId = hit.get('_id');
+      if (typeof featureId !== 'string') {
+        continue;
+      }
+
+      const attributes: IDict<any> = { ...hit.getProperties() };
+      delete attributes[hit.getGeometryName()];
+
+      return { featureId, attributes };
+    }
+
+    return undefined;
+  }
+
+  updateFeatureAttributes(featureId: string, attributes: IDict<any>): boolean {
+    if (!this._currentDrawLayerId) {
+      return false;
+    }
+
+    const source = this._resolveVectorSource(this._currentDrawLayerId);
+    const feature = source
+      ?.getFeatures()
+      .find(candidate => candidate.get('_id') === featureId);
+
+    if (!source || !feature) {
+      return false;
+    }
+
+    for (const [key, value] of Object.entries(attributes)) {
+      if (value === undefined) {
+        feature.unset(key);
+        continue;
+      }
+
+      feature.set(key, value);
+    }
+
     this._persist(source);
 
     return true;
