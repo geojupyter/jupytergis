@@ -9,7 +9,7 @@
     "39694df6-d906-4bc6-9b81-830bc6a0fe63": {
       "name": "Custom Hillshade Layer",
       "parameters": {
-        "opacity": 0.79,
+        "opacity": 0.7,
         "shadowColor": "#473B24",
         "source": "1b959d85-e025-4373-b21f-2c7fee09092e"
       },

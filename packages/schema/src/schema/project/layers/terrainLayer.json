@@ -14,6 +14,14 @@
       "description": "Vertical exaggeration of the terrain",
       "default": 1,
       "minimum": 0
+    },
+    "opacity": {
+      "type": "number",
+      "description": "The opacity of the source",
+      "default": 1,
+      "multipleOf": 0.1,
+      "minimum": 0,
+      "maximum": 1
     }
   }
 }

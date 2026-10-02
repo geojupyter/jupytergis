@@ -8,7 +8,7 @@
     "04264dfb-10c4-4bd8-9444-1130ce3cf10e": {
       "name": "OpenStreetMap.Mapnik Layer",
       "parameters": {
-        "opacity": 0.86,
+        "opacity": 0.8,
         "source": "1c5665b7-3931-473d-9f11-9e32de596dbd"
       },
       "type": "RasterLayer",
