@@ -193,6 +193,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._onAnnotationsChanged,
       this,
     );
+    this._model.featureStoresChanged.connect(
+      this._onFeatureStoresChanged,
+      this,
+    );
 
     this._model.identifiedFeaturesChanged.connect(
       this._handleIdentifiedFeaturesChanged,
@@ -1143,8 +1147,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         continue;
       }
       const sourceServerUrl = (source.parameters as any)?.serverUrl as
-        | string
-        | undefined;
+        string | undefined;
       if (!sourceServerUrl) {
         continue;
       }
@@ -1167,19 +1170,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     change.sourceChange?.forEach(srcChange => {
       if (!srcChange.newValue || Object.keys(srcChange.newValue).length === 0) {
         this._mapAdapter?.removeSource(srcChange.id);
-      } else {
-        const source = this._model.getSource(srcChange.id);
-        if (!source) {
-          return;
-        }
-        if (
-          this._model.currentMode === 'drawing' &&
-          srcChange.id === this._mapAdapter?.drawTool.currentDrawSourceId
-        ) {
-          return;
-        }
-        void this._mapAdapter?.updateSource(srcChange.id, source);
+        return;
       }
+
+      const source = this._model.getSource(srcChange.id);
+      if (!source) {
+        return;
+      }
+
+      if (
+        this._model.currentMode === 'drawing' &&
+        srcChange.id === this._mapAdapter?.drawTool.currentDrawSourceId &&
+        source.type !== 'FeatureStoreSource'
+      ) {
+        return;
+      }
+
+      void this._mapAdapter?.updateSource(srcChange.id, source);
     });
 
     this.setState(old => ({
@@ -1665,6 +1672,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         );
       },
     );
+  }
+
+  private _onFeatureStoresChanged() {
+    this._mapAdapter?.onFeatureStoresChanged();
   }
 
   render(): JSX.Element {

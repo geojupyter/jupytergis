@@ -10,11 +10,14 @@ import {
   JgisCoordinates,
   LayerType,
   SourceType,
+  IFeatureStoreSource,
+  buildFeatureStoreTileUrlTemplate,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Notification } from '@jupyterlab/apputils';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
+import { PageConfig } from '@jupyterlab/coreutils';
 import type {
   IRenderMimeRegistry,
   IUrlResolverFactory,
@@ -174,6 +177,24 @@ function toggleDrawing(
 ): void {
   model.toggleMode('drawing');
   syncInteractionModeUi(widget, commands);
+}
+
+function selectedFeatureStoreId(model: IJupyterGISModel): string | undefined {
+  const selectedLayer =
+    model.sharedModel.awareness.getLocalState()?.selected?.value;
+  if (!selectedLayer) {
+    return undefined;
+  }
+
+  const layerId = Object.keys(selectedLayer)[0];
+  const jgisLayer = model.getLayer(layerId);
+  const sourceId = jgisLayer?.parameters?.source;
+  const jgisSource = sourceId ? model.getSource(sourceId) : undefined;
+  if (jgisSource?.type !== 'FeatureStoreSource') {
+    return undefined;
+  }
+
+  return (jgisSource.parameters as IFeatureStoreSource).storeId;
 }
 
 /**
@@ -651,8 +672,7 @@ export function addCommands(
       }
 
       const luminoEvent = args['_luminoEvent'] as
-        | ReadonlyPartialJSONObject
-        | undefined;
+        ReadonlyPartialJSONObject | undefined;
 
       if (luminoEvent) {
         const keysPressed = luminoEvent.keys as string[] | undefined;
@@ -2126,6 +2146,92 @@ export function addCommands(
     ...icons.get(CommandIDs.addMarker),
   });
 
+  commands.addCommand(CommandIDs.foldFeatureStore, {
+    label: trans.__('Fold to Feature Store'),
+    caption: trans.__('Fold overlay features into the feature store baseline.'),
+    isEnabled: () => {
+      const useFeatureStore = Boolean(
+        PageConfig.getOption('jgis_feature_store'),
+      );
+
+      if (!useFeatureStore) {
+        return false;
+      }
+
+      const current = tracker.currentWidget;
+      if (!current?.model.sharedModel.editable) {
+        return false;
+      }
+
+      const storeId = selectedFeatureStoreId(current.model);
+      if (!storeId) {
+        return true;
+      }
+
+      return !current.model.getFeatureStore(storeId)?.meta.compacting;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const storeId = selectedFeatureStoreId(current.model);
+      if (!storeId) {
+        console.warn(
+          'Fold to Feature Store: select a feature store layer first.',
+        );
+
+        return;
+      }
+
+      if (current.model.getFeatureStore(storeId)?.meta.compacting) {
+        return;
+      }
+
+      current.model.updateFeatureStoreMeta(storeId, { foldRequested: true });
+    },
+    ...icons.get(CommandIDs.foldFeatureStore),
+  });
+
+  commands.addCommand(CommandIDs.openNewFeatureStoreDialog, {
+    label: trans.__('Feature Store'),
+    caption: trans.__(
+      'Create a feature store layer (server-backed baseline with overlay edits).',
+    ),
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const storeId = UUID.uuid4();
+      const dialog = new LayerCreationFormDialog({
+        model: current.model,
+        title: 'Create Feature Store Layer',
+        createLayer: true,
+        createSource: true,
+        sourceData: {
+          name: 'Feature Store Source',
+          storeId,
+          tileUrlTemplate: buildFeatureStoreTileUrlTemplate(storeId, 0),
+          baselineVersion: 0,
+        },
+        layerData: { name: 'Feature Store' },
+        sourceType: 'FeatureStoreSource',
+        layerType: 'VectorLayer',
+        formSchemaRegistry,
+      });
+      await dialog.launch();
+    },
+    ...icons.get(CommandIDs.openNewFeatureStoreDialog),
+  });
+
   commands.addCommand(CommandIDs.drawFeaturesOnSelectedLayer, {
     label: trans.__('Draw features on selected layer'),
     caption: 'Toggle feature editing on the selected draw layer.',
@@ -2532,27 +2638,47 @@ namespace Private {
   export function createDrawLayer(model: IJupyterGISModel): string {
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
+    const useFeatureStore = Boolean(PageConfig.getOption('jgis_feature_store'));
 
-    const sourceModel: IJGISSource = {
-      type: 'GeoJSONSource',
-      name: 'Draw Layer Source',
-      parameters: {
-        data: {
-          type: 'FeatureCollection',
-          features: [],
+    let sourceModel: IJGISSource;
+    if (useFeatureStore) {
+      const storeId = UUID.uuid4();
+      sourceModel = {
+        type: 'FeatureStoreSource',
+        name: 'Draw Layer Source',
+        parameters: {
+          storeId,
+          tileUrlTemplate: buildFeatureStoreTileUrlTemplate(storeId, 0),
+          baselineVersion: 0,
+        } satisfies IFeatureStoreSource,
+      };
+    } else {
+      sourceModel = {
+        type: 'GeoJSONSource',
+        name: 'Draw Layer Source',
+        parameters: {
+          data: {
+            type: 'FeatureCollection',
+            features: [],
+          },
         },
-      },
-    };
+      };
+    }
 
     const layerModel: IJGISLayer = {
       type: 'VectorLayer',
       name: 'Draw Layer',
       visible: true,
-      parameters: {
-        source: sourceId,
-        opacity: 1.0,
-        symbologyState: { layers: [] },
-      },
+      parameters: useFeatureStore
+        ? {
+            source: sourceId,
+            opacity: 1.0,
+          }
+        : {
+            source: sourceId,
+            opacity: 1.0,
+            symbologyState: { layers: [] },
+          },
     };
 
     model.sharedModel.addSource(sourceId, sourceModel);
