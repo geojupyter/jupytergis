@@ -1,16 +1,46 @@
 import logging
 import os
+import re
 import shutil
 import subprocess
 import tempfile
+import threading
+import time
 from base64 import b64encode
+from collections.abc import Callable
 from pathlib import Path
+from typing import TYPE_CHECKING, cast
 from urllib.parse import urlparse
+
+if TYPE_CHECKING:
+    from io import BufferedReader
 
 logger = logging.getLogger(__name__)
 
 # GDAL CLI tools we support
 ALLOWED_OPERATIONS = {"ogr2ogr", "gdal_rasterize", "gdalwarp", "gdal_translate"}
+
+# Optional callback invoked with a fractional progress value in [0.0, 1.0].
+ProgressCallback = Callable[[float], None]
+
+# GDAL's terminal progress meter, e.g.
+#
+#     0...10...20...30...40...50...60...70...80...90...100 - done.
+#
+# Match only numbers carrying the meter's own "..." / " - done." delimiters.
+# The same stdout stream also carries chatter we must not read as progress:
+# gdalwarp echoes the source path, and a /vsicurl URL happily contains things
+# like ".../FCM-AGB-100m/2023/01/01/..." — a bare digit scan reports 100%
+# before the operation has begun.
+_PROGRESS_METER = re.compile(rb"(?<!\d)(\d{1,3})(?=\.\.\.|\s-\sdone\.)")
+
+
+class ProcessingCancelledError(Exception):
+    """Raised when a GDAL operation is cancelled via its ``cancel_event``.
+
+    This happens when the client disconnects from the progress stream, at
+    which point the running subprocess is killed.
+    """
 
 
 def gdal_available() -> bool:
@@ -18,11 +48,140 @@ def gdal_available() -> bool:
     return shutil.which("ogr2ogr") is not None
 
 
+def _run_gdal_command(
+    cmd: list[str],
+    cwd: str,
+    timeout: int,
+    progress_callback: ProgressCallback | None = None,
+    cancel_event: "threading.Event | None" = None,
+) -> str:
+    """Run a GDAL CLI command, streaming its progress meter incrementally.
+
+    GDAL CLI tools (gdalwarp, gdal_translate, gdal_rasterize, and ogr2ogr with
+    ``-progress``) write a textual progress meter to stdout as they work, e.g.::
+
+        0...10...20...30...40...50...60...70...80...90...100 - done.
+
+    The meter is not newline-delimited, so a background thread reads stdout as
+    it arrives and pulls out the numbers that carry the meter's own delimiters
+    (see ``_PROGRESS_METER``), forwarding each to ``progress_callback`` as a
+    fraction in ``[0.0, 1.0]``. stderr is redirected to a temp file (and
+    surfaced on failure) so a large warning stream can't deadlock the reader.
+
+    Granularity is GDAL's, not ours: the meter only ticks between warp/copy
+    chunks, so an operation sized to fit in a single chunk reports 0 and then
+    100 with nothing in between. Callers wanting a usable bar must keep the
+    chunks small (for gdalwarp, a modest ``-wm``).
+
+    When ``cancel_event`` is set (e.g. because the client disconnected from the
+    progress stream) the subprocess is killed and ``ProcessingCancelledError`` is
+    raised.
+
+    Returns the captured stderr text. Raises ``subprocess.CalledProcessError``
+    on a non-zero exit, ``subprocess.TimeoutExpired`` if ``timeout`` elapses,
+    and ``ProcessingCancelledError`` if cancelled.
+    """
+    # gdalwarp/gdal_translate/gdal_rasterize print a progress meter by default,
+    # but ogr2ogr only does so with an explicit -progress flag. Inject it when
+    # we actually have a consumer for the progress (i.e. a callback).
+    if (
+        progress_callback is not None
+        and cmd
+        and cmd[0] == "ogr2ogr"
+        and "-progress" not in cmd
+    ):
+        cmd = [cmd[0], "-progress", *cmd[1:]]
+
+    logger.info("Running GDAL: %s", " ".join(cmd))
+
+    with tempfile.TemporaryFile() as stderr_file:
+        proc = subprocess.Popen(
+            cmd,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=stderr_file,
+        )
+
+        def _read_progress() -> None:
+            buf = b""
+            last_pct = -1
+            assert proc.stdout is not None
+            # A binary PIPE is always a BufferedReader, but Popen only
+            # promises IO[bytes], which has no read1.
+            stdout = cast("BufferedReader", proc.stdout)
+            while True:
+                # read1 hands back whatever has arrived rather than blocking
+                # for a full 4 KB the way read() would, so the meter is still
+                # forwarded as GDAL writes it.
+                chunk = stdout.read1(4096)
+                if not chunk:
+                    break
+                if progress_callback is None:
+                    continue
+                buf += chunk
+                match = None
+                for match in _PROGRESS_METER.finditer(buf):
+                    pct = int(match.group(1))
+                    if pct > 100 or pct == last_pct:
+                        continue
+                    last_pct = pct
+                    try:
+                        progress_callback(pct / 100.0)
+                    except Exception:  # noqa: BLE001
+                        # A misbehaving progress callback must never abort the
+                        # GDAL run; progress reporting is best-effort.
+                        logger.debug("progress_callback raised", exc_info=True)
+                if match is not None:
+                    buf = buf[match.end() :]
+                # A meter token can straddle two reads, and the pattern looks
+                # behind it, so on a long run of unmatched chatter keep a tail
+                # rather than dropping the buffer outright.
+                if len(buf) > 4096:
+                    buf = buf[-64:]
+
+        reader = threading.Thread(target=_read_progress, daemon=True)
+        reader.start()
+
+        # Poll for completion so we can also honour cancellation and the
+        # timeout. Killing the process makes the stdout reader hit EOF.
+        deadline = time.monotonic() + timeout
+        cancelled = False
+        while proc.poll() is None:
+            if cancel_event is not None and cancel_event.is_set():
+                cancelled = True
+                proc.kill()
+                break
+            if time.monotonic() >= deadline:
+                proc.kill()
+                proc.wait()
+                reader.join(timeout=1)
+                raise subprocess.TimeoutExpired(cmd, timeout)
+            time.sleep(0.05)
+
+        proc.wait()
+        reader.join(timeout=5)
+        if proc.stdout is not None:
+            proc.stdout.close()
+
+        stderr_file.seek(0)
+        stderr = stderr_file.read().decode(errors="replace")
+
+    if cancelled:
+        raise ProcessingCancelledError
+
+    if proc.returncode != 0:
+        raise subprocess.CalledProcessError(proc.returncode, cmd, "", stderr)
+
+    return stderr
+
+
 def run_gdal(
     operation: str,
     options: list[str],
     geojson: str,
     output_name: str,
+    progress_callback: ProgressCallback | None = None,
+    cancel_event: "threading.Event | None" = None,
 ) -> tuple[str, str]:
     """Execute a GDAL CLI command in a temp directory.
 
@@ -51,24 +210,13 @@ def run_gdal(
         if operation in {"gdal_rasterize", "gdalwarp", "gdal_translate"}:
             cmd.append(output_path)
 
-        logger.info("Running GDAL: %s", " ".join(cmd))
-
-        result = subprocess.run(
+        _run_gdal_command(
             cmd,
-            capture_output=True,
-            text=True,
-            timeout=120,
             cwd=tmpdir,
-            check=False,
+            timeout=120,
+            progress_callback=progress_callback,
+            cancel_event=cancel_event,
         )
-
-        if result.returncode != 0:
-            raise subprocess.CalledProcessError(
-                result.returncode,
-                cmd,
-                result.stdout,
-                result.stderr,
-            )
 
         if not os.path.exists(output_path):
             raise FileNotFoundError(
@@ -93,6 +241,8 @@ def run_gdal_url_with_cutline(
     url: str,
     cutline_geojson: str,
     output_name: str,
+    progress_callback: ProgressCallback | None = None,
+    cancel_event: "threading.Event | None" = None,
 ) -> tuple[str, str]:
     """Execute a GDAL CLI command on a remote raster URL with a vector cutline.
 
@@ -153,30 +303,15 @@ def run_gdal_url_with_cutline(
         if operation in {"gdal_rasterize", "gdalwarp", "gdal_translate"}:
             cmd.append(output_path)
 
-        logger.info(
-            "Running GDAL (vsicurl+cutline): %s -> %s",
-            operation,
-            safe_output_name,
-        )
-
         # gdalwarp on a remote COG with a vector cutline can take several
         # minutes for large rasters. Give it a generous ceiling.
-        result = subprocess.run(
+        _run_gdal_command(
             cmd,
-            capture_output=True,
-            text=True,
-            timeout=900,
             cwd=tmpdir,
-            check=False,
+            timeout=900,
+            progress_callback=progress_callback,
+            cancel_event=cancel_event,
         )
-
-        if result.returncode != 0:
-            raise subprocess.CalledProcessError(
-                result.returncode,
-                cmd,
-                result.stdout,
-                result.stderr,
-            )
 
         if not os.path.exists(output_path):
             raise FileNotFoundError(
@@ -199,6 +334,8 @@ def run_gdal_url(
     options: list[str],
     url: str,
     output_name: str,
+    progress_callback: ProgressCallback | None = None,
+    cancel_event: "threading.Event | None" = None,
 ) -> tuple[str, str]:
     """Execute a GDAL CLI command on a remote URL via /vsicurl/.
 
@@ -226,24 +363,13 @@ def run_gdal_url(
         if operation in {"gdal_rasterize", "gdalwarp", "gdal_translate"}:
             cmd.append(output_path)
 
-        logger.info("Running GDAL (vsicurl): %s -> %s", operation, safe_output_name)
-
-        result = subprocess.run(
+        _run_gdal_command(
             cmd,
-            capture_output=True,
-            text=True,
-            timeout=300,
             cwd=tmpdir,
-            check=False,
+            timeout=300,
+            progress_callback=progress_callback,
+            cancel_event=cancel_event,
         )
-
-        if result.returncode != 0:
-            raise subprocess.CalledProcessError(
-                result.returncode,
-                cmd,
-                result.stdout,
-                result.stderr,
-            )
 
         if not os.path.exists(output_path):
             raise FileNotFoundError(
