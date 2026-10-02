@@ -5,8 +5,9 @@ import re
 import uuid
 from typing import TYPE_CHECKING, Any, cast
 
+import webcolors
 from jupytergis_core.color_ramps import sample_colors
-from jupytergis_core.colors import hex_to_rgba, rgb_to_hex
+from jupytergis_core.colors import rgb_to_hex
 from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
@@ -73,8 +74,20 @@ def _warn(logs: dict[str, list[str]], layer_id: str, message: str) -> None:
 def _rgba_to_qcolor(rgba: Any) -> QColor:
     """Convert an [r, g, b, a] list (a in 0-1) or '#rrggbb' string to QColor."""
     if isinstance(rgba, str) and rgba.startswith("#"):
-        r, g, b, a = hex_to_rgba(rgba)
-        return QColor(int(r), int(g), int(b), int(a * 255))
+        hex_color = rgba.lstrip("#")
+
+        if len(hex_color) == 4:
+            hex_color = "".join(c * 2 for c in hex_color)
+        elif len(hex_color) == 3:
+            hex_color = "".join(c * 2 for c in hex_color) + "ff"
+
+        if len(hex_color) == 8:
+            rgb = webcolors.hex_to_rgb(f"#{hex_color[:6]}")
+            alpha = int(hex_color[6:8], 16)
+            return QColor(rgb.red, rgb.green, rgb.blue, alpha)
+
+        rgb = webcolors.hex_to_rgb(webcolors.normalize_hex(rgba))
+        return QColor(rgb.red, rgb.green, rgb.blue, 255)
     if isinstance(rgba, list | tuple) and len(rgba) == 4:
         r, g, b, a = rgba
         return QColor(int(r), int(g), int(b), int(a * 255))
@@ -1195,17 +1208,33 @@ def _extract_symbol_style(symbol):
     if symbol is None:
         return fill, stroke, stroke_width, radius, geometry_type
 
-    color = list(hex_to_rgba(symbol.color().name()))
-    # .name() is "#rrggbb" and drops alpha; keep the real alpha so a transparent
-    # (e.g. stroke-only) fill round-trips instead of coming back opaque.
-    color[3] = symbol.color().alphaF()
+    rgb = webcolors.hex_to_rgb(
+        webcolors.normalize_hex(symbol.color().name()),
+    )
+
+    color = [
+        float(rgb.red),
+        float(rgb.green),
+        float(rgb.blue),
+        symbol.color().alphaF(),
+    ]
     symbol_layer = symbol.symbolLayer(0)
     props = symbol_layer.properties() if symbol_layer is not None else {}
 
     outline_color_str = props.get("outline_color")
-    outline_stroke = (
-        list(hex_to_rgba(rgb_to_hex(outline_color_str))) if outline_color_str else None
-    )
+
+    if outline_color_str:
+        rgb = webcolors.hex_to_rgb(
+            webcolors.normalize_hex(rgb_to_hex(outline_color_str)),
+        )
+        outline_stroke = [
+            float(rgb.red),
+            float(rgb.green),
+            float(rgb.blue),
+            1.0,
+        ]
+    else:
+        outline_stroke = None
 
     if isinstance(symbol, QgsMarkerSymbol):
         geometry_type = "circle"
