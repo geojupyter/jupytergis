@@ -84,7 +84,7 @@ MapAdapterName = Literal["openlayers", "maplibre"]
 MAP_ADAPTERS: tuple[str, ...] = ("openlayers", "maplibre")
 
 
-def _validate_map_adapter(map_adapter: str | None) -> str | None:
+def _validate_map_adapter(map_adapter: str | None) -> MapAdapterName | None:
     """Return the adapter name as a plain string, or raise on unknown values."""
     if map_adapter is None:
         return None
@@ -95,7 +95,7 @@ def _validate_map_adapter(map_adapter: str | None) -> str | None:
             f"Unknown map adapter {map_adapter!r}. "
             f"Expected one of: {', '.join(MAP_ADAPTERS)}.",
         )
-    return value
+    return cast("MapAdapterName", value)
 
 
 def reversed_tree(root):
@@ -238,7 +238,7 @@ class GISDocument(CommWidget):
         self._options: Map[str | float | bool | list[float]]
         # For untitled docs, initialize options right away
         if path is None:
-            initial_options: dict[str | float | bool | list[float]] = {
+            initial_options: dict[str, str | float | bool | list[float]] = {
                 "latitude": latitude or 0,
                 "longitude": longitude or 0,
                 "zoom": zoom or 0,
@@ -331,7 +331,10 @@ class GISDocument(CommWidget):
 
         ``None`` means the front end's default renderer is used.
         """
-        return self._options.get("mapAdapter")
+        value = self._options.get("mapAdapter")
+        if value in MAP_ADAPTERS:
+            return cast("MapAdapterName", value)
+        return None
 
     @map_adapter.setter
     def map_adapter(self, value: MapAdapterName | None) -> None:
