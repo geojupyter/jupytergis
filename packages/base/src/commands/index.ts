@@ -15,11 +15,11 @@ import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Notification } from '@jupyterlab/apputils';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
+import { PathExt } from '@jupyterlab/coreutils';
 import type {
   IRenderMimeRegistry,
   IUrlResolverFactory,
 } from '@jupyterlab/rendermime';
-import type { Contents } from '@jupyterlab/services';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
@@ -69,40 +69,11 @@ import {
   removeStorySegment,
 } from '../features/story/utils/storySegmentClipboard';
 import keybindings from '../keybindings.json';
-import { getGeoJSONDataFromLayerSource } from '../tools';
+import { getGeoJSONDataFromLayerSource, getUniqueFilePath } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
-
-/**
- * Build a path next to the `.jGIS` document, appending `_1`, `_2`, ... when a
- * file is already there so repeated exports don't overwrite each other.
- */
-async function uniqueExportPath(
-  contents: Contents.IManager,
-  jgisFilePath: string,
-  fileName: string,
-): Promise<string> {
-  const directory = jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'));
-  const candidate = (suffix: number) => {
-    const name = suffix === 0 ? fileName : `${fileName}_${suffix}`;
-    return directory ? `${directory}/${name}.geojson` : `${name}.geojson`;
-  };
-  const exists = async (path: string) => {
-    try {
-      await contents.get(path, { content: false });
-      return true;
-    } catch {
-      return false;
-    }
-  };
-  let suffix = 0;
-  while (await exists(candidate(suffix))) {
-    suffix += 1;
-  }
-  return candidate(suffix);
-}
 
 const INTERACTION_MODE_COMMANDS = [
   CommandIDs.identify,
@@ -1728,10 +1699,10 @@ export function addCommands(
           return;
         }
 
-        const path = await uniqueExportPath(
+        const path = await getUniqueFilePath(
           app.serviceManager.contents,
-          model.filePath,
-          exportFileName,
+          PathExt.dirname(model.filePath),
+          `${exportFileName}.geojson`,
         );
         await app.serviceManager.contents.save(path, {
           type: 'file',

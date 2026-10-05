@@ -1195,19 +1195,35 @@ export const getColorCodeFeatureAttributes = (
   });
 };
 
-export function downloadFile(
-  content: BlobPart,
+/**
+ * Resolve a path for `fileName` inside `directory`, appending `1`, `2`, ... to
+ * the stem until nothing is there, so writing never overwrites an existing file.
+ */
+export async function getUniqueFilePath(
+  contents: Contents.IManager,
+  directory: string,
   fileName: string,
-  mimeType: string,
-) {
-  const blob = new Blob([content], { type: mimeType });
-  const url = URL.createObjectURL(blob);
-  const downloadLink = document.createElement('a');
-  downloadLink.href = url;
-  downloadLink.download = fileName;
-  document.body.appendChild(downloadLink);
-  downloadLink.click();
-  document.body.removeChild(downloadLink);
+): Promise<string> {
+  const extension = PathExt.extname(fileName);
+  const stem = PathExt.basename(fileName, extension);
+
+  const pathExists = async (path: string) => {
+    try {
+      await contents.get(path, { content: false });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  let suffix = 0;
+  let path = PathExt.join(directory, fileName);
+  while (await pathExists(path)) {
+    suffix += 1;
+    path = PathExt.join(directory, `${stem}${suffix}${extension}`);
+  }
+
+  return path;
 }
 
 export async function getGeoJSONDataFromLayerSource(
