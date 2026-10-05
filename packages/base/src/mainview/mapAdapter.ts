@@ -8,6 +8,7 @@ import type {
   IJGISSources,
   IJGISUIState,
   IJupyterGISModel,
+  IMapAdapterType,
   JgisCoordinates,
 } from '@jupytergis/schema';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -17,7 +18,10 @@ import type { IDrawToolAdapter } from '@/src/features/draw-tool';
 import { ClientPointer } from './CollaboratorPointers';
 import { IMapAdapterFeatures } from './mapAdapterFeatures';
 
-export type MapAdapterType = 'openlayers' | 'maplibre';
+/**
+ * Renderer used when a document does not specify one.
+ */
+export const DEFAULT_MAP_ADAPTER: IMapAdapterType = 'openlayers';
 
 export const VIEWPORT_SYNC_INTERVAL = 200;
 
@@ -162,7 +166,7 @@ export interface IMapAdapterCallbacks {
  * - OpenLayers → OpenLayers implementation
  */
 export async function createMapAdapter(
-  type: MapAdapterType,
+  type: IMapAdapterType,
   model: IJupyterGISModel,
 ): Promise<IMapAdapter> {
   switch (type) {

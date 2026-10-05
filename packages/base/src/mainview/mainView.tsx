@@ -18,6 +18,7 @@ import {
   JupyterGISModel,
   IJupyterGISSettings,
   DEFAULT_PROJECTION,
+  IMapAdapterType,
   IIdentifiedFeature,
   IIdentifiedFeatures,
   JgisCoordinates,
@@ -63,7 +64,7 @@ import {
   createMapAdapter,
   IMapAdapter,
   IMapLayerComparison,
-  MapAdapterType,
+  DEFAULT_MAP_ADAPTER,
   VIEWPORT_SYNC_INTERVAL,
 } from './mapAdapter';
 import { setMapFeatures } from './mapFeaturesRegistry';
@@ -261,13 +262,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     window.addEventListener('resize', this._handleWindowResize);
     const options = this._model.getOptions();
     const projection = options.projection ?? DEFAULT_PROJECTION;
+    const mapAdapterType: IMapAdapterType =
+      options.mapAdapter ?? DEFAULT_MAP_ADAPTER;
     const lonLat: [number, number] =
       options.longitude !== undefined && options.latitude !== undefined
         ? [options.longitude, options.latitude]
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
-    await this.generateMap(lonLat, zoom, projection);
+    await this.generateMap(lonLat, zoom, projection, mapAdapterType);
 
     this._syncComparison();
 
@@ -422,7 +425,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     center: number[],
     zoom: number,
     projection = DEFAULT_PROJECTION,
-    mapAdapterType: MapAdapterType = 'maplibre',
+    mapAdapterType: IMapAdapterType = DEFAULT_MAP_ADAPTER,
   ): Promise<void> {
     const layers = this._model.getLayers();
 

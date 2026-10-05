@@ -3,9 +3,8 @@ import type {
   IJGISSource,
   LayerType,
   SourceType,
+  IMapAdapterType,
 } from '@jupytergis/schema';
-
-import { MapAdapterType } from './mapAdapter';
 
 export interface IMapAdapterFeatures {
   readonly name: string;
@@ -95,7 +94,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
 };
 
 export const MAP_ADAPTER_FEATURES: Readonly<
-  Record<MapAdapterType, IMapAdapterFeatures>
+  Record<IMapAdapterType, IMapAdapterFeatures>
 > = {
   maplibre: MAPLIBRE_FEATURES,
   openlayers: OPENLAYERS_FEATURES,
