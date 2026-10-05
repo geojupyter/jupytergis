@@ -179,8 +179,8 @@ class GISDocument(CommWidget):
     :param path: the path to the file that you would like to open. If not provided, a new ephemeral widget will be created.
 
     :param map_adapter: the map renderer used to display this document,
-    ``"openlayers"`` or ``"maplibre"``. When omitted, the front end's default is used
-    (or the value already saved in the file).
+        ``"openlayers"`` or ``"maplibre"``. When omitted, the front end's default is used
+        (or the value already saved in the file).
 
     Collaborative client state from the front end is mirrored into :mod:`ypywidgets`
     ``Awareness`` on the kernel. Subscribe with ``on_awareness_change(callback)``
