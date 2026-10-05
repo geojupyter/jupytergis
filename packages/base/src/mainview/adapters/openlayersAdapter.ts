@@ -121,10 +121,7 @@ import {
   OpenEOTileLayer,
   OpenEOTileSource,
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
-import {
-  grammarDeclutter,
-  grammarToOLLayer,
-} from '@/src/features/layers/symbology/grammarToOLLayer';
+import { grammarToOLLayer } from '@/src/features/layers/symbology/grammarToOLLayer';
 import {
   extractEncodingFieldValues,
   grammarToOLStyle,
@@ -1159,6 +1156,7 @@ export class OpenLayersAdapter implements IMapAdapter {
             featureValues,
             false,
             className,
+            layerParameters.declutter ? id : false,
           ) as OlLayerTypes;
         } else {
           newMapLayer = new VectorImageLayer({
@@ -1167,6 +1165,7 @@ export class OpenLayersAdapter implements IMapAdapter {
             source: this._sources.get(layerParameters.source),
             style: this.vectorLayerStyleRuleBuilder(layer),
             className,
+            declutter: layerParameters.declutter ? id : false,
           });
         }
 
@@ -1180,9 +1179,7 @@ export class OpenLayersAdapter implements IMapAdapter {
           visible: layer.visible,
           source: this._sources.get(layerParameters.source),
           style: this.vectorLayerStyleRuleBuilder(layer),
-          declutter: grammarDeclutter(
-            layerParameters.symbologyState as IGrammarSymbologyState,
-          ),
+          declutter: layerParameters.declutter ? id : false,
           className,
         });
 
@@ -1854,6 +1851,9 @@ export class OpenLayersAdapter implements IMapAdapter {
         (mapLayer as VectorImageLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
         );
+        (mapLayer as VectorImageLayer).setDeclutter(
+          layerParams.declutter ? id : false,
+        );
 
         break;
       }
@@ -1865,13 +1865,8 @@ export class OpenLayersAdapter implements IMapAdapter {
         (mapLayer as VectorTileLayer).setStyle(
           this.vectorLayerStyleRuleBuilder(layer),
         );
-        // Vector tile layers are restyled in place rather than rebuilt, so
-        // declutter has to be pushed across by hand. Vector layers get it for
-        // free because _syncGrammarSubLayers reconstructs the OL layer.
         (mapLayer as VectorTileLayer).setDeclutter(
-          grammarDeclutter(
-            layerParams.symbologyState as IGrammarSymbologyState,
-          ),
+          layerParams.declutter ? id : false,
         );
 
         break;
@@ -2889,6 +2884,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       featureValues,
       layer.type === 'GeoTiffLayer' || layer.type === 'GeoZarrLayer',
       comparisonLayerClass(id),
+      (layerParams as IVectorLayer | undefined)?.declutter ? id : false,
     );
 
     if (mapLayer instanceof LayerGroup) {
