@@ -13,7 +13,7 @@ import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
 import React from 'react';
 
-import { describeConnectionError } from './connectionError';
+import { describeConnectionError } from '@/src/tools';
 import { ensureSaveResult } from './templates';
 
 const CONNECTIONS: { [serverUrl: string]: Connection } = {};
