@@ -9,6 +9,7 @@ import {
   listOpenEOConnections,
 } from './OpenEOTileLayer';
 import { CodeExportPanel } from './codeExportPanel';
+import { describeConnectionError } from './connectionError';
 import { JsonEditor } from './jsonEditor';
 import { ProcessGraphView } from './processGraphView';
 import {
@@ -515,7 +516,7 @@ const Form: React.FC<IFormProps> = ({
     try {
       await openEOConnect(next);
     } catch (err: any) {
-      setServerError(err?.message ?? String(err));
+      setServerError(describeConnectionError(err, next.url ?? raw));
       setServerBusy(false);
       return;
     }
