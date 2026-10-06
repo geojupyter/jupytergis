@@ -40,7 +40,7 @@ import {
 import {
   getLatestOpenEOConnection,
   listOpenEOConnections,
-} from '../features/layers/openeo/OpenEOTileLayer';
+} from '../features/layers/openeo/signin';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
 import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
