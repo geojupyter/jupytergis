@@ -166,7 +166,7 @@ class GISDocument(CommWidget):
     ``pycrdt.Awareness`` via the inherited ``awareness`` property.
     """
 
-    tile_server: None | TiTilerServer
+    tile_server: TiTilerServer | None
 
     def __init__(
         self,

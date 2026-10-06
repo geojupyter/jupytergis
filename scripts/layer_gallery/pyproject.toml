@@ -34,6 +34,7 @@ src = ["."]
 [tool.ruff.lint]
 select = ["ALL"]
 ignore = [
+    "CPY001",  # missing-copyright-notice
     "D203",    # Require blank line before class docstring
     "D213",    # Require multi-line docstrings to start on the line after opening triple-quotes
     "DTZ011",  # Forbid naive datetimes

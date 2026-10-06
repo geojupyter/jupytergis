@@ -27,14 +27,14 @@ repos:
 
   # Autoformat & lint: Python code
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.20
+    rev: v0.16.10
     hooks:
       - id: ruff
         args: ['--fix', '--show-fixes', '--exit-non-zero-on-fix']
       - id: ruff-format
 
   - repo: https://github.com/rstcheck/rstcheck
-    rev: v6.2.5
+    rev: v6.3.0
     hooks:
       - id: rstcheck
         args: ['--ignore-directives=jupyterlite,tabs,toctree,autoclass,cssclass,include', '--report-level=warning']
