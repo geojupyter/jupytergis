@@ -39,6 +39,7 @@ from jupytergis_core.schema import (
     IVectorTileLayer,
     IVectorTileSource,
     IWmsTileSource,
+    JGISStoryMap,
     LayerType,
     SourceType,
 )
@@ -76,6 +77,23 @@ QGIS_UNSUPPORTED_TYPES = {
     LayerType.StorySegmentLayer,
     SourceType.OpenEOTileSource,
     SourceType.GeoZarrSource,
+}
+
+StoryType = Literal["guided", "Vertical Scroll"]
+ContentMode = Literal["map", "markdown"]
+PaneAlignment = Literal["start", "center", "end"]
+TransitionType = Literal["linear", "immediate", "smooth"]
+
+STORY_PROPERTIES = {
+    "title": "title",
+    "story_type": "storyType",
+    "show_gradient": "showGradient",
+    "markdown_segment_gap": "markdownSegmentGap",
+    "markdown_segment_opacity": "markdownSegmentOpacity",
+    "story_panel_opacity": "storyPanelOpacity",
+    "presentation_bg_color": "presentationBgColor",
+    "presentation_text_color": "presentationTextColor",
+    "overlay_content_width": "overlayContentWidth",
 }
 
 
@@ -144,7 +162,7 @@ def _lonlat_to_webmercator(lon: float, lat: float) -> tuple[float, float]:
     return x, y
 
 
-def _openeo_view_extent(extent: list[float]) -> list[float]:
+def _lonlat_extent_to_view(extent: list[float]) -> list[float]:
     """Convert a ``[west, south, east, north]`` EPSG:4326 bbox to an EPSG:3857
     ``[minx, miny, maxx, maxy]`` extent suitable for ``options["extent"]``.
     """
@@ -152,6 +170,54 @@ def _openeo_view_extent(extent: list[float]) -> list[float]:
     minx, miny = _lonlat_to_webmercator(west, south)
     maxx, maxy = _lonlat_to_webmercator(east, north)
     return [minx, miny, maxx, maxy]
+
+
+def _story_segment_name(segment_count: int) -> str:
+    return "Story Segment" if segment_count == 0 else f"Story Segment {segment_count}"
+
+
+def _story_properties(**keywords: Any) -> dict[str, Any]:
+    """Validate the story keywords and return them as schema properties.
+
+    Keywords left as ``None`` are dropped, so that creating a story falls back
+    to the schema defaults and updating one leaves the rest untouched.
+    """
+    given = {
+        STORY_PROPERTIES[keyword]: value
+        for keyword, value in keywords.items()
+        if value is not None
+    }
+    story = JGISStoryMap(**given)
+    return story.model_dump(mode="json", include=set(given))
+
+
+def _story_segment_extent(
+    extent: list[float] | None,
+    center: tuple[float, float] | None,
+) -> list[float]:
+    """Build a story segment extent in the view projection.
+
+    ``extent`` is a ``[west, south, east, north]`` EPSG:4326 bbox, ``center`` a
+    ``(longitude, latitude)`` pair. A center becomes a zero-width extent: the
+    front end only reads the center of a segment extent when flying to it.
+    """
+    if extent is not None and center is not None:
+        raise ValueError(
+            "Cannot set a story segment extent and center at the same time",
+        )
+
+    if extent is not None:
+        if len(extent) != 4:
+            raise ValueError(
+                "A story segment extent must be [west, south, east, north]",
+            )
+        return _lonlat_extent_to_view(extent)
+
+    if center is None:
+        raise ValueError("A story segment needs either an extent or a center")
+
+    x, y = _lonlat_to_webmercator(*center)
+    return [x, y, x, y]
 
 
 class GISDocument(CommWidget):
@@ -208,6 +274,9 @@ class GISDocument(CommWidget):
 
         self._presets: Map = Map()
         self.ydoc["presets"] = self._presets
+
+        self._stories: Map = Map()
+        self.ydoc["stories"] = self._stories
 
         self._options: Map[str | float | bool | list[float]]
         self._featureStores: Map = Map()
@@ -298,6 +367,17 @@ class GISDocument(CommWidget):
     def layer_tree(self) -> list[Any] | None:
         """Get the layer tree"""
         return self._layerTree.to_py()
+
+    @property
+    def story(self) -> dict[str, Any] | None:
+        """Get the story map of the document, or ``None`` when it has no story."""
+        return self._selected_story()[1]
+
+    @property
+    def story_segments(self) -> list[str]:
+        """Get the ids of the story segments, in presentation order."""
+        story = self.story
+        return list(story.get("storySegments") or []) if story else []
 
     @property
     def _is_qgis_document(self) -> bool:
@@ -626,7 +706,7 @@ class GISDocument(CommWidget):
         if zoom_to_extent:
             extent = _openeo_spatial_extent(flat_graph)
             if extent is not None:
-                self._options["extent"] = _openeo_view_extent(extent)
+                self._options["extent"] = _lonlat_extent_to_view(extent)
                 self._options["useExtent"] = True
 
         return layer_id
@@ -1284,6 +1364,193 @@ class GISDocument(CommWidget):
             zoom_to=zoom_to,
         )
 
+    def _selected_story(self) -> tuple[str | None, dict[str, Any] | None]:
+        """The story the front end presents: a document holds at most one."""
+        stories = self._stories.to_py() or {}
+        for story_id, story in stories.items():
+            return story_id, story
+        return None, None
+
+    def create_story(
+        self,
+        title: str = "New Story",
+        story_type: StoryType = "guided",
+        show_gradient: bool | None = None,
+        markdown_segment_gap: bool | None = None,
+        markdown_segment_opacity: float | None = None,
+        story_panel_opacity: float | None = None,
+        presentation_bg_color: str | None = None,
+        presentation_text_color: str | None = None,
+        overlay_content_width: str | None = None,
+    ) -> str:
+        """Create the story map of the document and return its id.
+
+        A document presents a single story, so this raises when one already
+        exists; use :py:meth:`update_story` to change it.
+
+        :param title: The title shown in the story panel and in presentation mode.
+        :param story_type: ``"guided"`` to step through segments, ``"Vertical Scroll"`` to scroll them.
+        :param show_gradient: Whether to draw the gradient background in presentation mode.
+        :param markdown_segment_gap: Whether to insert a full-stage gap between consecutive markdown segments.
+        :param markdown_segment_opacity: The opacity of markdown segment backgrounds, between 0 and 1.
+        :param story_panel_opacity: The opacity of story panels over the map, between 0 and 1.
+        :param presentation_bg_color: The CSS background color used in presentation mode.
+        :param presentation_text_color: The CSS text color used in presentation mode.
+        :param overlay_content_width: The CSS width of vertical scroll markdown overlays.
+        """
+        self._assert_is_ready()
+        self._ensure_qgis_supported(LayerType.StorySegmentLayer)
+
+        story_id, _ = self._selected_story()
+        if story_id is not None:
+            raise ValueError(
+                "This document already has a story, use `update_story` to change it.",
+            )
+
+        return self._create_story(
+            _story_properties(
+                title=title,
+                story_type=story_type,
+                show_gradient=show_gradient,
+                markdown_segment_gap=markdown_segment_gap,
+                markdown_segment_opacity=markdown_segment_opacity,
+                story_panel_opacity=story_panel_opacity,
+                presentation_bg_color=presentation_bg_color,
+                presentation_text_color=presentation_text_color,
+                overlay_content_width=overlay_content_width,
+            ),
+        )
+
+    def _create_story(self, properties: dict[str, Any]) -> str:
+        story_id = str(uuid4())
+        self._stories[story_id] = {"storySegments": [], **properties}
+        return story_id
+
+    def update_story(
+        self,
+        title: str | None = None,
+        story_type: StoryType | None = None,
+        show_gradient: bool | None = None,
+        markdown_segment_gap: bool | None = None,
+        markdown_segment_opacity: float | None = None,
+        story_panel_opacity: float | None = None,
+        presentation_bg_color: str | None = None,
+        presentation_text_color: str | None = None,
+        overlay_content_width: str | None = None,
+    ) -> None:
+        """Change properties of the story map of the document.
+
+        Properties left out keep their current value. See
+        :py:meth:`create_story` for what each one does.
+        """
+        self._assert_is_ready()
+
+        story_id, story = self._selected_story()
+        if story_id is None or story is None:
+            raise ValueError("This document has no story, create one first.")
+
+        self._stories[story_id] = {
+            **story,
+            **_story_properties(
+                title=title,
+                story_type=story_type,
+                show_gradient=show_gradient,
+                markdown_segment_gap=markdown_segment_gap,
+                markdown_segment_opacity=markdown_segment_opacity,
+                story_panel_opacity=story_panel_opacity,
+                presentation_bg_color=presentation_bg_color,
+                presentation_text_color=presentation_text_color,
+                overlay_content_width=overlay_content_width,
+            ),
+        }
+
+    def add_story_segment(
+        self,
+        center: tuple[float, float] | None = None,
+        zoom: float | None = None,
+        extent: list[float] | None = None,
+        name: str | None = None,
+        markdown: str | None = None,
+        image: str | None = None,
+        image_caption: str | None = None,
+        content_mode: ContentMode | None = None,
+        pane_alignment: PaneAlignment | None = None,
+        panel_width: str | None = None,
+        transition: TransitionType = "linear",
+        transition_time: float = 1,
+        enable_identify: bool = False,
+        layer_overrides: list[dict[str, Any]] | None = None,
+    ) -> str:
+        """Append a story segment to the story map and return its id.
+
+        The story is created on the fly when the document has no story yet.
+
+        :param center: The ``(longitude, latitude)`` the map flies to, defaulting to the current map center.
+        :param zoom: The zoom level the map flies to, defaulting to the current map zoom.
+        :param extent: A ``[west, south, east, north]`` EPSG:4326 bbox to use instead of ``center``.
+        :param name: The name of the segment, defaulting to its position in the story.
+        :param markdown: The markdown content shown while the segment is active.
+        :param image: A link to an image shown with the content.
+        :param image_caption: The caption of ``image``.
+        :param content_mode: ``"map"`` to show the content over the map, ``"markdown"`` to show it alone. Defaults to ``"map"``.
+        :param pane_alignment: The horizontal alignment of the content pane.
+        :param panel_width: The CSS width of the content pane.
+        :param transition: The animation used to reach this segment.
+        :param transition_time: The duration of the transition, in seconds.
+        :param enable_identify: Whether to show the identify control while the segment is active.
+        :param layer_overrides: Visibility, opacity and symbology overrides applied to other layers while the segment is active.
+        """
+        self._assert_is_ready()
+        self._ensure_qgis_supported(LayerType.StorySegmentLayer)
+
+        if center is None and extent is None:
+            longitude = self._options.get("longitude")
+            latitude = self._options.get("latitude")
+            if longitude is None or latitude is None:
+                raise ValueError("A story segment needs either an extent or a center")
+            center = (longitude, latitude)
+
+        content: dict[str, Any] = {
+            "contentMode": content_mode
+            or ("markdown" if markdown is not None else "map"),
+        }
+        if markdown is not None:
+            content["markdown"] = markdown
+        if image is not None:
+            content["image"] = image
+        if image_caption is not None:
+            content["imageCaption"] = image_caption
+        if pane_alignment is not None:
+            content["paneAlignment"] = pane_alignment
+        if panel_width is not None:
+            content["panelWidth"] = panel_width
+
+        story_id, story = self._selected_story()
+        if story_id is None or story is None:
+            story = {"title": "New Story", "storyType": "guided", "storySegments": []}
+            story_id = self._create_story(story)
+
+        segments = list(story.get("storySegments") or [])
+
+        layer = {
+            "type": LayerType.StorySegmentLayer,
+            "name": name or _story_segment_name(len(segments)),
+            "visible": True,
+            "parameters": {
+                "extent": _story_segment_extent(extent, center),
+                "zoom": zoom if zoom is not None else self._options.get("zoom", 0),
+                "enableIdentify": enable_identify,
+                "transition": {"type": transition, "time": transition_time},
+                "content": content,
+                "layerOverride": layer_overrides or [],
+            },
+        }
+
+        segment_id = self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        self._stories[story_id] = {**story, "storySegments": [*segments, segment_id]}
+
+        return segment_id
+
     def remove_layer(self, layer_id: str):
         """Remove a layer from the GIS document.
 
@@ -1296,7 +1563,26 @@ class GISDocument(CommWidget):
             raise KeyError(f"No layer found with ID: {layer_id}")
 
         del self._layers[layer_id]
+
+        if layer["type"] == LayerType.StorySegmentLayer.value:
+            self._remove_story_segment(layer_id)
+            return
+
         self._remove_source_if_orphaned(layer["parameters"]["source"])
+
+    def _remove_story_segment(self, segment_id: str):
+        story_id, story = self._selected_story()
+
+        if story_id is None or story is None:
+            return
+
+        segments = story.get("storySegments") or []
+
+        if segment_id in segments:
+            self._stories[story_id] = {
+                **story,
+                "storySegments": [other for other in segments if other != segment_id],
+            }
 
     def _remove_source_if_orphaned(self, source_id: str):
         source = self._sources.get(source_id)
@@ -1305,7 +1591,7 @@ class GISDocument(CommWidget):
             raise KeyError(f"No source found with ID: {source_id}")
 
         source_is_orphan = not any(
-            layer["parameters"]["source"] == source_id
+            layer["parameters"].get("source") == source_id
             for layer in self._layers.values()
         )
 
