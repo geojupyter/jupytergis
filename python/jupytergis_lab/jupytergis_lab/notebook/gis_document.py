@@ -1508,7 +1508,7 @@ class GISDocument(CommWidget):
             latitude = self._options.get("latitude")
             if longitude is None or latitude is None:
                 raise ValueError("A story segment needs either an extent or a center")
-            center = (longitude, latitude)
+            center = cast("tuple[float, float]", (longitude, latitude))
 
         content: dict[str, Any] = {
             "contentMode": content_mode

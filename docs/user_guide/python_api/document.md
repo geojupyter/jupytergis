@@ -260,7 +260,7 @@ doc.create_story(
 ```python
 doc.update_story(title="A short tour of France", story_panel_opacity=0.8)
 
-print(doc.story)           # the story properties
+print(doc.story)  # the story properties
 print(doc.story_segments)  # segment ids, in presentation order
 ```
 
