@@ -672,7 +672,8 @@ export function addCommands(
       }
 
       const luminoEvent = args['_luminoEvent'] as
-        ReadonlyPartialJSONObject | undefined;
+        | ReadonlyPartialJSONObject
+        | undefined;
 
       if (luminoEvent) {
         const keysPressed = luminoEvent.keys as string[] | undefined;
@@ -2148,7 +2149,15 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.foldFeatureStore, {
     label: trans.__('Fold to Feature Store'),
-    caption: trans.__('Fold overlay features into the feature store baseline.'),
+    caption: () => {
+      if (!isFeatureStoreAvailable()) {
+        return trans.__(
+          'Feature store requires JGIS_POSTGIS_URL and JGIS_TIPG_URL env vars to be set.',
+        );
+      }
+
+      return trans.__('Fold overlay features into the feature store baseline.');
+    },
     isEnabled: () => {
       if (!isFeatureStoreAvailable()) {
         return false;
