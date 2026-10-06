@@ -90,8 +90,10 @@ def feature_store_table_ddl(table_name: str) -> str:
             "  updated_at timestamptz NOT NULL DEFAULT now(),",
             "  updated_by text",
             ");",
-            f"CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} "
-            "USING GIST (geom);",
+            (
+                f"CREATE INDEX IF NOT EXISTS {index_name} ON {table_name} "
+                "USING GIST (geom);"
+            ),
         ],
     )
 
