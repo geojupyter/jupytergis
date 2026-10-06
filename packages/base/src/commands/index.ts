@@ -641,7 +641,8 @@ export function addCommands(
       }
 
       const luminoEvent = args['_luminoEvent'] as
-        ReadonlyPartialJSONObject | undefined;
+        | ReadonlyPartialJSONObject
+        | undefined;
 
       if (luminoEvent) {
         const keysPressed = luminoEvent.keys as string[] | undefined;
