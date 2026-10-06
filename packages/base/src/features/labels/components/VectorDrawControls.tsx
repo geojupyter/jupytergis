@@ -2,6 +2,7 @@ import type { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
 import { DrawCustomAttributesDialog } from '@/src/features/labels/components/DrawCustomAttributesDialog';
+import { DrawCustomAttributesPreview } from '@/src/features/labels/components/DrawCustomAttributesPreview';
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -34,31 +35,36 @@ export function VectorDrawControls({
 
   return (
     <div className="jgis-vector-draw-controls">
-      <ToggleGroup
-        variant="outline"
-        spacing={0}
-        aria-label="Draw tools"
-        value={[toggleValue]}
-        className="rounded-[0.5rem] bg-background [&_[data-slot=toggle-group-item]:first-child]:rounded-l-[0.5rem] [&_[data-slot=toggle-group-item]:last-child]:rounded-r-[0.5rem]"
-      >
-        <ToggleGroupItem
-          value={SELECT_TOOL_VALUE}
-          onClick={() => onDrawGeometryTypeChange(DRAW_SELECT_TOOL)}
+      <div className="jgis-vector-draw-controls-row">
+        <ToggleGroup
+          variant="outline"
+          spacing={0}
+          aria-label="Draw tools"
+          value={[toggleValue]}
+          className="rounded-[0.5rem] bg-background [&_[data-slot=toggle-group-item]:first-child]:rounded-l-[0.5rem] [&_[data-slot=toggle-group-item]:last-child]:rounded-r-[0.5rem]"
         >
-          Modify
-        </ToggleGroupItem>
-        {DRAW_GEOMETRIES.map(({ value, label }) => (
           <ToggleGroupItem
-            key={value}
-            value={value}
-            onClick={() => onDrawGeometryTypeChange(value)}
+            value={SELECT_TOOL_VALUE}
+            onClick={() => onDrawGeometryTypeChange(DRAW_SELECT_TOOL)}
           >
-            {label}
+            Modify
           </ToggleGroupItem>
-        ))}
-      </ToggleGroup>
+          {DRAW_GEOMETRIES.map(({ value, label }) => (
+            <ToggleGroupItem
+              key={value}
+              value={value}
+              onClick={() => onDrawGeometryTypeChange(value)}
+            >
+              {label}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+        {drawLayerId ? (
+          <DrawCustomAttributesDialog model={model} drawLayerId={drawLayerId} />
+        ) : null}
+      </div>
       {drawLayerId ? (
-        <DrawCustomAttributesDialog model={model} drawLayerId={drawLayerId} />
+        <DrawCustomAttributesPreview model={model} drawLayerId={drawLayerId} />
       ) : null}
     </div>
   );
