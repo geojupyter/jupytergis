@@ -11,6 +11,7 @@ import { UUID } from '@lumino/coreutils';
 import type { Map as OlMap } from 'ol';
 import Feature from 'ol/Feature';
 import { Coordinate } from 'ol/coordinate';
+import { primaryAction } from 'ol/events/condition';
 import { GeoJSON } from 'ol/format';
 import { Type } from 'ol/geom/Geometry';
 import Draw, { DrawEvent } from 'ol/interaction/Draw';
@@ -397,6 +398,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
         style: drawInteractionStyle,
         type: this._currentDrawGeometry,
         source: drawSource,
+        // Only draw on left click
+        condition: primaryAction,
       });
       this._draw.on('drawend', this._handleDrawEnd);
       map.addInteraction(this._draw);

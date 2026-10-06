@@ -45,7 +45,7 @@ export function VectorDrawControls({
           value={SELECT_TOOL_VALUE}
           onClick={() => onDrawGeometryTypeChange(DRAW_SELECT_TOOL)}
         >
-          Select
+          Modify
         </ToggleGroupItem>
         {DRAW_GEOMETRIES.map(({ value, label }) => (
           <ToggleGroupItem

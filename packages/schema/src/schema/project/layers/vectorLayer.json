@@ -22,6 +22,11 @@
       "minimum": 0,
       "maximum": 1
     },
+    "declutter": {
+      "type": "boolean",
+      "default": false,
+      "description": "Skip drawing anything that would overlap something already drawn, so a dense layer stays readable. Applies to text and to point symbols alike. Off by default because it hides data."
+    },
     "symbologyState": {
       "type": "object",
       "description": "The symbology configuration. This is the single source of truth for how the layer is rendered; the OpenLayers style is derived from it on the fly.",
