@@ -212,6 +212,73 @@ doc.add_geopackage_vector_layer(
 doc
 ```
 
+## Story maps
+
+A story map walks the reader through a map one segment at a time. Each segment is a map view (a center and a zoom) plus optional markdown and an image. A document holds a single story, which is created for you the first time you add a segment.
+
+```python
+from jupytergis import GISDocument
+
+doc = GISDocument(zoom=5, latitude=47.0, longitude=2.0)
+await doc.ready()
+
+doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+
+doc.add_story_segment(
+    name="Paris",
+    center=(2.358213, 48.853757),
+    zoom=12,
+    markdown="# Paris\n\nWhere the story starts.",
+)
+doc.add_story_segment(
+    name="Marseille",
+    center=(5.369780, 43.296482),
+    zoom=11,
+    markdown="## Marseille\n\nDown to the Mediterranean.",
+    transition="smooth",
+    transition_time=2,
+)
+
+doc
+```
+
+`center` is a `(longitude, latitude)` pair, and defaults to the current map center. Pass a `[west, south, east, north]` bounding box as `extent` instead if that is what you have. Open the story panel in the map toolbar to present it.
+
+Use `create_story` first when you want to set the title or the presentation colors:
+
+```python
+doc.create_story(
+    title="A tour of France",
+    story_type="Vertical Scroll",
+    presentation_bg_color="#101820",
+    presentation_text_color="#f2f2f2",
+)
+```
+
+`update_story` changes those later, and properties you leave out keep their value:
+
+```python
+doc.update_story(title="A short tour of France", story_panel_opacity=0.8)
+
+print(doc.story)           # the story properties
+print(doc.story_segments)  # segment ids, in presentation order
+```
+
+A segment can also override how other layers are drawn while it is on screen:
+
+```python
+quakes = doc.add_geojson_layer(name="Quakes", path="quakes.geojson")
+
+doc.add_story_segment(
+    name="Only the quakes",
+    center=(2.0, 47.0),
+    zoom=6,
+    layer_overrides=[{"targetLayer": quakes, "visible": True, "opacity": 0.5}],
+)
+```
+
+Segments are layers, so `doc.remove_layer(segment_id)` removes one and drops it from the story.
+
 ## Remove layers and inspect document content
 
 ```python
