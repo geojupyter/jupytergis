@@ -661,6 +661,15 @@ class TipgTilesHandler(APIHandler):
             self.finish(response.body)
 
 
+class FeatureStoreCheckHandler(APIHandler):
+    """Return whether PostGIS and tipg are configured for feature stores."""
+
+    @tornado.web.authenticated
+    def post(self):
+        available = bool(get_postgis_url() and get_tipg_url())
+        self.finish(json.dumps({"available": available}))
+
+
 def setup_handlers(web_app: Any) -> None:
     """Register handlers with configuration validation.
 
@@ -682,21 +691,29 @@ def setup_handlers(web_app: Any) -> None:
         "tipg-featurestore-tiles",
         r"(.*)",
     )
+    feature_store_check_route = url_path_join(
+        base_url,
+        "jupytergis_core",
+        "feature-store-check",
+    )
 
     handlers = [
         (proxy_route, ProxyHandler),
         (processing_route, ProcessingHandler),
         (tiles_route, TipgTilesHandler),
+        (feature_store_check_route, FeatureStoreCheckHandler),
     ]
 
     # Add feature flags
     web_app.settings.setdefault("page_config_data", {})
     if os.environ.get("JGIS_EXPOSE_MAPS", False):
         web_app.settings["page_config_data"]["jgis_expose_maps"] = True
-    if get_postgis_url() and get_tipg_url():
-        web_app.settings["page_config_data"]["jgis_feature_store"] = True
 
     web_app.add_handlers(host_pattern, handlers)
     logger.info("JupyterGIS proxy endpoint initialized at: %s", proxy_route)
     logger.info("JupyterGIS processing endpoint initialized at: %s", processing_route)
     logger.info("JupyterGIS tipg tiles proxy initialized at: %s", tiles_route)
+    logger.info(
+        "JupyterGIS feature store check initialized at: %s",
+        feature_store_check_route,
+    )

@@ -1,11 +1,13 @@
 import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import {
   CommandIDs,
+  checkFeatureStoreAvailability,
   checkServerAvailability,
   isJupyterLite,
   logoIcon,
   logoMiniIcon,
   resetServerAvailabilityCache,
+  setFeatureStoreAvailable,
   setServerProcessingEnabled,
 } from '@jupytergis/base';
 import {
@@ -163,6 +165,14 @@ const activate = async (
   } catch (error) {
     console.warn(`Failed to load settings for ${SETTINGS_ID}`, error);
   }
+
+  if (isJupyterLite()) {
+    setFeatureStoreAvailable(false);
+  } else {
+    await checkFeatureStoreAvailability();
+  }
+  app.commands.notifyCommandChanged(CommandIDs.foldFeatureStore);
+  app.commands.notifyCommandChanged(CommandIDs.openNewFeatureStoreDialog);
 
   const widgetFactory = new JupyterGISDocumentWidgetFactory({
     name: FACTORY,

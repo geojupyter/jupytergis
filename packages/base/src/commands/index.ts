@@ -17,7 +17,6 @@ import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Notification } from '@jupyterlab/apputils';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
-import { PageConfig } from '@jupyterlab/coreutils';
 import type {
   IRenderMimeRegistry,
   IUrlResolverFactory,
@@ -33,6 +32,7 @@ import { fromLonLat } from 'ol/proj';
 import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
 import { addLayerCreationCommands } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
+import { isFeatureStoreAvailable } from '../features/feature-store/availability';
 import { launchFollowable, registerFollowDialogs } from '../features/follow';
 import { LayerBrowserWidget } from '../features/layer-browser';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
@@ -672,8 +672,7 @@ export function addCommands(
       }
 
       const luminoEvent = args['_luminoEvent'] as
-        | ReadonlyPartialJSONObject
-        | undefined;
+        ReadonlyPartialJSONObject | undefined;
 
       if (luminoEvent) {
         const keysPressed = luminoEvent.keys as string[] | undefined;
@@ -2151,11 +2150,7 @@ export function addCommands(
     label: trans.__('Fold to Feature Store'),
     caption: trans.__('Fold overlay features into the feature store baseline.'),
     isEnabled: () => {
-      const useFeatureStore = Boolean(
-        PageConfig.getOption('jgis_feature_store'),
-      );
-
-      if (!useFeatureStore) {
+      if (!isFeatureStoreAvailable()) {
         return false;
       }
 
@@ -2201,6 +2196,10 @@ export function addCommands(
       'Create a feature store layer (server-backed baseline with overlay edits).',
     ),
     isEnabled: () => {
+      if (!isFeatureStoreAvailable()) {
+        return false;
+      }
+
       return tracker.currentWidget
         ? tracker.currentWidget.model.sharedModel.editable
         : false;
@@ -2639,9 +2638,10 @@ namespace Private {
   export function createDrawLayer(model: IJupyterGISModel): string {
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
-    const useFeatureStore = Boolean(PageConfig.getOption('jgis_feature_store'));
+    const useFeatureStore = isFeatureStoreAvailable();
 
     let sourceModel: IJGISSource;
+    //! TODO: This is a bad idea. Layer type should be user choice
     if (useFeatureStore) {
       const storeId = UUID.uuid4();
       sourceModel = {
