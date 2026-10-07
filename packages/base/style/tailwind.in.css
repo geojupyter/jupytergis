@@ -87,7 +87,7 @@
   --color-secondary-foreground: var(--jp-ui-font-color0);
   --color-muted: var(--jp-layout-color2);
   --color-muted-foreground: var(--jp-ui-font-color2);
-  --color-accent: var(--jp-layout-color2);
+  --color-accent: var(--jp-brand-color0);
   --color-accent-foreground: var(--jp-ui-font-color0);
   --color-destructive: var(--jp-error-color0);
   --color-border: var(--jp-border-color1);
