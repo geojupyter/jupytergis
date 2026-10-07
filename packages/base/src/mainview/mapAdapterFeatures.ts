@@ -35,6 +35,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     MarkerSource: false,
     WmsTileSource: false,
     OpenEOTileSource: false,
+    FeatureStoreSource: false,
   },
   layers: {
     RasterLayer: true,
@@ -73,6 +74,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     MarkerSource: true,
     WmsTileSource: true,
     OpenEOTileSource: true,
+    FeatureStoreSource: true,
   },
   layers: {
     RasterLayer: true,
@@ -149,6 +151,7 @@ const SOURCE_LABELS: Record<SourceType, string> = {
   GeoParquetSource: 'GeoParquet',
   MarkerSource: 'Markers',
   OpenEOTileSource: 'OpenEO',
+  FeatureStoreSource: 'Feature store',
 };
 
 type ToolKey =

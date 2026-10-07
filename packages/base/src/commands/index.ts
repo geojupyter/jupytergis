@@ -274,6 +274,10 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
     sources: ['OpenEOTileSource'],
     layers: ['OpenEOTileLayer'],
   },
+  [CommandIDs.openNewFeatureStoreDialog]: {
+    sources: ['FeatureStoreSource'],
+    layers: ['VectorLayer'],
+  },
   [CommandIDs.newGeoPackageVectorEntry]: {
     sources: ['GeoPackageVectorSource'],
     layers: ['VectorLayer'],
