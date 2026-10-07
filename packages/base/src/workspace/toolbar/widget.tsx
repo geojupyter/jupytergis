@@ -98,6 +98,17 @@ export class ToolbarWidget extends ReactiveToolbar {
     );
 
     if (options.commands) {
+      const mapRendererButton = new CommandToolbarButton({
+        id: CommandIDs.openMapRendererDialog,
+        commands: options.commands,
+        label: '',
+      });
+      this.addItem('Map renderer', mapRendererButton);
+      mapRendererButton.addClass('jp-toolbar-maprenderer');
+      mapRendererButton.node.dataset.testid = 'map-renderer-button';
+
+      this.addItem('separator1', new Separator());
+
       const openLayersBrowserButton = new CommandToolbarButton({
         id: CommandIDs.openLayerBrowser,
         label: '',
@@ -144,7 +155,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('New', NewEntryButton);
       NewEntryButton.node.dataset.testid = 'new-entry-button';
 
-      this.addItem('separator1', new Separator());
+      this.addItem('separator2', new Separator());
 
       const geolocationDropdownMenu = new MenuSvg({
         commands: options.commands,
@@ -247,7 +258,7 @@ export class ToolbarWidget extends ReactiveToolbar {
         this._updateTogglePanelVisibility(),
       );
 
-      this.addItem('separator2', new Separator());
+      this.addItem('separator3', new Separator());
 
       const toggleConsoleButton = new CommandToolbarButton({
         id: CommandIDs.toggleConsole,
@@ -258,7 +269,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem('Toggle console', toggleConsoleButton);
       toggleConsoleButton.node.dataset.testid = 'toggle-console-button';
 
-      this.addItem('separator3', new Separator());
+      this.addItem('separator4', new Separator());
 
       const launchTourButton = new CommandToolbarButton({
         id: CommandIDs.launchFeatureTour,

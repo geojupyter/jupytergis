@@ -47,6 +47,7 @@ import {
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
+import { showMapRendererDialog } from '../features/map-renderer/mapRenderDialog';
 import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
@@ -462,6 +463,25 @@ export function addCommands(
   tracker.currentChanged.connect(refreshAdapterCommands);
 
   addLayerCreationCommands({ tracker, commands, trans });
+
+  commands.addCommand(CommandIDs.openMapRendererDialog, {
+    label: trans.__('Map Renderer…'),
+    caption: trans.__(
+      'Choose the map renderer for this document and compare what each supports.',
+    ),
+    describedBy: { args: { type: 'object', properties: {} } },
+    isEnabled: () =>
+      tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false,
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (model) {
+        void showMapRendererDialog(model);
+      }
+    },
+    ...icons.get(CommandIDs.openMapRendererDialog),
+  });
 
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),

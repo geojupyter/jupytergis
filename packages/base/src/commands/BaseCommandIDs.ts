@@ -18,6 +18,9 @@ export const toggleLocationIndicator = 'jupytergis:toggleLocationIndicator';
 // Layers and sources creation commands
 export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 
+// Map renderer
+export const openMapRendererDialog = 'jupytergis:openMapRendererDialog';
+
 // Layer and source
 export const openNewRasterDialog = 'jupytergis:openNewRasterDialog';
 export const openNewWmsDialog = 'jupytergis:openNewWmsDialog';

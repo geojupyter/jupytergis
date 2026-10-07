@@ -51,6 +51,7 @@ const iconObject = {
 
   [CommandIDs.redo]: { icon: redoIcon },
   [CommandIDs.undo]: { icon: undoIcon },
+  [CommandIDs.openMapRendererDialog]: { iconClass: 'fa fa-map' },
   [CommandIDs.openLayerBrowser]: { icon: bookOpenIcon },
   [CommandIDs.openNewRasterDialog]: { icon: rasterIcon },
   [CommandIDs.openNewWmsDialog]: { iconClass: 'fa fa-server' },
