@@ -870,6 +870,12 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     this._drawTool.leaveDrawMode();
+
+    // Clearing the collection calls setMap(null) on each control, which
+    // removes its element from controlsTarget (scale, fullscreen, rotate, zoom).
+    this._map.getControls().clear();
+    this._zoomControl = undefined;
+
     this._map.setTarget(undefined);
     this._sources.clear();
   }

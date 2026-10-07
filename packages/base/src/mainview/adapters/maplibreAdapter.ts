@@ -154,6 +154,18 @@ export class MapLibreAdapter implements IMapAdapter {
 
   destroy(): void {
     this.unregisterMap();
+
+    const controls: Array<IControl | undefined> = [
+      this._scaleControl,
+      this._fullscreenControl,
+      this._presentationHadNavigationControl
+        ? undefined
+        : this._navigationControl,
+    ];
+    controls.forEach(control => control && this._unmountControl(control));
+    this._scaleControl = undefined;
+    this._fullscreenControl = undefined;
+    this._navigationControl = undefined;
     this._map?.remove();
   }
 
@@ -524,8 +536,6 @@ export class MapLibreAdapter implements IMapAdapter {
   async addLayer(id: string, layer: IJGISLayer, index?: number): Promise<void> {
     this._callbacks?.onLayerAddStarted?.();
     this._loadingLayers.add(id);
-
-    this._log('info', `MapLibreAdapter: adding layer ${id}`);
 
     try {
       const sourceId = layer.parameters?.source;

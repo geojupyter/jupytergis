@@ -146,12 +146,19 @@ export async function showMapRendererDialog(
   const result = await showDialog({
     title: 'Select map renderer',
     body,
-    buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })],
+    buttons: [
+      Dialog.cancelButton({ label: 'NeverMind' }),
+      Dialog.okButton({ label: 'Apply' }),
+    ],
   });
 
   if (!result.button.accept || !result.value || result.value === current) {
     return;
   }
 
-  model.setOptions({ ...model.getOptions(), mapAdapter: result.value });
+  model.setOptions({
+    ...model.getOptions(),
+    mapAdapter: result.value,
+    pitch: 0,
+  });
 }
