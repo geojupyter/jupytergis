@@ -400,6 +400,43 @@ export const isJupyterLite = () => {
   return document.querySelectorAll('[data-jupyter-lite-root]')[0] !== undefined;
 };
 
+type ConnectionErrorLike = {
+  code?: string;
+  message?: string;
+  response?: { status?: number; statusText?: string };
+};
+
+/**
+ * Turn a connection failure into something the user can act on. A browser
+ * refuses to tell a page why a cross-origin request was rejected, so the
+ * opaque "Network Error" an HTTP client reports has to be spelled out
+ * rather than repeated verbatim.
+ */
+export function describeConnectionError(error: unknown, url: string): string {
+  const { code, message, response } = (error ?? {}) as ConnectionErrorLike;
+
+  if (response?.status) {
+    const status = [response.status, response.statusText]
+      .filter(Boolean)
+      .join(' ');
+    return `${url} answered ${status}: ${message}`;
+  }
+
+  if (code === 'ECONNABORTED' || code === 'ETIMEDOUT') {
+    return `${url} did not answer in time. The server may be overloaded or unreachable.`;
+  }
+
+  if (code === 'ERR_NETWORK' || message === 'Network Error') {
+    return (
+      `The browser could not reach ${url}. ` +
+      `Either the server is down, or it does not allow requests coming from ${globalThis.location?.origin ?? 'this page'} (CORS). ` +
+      'The Network tab of your browser developer tools shows the real reason.'
+    );
+  }
+
+  return message ?? String(error);
+}
+
 type ProxyStrategy = 'direct' | 'internal' | 'external';
 
 export const fetchWithProxies = async <T>(

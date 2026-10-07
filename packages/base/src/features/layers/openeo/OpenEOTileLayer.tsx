@@ -13,6 +13,7 @@ import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
 import React from 'react';
 
+import { describeConnectionError } from '@/src/tools';
 import { ensureSaveResult } from './templates';
 
 const CONNECTIONS: { [serverUrl: string]: Connection } = {};
@@ -343,7 +344,7 @@ export async function connect(
 
     return connection;
   } catch (error) {
-    showErrorMessage(errorTitle, `${error}`);
+    showErrorMessage(errorTitle, describeConnectionError(error, url));
 
     throw error;
   }
