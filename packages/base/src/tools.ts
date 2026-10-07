@@ -428,7 +428,7 @@ export function describeConnectionError(error: unknown, url: string): string {
 
   if (code === 'ERR_NETWORK' || message === 'Network Error') {
     return (
-      `The browser could not reach ${url} and will not say why. ` +
+      `The browser could not reach ${url}. ` +
       `Either the server is down, or it does not allow requests coming from ${globalThis.location?.origin ?? 'this page'} (CORS). ` +
       'The Network tab of your browser developer tools shows the real reason.'
     );
