@@ -61,6 +61,7 @@
     ],
     "latitude": 1.1368683772161603e-13,
     "longitude": -5.435719410579395,
+    "mapAdapter": "maplibre",
     "pitch": 0.0,
     "projection": "EPSG:3857",
     "zoom": 0.41151096755408034
