@@ -194,6 +194,39 @@ function setClipPath(
     });
 }
 
+/**
+ * Copy PostGIS `props` onto the feature.
+ *
+ * Overlay features already store attributes as top-level properties.
+ * Baseline tiles keep them in one jsonb column, so symbology lookups
+ * miss unless those keys are promoted.
+ */
+function promoteFeatureStoreProps(feature: RenderFeature): void {
+  const raw = feature.get('props');
+  let parsed: unknown = raw;
+
+  if (typeof raw === 'string') {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return;
+    }
+  }
+
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    return;
+  }
+
+  const properties = feature.getProperties();
+  for (const [key, value] of Object.entries(
+    parsed as Record<string, unknown>,
+  )) {
+    if (properties[key] === undefined) {
+      properties[key] = value;
+    }
+  }
+}
+
 export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
@@ -208,6 +241,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         this._callbacks?.onDrawLayerIdChange?.(layerId),
       onDrawGeometryLabelChange: label =>
         this._callbacks?.onDrawGeometryLabelChange?.(label),
+      setModifyHighlight: features => this._setHighlightFeatures(features),
       log: (level, message) => this._log(level, message),
     });
   }
@@ -1158,28 +1192,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       case 'VectorLayer': {
         layerParameters = layer.parameters as IVectorLayer;
 
-        if (Array.isArray(layerParameters.symbologyState?.layers)) {
-          const olSource = this._sources.get(
-            layerParameters.source,
-          ) as VectorSource;
-          const grammarState =
-            layerParameters.symbologyState as IGrammarSymbologyState;
-          const rows =
-            olSource instanceof VectorSource
-              ? olSource.getFeatures().map(f => (f as Feature).getProperties())
-              : [];
-          const featureValues = extractEncodingFieldValues(grammarState, rows);
-          newMapLayer = grammarToOLLayer(
-            layerParameters.symbologyState as IGrammarSymbologyState,
-            olSource,
-            layerParameters.opacity,
-            layer.visible,
-            featureValues,
-            false,
-            className,
-            layerParameters.declutter ? id : false,
-          ) as OlLayerTypes;
-        } else if (source?.type === 'FeatureStoreSource') {
+        if (source?.type === 'FeatureStoreSource') {
           const storeParams = source.parameters as IFeatureStoreSource;
           const style = this.vectorLayerStyleRuleBuilder(layer);
           const children: Layer[] = [];
@@ -1208,6 +1221,27 @@ export class OpenLayersAdapter implements IMapAdapter {
             layers: children,
             visible: layer.visible,
           });
+        } else if (Array.isArray(layerParameters.symbologyState?.layers)) {
+          const olSource = this._sources.get(
+            layerParameters.source,
+          ) as VectorSource;
+          const grammarState =
+            layerParameters.symbologyState as IGrammarSymbologyState;
+          const rows =
+            olSource instanceof VectorSource
+              ? olSource.getFeatures().map(f => (f as Feature).getProperties())
+              : [];
+          const featureValues = extractEncodingFieldValues(grammarState, rows);
+          newMapLayer = grammarToOLLayer(
+            layerParameters.symbologyState as IGrammarSymbologyState,
+            olSource,
+            layerParameters.opacity,
+            layer.visible,
+            featureValues,
+            false,
+            className,
+            layerParameters.declutter ? id : false,
+          ) as OlLayerTypes;
         } else {
           newMapLayer = new VectorImageLayer({
             opacity: layerParameters.opacity,
@@ -1919,8 +1953,16 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
       case 'VectorLayer': {
         const layerParams = layer.parameters as IVectorLayer;
+        const jgisSource = layerParams.source
+          ? this._model.sharedModel.getLayerSource(layerParams.source)
+          : undefined;
 
-        if (Array.isArray(layerParams.symbologyState?.layers)) {
+        // Feature-store groups stay in place. The grammar rebuild uses only
+        // the overlay source and drops the baseline tiles.
+        if (
+          jgisSource?.type !== 'FeatureStoreSource' &&
+          Array.isArray(layerParams.symbologyState?.layers)
+        ) {
           this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
           break;
         }
@@ -2638,7 +2680,10 @@ export class OpenLayersAdapter implements IMapAdapter {
                       const features = vtTile.getFormat().readFeatures(data, {
                         extent,
                         featureProjection: projection,
-                      });
+                      }) as RenderFeature[];
+                      for (const feature of features) {
+                        promoteFeatureStoreProps(feature);
+                      }
                       vtTile.setFeatures(features);
                       return features;
                     })
@@ -2910,8 +2955,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     feature: IIdentifiedFeature,
   ): { x: number; y: number } | undefined {
     const geometry = (feature?.geometry ?? feature?._geometry) as
-      | Geometry
-      | OLGeometry;
+      Geometry | OLGeometry;
 
     if (!geometry) {
       return undefined;
@@ -3078,13 +3122,9 @@ export class OpenLayersAdapter implements IMapAdapter {
     mapLayer: Layer | LayerGroup,
   ): void {
     const layerParams = layer.parameters as
-      | IVectorLayer
-      | IGeoTiffLayer
-      | IGeoZarrLayer
-      | undefined;
+      IVectorLayer | IGeoTiffLayer | IGeoZarrLayer | undefined;
     const grammarState = layerParams?.symbologyState as
-      | IGrammarSymbologyState
-      | undefined;
+      IGrammarSymbologyState | undefined;
 
     if (!grammarState || !Array.isArray(grammarState.layers)) {
       return;
