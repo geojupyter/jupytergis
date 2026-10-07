@@ -36,9 +36,10 @@ import {
   LayerType,
   SourceType,
 } from './_interface/project/jgis';
-import {
+import type {
   IGeoJSONSource,
   IGeoParquetSource,
+  IFeatureStoreSource,
   IGeoTiffSource,
   IGeoZarrSource,
   IHillshadeLayer,
@@ -60,6 +61,12 @@ import {
   IGeoZarrLayer,
   Modes,
   ITerrainLayer,
+  IJGISFeatureStores,
+  IFeatureStoreFeature,
+  IFeatureStoreGeometry,
+  IFeatureStore,
+  IFeatureStoreMeta,
+  FeatureStoreAddBlockReason,
 } from './types';
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
@@ -268,6 +275,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   viewState: IJGISViewState;
   annotations: IJGISAnnotations;
   presets: IDrawCustomAttributePresets;
+  featureStores: IJGISFeatureStores;
   metadata: IJGISMetadata;
 
   readonly editable: boolean;
@@ -325,6 +333,32 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   removePreset(name: string): void;
   getPresets(): IDrawCustomAttributePresets;
 
+  getFeatureStore(storeId: string): IFeatureStore | undefined;
+  getFeatureStoreFeatures(
+    storeId: string,
+  ): Record<string, IFeatureStoreFeature>;
+  setFeatureStoreFeature(
+    storeId: string,
+    feature: IFeatureStoreFeature,
+  ):
+    | {
+        ok: true;
+      }
+    | {
+        ok: false;
+        reason: FeatureStoreAddBlockReason;
+      };
+  removeFeatureStoreFeature(
+    storeId: string,
+    featureId: string,
+    options: { tombstone?: boolean; updatedBy: string },
+  ): void;
+  clearFeatureStoreOverlay(storeId: string): void;
+  updateFeatureStoreMeta(
+    storeId: string,
+    meta: Partial<IFeatureStoreMeta>,
+  ): void;
+
   optionsChanged: ISignal<IJupyterGISDoc, MapChange>;
   layersChanged: ISignal<IJupyterGISDoc, IJGISLayerDocChange>;
   sourcesChanged: ISignal<IJupyterGISDoc, IJGISSourceDocChange>;
@@ -333,6 +367,7 @@ export interface IJupyterGISDoc extends YDocument<IJupyterGISDocChange> {
   metadataChanged: ISignal<IJupyterGISDoc, MapChange>;
   annotationsChanged: ISignal<IJupyterGISDoc, MapChange>;
   presetsChanged: ISignal<IJupyterGISDoc, MapChange>;
+  featureStoresChanged: ISignal<IJupyterGISDoc, MapChange>;
   initialSyncReady: Promise<void>;
 }
 
@@ -528,6 +563,42 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setDialogStateKey(key: string, value: unknown, emitter?: string): void;
   syncDialogView(view: IDialogViewState | null, emitter?: string): void;
   updateDialogView(patch: Partial<IDialogViewState>, emitter?: string): void;
+
+  getFeatureStore(storeId: string): IFeatureStore | undefined;
+  getFeatureStoreFeatures(
+    storeId: string,
+  ): Record<string, IFeatureStoreFeature>;
+  setFeatureStoreFeature(
+    storeId: string,
+    feature: IFeatureStoreFeature,
+  ):
+    | {
+        ok: true;
+      }
+    | {
+        ok: false;
+        reason: FeatureStoreAddBlockReason;
+      };
+  addFeatureStoreFeature(args: {
+    storeId: string;
+    geometry: IFeatureStoreGeometry;
+    props?: IFeatureStoreFeature['props'];
+    id?: string;
+  }):
+    | { ok: true; nearSoftLimit: boolean; feature: IFeatureStoreFeature }
+    | { ok: false; reason: FeatureStoreAddBlockReason };
+  removeFeatureStoreFeature(
+    storeId: string,
+    featureId: string,
+    options?: { tombstone?: boolean },
+  ): void;
+  clearFeatureStoreOverlay(storeId: string): void;
+  updateFeatureStoreMeta(
+    storeId: string,
+    meta: Partial<IFeatureStoreMeta>,
+  ): void;
+  featureStoresChanged: ISignal<IJupyterGISModel, MapChange>;
+
   setUserToFollow(userId?: number): void;
 
   getClientId(): number;
@@ -659,6 +730,7 @@ export type ILayerGalleryEntry = {
   sourceParameters:
     | IGeoJSONSource
     | IGeoParquetSource
+    | IFeatureStoreSource
     | IGeoTiffSource
     | IGeoZarrSource
     | IImageSource

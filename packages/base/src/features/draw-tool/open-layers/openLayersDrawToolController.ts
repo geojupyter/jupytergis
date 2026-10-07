@@ -1,12 +1,21 @@
-import type { IDict, IJupyterGISModel, IJGISSource } from '@jupytergis/schema';
+import type {
+  IDrawCustomAttribute,
+  IFeatureStoreGeometry,
+  IFeatureStoreSource,
+  IJGISSource,
+  IDict,
+  IJupyterGISModel,
+} from '@jupytergis/schema';
+import { showErrorMessage } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 import type { Map as OlMap } from 'ol';
 import Feature from 'ol/Feature';
 import { Coordinate } from 'ol/coordinate';
+import { primaryAction } from 'ol/events/condition';
 import { GeoJSON } from 'ol/format';
 import { Type } from 'ol/geom/Geometry';
 import Draw, { DrawEvent } from 'ol/interaction/Draw';
-import Modify from 'ol/interaction/Modify';
+import Modify, { ModifyEvent } from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import { Layer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
@@ -23,8 +32,14 @@ export interface IDrawToolHost {
   getMap(): OlMap | undefined;
   getLayer(layerId: string): Layer | undefined;
   getModel(): IJupyterGISModel;
+  getFeatureStoreOverlay(storeId: string): VectorSource | undefined;
   onDrawLayerIdChange(layerId: string | undefined): void;
   onDrawGeometryLabelChange(label: string): void;
+  setModifyHighlight(features: Feature[]): void;
+  log(
+    level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
+    message: string,
+  ): void;
 }
 
 export class OpenLayersDrawToolController implements IDrawToolAdapter {
@@ -247,6 +262,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     this._currentVectorSource = getVectorSourceFromLayer(
       id => this._host.getLayer(id),
       layerId,
+      this._host.getModel(),
+      storeId => this._host.getFeatureStoreOverlay(storeId),
     );
 
     return this._currentVectorSource;
@@ -279,6 +296,11 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       !this._currentDrawSourceId ||
       !map
     ) {
+      return;
+    }
+
+    // Feature-store overlays sync via Ydoc featureStores, not source data.
+    if (this._currentDrawSource.type === 'FeatureStoreSource') {
       return;
     }
 
@@ -330,6 +352,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       this._modify.setActive(false);
       map.removeInteraction(this._modify);
       this._modify = undefined;
+      this._host.setModifyHighlight([]);
     }
 
     if (this._snap) {
@@ -354,13 +377,24 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     const drawSource = this._currentVectorSource;
 
     this._modify = new Modify({ source: drawSource });
-    this._modify.on('modifystart', () => {
+    this._modify.on('modifystart', (event: ModifyEvent) => {
       if (this._draw) {
         this._draw.setActive(false);
       }
+
+      const highlights: Feature[] = [];
+      event.features.forEach(feature => {
+        const geometry = feature.getGeometry();
+        if (geometry) {
+          // Share the geometry so the highlight follows the drag.
+          highlights.push(new Feature({ geometry }));
+        }
+      });
+      this._host.setModifyHighlight(highlights);
     });
 
     this._modify.on('modifyend', () => {
+      this._host.setModifyHighlight([]);
       if (this._draw) {
         this._draw.setActive(true);
       }
@@ -377,6 +411,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
         style: drawInteractionStyle,
         type: this._currentDrawGeometry,
         source: drawSource,
+        // Only draw on left click
+        condition: primaryAction,
       });
       this._draw.on('drawend', this._handleDrawEnd);
       map.addInteraction(this._draw);
@@ -390,7 +426,9 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
   private _handleDrawEnd = (event: DrawEvent): void => {
     const model = this._host.getModel();
     const feature = event.feature;
-    feature.set('_id', UUID.uuid4());
+    const featureId = UUID.uuid4();
+    feature.setId(featureId);
+    feature.set('_id', featureId);
     feature.set('_createdAt', new Date().toISOString());
     feature.set('_creatorClientId', model.getClientId().toString());
     feature.set('_fromDrawTool', true);
@@ -401,6 +439,11 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       : [];
     applyDrawCustomAttributesToFeature(feature, customAttributes);
 
+    if (this._currentDrawSource?.type === 'FeatureStoreSource') {
+      this._addFeatureStoreFeature(feature, featureId, customAttributes);
+      return;
+    }
+
     const source = layerId
       ? this._resolveVectorSource(layerId)
       : this._currentVectorSource;
@@ -409,4 +452,65 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     // OL dispatches drawend before adding the feature to the source.
     this._persist(source, onSource ? undefined : feature);
   };
+
+  private _addFeatureStoreFeature(
+    feature: Feature,
+    featureId: string,
+    customAttributes: IDrawCustomAttribute[],
+  ): void {
+    const map = this._host.getMap();
+    const model = this._host.getModel();
+    const storeId = (
+      this._currentDrawSource?.parameters as IFeatureStoreSource | undefined
+    )?.storeId;
+
+    if (!storeId || !map) {
+      return;
+    }
+
+    const geometry = feature.getGeometry();
+    if (!geometry) {
+      return;
+    }
+
+    const geojsonGeometry = new GeoJSON().writeGeometryObject(geometry, {
+      featureProjection: map.getView().getProjection(),
+      dataProjection: 'EPSG:4326',
+    }) as IFeatureStoreGeometry;
+
+    const props = Object.fromEntries(
+      customAttributes.map(attribute => [attribute.key, attribute.value]),
+    );
+
+    const result = model.addFeatureStoreFeature({
+      storeId,
+      id: featureId,
+      geometry: geojsonGeometry,
+      props,
+    });
+
+    // Drop the temporary OL feature; store sync re-adds from Ydoc.
+    this._currentVectorSource?.removeFeature(feature);
+
+    if (!result.ok) {
+      const messages: Record<string, string> = {
+        compacting: 'Cannot add features while folding into baseline.',
+        missingStore: 'Feature store overlay is missing for this layer.',
+        hardLimit:
+          'Overlay hard limit reached. Fold edits into the baseline before adding more.',
+      };
+      void showErrorMessage(
+        'Feature store',
+        messages[result.reason] ?? messages.hardLimit,
+      );
+      return;
+    }
+
+    if (result.nearSoftLimit) {
+      this._host.log(
+        'warning',
+        'Feature store overlay is near its soft limit; fold soon.',
+      );
+    }
+  }
 }

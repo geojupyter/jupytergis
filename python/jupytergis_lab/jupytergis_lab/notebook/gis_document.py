@@ -189,7 +189,7 @@ class GISDocument(CommWidget):
     ``pycrdt.Awareness`` via the inherited ``awareness`` property.
     """
 
-    tile_server: None | TiTilerServer
+    tile_server: TiTilerServer | None
 
     def __init__(
         self,
@@ -236,6 +236,9 @@ class GISDocument(CommWidget):
         self.ydoc["presets"] = self._presets
 
         self._options: Map[str | float | bool | list[float]]
+        self._featureStores: Map = Map()
+        self.ydoc["featureStores"] = self._featureStores
+
         # For untitled docs, initialize options right away
         if path is None:
             initial_options: dict[str, str | float | bool | list[float]] = {

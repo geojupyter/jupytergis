@@ -30,12 +30,14 @@ doc.add_geojson_layer(
     path="data/eq.geojson",
     symbology=[
         field("mag").encoding("radius"),
-        field("felt").colormap(
+        field("felt")
+        .colormap(
             "viridis",
             domain=[1, 9000],
             mode=ClassificationMode.LOGARITHMIC,
-            n_shades=10
-        ).encoding("fill"),
+            n_shades=10,
+        )
+        .encoding("fill"),
     ],
 )
 
@@ -52,9 +54,7 @@ doc.add_geojson_layer(
     symbology=[
         field("mag").encoding("radius"),
         when(field("mag") >= 8).constant("red").encoding("fill"),
-        when(field("mag") < 8, field("mag") > 3)
-            .constant("orange")
-            .encoding("fill"),
+        when(field("mag") < 8, field("mag") > 3).constant("orange").encoding("fill"),
         when(field("mag") <= 3).constant("green").encoding("fill"),
     ],
 )
@@ -178,11 +178,13 @@ doc.add_geotiff_layer(
     url="https://eoresults.esa.int/d/FCM-AGB-100m/2023/01/01/FCM-AGB-100m-2023/FCM_Europe_demo_2023_AGB.tif",
     symbology=[
         constant(0).encoding("pixel-red"),
-        field("band_1").scalar(domain=[0, 233], output_range=[0, 25]).encoding("pixel-green"),
+        field("band_1")
+        .scalar(domain=[0, 233], output_range=[0, 25])
+        .encoding("pixel-green"),
         constant(0).encoding("pixel-blue"),
         field("band_1").identity().encoding("pixel-alpha"),
     ],
-    normalize=False
+    normalize=False,
 )
 
 doc
@@ -226,7 +228,11 @@ Scalar mapping:
 ```python
 from jupytergis import field
 
-symbology = [field("population").scalar(domain=[0, 1_000_000], output_range=[2, 15]).encoding("radius")]
+symbology = [
+    field("population")
+    .scalar(domain=[0, 1_000_000], output_range=[2, 15])
+    .encoding("radius")
+]
 ```
 
 Heatmap and clustering preprocessors as separate symbology layers:
@@ -234,7 +240,11 @@ Heatmap and clustering preprocessors as separate symbology layers:
 ```python
 from jupytergis import cluster, constant, field, heatmap
 
-heat = heatmap(radius=20, blur=30, mappings=[field("$density").colormap("hot").encoding("pixel-rgb")])
+heat = heatmap(
+    radius=20,
+    blur=30,
+    mappings=[field("$density").colormap("hot").encoding("pixel-rgb")],
+)
 clusters = cluster(radius=40, mappings=[constant("black").encoding("stroke")])
 
 symbology = [heat, clusters]

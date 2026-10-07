@@ -22,6 +22,7 @@ from .interfaces.project.sources.rasterDemSource import IRasterDemSource  # noqa
 from .interfaces.project.sources.geoPackageVectorSource import IGeoPackageVectorSource  # noqa
 from .interfaces.project.sources.geoPackageRasterSource import IGeoPackageRasterSource  # noqa
 from .interfaces.project.sources.geoParquetSource import IGeoParquetSource  # noqa
+from .interfaces.project.sources.featureStoreSource import IFeatureStoreSource  # noqa
 from .interfaces.project.sources.wmsTileSource import IWmsTileSource  # noqa
 from .interfaces.project.sources.openeoTileSource import IOpenEOTileSource  # noqa
 

@@ -1,11 +1,13 @@
 import { ICollaborativeContentProvider } from '@jupyter/collaborative-drive';
 import {
   CommandIDs,
+  checkFeatureStoreAvailability,
   checkServerAvailability,
   isJupyterLite,
   logoIcon,
   logoMiniIcon,
   resetServerAvailabilityCache,
+  setFeatureStoreAvailable,
   setServerProcessingEnabled,
 } from '@jupytergis/base';
 import {
@@ -55,31 +57,12 @@ const PALETTE_CATEGORY = 'JupyterGIS';
 const MODEL_NAME = 'jupytergis-jgismodel';
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
-const activate = async (
-  app: JupyterFrontEnd,
-  tracker: WidgetTracker<IJupyterGISWidget>,
-  themeManager: IThemeManager,
-  browserFactory: IFileBrowserFactory,
-  externalCommandRegistry: IJGISExternalCommandRegistry,
-  contentFactory: ConsolePanel.IContentFactory,
-  editorServices: IEditorServices,
-  rendermime: IRenderMimeRegistry,
-  consoleTracker: IConsoleTracker,
-  annotationModel: IAnnotationModel,
+/**
+ * Load the server-GDAL setting and keep the processing toggle in sync with it.
+ */
+async function setupGdalAvailability(
   settingRegistry: ISettingRegistry,
-  formSchemaRegistry: IJGISFormSchemaRegistry,
-  state: IStateDB,
-  launcher: ILauncher | null,
-  palette: ICommandPalette | null,
-  collaborativeContentProvider: ICollaborativeContentProvider | null,
-  loggerRegistry: ILoggerRegistry | null,
-  urlResolverFactory: IUrlResolverFactory | null,
-): Promise<void> => {
-  formSchemaRegistry && state;
-  if (PageConfig.getOption('jgis_expose_maps')) {
-    window.jupytergisMaps = {};
-  }
-
+): Promise<void> {
   try {
     const setting = await settingRegistry.load(SETTINGS_ID);
 
@@ -163,6 +146,50 @@ const activate = async (
   } catch (error) {
     console.warn(`Failed to load settings for ${SETTINGS_ID}`, error);
   }
+}
+
+/**
+ * Check whether PostGIS and tipg are configured, then refresh feature-store commands.
+ */
+async function setupFeatureStoreAvailability(
+  app: JupyterFrontEnd,
+): Promise<void> {
+  if (isJupyterLite()) {
+    setFeatureStoreAvailable(false);
+  } else {
+    await checkFeatureStoreAvailability();
+  }
+  app.commands.notifyCommandChanged(CommandIDs.foldFeatureStore);
+  app.commands.notifyCommandChanged(CommandIDs.openNewFeatureStoreDialog);
+}
+
+const activate = async (
+  app: JupyterFrontEnd,
+  tracker: WidgetTracker<IJupyterGISWidget>,
+  themeManager: IThemeManager,
+  browserFactory: IFileBrowserFactory,
+  externalCommandRegistry: IJGISExternalCommandRegistry,
+  contentFactory: ConsolePanel.IContentFactory,
+  editorServices: IEditorServices,
+  rendermime: IRenderMimeRegistry,
+  consoleTracker: IConsoleTracker,
+  annotationModel: IAnnotationModel,
+  settingRegistry: ISettingRegistry,
+  formSchemaRegistry: IJGISFormSchemaRegistry,
+  state: IStateDB,
+  launcher: ILauncher | null,
+  palette: ICommandPalette | null,
+  collaborativeContentProvider: ICollaborativeContentProvider | null,
+  loggerRegistry: ILoggerRegistry | null,
+  urlResolverFactory: IUrlResolverFactory | null,
+): Promise<void> => {
+  formSchemaRegistry && state;
+  if (PageConfig.getOption('jgis_expose_maps')) {
+    window.jupytergisMaps = {};
+  }
+
+  await setupGdalAvailability(settingRegistry);
+  await setupFeatureStoreAvailability(app);
 
   const widgetFactory = new JupyterGISDocumentWidgetFactory({
     name: FACTORY,

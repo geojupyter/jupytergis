@@ -1,4 +1,7 @@
-import type { IDrawCustomAttribute } from '@jupytergis/schema';
+import type {
+  IDrawCustomAttribute,
+  IDrawCustomAttributePresets,
+} from '@jupytergis/schema';
 
 const RESERVED_DRAW_CUSTOM_ATTRIBUTE_KEYS = new Set([
   '_id',
@@ -64,4 +67,30 @@ export function applyDrawCustomAttributesToFeature(
   for (const attribute of attributes) {
     feature.set(attribute.key, attribute.value);
   }
+}
+
+export function findMatchingPresetName(
+  attributes: IDrawCustomAttribute[],
+  presets: IDrawCustomAttributePresets,
+): string | undefined {
+  if (attributes.length === 0) {
+    return undefined;
+  }
+
+  const current = new Map(
+    attributes.map(attribute => [attribute.key, attribute.value]),
+  );
+
+  return Object.keys(presets)
+    .sort((left, right) => left.localeCompare(right))
+    .find(name => {
+      const preset = presets[name];
+
+      return (
+        preset.length === current.size &&
+        preset.every(
+          attribute => current.get(attribute.key) === attribute.value,
+        )
+      );
+    });
 }

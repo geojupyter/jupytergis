@@ -34,6 +34,11 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
+    command: CommandIDs.openNewFeatureStoreDialog,
+  });
+
+  subMenu.addItem({
+    type: 'command',
     command: CommandIDs.newGeoPackageVectorEntry,
   });
 

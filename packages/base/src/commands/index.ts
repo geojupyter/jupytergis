@@ -10,10 +10,14 @@ import {
   JgisCoordinates,
   LayerType,
   SourceType,
+  IFeatureStoreSource,
+  buildFeatureStoreTileUrlTemplate,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import { Notification } from '@jupyterlab/apputils';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
+import { PathExt } from '@jupyterlab/coreutils';
 import type {
   IRenderMimeRegistry,
   IUrlResolverFactory,
@@ -35,6 +39,7 @@ import {
   LayerCreationCommandIDs,
 } from './operationCommands';
 import { CommandIDs, icons } from '../constants';
+import { isFeatureStoreAvailable } from '../features/feature-store/availability';
 import { launchFollowable, registerFollowDialogs } from '../features/follow';
 import { LayerBrowserWidget } from '../features/layer-browser';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
@@ -75,7 +80,7 @@ import {
   removeStorySegment,
 } from '../features/story/utils/storySegmentClipboard';
 import keybindings from '../keybindings.json';
-import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
+import { getGeoJSONDataFromLayerSource, getUniqueFilePath } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
@@ -151,6 +156,24 @@ function toggleDrawing(
 ): void {
   model.toggleMode('drawing');
   syncInteractionModeUi(widget, commands);
+}
+
+function selectedFeatureStoreId(model: IJupyterGISModel): string | undefined {
+  const selectedLayer =
+    model.sharedModel.awareness.getLocalState()?.selected?.value;
+  if (!selectedLayer) {
+    return undefined;
+  }
+
+  const layerId = Object.keys(selectedLayer)[0];
+  const jgisLayer = model.getLayer(layerId);
+  const sourceId = jgisLayer?.parameters?.source;
+  const jgisSource = sourceId ? model.getSource(sourceId) : undefined;
+  if (jgisSource?.type !== 'FeatureStoreSource') {
+    return undefined;
+  }
+
+  return (jgisSource.parameters as IFeatureStoreSource).storeId;
 }
 
 /**
@@ -1849,10 +1872,10 @@ export function addCommands(
     },
   });
 
-  commands.addCommand(CommandIDs.downloadGeoJSON, {
-    label: trans.__('Download as GeoJSON'),
+  commands.addCommand(CommandIDs.exportGeoJSON, {
+    label: trans.__('Export as GeoJSON'),
     caption:
-      'Download the selected layer as a GeoJSON file in the current JupyterGIS document.',
+      'Export the selected layer as a GeoJSON file next to the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1901,11 +1924,19 @@ export function addCommands(
           return;
         }
 
-        downloadFile(
-          geojsonString,
+        const path = await getUniqueFilePath(
+          app.serviceManager.contents,
+          PathExt.dirname(model.filePath),
           `${exportFileName}.geojson`,
-          'application/geo+json',
         );
+        await app.serviceManager.contents.save(path, {
+          type: 'file',
+          format: 'text',
+          content: geojsonString,
+        });
+        Notification.success(trans.__('Exported to %1', path), {
+          autoClose: 5000,
+        });
       };
 
       const { filePath, layerId, exportFileName } = args ?? {};
@@ -1942,7 +1973,7 @@ export function addCommands(
 
       const formValues = await new Promise<IDict>(resolve => {
         const dialog = new ProcessingFormDialog({
-          title: 'Download GeoJSON',
+          title: 'Export GeoJSON',
           schema: exportSchema,
           model,
           sourceData: { exportFormat: 'GeoJSON' },
@@ -1959,7 +1990,7 @@ export function addCommands(
           {
             kind: 'processing',
             params: {
-              title: 'Download GeoJSON',
+              title: 'Export GeoJSON',
               schemaId: 'ExportGeoJSONSchema',
               sourceData: { exportFormat: 'GeoJSON' },
               formContext: 'create',
@@ -2289,6 +2320,100 @@ export function addCommands(
       syncInteractionModeUi(current, commands);
     },
     ...icons.get(CommandIDs.addMarker),
+  });
+
+  commands.addCommand(CommandIDs.foldFeatureStore, {
+    label: trans.__('Fold to Feature Store'),
+    caption: () => {
+      if (!isFeatureStoreAvailable()) {
+        return trans.__(
+          'Feature store requires JGIS_POSTGIS_URL and JGIS_TIPG_URL env vars to be set.',
+        );
+      }
+
+      return trans.__('Fold overlay features into the feature store baseline.');
+    },
+    isEnabled: () => {
+      if (!isFeatureStoreAvailable()) {
+        return false;
+      }
+
+      const current = tracker.currentWidget;
+      if (!current?.model.sharedModel.editable) {
+        return false;
+      }
+
+      const storeId = selectedFeatureStoreId(current.model);
+      if (!storeId) {
+        return true;
+      }
+
+      return !current.model.getFeatureStore(storeId)?.meta.compacting;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const storeId = selectedFeatureStoreId(current.model);
+      if (!storeId) {
+        console.warn(
+          'Fold to Feature Store: select a feature store layer first.',
+        );
+
+        return;
+      }
+
+      if (current.model.getFeatureStore(storeId)?.meta.compacting) {
+        return;
+      }
+
+      current.model.updateFeatureStoreMeta(storeId, { foldRequested: true });
+    },
+    ...icons.get(CommandIDs.foldFeatureStore),
+  });
+
+  commands.addCommand(CommandIDs.openNewFeatureStoreDialog, {
+    label: trans.__('Feature Store'),
+    caption: trans.__(
+      'Create a feature store layer (server-backed baseline with overlay edits).',
+    ),
+    isEnabled: () => {
+      if (!isFeatureStoreAvailable()) {
+        return false;
+      }
+
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const storeId = UUID.uuid4();
+      const dialog = new LayerCreationFormDialog({
+        model: current.model,
+        title: 'Create Feature Store Layer',
+        createLayer: true,
+        createSource: true,
+        sourceData: {
+          name: 'Feature Store Source',
+          storeId,
+          tileUrlTemplate: buildFeatureStoreTileUrlTemplate(storeId, 0),
+          baselineVersion: 0,
+        },
+        layerData: { name: 'Feature Store' },
+        sourceType: 'FeatureStoreSource',
+        layerType: 'VectorLayer',
+        formSchemaRegistry,
+      });
+      await dialog.launch();
+    },
+    ...icons.get(CommandIDs.openNewFeatureStoreDialog),
   });
 
   commands.addCommand(CommandIDs.drawFeaturesOnSelectedLayer, {
@@ -2697,27 +2822,48 @@ namespace Private {
   export function createDrawLayer(model: IJupyterGISModel): string {
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
+    const useFeatureStore = isFeatureStoreAvailable();
 
-    const sourceModel: IJGISSource = {
-      type: 'GeoJSONSource',
-      name: 'Draw Layer Source',
-      parameters: {
-        data: {
-          type: 'FeatureCollection',
-          features: [],
+    let sourceModel: IJGISSource;
+    //! TODO: This is a bad idea. Layer type should be user choice
+    if (useFeatureStore) {
+      const storeId = UUID.uuid4();
+      sourceModel = {
+        type: 'FeatureStoreSource',
+        name: 'Draw Layer Source',
+        parameters: {
+          storeId,
+          tileUrlTemplate: buildFeatureStoreTileUrlTemplate(storeId, 0),
+          baselineVersion: 0,
+        } satisfies IFeatureStoreSource,
+      };
+    } else {
+      sourceModel = {
+        type: 'GeoJSONSource',
+        name: 'Draw Layer Source',
+        parameters: {
+          data: {
+            type: 'FeatureCollection',
+            features: [],
+          },
         },
-      },
-    };
+      };
+    }
 
     const layerModel: IJGISLayer = {
       type: 'VectorLayer',
       name: 'Draw Layer',
       visible: true,
-      parameters: {
-        source: sourceId,
-        opacity: 1.0,
-        symbologyState: { layers: [] },
-      },
+      parameters: useFeatureStore
+        ? {
+            source: sourceId,
+            opacity: 1.0,
+          }
+        : {
+            source: sourceId,
+            opacity: 1.0,
+            symbologyState: { layers: [] },
+          },
     };
 
     model.sharedModel.addSource(sourceId, sourceModel);

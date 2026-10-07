@@ -2,6 +2,32 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.16.7
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.6...0ebc2b137702ee7e6bea34385ce6563789599743))
+
+### Enhancements made
+
+- Add support for jupyter-tiler custom colormaps [#1907](https://github.com/geojupyter/jupytergis/pull/1907) ([@mfisher87](https://github.com/mfisher87), [@martinRenou](https://github.com/martinRenou))
+- Enable user to select "draw on new layer" or "draw on selected layer" [#1898](https://github.com/geojupyter/jupytergis/pull/1898) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- "Edit feature" button in the draw tool context menu [#1897](https://github.com/geojupyter/jupytergis/pull/1897) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Export GeoJSON to the JupyterLab filesystem instead of downloading [#1894](https://github.com/geojupyter/jupytergis/pull/1894) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou), [@mfisher87](https://github.com/mfisher87))
+
+### Bugs fixed
+
+- Renamed draw tool "select" action to "modify" [#1909](https://github.com/geojupyter/jupytergis/pull/1909) ([@Dapshima](https://github.com/Dapshima), [@gjmooney](https://github.com/gjmooney))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-09-25&to=2026-10-02&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-09-25..2026-10-02&type=Issues)) | @Dapshima ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3ADapshima+updated%3A2026-09-25..2026-10-02&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-09-25..2026-10-02&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-09-25..2026-10-02&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-09-25..2026-10-02&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-09-25..2026-10-02&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.16.6
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.5...156ae9738bcc49b6e07f7d52ff01cd08daccb0bf))
@@ -20,8 +46,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-09-22&to=2026-09-25&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-09-22..2026-09-25&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-09-22..2026-09-25&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-09-22..2026-09-25&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.5
 

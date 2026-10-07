@@ -2,7 +2,11 @@ import { Dialog, Notification, ReactWidget } from '@jupyterlab/apputils';
 import * as React from 'react';
 
 import { EditorAwareDialog } from '@/src/shared/editorAwareDialog';
-import { fetchBackendCatalog, IBackendCatalog } from '@/src/tools';
+import {
+  describeConnectionError,
+  fetchBackendCatalog,
+  IBackendCatalog,
+} from '@/src/tools';
 import {
   connect as openEOConnect,
   IOpenEOConnectionInfo,
@@ -514,8 +518,8 @@ const Form: React.FC<IFormProps> = ({
     };
     try {
       await openEOConnect(next);
-    } catch (err: any) {
-      setServerError(err?.message ?? String(err));
+    } catch (err) {
+      setServerError(describeConnectionError(err, next.url ?? raw));
       setServerBusy(false);
       return;
     }

@@ -1446,6 +1446,10 @@ export class MapLibreAdapter implements IMapAdapter {
     return this._drawTool;
   }
 
+  onFeatureStoresChanged = (): void => {
+    this._notImplemented('onFeatureStoresChanged');
+  };
+
   get supportedFeatures() {
     return MAP_ADAPTER_FEATURES.maplibre;
   }
