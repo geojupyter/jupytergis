@@ -40,6 +40,7 @@ import {
   IDrawCustomAttributePresets,
   IDrawCustomAttributesByLayer,
   IDrawCustomAttributesLayerState,
+  IDrawSessionState,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
@@ -330,6 +331,13 @@ export class JupyterGISModel implements IJupyterGISModel {
     IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
   > {
     return this._drawCustomAttributesChanged;
+  }
+
+  get drawSessionChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawSession']>
+  > {
+    return this._drawSessionChanged;
   }
 
   get openDialogChanged(): ISignal<
@@ -851,6 +859,16 @@ export class JupyterGISModel implements IJupyterGISModel {
     attributes: IDrawCustomAttribute[],
   ): void {
     this.sharedModel.setPreset(name, attributes);
+  }
+
+  syncDrawSession(session: IDrawSessionState | null, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.drawSession,
+      {
+        value: session,
+        emitter,
+      },
+    );
   }
 
   syncOpenDialog(dialog: IOpenDialogState | null, emitter?: string): void {
@@ -1639,6 +1657,13 @@ export class JupyterGISModel implements IJupyterGISModel {
               >,
             );
             break;
+          case AWARENESS_STATE_FIELDS.drawSession:
+            this._drawSessionChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['drawSession']
+              >,
+            );
+            break;
           case AWARENESS_STATE_FIELDS.openDialog:
             this._openDialogChanged.emit(
               payload as IAwarenessFieldChange<
@@ -1773,6 +1798,10 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _drawCustomAttributesChanged = new Signal<
     this,
     IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
+  >(this);
+  private _drawSessionChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawSession']>
   >(this);
   private _openDialogChanged = new Signal<
     this,

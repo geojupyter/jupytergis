@@ -7,6 +7,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@/src/shared/components/ToggleGroup';
+import { cn } from '@/src/shared/components/utils';
 
 const DRAW_GEOMETRIES = [
   { value: 'Point', label: 'Point' },
@@ -23,6 +24,10 @@ export interface IVectorDrawControlsProps {
   onDrawGeometryTypeChange: (geometryType: string) => void;
   model: IJupyterGISModel;
   drawLayerId?: string;
+  /** Showing what a collaborator we follow is doing: look, do not touch. */
+  readOnly?: boolean;
+  /** The followed collaborator's colour, painted on the tool they have armed. */
+  followColor?: string;
 }
 
 export function VectorDrawControls({
@@ -30,11 +35,28 @@ export function VectorDrawControls({
   onDrawGeometryTypeChange,
   model,
   drawLayerId,
+  readOnly = false,
+  followColor,
 }: IVectorDrawControlsProps): JSX.Element {
   const toggleValue = drawGeometryLabel || SELECT_TOOL_VALUE;
 
+  // Disabled toggles are drawn at half opacity, which all but hides the armed
+  // tool's background. Paint it the way mirrored forms paint a focused field.
+  const armed = (value: string): string | undefined =>
+    readOnly && value === toggleValue ? 'jgis-follow-focus' : undefined;
+
   return (
-    <div className="jgis-vector-draw-controls">
+    <div
+      className={cn(
+        'jgis-vector-draw-controls',
+        readOnly && 'jgis-follow-mirror',
+      )}
+      style={
+        followColor
+          ? ({ '--jgis-follow-color': followColor } as React.CSSProperties)
+          : undefined
+      }
+    >
       <div className="jgis-vector-draw-controls-row">
         <ToggleGroup
           variant="outline"
@@ -45,6 +67,8 @@ export function VectorDrawControls({
         >
           <ToggleGroupItem
             value={SELECT_TOOL_VALUE}
+            className={armed(SELECT_TOOL_VALUE)}
+            disabled={readOnly}
             onClick={() => onDrawGeometryTypeChange(DRAW_SELECT_TOOL)}
           >
             Modify
@@ -53,6 +77,8 @@ export function VectorDrawControls({
             <ToggleGroupItem
               key={value}
               value={value}
+              className={armed(value)}
+              disabled={readOnly}
               onClick={() => onDrawGeometryTypeChange(value)}
             >
               {label}
@@ -60,7 +86,11 @@ export function VectorDrawControls({
           ))}
         </ToggleGroup>
         {drawLayerId ? (
-          <DrawCustomAttributesDialog model={model} drawLayerId={drawLayerId} />
+          <DrawCustomAttributesDialog
+            model={model}
+            drawLayerId={drawLayerId}
+            disabled={readOnly}
+          />
         ) : null}
       </div>
       {drawLayerId ? (

@@ -56,3 +56,47 @@
   pointer-events: none;
   z-index: 100;
 }
+
+/* The label is built in `pointerElement` rather than by
+   @jupyter/collaboration, so unlike the map pointers it carries no styling of
+   its own. */
+.jGIS-Remote-Pointer-Label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 140px;
+  margin-top: 8px;
+  padding: 2px 6px 2px 2px;
+  background: var(--jp-layout-color1);
+  color: var(--jp-ui-font-color1);
+  border: 1px solid;
+  border-radius: 10px;
+  box-shadow: var(--jp-elevation-z2);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.jGIS-Remote-Pointer-Avatar {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 100%;
+  color: var(--jp-ui-inverse-font-color1);
+  font-size: 8px;
+}
+
+.jGIS-Remote-Pointer-Avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.jGIS-Remote-Pointer-Name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
