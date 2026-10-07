@@ -15,7 +15,7 @@ import { primaryAction } from 'ol/events/condition';
 import { GeoJSON } from 'ol/format';
 import { Type } from 'ol/geom/Geometry';
 import Draw, { DrawEvent } from 'ol/interaction/Draw';
-import Modify from 'ol/interaction/Modify';
+import Modify, { ModifyEvent } from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import { Layer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
@@ -35,6 +35,7 @@ export interface IDrawToolHost {
   getFeatureStoreOverlay(storeId: string): VectorSource | undefined;
   onDrawLayerIdChange(layerId: string | undefined): void;
   onDrawGeometryLabelChange(label: string): void;
+  setModifyHighlight(features: Feature[]): void;
   log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
     message: string,
@@ -351,6 +352,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       this._modify.setActive(false);
       map.removeInteraction(this._modify);
       this._modify = undefined;
+      this._host.setModifyHighlight([]);
     }
 
     if (this._snap) {
@@ -375,13 +377,24 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     const drawSource = this._currentVectorSource;
 
     this._modify = new Modify({ source: drawSource });
-    this._modify.on('modifystart', () => {
+    this._modify.on('modifystart', (event: ModifyEvent) => {
       if (this._draw) {
         this._draw.setActive(false);
       }
+
+      const highlights: Feature[] = [];
+      event.features.forEach(feature => {
+        const geometry = feature.getGeometry();
+        if (geometry) {
+          // Share the geometry so the highlight follows the drag.
+          highlights.push(new Feature({ geometry }));
+        }
+      });
+      this._host.setModifyHighlight(highlights);
     });
 
     this._modify.on('modifyend', () => {
+      this._host.setModifyHighlight([]);
       if (this._draw) {
         this._draw.setActive(true);
       }
