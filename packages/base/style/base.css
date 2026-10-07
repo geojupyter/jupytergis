@@ -310,7 +310,6 @@ button.jp-mod-styled.jp-mod-reject {
   bottom: 0.125rem;
   z-index: 1;
   padding: 0 0.125rem;
-  pointer-events: none;
 }
 
 .jgis-controls-toolbar .ol-control,
