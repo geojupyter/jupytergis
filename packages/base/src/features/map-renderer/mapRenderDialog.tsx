@@ -27,7 +27,13 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
   );
   const name = (type: IMapAdapterType) => MAP_ADAPTER_FEATURES[type].name;
   return (
-    <div style={{ minWidth: 420, maxHeight: '60vh', overflowY: 'auto' }}>
+    <div
+      style={{
+        width: 'min(680px, 80vw)',
+        maxHeight: '60vh',
+        overflowY: 'auto',
+      }}
+    >
       <div
         role="radiogroup"
         aria-label="Map renderer"
@@ -69,7 +75,7 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
             <tr>
               <th
                 colSpan={RENDERERS.length + 1}
-                style={{ textAlign: 'left', paddingTop: 8 }}
+                style={{ textAlign: 'left', paddingTop: 24, paddingBottom: 8 }}
               >
                 {group.title}
               </th>
@@ -85,7 +91,7 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
                       }
                       title={r.support[type] ? 'Supported' : 'Not supported'}
                     >
-                      {r.support[type] ? '✓' : '–'}
+                      {r.support[type] ? '🗸' : '🗶'}
                     </span>
                   </td>
                 ))}
