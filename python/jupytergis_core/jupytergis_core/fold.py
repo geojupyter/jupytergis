@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 from pycrdt import Doc, Map
 
 from .postgis import (
+    drop_feature_store_table,
     ensure_feature_store_table,
     get_postgis_url,
     merge_overlay_features_via_psql,
@@ -136,6 +137,12 @@ class FeatureStoreFold:
         self._yfeature_stores = yfeature_stores
         self._ysources = ysources
         self._in_flight: set[str] = set()
+        self._pending_drop: set[str] = set()
+        self._known_store_ids: set[str] = {
+            store_id
+            for store_id in yfeature_stores.keys()
+            if isinstance(store_id, str)
+        }
         self._subscription = yfeature_stores.observe_deep(self._on_change)
 
     def _on_change(self, _events: list[Any]) -> None:
@@ -152,8 +159,60 @@ class FeatureStoreFold:
             )
 
     def _scan(self) -> None:
-        for store_id in list(self._yfeature_stores.keys()):
+        current = {
+            store_id
+            for store_id in self._yfeature_stores.keys()
+            if isinstance(store_id, str)
+        }
+
+        removed = self._known_store_ids - current
+        self._known_store_ids = current
+        
+        for store_id in removed:
+            self._queue_drop(store_id)
+
+        for store_id in current:
             self._maybe_begin_fold(store_id)
+
+    def _queue_drop(self, store_id: str) -> None:
+        if store_id in self._in_flight:
+            self._pending_drop.add(store_id)
+            return
+
+        postgis_url = get_postgis_url()
+        if not postgis_url:
+            logger.warning(
+                "Feature store %s was removed but JGIS_POSTGIS_URL is unset",
+                store_id,
+            )
+            return
+
+        self._in_flight.add(store_id)
+        self._schedule(self._run_drop, store_id, postgis_url)
+
+    async def _run_drop(self, store_id: str, postgis_url: str) -> None:
+        from tornado.ioloop import IOLoop
+
+        from .handler import refresh_tipg_catalog
+
+        try:
+            table_name = store_id_to_table_name(store_id)
+            await IOLoop.current().run_in_executor(
+                None,
+                drop_feature_store_table,
+                postgis_url,
+                table_name,
+            )
+            await refresh_tipg_catalog()
+        except Exception:
+            logger.exception(
+                "Failed to drop feature store table for %s",
+                store_id,
+            )
+        finally:
+            self._in_flight.discard(store_id)
+            self._pending_drop.discard(store_id)
+            self._scan()
 
     def _maybe_begin_fold(self, store_id: str) -> None:
         if store_id in self._in_flight:
@@ -237,4 +296,8 @@ class FeatureStoreFold:
             )
         finally:
             self._in_flight.discard(store_id)
-            self._scan()
+            if store_id in self._pending_drop:
+                self._pending_drop.discard(store_id)
+                self._queue_drop(store_id)
+            else:
+                self._scan()
