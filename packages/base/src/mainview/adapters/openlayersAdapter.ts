@@ -130,7 +130,6 @@ import {
   grammarToOLStyle,
 } from '@/src/features/layers/symbology/grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from '@/src/features/layers/symbology/styleBuilder';
-import { getCssVarValue } from '@/src/tools';
 import {
   buildZarrColorStyle,
   getBandInfoFromZarr,
@@ -148,6 +147,7 @@ import {
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
+  getCssVarValue,
   INTERNAL_PROXY_BASE,
   isJupyterLite,
   loadFile,
@@ -2991,7 +2991,8 @@ export class OpenLayersAdapter implements IMapAdapter {
     feature: IIdentifiedFeature,
   ): { x: number; y: number } | undefined {
     const geometry = (feature?.geometry ?? feature?._geometry) as
-      Geometry | OLGeometry;
+      | Geometry
+      | OLGeometry;
 
     if (!geometry) {
       return undefined;
@@ -3168,9 +3169,13 @@ export class OpenLayersAdapter implements IMapAdapter {
     mapLayer: Layer | LayerGroup,
   ): void {
     const layerParams = layer.parameters as
-      IVectorLayer | IGeoTiffLayer | IGeoZarrLayer | undefined;
+      | IVectorLayer
+      | IGeoTiffLayer
+      | IGeoZarrLayer
+      | undefined;
     const grammarState = layerParams?.symbologyState as
-      IGrammarSymbologyState | undefined;
+      | IGrammarSymbologyState
+      | undefined;
 
     if (!grammarState || !Array.isArray(grammarState.layers)) {
       return;
