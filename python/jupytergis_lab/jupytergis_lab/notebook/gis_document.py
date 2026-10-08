@@ -9,7 +9,7 @@ import warnings
 import xml.etree.ElementTree as ET
 from importlib.metadata import version
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, Self, cast
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -318,7 +318,7 @@ class GISDocument(CommWidget):
         """Get the document layers, keyed by layer id."""
         return {
             layer_id: OBJECT_FACTORY.read_layer(layer_id, layer, self)
-            for layer_id, layer in self._layers.to_py().items()
+            for layer_id, layer in (self._layers.to_py() or {}).items()
         }
 
     @property
@@ -326,7 +326,7 @@ class GISDocument(CommWidget):
         """Get the document sources, keyed by source id."""
         return {
             source_id: OBJECT_FACTORY.read_source(source_id, source, self)
-            for source_id, source in self._sources.to_py().items()
+            for source_id, source in (self._sources.to_py() or {}).items()
         }
 
     def get_layer(self, name_or_id: str) -> JGISLayer:
@@ -1475,14 +1475,18 @@ class JGISObject(BaseModel):
         extra = "allow"
 
     name: str
+    type: Any
+    parameters: Any
 
     _parent: Any = PrivateAttr(default=None)
     _id: str | None = PrivateAttr(default=None)
 
-    def __init__(__pydantic_self__, parent=None, id=None, **data: Any) -> None:  # noqa
-        super().__init__(**data)
-        __pydantic_self__._parent = parent
-        __pydantic_self__._id = id
+    @classmethod
+    def _build(cls, parent: Any = None, id: str | None = None, **data: Any) -> Self:
+        obj = cls(**data)
+        obj._parent = parent
+        obj._id = id
+        return obj
 
     @field_validator("parameters", mode="plain", check_fields=False)
     @classmethod
@@ -1641,7 +1645,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         object_type = rest.pop("type", None)
         parameters = rest.pop("parameters", None) or {}
 
-        return JGISLayer(
+        return JGISLayer._build(
             parent=parent,
             id=id,
             name=rest.pop("name", ""),
@@ -1661,7 +1665,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         object_type = rest.pop("type", None)
         parameters = rest.pop("parameters", None) or {}
 
-        return JGISSource(
+        return JGISSource._build(
             parent=parent,
             id=id,
             name=rest.pop("name", ""),
@@ -1685,7 +1689,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
             # Only pass params that are present so Pydantic uses schema defaults for the rest
             args = {k: params[k] for k in Model.model_fields if k in params}
             obj_params = Model(**args)
-            return JGISLayer(
+            return JGISLayer._build(
                 parent=parent,
                 name=name,
                 visible=visible,
@@ -1709,7 +1713,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
             # Only pass params that are present so Pydantic uses schema defaults for the rest
             args = {k: params[k] for k in Model.model_fields if k in params}
             obj_params = Model(**args)
-            return JGISSource(
+            return JGISSource._build(
                 parent=parent,
                 name=name,
                 type=object_type,
