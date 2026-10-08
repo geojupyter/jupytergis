@@ -75,6 +75,7 @@ def _rgba_to_qcolor(rgba: Any) -> QColor:
     if isinstance(rgba, str) and rgba.startswith("#"):
         r, g, b, a = hex_to_rgba(rgba)
         return QColor(int(r), int(g), int(b), int(a * 255))
+
     if isinstance(rgba, list | tuple) and len(rgba) == 4:
         r, g, b, a = rgba
         return QColor(int(r), int(g), int(b), int(a * 255))

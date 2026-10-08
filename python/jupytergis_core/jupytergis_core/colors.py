@@ -17,7 +17,7 @@ RGBA = tuple[float, float, float, float]
 
 
 def hex_to_rgba(hex_color: str) -> tuple[int, int, int, float]:
-    """Convert a CSS hex string (``#rgb``, ``#rrggbb``, ``#rrggbbaa``) to an
+    """Convert a CSS hex string (``#rgb``, ``#rgba``, ``#rrggbb``, ``#rrggbbaa``) to an
     ``(r, g, b, a)`` tuple with r/g/b in 0-255 and a in 0-1.
 
     :raises ValueError: if the input is not a supported hex length.
@@ -26,6 +26,9 @@ def hex_to_rgba(hex_color: str) -> tuple[int, int, int, float]:
     if len(s) == 3:
         r, g, b = (int(c * 2, 16) for c in s)
         return r, g, b, 1.0
+    if len(s) == 4:
+        r, g, b, a = (int(c * 2, 16) for c in s)
+        return r, g, b, a / 255
     if len(s) == 6:
         r, g, b = (int(s[i : i + 2], 16) for i in (0, 2, 4))
         return r, g, b, 1.0
@@ -47,17 +50,14 @@ def rgb_to_hex(rgb_str: str) -> str:
 def coerce_rgba(value: RGBA | Sequence[float] | str) -> list[float]:
     """Try to parse a color ('#ffffff', 'white', [255, 255, 255]) into RGBA list."""
     if isinstance(value, str):
-        color: webcolors.HTML5SimpleColor | webcolors.IntegerRGB
+        if value.startswith("#"):
+            return list(hex_to_rgba(value))
         try:
-            hex_color = webcolors.normalize_hex(value)
-            color = webcolors.hex_to_rgb(hex_color)
+            color = webcolors.name_to_rgb(value)
         except ValueError as err:
-            if value not in webcolors.names("css3"):
-                raise ValueError(f'Invalid color "{value}"') from err
+            raise ValueError(f'Invalid color "{value}"') from err
 
-            color = webcolors.html5_parse_legacy_color(value)
-
-        return [*list(color), 1]
+        return [float(color.red), float(color.green), float(color.blue), 1.0]
 
     if (
         isinstance(value, (list, tuple))
