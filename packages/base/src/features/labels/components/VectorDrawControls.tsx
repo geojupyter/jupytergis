@@ -25,8 +25,8 @@ const SELECT_TOOL_VALUE = 'select';
 
 const DRAW_STATUS: Record<string, string> = {
   Point: 'Click to add a point.',
-  LineString: 'Click to add vertices. Double-click to finish.',
-  Polygon: 'Click to add vertices. Double-click to finish.',
+  LineString: 'Click to add vertices.\nDouble-click to finish.',
+  Polygon: 'Click to add vertices.\nDouble-click to finish.',
   delete: 'Click a feature to remove it.',
 };
 
@@ -54,6 +54,13 @@ export function VectorDrawControls({
 
   return (
     <div className="jgis-vector-draw-controls">
+      <Collapsible open={Boolean(status)}>
+        <CollapsibleContentAnimated>
+          <p className="jgis-vector-draw-controls-status" role="status">
+            {status || statusText.current}
+          </p>
+        </CollapsibleContentAnimated>
+      </Collapsible>
       <div className="jgis-vector-draw-controls-row">
         <ToggleGroup
           variant="outline"
@@ -95,16 +102,6 @@ export function VectorDrawControls({
           <DrawCustomAttributesDialog model={model} drawLayerId={drawLayerId} />
         ) : null}
       </div>
-      <Collapsible
-        // className={'pt-1.5'}
-        open={Boolean(status)}
-      >
-        <CollapsibleContentAnimated>
-          <p className="jgis-vector-draw-controls-status" role="status">
-            {status || statusText.current}
-          </p>
-        </CollapsibleContentAnimated>
-      </Collapsible>
       {drawLayerId ? (
         <DrawCustomAttributesPreview model={model} drawLayerId={drawLayerId} />
       ) : null}
