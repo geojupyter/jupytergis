@@ -185,19 +185,23 @@ function nodeAtPath(root: Element, path: string): Element | null {
 }
 
 /**
+ * The two boxes a dialog view is tracked against: the element the listeners sit
+ * on and the cursor is drawn in, and the box the pointer is measured against.
+ */
+export interface IDialogViewBoxes {
+  root: HTMLElement;
+  content: HTMLElement;
+}
+
+/**
  * Share where our mouse is inside the dialog and how far its panes are
  * scrolled, so a follower sees both.
  */
-function shareDialogView(
+export function shareDialogViewOn(
   model: IJupyterGISModel,
-  dialog: Dialog<any>,
+  { root, content }: IDialogViewBoxes,
   kind: FollowDialogKind,
 ): () => void {
-  const content = dialogContent(dialog);
-  if (!content) {
-    return () => undefined;
-  }
-
   const emitter = model.getClientId().toString();
   model.syncDialogView({ kind }, emitter);
 
@@ -245,22 +249,35 @@ function shareDialogView(
     );
   }, SCROLL_INTERVAL);
 
-  dialog.node.addEventListener('mousemove', onMove);
+  root.addEventListener('mousemove', onMove);
   // Scroll does not bubble, so it has to be caught on the way down.
-  dialog.node.addEventListener('scroll', onScroll, true);
+  root.addEventListener('scroll', onScroll, true);
 
   return () => {
-    dialog.node.removeEventListener('mousemove', onMove);
-    dialog.node.removeEventListener('scroll', onScroll, true);
+    root.removeEventListener('mousemove', onMove);
+    root.removeEventListener('scroll', onScroll, true);
     model.syncDialogView(null, emitter);
   };
+}
+
+function shareDialogView(
+  model: IJupyterGISModel,
+  dialog: Dialog<any>,
+  kind: FollowDialogKind,
+): () => void {
+  const content = dialogContent(dialog);
+  if (!content) {
+    return () => undefined;
+  }
+
+  return shareDialogViewOn(model, { root: dialog.node, content }, kind);
 }
 
 /**
  * The same cursor the collaborator pointers on the map draw, built by hand
  * because the mirror is not a React tree.
  */
-function pointerElement(user: User.IIdentity | undefined): HTMLElement {
+export function pointerElement(user: User.IIdentity | undefined): HTMLElement {
   const color = user?.color ?? 'var(--jp-brand-color1)';
   const name = user?.display_name ?? user?.name ?? '';
   const [width, height, , , path] = faArrowPointer.icon;
@@ -316,23 +333,17 @@ function pointerElement(user: User.IIdentity | undefined): HTMLElement {
  * Draw the followed collaborator's mouse inside a mirrored dialog, and keep
  * its panes scrolled where theirs are.
  */
-function mirrorDialogView(
+export function mirrorDialogViewOn(
   model: IJupyterGISModel,
-  dialog: Dialog<any>,
+  { root, content }: IDialogViewBoxes,
 ): () => void {
-  const content = dialogContent(dialog);
-  if (!content) {
-    return () => undefined;
-  }
-
   const cursor = pointerElement(followedState(model)?.user);
   cursor.style.display = 'none';
 
   // `.jp-Dialog-content` is `overflow: hidden`, which clips the name label as
   // soon as the collaborator's mouse nears an edge. The cursor lives on the
-  // dialog's full-screen container instead, positioned in pixels off the
-  // content box.
-  dialog.node.append(cursor);
+  // root instead, positioned in pixels off the content box.
+  root.append(cursor);
 
   // Awareness fires for every client, so only touch the DOM when what we draw
   // has actually moved.
@@ -348,9 +359,10 @@ function mirrorDialogView(
       lastPointer = pointerKey;
       if (point) {
         const rect = content.getBoundingClientRect();
+        const origin = root.getBoundingClientRect();
         cursor.style.display = '';
-        cursor.style.left = `${rect.left + point.x * rect.width}px`;
-        cursor.style.top = `${rect.top + point.y * rect.height}px`;
+        cursor.style.left = `${rect.left - origin.left + point.x * rect.width}px`;
+        cursor.style.top = `${rect.top - origin.top + point.y * rect.height}px`;
       } else {
         cursor.style.display = 'none';
       }
@@ -382,6 +394,18 @@ function mirrorDialogView(
     model.dialogViewChanged.disconnect(update);
     cursor.remove();
   };
+}
+
+function mirrorDialogView(
+  model: IJupyterGISModel,
+  dialog: Dialog<any>,
+): () => void {
+  const content = dialogContent(dialog);
+  if (!content) {
+    return () => undefined;
+  }
+
+  return mirrorDialogViewOn(model, { root: dialog.node, content });
 }
 
 function descriptorKey(descriptor: IOpenDialogState | null): string | null {

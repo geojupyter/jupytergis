@@ -8,8 +8,9 @@ import {
   SlidersHorizontal,
   Trash2,
 } from 'lucide-react';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
+import { useDialogView } from '@/src/features/follow/useDialogView';
 import { DrawCustomAttributesPresetsMenu } from '@/src/features/labels/components/DrawCustomAttributesPresetsMenu';
 import { validatePresetName } from '@/src/features/labels/drawCustomAttributes';
 import { useDrawCustomAttributes } from '@/src/features/labels/hooks/useDrawCustomAttributes';
@@ -100,13 +101,43 @@ function DrawCustomAttributeDraftRow({
 interface IDrawCustomAttributesDialogProps {
   model: IJupyterGISModel;
   drawLayerId: string;
+  disabled?: boolean;
 }
+
+export const DRAW_CUSTOM_ATTRIBUTES_DIALOG_KIND = 'drawCustomAttributes';
 
 export function DrawCustomAttributesDialog({
   model,
   drawLayerId,
+  disabled = false,
 }: IDrawCustomAttributesDialogProps): JSX.Element {
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const emitter = model.getClientId().toString();
+    model.syncOpenDialog(
+      {
+        kind: DRAW_CUSTOM_ATTRIBUTES_DIALOG_KIND,
+        params: { layerId: drawLayerId },
+      },
+      emitter,
+    );
+
+    return () => {
+      // Only drop the descriptor if it is still ours, so closing this dialog
+      // never hides one that opened after it.
+      if (
+        model.localState?.openDialog?.value?.kind ===
+        DRAW_CUSTOM_ATTRIBUTES_DIALOG_KIND
+      ) {
+        model.syncOpenDialog(null, emitter);
+      }
+    };
+  }, [model, drawLayerId, open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -116,6 +147,7 @@ export function DrawCustomAttributesDialog({
             variant={'outline'}
             size={'sm'}
             className={'rounded-[0.5rem]'}
+            disabled={disabled}
           >
             <SlidersHorizontal data-icon="inline-start" />
             Edit
@@ -135,11 +167,13 @@ export function DrawCustomAttributesDialog({
 interface IDrawCustomAttributesDialogContentProps {
   model: IJupyterGISModel;
   layerId: string;
+  readOnly?: boolean;
 }
 
-function DrawCustomAttributesDialogContent({
+export function DrawCustomAttributesDialogContent({
   model,
   layerId,
+  readOnly = false,
 }: IDrawCustomAttributesDialogContentProps): JSX.Element {
   const contentRef = useRef<HTMLDivElement>(null);
   const {
@@ -165,11 +199,13 @@ function DrawCustomAttributesDialogContent({
     canSavePreset,
   } = useDrawCustomAttributes(model, layerId);
 
+  useDialogView(model, contentRef, DRAW_CUSTOM_ATTRIBUTES_DIALOG_KIND);
+
   const [savingPreset, setSavingPreset] = useState(false);
   const [presetName, setPresetName] = useState('');
   const [presetNameError, setPresetNameError] = useState<string | null>(null);
 
-  const controlsDisabled = draftMode !== null || savingPreset;
+  const controlsDisabled = readOnly || draftMode !== null || savingPreset;
   const isPresetNameValid = validatePresetName(presetName).valid;
 
   const resetPresetDraft = (): void => {
@@ -351,7 +387,7 @@ function DrawCustomAttributesDialogContent({
               variant="outline"
               size={'sm'}
               onClick={startAdd}
-              disabled={!canAdd}
+              disabled={controlsDisabled || !canAdd}
             >
               <CirclePlus data-icon="inline-start" />
               Add Attribute
@@ -361,7 +397,7 @@ function DrawCustomAttributesDialogContent({
               variant="outline"
               size={'sm'}
               onClick={() => setSavingPreset(true)}
-              disabled={!canSavePreset}
+              disabled={controlsDisabled || !canSavePreset}
             >
               <BookmarkPlus data-icon="inline-start" />
               Save as preset
