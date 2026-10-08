@@ -1,18 +1,24 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
+import {
+  Circle,
+  MousePointer2,
+  Pentagon,
+  Spline,
+  Trash2,
+} from 'lucide-react';
 import React from 'react';
 
 import { DrawCustomAttributesDialog } from '@/src/features/labels/components/DrawCustomAttributesDialog';
 import { DrawCustomAttributesPreview } from '@/src/features/labels/components/DrawCustomAttributesPreview';
-import { Switch } from '@/src/shared/components/Switch';
 import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@/src/shared/components/ToggleGroup';
 
 const DRAW_GEOMETRIES = [
-  { value: 'Point', label: 'Point' },
-  { value: 'LineString', label: 'Line' },
-  { value: 'Polygon', label: 'Polygon' },
+  { value: 'Point', label: 'Point', icon: Circle },
+  { value: 'LineString', label: 'Line', icon: Spline },
+  { value: 'Polygon', label: 'Polygon', icon: Pentagon },
 ] as const;
 
 /** Empty string = select/edit mode (no draw tool armed). */
@@ -35,7 +41,6 @@ export function VectorDrawControls({
   drawLayerId,
 }: IVectorDrawControlsProps): JSX.Element {
   const toggleValue = drawGeometryLabel || SELECT_TOOL_VALUE;
-  const isDeleting = drawGeometryLabel === 'delete';
 
   return (
     <div className="jgis-vector-draw-controls">
@@ -49,28 +54,32 @@ export function VectorDrawControls({
         >
           <ToggleGroupItem
             value={SELECT_TOOL_VALUE}
+            aria-label="Modify"
+            title="Modify"
             onClick={() => onDrawGeometryTypeChange(DRAW_SELECT_TOOL)}
           >
-            Modify
+            <MousePointer2 />
           </ToggleGroupItem>
-          {DRAW_GEOMETRIES.map(({ value, label }) => (
+          {DRAW_GEOMETRIES.map(({ value, label, icon: Icon }) => (
             <ToggleGroupItem
               key={value}
               value={value}
+              aria-label={label}
+              title={label}
               onClick={() => onDrawGeometryTypeChange(value)}
             >
-              {label}
+              <Icon />
             </ToggleGroupItem>
           ))}
+          <ToggleGroupItem
+            value="delete"
+            aria-label="Delete"
+            title="Delete"
+            onClick={onToggleDeleteMode}
+          >
+            <Trash2 />
+          </ToggleGroupItem>
         </ToggleGroup>
-        <label className="flex items-center gap-2 text-sm">
-          Delete
-          <Switch
-            size="sm"
-            checked={isDeleting}
-            onCheckedChange={onToggleDeleteMode}
-          />
-        </label>
         {drawLayerId ? (
           <DrawCustomAttributesDialog model={model} drawLayerId={drawLayerId} />
         ) : null}
