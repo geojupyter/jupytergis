@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, cast
 
 from jupytergis_core.color_ramps import sample_colors
 from jupytergis_core.colors import hex_to_rgba, rgb_to_hex
-from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
     QgsColorRampShader,
@@ -32,6 +31,7 @@ from qgis.core import (  # type: ignore[import-untyped]
 )
 from qgis.PyQt import sip
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
