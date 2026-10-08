@@ -20,6 +20,9 @@ test.describe('UI Test', () => {
       const unrelatedErrors = [
         // This error is related to plotly dependency, installed with qgis.
         "@jupyter-widgets/base doesn't exist in shared scope default",
+        // Some Microsoft building-footprint tiles 404.
+        'Failed to load resource: the server responded with a status of 404 ()',
+        'Tile load error for source "4efa21e1-8465-42c1-9951-b9b1b1b95993": https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/',
       ];
       page.setViewportSize({ width: 1920, height: 1080 });
       page.on('console', message => {

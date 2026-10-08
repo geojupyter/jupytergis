@@ -47,6 +47,7 @@ export class StoryEditorWidget extends Dialog<boolean> {
       title: 'Story Editor',
       body,
       buttons: [],
+      hasClose: true,
     });
 
     this.model = options.model;

@@ -88,6 +88,22 @@ export function WmsTileSourceForm(
     void loadLayersFromCache();
   }, [stateDb, formData?.url]);
 
+  // Forget the fetched layers so the next Connect runs a fresh GetCapabilities.
+  const disconnectWms = async () => {
+    const wmsUrl = formData?.url;
+    if (stateDb && wmsUrl) {
+      await stateDb.remove(`${WMS_AVAILABLE_LAYERS_CACHE}:${wmsUrl}`);
+    }
+    setWmsAvailableLayers([]);
+    handleChangeBase({
+      ...(formData ?? {}),
+      params: {
+        ...((formData?.params ?? {}) as IDict),
+        layers: undefined,
+      },
+    });
+  };
+
   const uiSchema = useMemo(() => {
     const builtUiSchema: UiSchema = {};
     const dataCopy = deepCopy(formData);
@@ -167,6 +183,7 @@ export function WmsTileSourceForm(
         ...formContextValue,
         wmsAvailableLayers,
         setWmsAvailableLayers,
+        disconnectWms,
       }}
       filePath={filePath}
       uiSchema={uiSchema}

@@ -4,6 +4,7 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
+import { FollowMirrorContext } from '@/src/features/follow/useFollowedState';
 import type { IBaseFormProps } from '@/src/types';
 import { ClipRasterByExtentForm } from './forms/clipRasterByExtentForm';
 import { DissolveForm } from './forms/dissolveProcessForm';
@@ -23,6 +24,10 @@ export interface IProcessingFormDialogOptions extends IBaseFormProps {
   ) => void;
   model: IJupyterGISModel;
   processingType: 'Export' | ProcessingType;
+  /**
+   * Render as a read-only mirror of the collaborator we are following.
+   */
+  followMirror?: boolean;
 }
 
 /**
@@ -146,16 +151,18 @@ export class ProcessingFormDialog extends Dialog<IDict> {
     };
 
     const body = (
-      <div style={{ overflowX: 'hidden', overflowY: 'auto' }}>
-        <ProcessingFormWrapper
-          {...options}
-          filePath={filePath}
-          model={jgisModel}
-          okSignalPromise={okSignalPromise}
-          formErrorSignalPromise={formErrorSignalPromise}
-          syncData={syncData} // Use the modified sync function
-        />
-      </div>
+      <FollowMirrorContext.Provider value={!!options.followMirror}>
+        <div style={{ overflowX: 'hidden', overflowY: 'auto' }}>
+          <ProcessingFormWrapper
+            {...options}
+            filePath={filePath}
+            model={jgisModel}
+            okSignalPromise={okSignalPromise}
+            formErrorSignalPromise={formErrorSignalPromise}
+            syncData={syncData} // Use the modified sync function
+          />
+        </div>
+      </FollowMirrorContext.Provider>
     );
 
     super({

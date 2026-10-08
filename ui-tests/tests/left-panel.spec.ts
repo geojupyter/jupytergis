@@ -113,19 +113,22 @@ test.describe('#layerPanel', () => {
       const opacitySlider = layerTree.locator('.jp-gis-layerOpacitySlider');
       await expect(opacitySlider).toHaveCount(1);
 
-      const thumb = opacitySlider.locator('.jgis-slider-thumb');
+      // Base UI exposes aria values on the thumb's input, not the thumb node.
+      const thumbInput = opacitySlider.locator(
+        '[data-slot="slider-thumb"] input',
+      );
 
       // Defaults to fully opaque (100%).
-      await expect(thumb).toHaveAttribute('aria-valuenow', '100');
+      await expect(thumbInput).toHaveAttribute('aria-valuenow', '100');
 
       // Adjusting the slider updates its value without changing selection.
-      await thumb.focus();
-      await thumb.press('Home');
-      await expect(thumb).toHaveAttribute('aria-valuenow', '0');
+      await thumbInput.focus();
+      await thumbInput.press('Home');
+      await expect(thumbInput).toHaveAttribute('aria-valuenow', '0');
 
       // Restore.
-      await thumb.press('End');
-      await expect(thumb).toHaveAttribute('aria-valuenow', '100');
+      await thumbInput.press('End');
+      await expect(thumbInput).toHaveAttribute('aria-valuenow', '100');
     });
 
     test('should hide the last layer', async ({ page }) => {

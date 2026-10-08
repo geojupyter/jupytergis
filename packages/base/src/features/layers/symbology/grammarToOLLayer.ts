@@ -47,6 +47,11 @@ const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
  *
  * When the state contains multiple grammar layers a LayerGroup is returned;
  * otherwise the appropriate single layer type is returned directly.
+ *
+ * `declutter` is the OL declutter group every compiled sub-layer joins, or
+ * false for none. OL reads any truthy value as a group *name*, so callers pass
+ * the jGIS layer id rather than `true`, which would pool every decluttered
+ * layer in the map into one group and make them hide each other's symbols.
  */
 export function grammarToOLLayer(
   state: IGrammarSymbologyState,
@@ -55,59 +60,62 @@ export function grammarToOLLayer(
   visible: boolean,
   featureValues: unknown[] = [],
   isRaster = false,
+  className?: string,
+  declutter: string | false = false,
 ): Layer | LayerGroup {
   const grammarLayers = state.layers ?? [];
 
   if (isRaster) {
     const subLayers = grammarLayers.map(grammarLayer =>
-      compileRasterLayer(grammarLayer, source, opacity, visible, featureValues),
+      compileRasterLayer(
+        grammarLayer,
+        source,
+        opacity,
+        visible,
+        featureValues,
+        className,
+      ),
     );
     if (subLayers.length === 1) {
       return subLayers[0];
     }
     // Empty or multi-layer: wrap in a group (empty group renders nothing).
-    return new LayerGroup({ opacity, visible, layers: subLayers });
+    // OL renders the last array entry on top, but the UI lists grammar
+    // layers top-to-bottom with "top of the list" meaning "on top of the
+    // map" (matching the regular layer panel), so reverse before grouping.
+    return new LayerGroup({
+      opacity,
+      visible,
+      layers: [...subLayers].reverse(),
+    });
   }
 
   if (grammarLayers.length === 0) {
     // No grammar layers defined yet — return an empty vector layer so the map
     // has a valid layer object to call setVisible/setOpacity on.
-    return new VectorImageLayer({ opacity, visible, source });
+    return new VectorImageLayer({ opacity, visible, source, className });
   }
 
   const subLayers = grammarLayers.map(grammarLayer =>
-    compileGrammarLayer(grammarLayer, source, opacity, visible, featureValues),
+    compileGrammarLayer(
+      grammarLayer,
+      source,
+      opacity,
+      visible,
+      featureValues,
+      className,
+      declutter,
+    ),
   );
 
   if (subLayers.length === 1) {
     return subLayers[0];
   }
 
-  return new LayerGroup({ opacity, visible, layers: subLayers });
-}
-
-/**
- * The OL declutter group a grammar state asks for, or false for none.
- *
- * OL does not take a boolean here: any truthy value is a group *name*, and
- * every layer sharing a name is decluttered against the others. Passing plain
- * `true` would put every decluttered layer in the world into one group named
- * "true", so that switching it on for two unrelated layers would make them
- * hide each other's symbols. Using the grammar layer's own id keeps each one
- * decluttering only against itself, which is what a per-layer checkbox reads
- * as. Decluttering across layers, which labels will eventually want, is then a
- * deliberate change rather than an accident.
- *
- * Vector tile layers are styled from the same grammar but built outside this
- * compiler, so they read the group through here rather than duplicating it.
- */
-export function grammarDeclutter(
-  state: IGrammarSymbologyState | undefined,
-): string | false {
-  const asking = (state?.layers ?? []).find(
-    grammarLayer => grammarLayer.declutter,
-  );
-  return asking ? asking.id : false;
+  // OL renders the last array entry on top, but the UI lists grammar layers
+  // top-to-bottom with "top of the list" meaning "on top of the map"
+  // (matching the regular layer panel), so reverse before grouping.
+  return new LayerGroup({ opacity, visible, layers: [...subLayers].reverse() });
 }
 
 // ---------------------------------------------------------------------------
@@ -120,6 +128,8 @@ function compileGrammarLayer(
   opacity: number,
   visible: boolean,
   featureValues: unknown[],
+  className: string | undefined,
+  declutter: string | false,
 ): VectorImageLayer | HeatmapLayer {
   const kdeTransform = grammarLayer.preprocess?.find(
     (t): t is IKDETransform => t.type === 'kde',
@@ -132,6 +142,7 @@ function compileGrammarLayer(
       source,
       opacity,
       visible,
+      className,
     );
   }
 
@@ -141,6 +152,8 @@ function compileGrammarLayer(
     opacity,
     visible,
     featureValues,
+    className,
+    declutter,
   );
 }
 
@@ -161,6 +174,7 @@ function compileRasterLayer(
   opacity: number,
   visible: boolean,
   featureValues: unknown[],
+  className?: string,
 ): WebGLTileLayer {
   const singleLayerState: IGrammarSymbologyState = {
     layers: [grammarLayer],
@@ -178,6 +192,7 @@ function compileRasterLayer(
       opacity,
       visible,
       source,
+      className,
     });
   }
 
@@ -194,6 +209,7 @@ function compileRasterLayer(
     visible,
     source,
     style: { color: finalExpr },
+    className,
   });
 }
 
@@ -207,6 +223,7 @@ function compileKDELayer(
   source: VectorSource,
   opacity: number,
   visible: boolean,
+  className?: string,
 ): HeatmapLayer {
   const gradient = extractGradient(grammarLayer.rules) ?? DEFAULT_GRADIENT;
   const { weightField } = kdeTransform;
@@ -215,6 +232,7 @@ function compileKDELayer(
     opacity,
     visible,
     source,
+    className,
     blur: kdeTransform.blur ?? 15,
     radius: kdeTransform.radius ?? 10,
     gradient,
@@ -289,6 +307,8 @@ function compileVectorLayer(
   opacity: number,
   visible: boolean,
   featureValues: unknown[],
+  className: string | undefined,
+  declutter: string | false,
 ): VectorImageLayer {
   const singleLayerState: IGrammarSymbologyState = {
     layers: [grammarLayer],
@@ -305,6 +325,7 @@ function compileVectorLayer(
     visible,
     source,
     style: [rule],
-    declutter: grammarLayer.declutter ? grammarLayer.id : false,
+    declutter,
+    className,
   });
 }

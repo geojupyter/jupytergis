@@ -105,8 +105,8 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
   return (
     <Draggable
       nodeRef={nodeRef}
-      handle=".jgis-tabs-list"
-      cancel=".jgis-tabs-trigger"
+      handle="[data-slot='tabs-list']"
+      cancel="[data-slot='tabs-trigger']"
       bounds=".jGIS-Mainview-Container"
     >
       <div

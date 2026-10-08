@@ -11,6 +11,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 
 import { CommandIDs } from '@/src/constants';
+import { launchFollowable } from '@/src/features/follow/followDialogs';
 import type { JupyterGISTracker } from '@/src/types';
 import { StoryEditorWidget } from './storyEditorDialog';
 import {
@@ -468,7 +469,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
     editorState.dialog = dialog;
 
     try {
-      await dialog.launch();
+      await launchFollowable(model, { kind: 'storyEditor' }, dialog);
     } finally {
       this.closeEditorIfIdle();
     }

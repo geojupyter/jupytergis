@@ -64,13 +64,6 @@
   position: relative;
 }
 
-.jGIS-layer-browser-header-search-icon {
-  position: absolute;
-  top: 50%;
-  left: 0.75rem;
-  transform: translateY(-50%);
-}
-
 .jGIS-layer-browser-header-search {
   box-shadow: none;
   flex: 1 1 0%;
@@ -154,12 +147,12 @@
   font-weight: bold;
 }
 
-.jGIS-layer-browser-category.jGIS-layer-browser-category[data-state='active']::after {
+.jGIS-layer-browser-category.jGIS-layer-browser-category[data-active]::after {
   width: 100%;
   background-color: var(--jp-inverse-layout-color2);
 }
 
-.jGIS-layer-browser-category.jGIS-layer-browser-category[data-state='active'] {
+.jGIS-layer-browser-category.jGIS-layer-browser-category[data-active] {
   opacity: 1;
   font-weight: bold;
 }
@@ -266,11 +259,6 @@
   text-transform: capitalize;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.jGIS-layer-browser-text-p {
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .jGIS-layer-browser-text-source {

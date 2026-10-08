@@ -11,6 +11,7 @@ import {
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { Notification, showErrorMessage } from '@jupyterlab/apputils';
+import { PathExt } from '@jupyterlab/coreutils';
 import { UUID } from '@lumino/coreutils';
 
 import { ProcessingFormDialog } from './ProcessingFormDialog';
@@ -22,8 +23,9 @@ import {
   runServerProcessingUrlWithCutline,
 } from './serverProcessing';
 import { getGdal } from '../../gdal';
-import { getGeoJSONDataFromLayerSource } from '../../tools';
+import { getGeoJSONDataFromLayerSource, getUniqueFilePath } from '../../tools';
 import { JupyterGISTracker } from '../../types';
+import { launchFollowable } from '../follow';
 
 /**
  * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
@@ -162,22 +164,32 @@ export async function processLayer(
 
     // Open ProcessingFormDialog
     const formValues = await new Promise<IDict>(resolve => {
-      const dialog = new ProcessingFormDialog({
+      const followableOptions = {
         title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
-        schema,
-        model,
         sourceData: {
           inputLayer: selectedLayerId,
           outputLayerName: selected.name,
         },
-        formContext: 'create',
+        formContext: 'create' as const,
         processingType,
+      };
+      const dialog = new ProcessingFormDialog({
+        ...followableOptions,
+        schema,
+        model,
         syncData: (props: IDict) => {
           resolve(props);
           dialog.dispose();
         },
       });
-      dialog.launch();
+      void launchFollowable(
+        model,
+        {
+          kind: 'processing',
+          params: { ...followableOptions, schemaId: processingType },
+        },
+        dialog,
+      ).catch(() => undefined);
     });
 
     if (!formValues) {
@@ -279,22 +291,32 @@ export async function rasterizeLayer(
     )[0];
 
     const formValues = await new Promise<IDict>(resolve => {
-      const dialog = new ProcessingFormDialog({
+      const followableOptions = {
         title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
-        schema,
-        model,
         sourceData: {
           inputLayer: selectedLayerId,
           outputFileName: `${selected.name.replace(/\s+/g, '_')}_rasterized.tif`,
         },
-        formContext: 'create',
+        formContext: 'create' as const,
         processingType,
+      };
+      const dialog = new ProcessingFormDialog({
+        ...followableOptions,
+        schema,
+        model,
         syncData: (props: IDict) => {
           resolve(props);
           dialog.dispose();
         },
       });
-      dialog.launch();
+      void launchFollowable(
+        model,
+        {
+          kind: 'processing',
+          params: { ...followableOptions, schemaId: processingType },
+        },
+        dialog,
+      ).catch(() => undefined);
     });
 
     if (!formValues) {
@@ -447,41 +469,13 @@ export async function rasterizeLayer(
     // Embed the GeoTIFF as a data URL inside the .jGIS document.
     sourceUrl = `data:image/tiff;base64,${base64Content}`;
   } else {
-    // Save .tif to disk next to the .jGIS project file. If a file already
-    // exists at the chosen path, append `_1`, `_2`, ... so repeated runs don't
-    // overwrite previous outputs.
-    const jgisFilePath = widget.model.filePath;
-    const jgisDir = jgisFilePath
-      ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
-      : '';
-    const dotIdx = outputFileName.lastIndexOf('.');
-    const baseName =
-      dotIdx > 0 ? outputFileName.slice(0, dotIdx) : outputFileName;
-    const ext = dotIdx > 0 ? outputFileName.slice(dotIdx) : '';
-    const candidatePath = (name: string) =>
-      jgisDir ? `${jgisDir}/${name}` : name;
-    const pathExists = async (path: string) => {
-      try {
-        await app.serviceManager.contents.get(path, { content: false });
-        return true;
-      } catch {
-        return false;
-      }
-    };
-    let suffix = 0;
-    while (
-      await pathExists(
-        candidatePath(
-          suffix === 0 ? outputFileName : `${baseName}_${suffix}${ext}`,
-        ),
-      )
-    ) {
-      suffix += 1;
-    }
-    if (suffix > 0) {
-      outputFileName = `${baseName}_${suffix}${ext}`;
-    }
-    const savePath = candidatePath(outputFileName);
+    // Save .tif to disk next to the .jGIS project file.
+    const savePath = await getUniqueFilePath(
+      app.serviceManager.contents,
+      PathExt.dirname(widget.model.filePath),
+      outputFileName,
+    );
+    outputFileName = PathExt.basename(savePath);
 
     await app.serviceManager.contents.save(savePath, {
       type: 'file',
@@ -645,22 +639,32 @@ export async function clipRasterByExtent(
     )[0];
 
     const formValues = await new Promise<IDict>(resolve => {
-      const dialog = new ProcessingFormDialog({
+      const followableOptions = {
         title: 'Clip Raster by Extent',
-        schema,
-        model,
         sourceData: {
           inputLayer: selectedLayerId,
           outputFileName,
         },
-        formContext: 'create',
-        processingType: 'ClipRasterByExtent',
+        formContext: 'create' as const,
+        processingType: 'ClipRasterByExtent' as const,
+      };
+      const dialog = new ProcessingFormDialog({
+        ...followableOptions,
+        schema,
+        model,
         syncData: (props: IDict) => {
           resolve(props);
           dialog.dispose();
         },
       });
-      dialog.launch();
+      void launchFollowable(
+        model,
+        {
+          kind: 'processing',
+          params: { ...followableOptions, schemaId: 'ClipRasterByExtent' },
+        },
+        dialog,
+      ).catch(() => undefined);
     });
 
     if (!formValues) {
@@ -823,38 +827,12 @@ export async function clipRasterByExtent(
   if (embedOutputLayer) {
     sourceUrl = `data:image/tiff;base64,${base64Content}`;
   } else {
-    const jgisFilePath = widget.model.filePath;
-    const jgisDir = jgisFilePath
-      ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
-      : '';
-    const dotIdx = outputFileName.lastIndexOf('.');
-    const baseName =
-      dotIdx > 0 ? outputFileName.slice(0, dotIdx) : outputFileName;
-    const ext = dotIdx > 0 ? outputFileName.slice(dotIdx) : '';
-    const candidatePath = (name: string) =>
-      jgisDir ? `${jgisDir}/${name}` : name;
-    const pathExists = async (path: string) => {
-      try {
-        await app.serviceManager.contents.get(path, { content: false });
-        return true;
-      } catch {
-        return false;
-      }
-    };
-    let suffix = 0;
-    while (
-      await pathExists(
-        candidatePath(
-          suffix === 0 ? outputFileName : `${baseName}_${suffix}${ext}`,
-        ),
-      )
-    ) {
-      suffix += 1;
-    }
-    if (suffix > 0) {
-      outputFileName = `${baseName}_${suffix}${ext}`;
-    }
-    const savePath = candidatePath(outputFileName);
+    const savePath = await getUniqueFilePath(
+      app.serviceManager.contents,
+      PathExt.dirname(widget.model.filePath),
+      outputFileName,
+    );
+    outputFileName = PathExt.basename(savePath);
     await app.serviceManager.contents.save(savePath, {
       type: 'file',
       format: 'base64',
@@ -952,23 +930,33 @@ export async function clipRasterByVector(
     };
 
     const formValues = await new Promise<IDict>(resolve => {
-      const dialog = new ProcessingFormDialog({
+      const followableOptions = {
         title: 'Clip Raster by Vector',
-        schema,
-        model,
         sourceData: {
           inputLayer: inputLayerId,
           outputFileName,
           cropToCutline: true,
         },
-        formContext: 'create',
-        processingType: 'ClipRasterByVector',
+        formContext: 'create' as const,
+        processingType: 'ClipRasterByVector' as const,
+      };
+      const dialog = new ProcessingFormDialog({
+        ...followableOptions,
+        schema,
+        model,
         syncData: (props: IDict) => {
           resolve(props);
           dialog.dispose();
         },
       });
-      dialog.launch();
+      void launchFollowable(
+        model,
+        {
+          kind: 'processing',
+          params: { ...followableOptions, schemaId: 'ClipRasterByVector' },
+        },
+        dialog,
+      ).catch(() => undefined);
     });
 
     if (!formValues) {
@@ -1217,38 +1205,12 @@ export async function clipRasterByVector(
   if (embedOutputLayer) {
     sourceUrl = `data:image/tiff;base64,${base64Content}`;
   } else {
-    const jgisFilePath = widget.model.filePath;
-    const jgisDir = jgisFilePath
-      ? jgisFilePath.substring(0, jgisFilePath.lastIndexOf('/'))
-      : '';
-    const dotIdx = outputFileName.lastIndexOf('.');
-    const baseName =
-      dotIdx > 0 ? outputFileName.slice(0, dotIdx) : outputFileName;
-    const ext = dotIdx > 0 ? outputFileName.slice(dotIdx) : '';
-    const candidatePath = (name: string) =>
-      jgisDir ? `${jgisDir}/${name}` : name;
-    const pathExists = async (path: string) => {
-      try {
-        await app.serviceManager.contents.get(path, { content: false });
-        return true;
-      } catch {
-        return false;
-      }
-    };
-    let suffix = 0;
-    while (
-      await pathExists(
-        candidatePath(
-          suffix === 0 ? outputFileName : `${baseName}_${suffix}${ext}`,
-        ),
-      )
-    ) {
-      suffix += 1;
-    }
-    if (suffix > 0) {
-      outputFileName = `${baseName}_${suffix}${ext}`;
-    }
-    const savePath = candidatePath(outputFileName);
+    const savePath = await getUniqueFilePath(
+      app.serviceManager.contents,
+      PathExt.dirname(widget.model.filePath),
+      outputFileName,
+    );
+    outputFileName = PathExt.basename(savePath);
     await app.serviceManager.contents.save(savePath, {
       type: 'file',
       format: 'base64',
@@ -1378,22 +1340,32 @@ export async function clipVectorByMaskLayer(
         .get('ClipVectorByMaskLayer') as IDict),
     };
     const formValues = await new Promise<IDict>(resolve => {
-      const dialog = new ProcessingFormDialog({
+      const followableOptions = {
         title: 'Clip',
-        schema,
-        model,
         sourceData: {
           inputLayer: inputLayerId,
           outputLayerName: `${selected.name} Clipped`,
         },
-        formContext: 'create',
-        processingType: 'ClipVectorByMaskLayer',
+        formContext: 'create' as const,
+        processingType: 'ClipVectorByMaskLayer' as const,
+      };
+      const dialog = new ProcessingFormDialog({
+        ...followableOptions,
+        schema,
+        model,
         syncData: (props: IDict) => {
           resolve(props);
           dialog.dispose();
         },
       });
-      dialog.launch();
+      void launchFollowable(
+        model,
+        {
+          kind: 'processing',
+          params: { ...followableOptions, schemaId: 'ClipVectorByMaskLayer' },
+        },
+        dialog,
+      ).catch(() => undefined);
     });
 
     if (!formValues) {

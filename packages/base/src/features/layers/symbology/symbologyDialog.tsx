@@ -4,6 +4,7 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useState } from 'react';
 
+import { FollowMirrorContext } from '@/src/features/follow/useFollowedState';
 import { EditorAwareDialog } from '@/src/shared/editorAwareDialog';
 import { SymbologyTab, SymbologyValue } from '@/src/types';
 import Grammar from './Grammar';
@@ -32,6 +33,14 @@ export interface ISymbologyWidgetOptions {
   state: IStateDB;
   isStorySegmentOverride?: boolean;
   segmentId?: string;
+  /**
+   * Pin the dialog to this layer instead of tracking the local selection.
+   */
+  layerId?: string;
+  /**
+   * Render as a read-only mirror of the collaborator we are following.
+   */
+  followMirror?: boolean;
 }
 
 export interface IStopRow {
@@ -126,18 +135,28 @@ export class SymbologyWidget extends EditorAwareDialog<boolean> {
     >();
 
     const body = (
-      <SymbologyDialog
-        model={options.model}
-        okSignalPromise={okSignalPromise}
-        isStorySegmentOverride={options.isStorySegmentOverride}
-        segmentId={options.segmentId}
-      />
+      <FollowMirrorContext.Provider value={!!options.followMirror}>
+        <SymbologyDialog
+          model={options.model}
+          okSignalPromise={okSignalPromise}
+          layerId={options.layerId}
+          isStorySegmentOverride={options.isStorySegmentOverride}
+          segmentId={options.segmentId}
+        />
+      </FollowMirrorContext.Provider>
     );
 
-    const layerId = Object.keys(options.model.localState!.selected.value!)[0];
-    const layerName = options.model.getLayer(layerId)!.name;
+    const layerId =
+      options.layerId ??
+      Object.keys(options.model.localState?.selected?.value ?? {})[0];
+    const layerName = layerId
+      ? options.model.getLayer(layerId)?.name
+      : undefined;
 
-    super({ title: `Symbology — ${layerName}`, body });
+    super({
+      title: layerName ? `Symbology — ${layerName}` : 'Symbology',
+      body,
+    });
 
     this.id = 'jupytergis::symbologyWidget';
     this.okSignal = new Signal(this);

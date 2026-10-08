@@ -15,6 +15,12 @@
         "type": "number"
       }
     },
+    "enableIdentify": {
+      "type": "boolean",
+      "title": "Enable identify",
+      "description": "Show an identify control while this map segment is active",
+      "default": false
+    },
     "content": {
       "title": "Segment Content",
       "type": "object",

@@ -5,6 +5,7 @@ import { RegistryFieldsType, RJSFSchema, UiSchema } from '@rjsf/utils';
 import validatorAjv8 from '@rjsf/validator-ajv8';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import { useFollowedFocus } from '@/src/features/follow/useFollowedState';
 import { IDict, type IJupyterGISFormContext } from '@/src/types';
 import OpacitySlider from './components/OpacitySlider';
 
@@ -148,9 +149,16 @@ export function SchemaForm(props: ISchemaFormProps): React.ReactElement {
   );
 
   const submitRef = useRef<HTMLButtonElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { onFocus, onBlur } = useFollowedFocus(formContext.model, containerRef);
 
   return (
-    <div className="jGIS-property-panel" data-path={filePath}>
+    <div
+      className="jGIS-property-panel"
+      data-path={filePath}
+      ref={containerRef}
+    >
       <div
         className="jGIS-property-outer"
         onKeyUp={e => handleKeyUp(e, submitRef)}
@@ -162,6 +170,8 @@ export function SchemaForm(props: ISchemaFormProps): React.ReactElement {
           formContext={contextForForm}
           onChange={handleChange}
           onSubmit={handleSubmit}
+          onFocus={onFocus}
+          onBlur={onBlur}
           validator={validatorAjv8}
           fields={fields}
           liveValidate={liveValidate}

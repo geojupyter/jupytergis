@@ -92,8 +92,8 @@ test.describe('layer information', () => {
     const dialog = page.locator('.jp-gis-object-properties-dialog');
 
     await expect(dialog.getByRole('tab', { name: 'Metadata' })).toHaveAttribute(
-      'data-state',
-      'active',
+      'aria-selected',
+      'true',
     );
 
     await dialog.getByRole('tab', { name: 'Properties' }).click();

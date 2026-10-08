@@ -37,6 +37,12 @@ jest.mock('@lumino/widgets', () => ({
   },
 }));
 
+jest.mock('@/src/features/follow/followDialogs', () => ({
+  launchFollowable: jest.fn((model: any, descriptor: any, dialog: any) =>
+    dialog.launch(),
+  ),
+}));
+
 jest.mock('@/src/workspace/widget', () => ({
   JupyterGISPanel: class JupyterGISPanel {},
 }));

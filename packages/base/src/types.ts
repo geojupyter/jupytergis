@@ -78,6 +78,7 @@ export interface IJupyterGISFormContext<TFormData = IDict | undefined> {
   formData: TFormData;
   wmsAvailableLayers?: IWmsLayerInfo[];
   setWmsAvailableLayers?: (layers: IWmsLayerInfo[]) => void;
+  disconnectWms?: () => Promise<void>;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
 }
 

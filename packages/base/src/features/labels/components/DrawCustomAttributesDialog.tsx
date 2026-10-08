@@ -15,6 +15,10 @@ import { validatePresetName } from '@/src/features/labels/drawCustomAttributes';
 import { useDrawCustomAttributes } from '@/src/features/labels/hooks/useDrawCustomAttributes';
 import { Button } from '@/src/shared/components/Button';
 import {
+  CollapsibleContentAnimated,
+  Collapsible,
+} from '@/src/shared/components/Collapsible';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -67,25 +71,28 @@ function DrawCustomAttributeDraftRow({
         onPropertyValueChange={onDraftValueChange}
         onKeyDown={handleKeyDown}
       />
-      <Button
-        type="button"
-        variant="icon"
-        size="icon-md"
-        title="Save"
-        onClick={onSave}
-        disabled={!canSave}
-      >
-        <Save />
-      </Button>
-      <Button
-        type="button"
-        variant="icon"
-        size="icon-md"
-        title="Cancel"
-        onClick={onCancel}
-      >
-        <Ban />
-      </Button>
+      <div className="inline-flex gap-0">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          title="Save"
+          onClick={onSave}
+          disabled={!canSave}
+        >
+          <Save />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          title="Cancel"
+          onClick={onCancel}
+          className="text-destructive"
+        >
+          <Ban />
+        </Button>
+      </div>
     </div>
   );
 }
@@ -103,15 +110,18 @@ export function DrawCustomAttributesDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <SlidersHorizontal
-            data-icon="inline-start"
-            className="jgis-inline-icon"
-          />
-          Edit
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button
+            variant={'outline'}
+            size={'sm'}
+            className={'rounded-[0.5rem]'}
+          >
+            <SlidersHorizontal data-icon="inline-start" />
+            Edit
+          </Button>
+        }
+      />
       <DialogContent>
         <DrawCustomAttributesDialogContent
           model={model}
@@ -200,7 +210,7 @@ function DrawCustomAttributesDialogContent({
         <DialogTitle className="jgis-draw-custom-attributes-header-main">
           Set up custom attributes
         </DialogTitle>
-        <DialogDescription className="jgis-sr-only">
+        <DialogDescription className="sr-only">
           Configure custom attributes applied to newly drawn features.
         </DialogDescription>
       </DialogHeader>
@@ -237,26 +247,29 @@ function DrawCustomAttributesDialogContent({
                 <span className="jgis-attribute-col-value">
                   {attribute.value}
                 </span>
-                <Button
-                  type="button"
-                  variant="icon"
-                  size="icon-md"
-                  title="Edit"
-                  onClick={() => startEdit(index)}
-                  disabled={controlsDisabled}
-                >
-                  <Pencil />
-                </Button>
-                <Button
-                  type="button"
-                  variant="icon"
-                  size="icon-md"
-                  title="Remove"
-                  onClick={() => removeAttribute(index)}
-                  disabled={controlsDisabled}
-                >
-                  <Trash2 />
-                </Button>
+                <div className="inline-flex gap-0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Edit"
+                    onClick={() => startEdit(index)}
+                    disabled={controlsDisabled}
+                  >
+                    <Pencil />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Remove"
+                    onClick={() => removeAttribute(index)}
+                    disabled={controlsDisabled}
+                    className="text-destructive"
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
               </div>
             );
           })}
@@ -278,86 +291,79 @@ function DrawCustomAttributesDialogContent({
           <p className="jgis-draw-custom-attributes-error">{draftError}</p>
         ) : null}
 
-        <div
-          className={`jgis-draw-custom-attributes-preset-save-collapse${
-            savingPreset
-              ? ' jgis-draw-custom-attributes-preset-save-collapse--open'
-              : ''
-          }`}
-        >
-          {presetNameError ? (
-            <p className="jgis-draw-custom-attributes-error">
-              {presetNameError}
-            </p>
-          ) : null}
+        <Collapsible open={savingPreset}>
+          <CollapsibleContentAnimated>
+            {presetNameError ? (
+              <p className="jgis-draw-custom-attributes-error">
+                {presetNameError}
+              </p>
+            ) : null}
 
-          <div className="jgis-attribute-row jgis-attribute-row-editor jgis-draw-custom-attributes-preset-save-row">
-            <Input
-              className="jgis-draw-custom-attributes-preset-name-input"
-              type="text"
-              placeholder="Preset name"
-              value={presetName}
-              onChange={event => handlePresetNameChange(event.target.value)}
-              onKeyDown={event => {
-                if (event.key !== 'Enter') {
-                  return;
-                }
+            <div className="jgis-attribute-row jgis-attribute-row-editor jgis-draw-custom-attributes-preset-save-row">
+              <Input
+                className="jgis-draw-custom-attributes-preset-name-input"
+                type="text"
+                placeholder="Preset name"
+                value={presetName}
+                onChange={event => handlePresetNameChange(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key !== 'Enter') {
+                    return;
+                  }
 
-                event.preventDefault();
-                event.currentTarget.blur();
-                if (validatePresetName(event.currentTarget.value).valid) {
-                  handleSavePreset(event.currentTarget.value);
-                }
-              }}
-            />
-            <Button
-              type="button"
-              variant="icon"
-              size="icon-md"
-              title="Save preset"
-              onClick={() => handleSavePreset()}
-              disabled={!isPresetNameValid}
-            >
-              <Save />
-            </Button>
-            <Button
-              type="button"
-              variant="icon"
-              size="icon-md"
-              title="Cancel"
-              onClick={resetPresetDraft}
-            >
-              <Ban />
-            </Button>
-          </div>
-        </div>
+                  event.preventDefault();
+                  event.currentTarget.blur();
+                  if (validatePresetName(event.currentTarget.value).valid) {
+                    handleSavePreset(event.currentTarget.value);
+                  }
+                }}
+              />
+              <div className="inline-flex gap-0">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Save preset"
+                  onClick={() => handleSavePreset()}
+                  disabled={!isPresetNameValid}
+                >
+                  <Save />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Cancel"
+                  className="text-destructive"
+                  onClick={resetPresetDraft}
+                >
+                  <Ban />
+                </Button>
+              </div>
+            </div>
+          </CollapsibleContentAnimated>
+        </Collapsible>
         <div className="jgis-draw-custom-attributes-row">
           <div className="jgis-draw-custom-attributes-actions">
             <Button
               className="jgis-attribute-add-button"
               type="button"
               variant="outline"
-              size="sm"
+              size={'sm'}
               onClick={startAdd}
               disabled={!canAdd}
             >
-              <CirclePlus
-                data-icon="inline-start"
-                className="jgis-inline-icon"
-              />
+              <CirclePlus data-icon="inline-start" />
               Add Attribute
             </Button>
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              size={'sm'}
               onClick={() => setSavingPreset(true)}
               disabled={!canSavePreset}
             >
-              <BookmarkPlus
-                data-icon="inline-start"
-                className="jgis-inline-icon"
-              />
+              <BookmarkPlus data-icon="inline-start" />
               Save as preset
             </Button>
           </div>

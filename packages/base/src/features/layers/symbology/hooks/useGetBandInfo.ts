@@ -2,7 +2,7 @@ import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { fromUrl, fromBlob } from 'geotiff';
 import { useEffect, useState } from 'react';
 
-import { loadFile } from '@/src/tools';
+import { isJupyterLite, loadFile } from '@/src/tools';
 import { getBandInfoFromZarr } from '../zarrBandDiscovery';
 
 export interface IBandRow {
@@ -71,12 +71,22 @@ const useGetBandInfo = (
       }
 
       let tiff;
-      if (
-        sourceInfo.url.startsWith('http') ||
-        sourceInfo.url.startsWith('https')
-      ) {
-        // Handle remote GeoTIFF file
-        tiff = await fromUrl(sourceInfo.url);
+      const isRemote =
+        sourceInfo.url.startsWith('http://') ||
+        sourceInfo.url.startsWith('https://');
+
+      if (isRemote) {
+        let url = sourceInfo.url;
+
+        if (source?.parameters?.useProxy) {
+          const proxyBase = isJupyterLite()
+            ? `${model.jgisSettings.proxyUrl}/`
+            : '/jupytergis_core/proxy';
+
+          url = `${proxyBase}?url=${encodeURIComponent(sourceInfo.url)}`;
+        }
+
+        tiff = await fromUrl(url);
       } else {
         // Handle local GeoTIFF file
         const preloadedFile = await loadFile({
@@ -123,30 +133,37 @@ const useGetBandInfo = (
 
         // fallback to sampling
         if (min === Infinity || max === -Infinity) {
-          const raster = await image.readRasters({
-            samples: [i],
-            width: 64,
-            height: 64,
-            resampleMethod: 'nearest',
-          });
+          try {
+            const raster = await image.readRasters({
+              samples: [i],
+              width: 64,
+              height: 64,
+              resampleMethod: 'nearest',
+            });
 
-          if (!Array.isArray(raster)) {
-            throw new Error('Expected raster to be an array of TypedArrays');
-          }
-
-          const bandData = raster[0];
-
-          min = Infinity;
-          max = -Infinity;
-
-          for (let j = 0; j < bandData.length; j++) {
-            const val = bandData[j];
-            if (val < min) {
-              min = val;
+            if (!Array.isArray(raster)) {
+              throw new Error('Expected raster to be an array of TypedArrays');
             }
-            if (val > max) {
-              max = val;
+
+            const bandData = raster[0];
+
+            min = Infinity;
+            max = -Infinity;
+
+            for (let j = 0; j < bandData.length; j++) {
+              const val = bandData[j];
+              if (val < min) {
+                min = val;
+              }
+              if (val > max) {
+                max = val;
+              }
             }
+          } catch (err) {
+            console.warn(
+              `Could not calculate statistics for band ${i + 1}. Fallback to default min/max.`,
+              err,
+            );
           }
         }
 

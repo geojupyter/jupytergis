@@ -11,6 +11,7 @@ import {
   type SegmentContentPatch,
   updateSegmentContent as applySegmentContent,
   updateSegmentContentMode as applySegmentContentMode,
+  updateSegmentEnableIdentify as applySegmentEnableIdentify,
   updateSegmentLayerName as applySegmentLayerName,
 } from '@/src/features/story/utils/storySegmentContent';
 import {
@@ -37,6 +38,10 @@ interface IUseStoryEditorSegmentListResult {
   ) => void;
   updateSegmentContent: (segmentId: string, patch: SegmentContentPatch) => void;
   updateSegmentLayerName: (segmentId: string, name: string) => void;
+  updateSegmentEnableIdentify: (
+    segmentId: string,
+    enableIdentify: boolean,
+  ) => void;
   updateSegmentTransition: (
     segmentId: string,
     patch: SegmentTransitionPatch,
@@ -213,6 +218,13 @@ export function useStoryEditorSegmentList(
     [model],
   );
 
+  const updateSegmentEnableIdentify = useCallback(
+    (segmentId: string, enableIdentify: boolean) => {
+      applySegmentEnableIdentify(model, segmentId, enableIdentify);
+    },
+    [model],
+  );
+
   const updateSegmentTransition = useCallback(
     (segmentId: string, patch: SegmentTransitionPatch) => {
       applySegmentTransition(model, segmentId, patch);
@@ -235,6 +247,7 @@ export function useStoryEditorSegmentList(
     updateSegmentContentMode,
     updateSegmentContent,
     updateSegmentLayerName,
+    updateSegmentEnableIdentify,
     updateSegmentTransition,
   };
 }

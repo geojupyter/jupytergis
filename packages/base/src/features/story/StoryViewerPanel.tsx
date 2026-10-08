@@ -3,7 +3,7 @@ import {
   IJupyterGISModel,
   IStorySegmentLayer,
 } from '@jupytergis/schema';
-import React, { RefObject } from 'react';
+import React, { RefObject, useEffect, useState } from 'react';
 
 import {
   getStoryPresentationMode,
@@ -11,6 +11,10 @@ import {
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
+import { exitStoryIdentifyMode } from '@/src/features/story/utils/exitStoryIdentifyMode';
+import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
+import { Button } from '@/src/shared/components/Button';
+import { infoIcon } from '@/src/shared/icons';
 import { RenderedStoryMarkdown } from './components/RenderedStoryMarkdown';
 import StoryImageCaptionSection from './components/StoryImageCaptionSection';
 import StoryImageSection from './components/StoryImageSection';
@@ -93,6 +97,22 @@ function StoryViewerPanel({
   disableSegmentAnimation = false,
 }: IStoryViewerPanelProps) {
   const imageLoaded = useStoryImagePreload(activeSlide?.content?.image);
+  const [isIdentifying, setIsIdentifying] = useState(
+    () => model.currentMode === 'identifying',
+  );
+
+  useEffect(() => {
+    const syncMode = (): void => {
+      setIsIdentifying(model.currentMode === 'identifying');
+    };
+
+    syncMode();
+    model.modeChanged.connect(syncMode);
+
+    return () => {
+      model.modeChanged.disconnect(syncMode);
+    };
+  }, [model]);
 
   if (!storyData || storyData?.storySegments?.length === 0) {
     return (
@@ -111,6 +131,9 @@ function StoryViewerPanel({
     presentationMode,
     isMobile,
   );
+  const showIdentifyButton =
+    getSegmentDisplayMode(activeSlide) === 'map' &&
+    activeSlide?.enableIdentify === true;
 
   const navSlot =
     navPlacement !== null && segmentNav ? (
@@ -148,9 +171,31 @@ function StoryViewerPanel({
         style={segmentContainerStyle}
       >
         <div id="jgis-story-segment-header">
-          <h1 className="jgis-story-viewer-title">
-            {layerName ?? `Slide ${currentIndex + 1}`}
-          </h1>
+          <div className="jgis-story-viewer-title-row">
+            <h1 className="jgis-story-viewer-title">
+              {layerName ?? `Slide ${currentIndex + 1}`}
+            </h1>
+            {showIdentifyButton ? (
+              <Button
+                type="button"
+                variant={isIdentifying ? 'default' : 'outline'}
+                size="icon-xs"
+                aria-pressed={isIdentifying}
+                aria-label="Identify features"
+                title="Identify features"
+                className={'rounded-full'}
+                onClick={() => {
+                  if (model.currentMode === 'identifying') {
+                    exitStoryIdentifyMode(model);
+                    return;
+                  }
+                  model.toggleMode('identifying');
+                }}
+              >
+                <infoIcon.react tag="span" />
+              </Button>
+            ) : null}
+          </div>
           {activeSlide?.content?.image && imageLoaded ? (
             <StoryImageSection
               imageUrl={activeSlide.content.image}

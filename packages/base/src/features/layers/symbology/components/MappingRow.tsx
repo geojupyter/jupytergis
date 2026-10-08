@@ -706,9 +706,9 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
 
       <Button
         type="button"
-        variant="icon"
-        size="icon-md"
-        className="jp-gis-grammar-when-form-cancel"
+        variant="ghost"
+        size="icon-xs"
+        className="text-destructive"
         onClick={onDelete}
         title="Remove condition"
       >
@@ -797,7 +797,9 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
           {f}
           <Button
             type="button"
-            className="jp-gis-grammar-when-cancel"
+            variant="ghost"
+            size="icon-xs"
+            className="text-muted-foreground"
             onClick={() => onFieldChange(i, '')}
             title="Remove field"
           >
@@ -1194,8 +1196,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               <Button
                 type="button"
                 variant="ghost"
-                size="icon-md"
-                className="jp-mod-styled"
+                size="icon-xs"
                 onClick={() => removeEncoding(ch)}
                 title={
                   row.encodings.length === 1
@@ -1241,6 +1242,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         {(row.when?.length ?? 0) > 1 && (
           <Button
             type="button"
+            variant="ghost"
+            size="xs"
             className="jp-gis-grammar-when-op"
             onClick={() =>
               onChange({
@@ -1263,7 +1266,9 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         ))}
         <Button
           type="button"
-          className="jp-gis-grammar-when-add-btn"
+          variant="outline"
+          size="icon-xs"
+          className="rounded-[10px] border-dashed hover:border-primary hover:text-primary"
           onClick={addPredicate}
           title="Add condition"
         >

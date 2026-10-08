@@ -2,8 +2,8 @@ import { IIdentifiedFeature } from '@jupytergis/schema';
 import React from 'react';
 
 import {
+  CollapsibleContentAnimated,
   Collapsible,
-  CollapsibleContent,
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
 import { AddAttributeEditor } from './AttributeEditors';
@@ -52,41 +52,38 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
         };
 
   return (
-    <div className="jgis-identify-card">
-      <Collapsible
-        open={isVisible}
-        onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
-      >
-        <CollapsibleTrigger asChild>
-          <div className="jgis-symbology-override-collapsible-trigger">
-            <FeatureCardHeader
-              feature={feature}
-              isFloaterOpen={isFloaterOpen}
-              featureTitle={featureTitle}
-              onToggleFloater={onToggleFloater}
-              onHighlightFeature={onHighlightFeature}
-            />
-          </div>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="jgis-identify-content">
-            <FeatureAttributeList
-              feature={feature}
-              rowIndex={rowIndex}
-              editorState={cardEditorState}
-              editorActions={editorActions}
-            />
-            {feature._fromDrawTool === true && (
-              <AddAttributeEditor
-                feature={feature}
-                rowIndex={rowIndex}
-                editorState={cardEditorState}
-                editorActions={editorActions}
-              />
-            )}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </div>
+    <Collapsible
+      open={isVisible}
+      onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
+    >
+      <CollapsibleTrigger
+        nativeButton={false}
+        render={
+          <FeatureCardHeader
+            feature={feature}
+            isFloaterOpen={isFloaterOpen}
+            featureTitle={featureTitle}
+            onToggleFloater={onToggleFloater}
+            onHighlightFeature={onHighlightFeature}
+          />
+        }
+      />
+      <CollapsibleContentAnimated className="jgis-identify-content">
+        <FeatureAttributeList
+          feature={feature}
+          rowIndex={rowIndex}
+          editorState={cardEditorState}
+          editorActions={editorActions}
+        />
+        {feature._fromDrawTool === true && (
+          <AddAttributeEditor
+            feature={feature}
+            rowIndex={rowIndex}
+            editorState={cardEditorState}
+            editorActions={editorActions}
+          />
+        )}
+      </CollapsibleContentAnimated>
+    </Collapsible>
   );
 };

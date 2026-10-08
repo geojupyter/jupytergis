@@ -10,6 +10,8 @@ export const symbology = 'jupytergis:symbology';
 export const identify = 'jupytergis:identify';
 export const temporalController = 'jupytergis:temporalController';
 export const addMarker = 'jupytergis:addMarker';
+export const foldFeatureStore = 'jupytergis:foldFeatureStore';
+export const openNewFeatureStoreDialog = 'jupytergis:openNewFeatureStoreDialog';
 
 // geolocation
 export const getGeolocation = 'jupytergis:getGeolocation';
@@ -32,8 +34,11 @@ export const openNewGeoParquetDialog = 'jupytergis:openNewGeoParquetDialog';
 export const newGeoPackageRasterEntry = 'jupytergis:newGeoPackageRasterEntry';
 export const newGeoPackageVectorEntry = 'jupytergis:newGeoPackageVectorEntry';
 export const openNewOpenEODialog = 'jupytergis:openNewOpenEODialog';
-export const toggleDrawFeatures = 'jupytergis:toggleDrawFeatures';
+export const drawFeaturesOnSelectedLayer =
+  'jupytergis:drawFeaturesOnSelectedLayer';
+export const drawFeaturesOnNewLayer = 'jupytergis:drawFeaturesOnNewLayer';
 export const deleteSelectedFeatures = 'jupytergis:deleteSelectedFeatures';
+export const editSelectedFeature = 'jupytergis:editSelectedFeature';
 
 // Layer and group actions
 export const showLayerPropertiesDialog = 'jupytergis:showLayerPropertiesDialog';
@@ -44,6 +49,8 @@ export const editOpenEOLayer = 'jupytergis:editOpenEOLayer';
 export const duplicateSelected = 'jupytergis:duplicateSelected';
 export const moveSelectedToGroup = 'jupytergis:moveSelectedToGroup';
 export const moveSelectedToNewGroup = 'jupytergis:moveSelectedToNewGroup';
+export const compareLayers = 'jupytergis:compareLayers';
+export const stopComparing = 'jupytergis:stopComparing';
 
 // Console commands
 export const toggleConsole = 'jupytergis:toggleConsole';
@@ -58,7 +65,7 @@ export const launchFeatureTour = 'jupytergis:launchFeatureTour';
 // Map Commands
 export const addAnnotation = 'jupytergis:addAnnotation';
 export const zoomToLayer = 'jupytergis:zoomToLayer';
-export const downloadGeoJSON = 'jupytergis:downloadGeoJSON';
+export const exportGeoJSON = 'jupytergis:exportGeoJSON';
 
 // Panel toggles
 export const toggleLeftPanel = 'jupytergis:toggleLeftPanel';

@@ -6,6 +6,7 @@ import {
   bookOpenIcon,
   clockIcon,
   columns2Icon,
+  dbIcon,
   geoJSONIcon,
   geoPackageIcon,
   infoIcon,
@@ -35,6 +36,7 @@ const iconObject = {
   RasterDemSource: { icon: moundIcon },
   VectorTileSource: { iconClass: 'fa fa-vector-square' },
   GeoJSONSource: { icon: geoJSONIcon },
+  FeatureStoreSource: { iconClass: 'fa fa-store' },
   ImageSource: { iconClass: 'fa fa-image' },
   ShapefileSource: { iconClass: 'fa fa-file' },
 
@@ -68,7 +70,10 @@ const iconObject = {
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
-  [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
+  [CommandIDs.foldFeatureStore]: { icon: dbIcon },
+  [CommandIDs.openNewFeatureStoreDialog]: { iconClass: 'fa fa-store' },
+  [CommandIDs.drawFeaturesOnSelectedLayer]: { icon: pencilSolidIcon },
+  [CommandIDs.drawFeaturesOnNewLayer]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
   [CommandIDs.openStoryEditor]: {
     // iconClass is ignored when `icon` is a LabIcon, bind className instead.

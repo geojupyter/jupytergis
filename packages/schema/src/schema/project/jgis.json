@@ -6,7 +6,7 @@
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "default": "0.6.0"
+      "default": "0.7.0"
     },
     "layers": {
       "$ref": "#/definitions/jGISLayers"
@@ -67,6 +67,7 @@
         "GeoPackageVectorSource",
         "GeoPackageRasterSource",
         "GeoParquetSource",
+        "FeatureStoreSource",
         "MarkerSource",
         "OpenEOTileSource"
       ]
@@ -305,6 +306,31 @@
         "useExtent": {
           "type": "boolean",
           "default": false
+        },
+        "comparison": {
+          "$ref": "#/definitions/jGISComparison"
+        }
+      }
+    },
+    "jGISComparison": {
+      "title": "IJGISComparison",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "layers"],
+      "description": "Two layers compared in the map view instead of being stacked",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["swipe"]
+        },
+        "layers": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "The compared layer ids; the second one is revealed on the right of the divider",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
