@@ -1,5 +1,6 @@
 import type {
   IDrawCustomAttribute,
+  IFeatureStoreFeature,
   IFeatureStoreGeometry,
   IFeatureStoreSource,
   IJGISSource,
@@ -295,6 +296,12 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       }
 
       for (const featureId of featureStoreIds) {
+        const existing = model.getFeatureStoreFeatures(storeId)[featureId];
+        if (existing?.deleted) {
+          this._restoreTombstone(model, storeId, existing);
+          continue;
+        }
+
         model.removeFeatureStoreFeature(storeId, featureId, {
           tombstone: true,
         });
@@ -309,6 +316,28 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     }
 
     return false;
+  }
+
+  private _restoreTombstone(
+    model: IJupyterGISModel,
+    storeId: string,
+    existing: IFeatureStoreFeature,
+  ): void {
+    if (!existing.geometry) {
+      model.removeFeatureStoreFeature(storeId, existing.id);
+      return;
+    }
+
+    const result = model.setFeatureStoreFeature(storeId, {
+      ...existing,
+      deleted: false,
+      updatedAt: new Date().toISOString(),
+      updatedBy: model.getClientId().toString(),
+    });
+
+    if (!result.ok) {
+      this._host.log('warning', 'Could not restore the feature.');
+    }
   }
 
   private _bindFromSelectedLayer(): void {

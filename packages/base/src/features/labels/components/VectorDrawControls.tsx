@@ -23,7 +23,7 @@ const DRAW_STATUS: Record<string, string> = {
   Point: 'Click to add a point.',
   LineString: 'Click to add vertices.\nDouble-click to finish.',
   Polygon: 'Click to add vertices.\nDouble-click to finish.',
-  delete: 'Click a feature to remove it.',
+  delete: 'Click a feature to remove it.\nClick a marked one to keep it.',
 };
 
 export interface IVectorDrawControlsProps {
