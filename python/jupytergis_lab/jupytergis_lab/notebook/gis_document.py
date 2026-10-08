@@ -43,7 +43,7 @@ from jupytergis_core.schema import (
     SourceType,
 )
 from pycrdt import Array, Map
-from pydantic import BaseModel
+from pydantic import BaseModel, PrivateAttr, ValidationError, field_validator
 from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
 
@@ -152,6 +152,30 @@ def _openeo_view_extent(extent: list[float]) -> list[float]:
     minx, miny = _lonlat_to_webmercator(west, south)
     maxx, maxy = _lonlat_to_webmercator(east, north)
     return [minx, miny, maxx, maxy]
+
+
+def _find_by_name_or_id[T: JGISObject](
+    objects: dict[str, T],
+    name_or_id: str,
+    kind: str,
+) -> T:
+    """Look an object up by id, falling back to an unambiguous name."""
+    if name_or_id in objects:
+        return objects[name_or_id]
+
+    matches = [obj for obj in objects.values() if obj.name == name_or_id]
+
+    if not matches:
+        raise KeyError(f"No {kind} found with name or ID: {name_or_id!r}")
+
+    if len(matches) > 1:
+        ids = ", ".join(sorted(str(match.id) for match in matches))
+        raise ValueError(
+            f"{len(matches)} {kind}s are named {name_or_id!r}. "
+            f"Pass one of these ids instead: {ids}",
+        )
+
+    return matches[0]
 
 
 class GISDocument(CommWidget):
@@ -290,9 +314,38 @@ class GISDocument(CommWidget):
             )
 
     @property
-    def layers(self) -> dict[str, Any] | None:
-        """Get the layer list"""
-        return self._layers.to_py()
+    def layers(self) -> dict[str, JGISLayer]:
+        """Get the document layers, keyed by layer id."""
+        return {
+            layer_id: OBJECT_FACTORY.read_layer(layer_id, layer, self)
+            for layer_id, layer in self._layers.to_py().items()
+        }
+
+    @property
+    def sources(self) -> dict[str, JGISSource]:
+        """Get the document sources, keyed by source id."""
+        return {
+            source_id: OBJECT_FACTORY.read_source(source_id, source, self)
+            for source_id, source in self._sources.to_py().items()
+        }
+
+    def get_layer(self, name_or_id: str) -> JGISLayer:
+        """Find a layer by id, or by name when the name is unambiguous.
+
+        :param name_or_id: The layer id, or the layer name.
+        :raises KeyError: If nothing matches.
+        :raises ValueError: If several layers share that name.
+        """
+        return _find_by_name_or_id(self.layers, name_or_id, "layer")
+
+    def get_source(self, name_or_id: str) -> JGISSource:
+        """Find a source by id, or by name when the name is unambiguous.
+
+        :param name_or_id: The source id, or the source name.
+        :raises KeyError: If nothing matches.
+        :raises ValueError: If several sources share that name.
+        """
+        return _find_by_name_or_id(self.sources, name_or_id, "source")
 
     @property
     def layer_tree(self) -> list[Any] | None:
@@ -1414,12 +1467,61 @@ class GISDocument(CommWidget):
         self._layers[layer_id] = layer
 
 
-class JGISLayer(BaseModel):
+class JGISObject(BaseModel):
+    """Base class for the layer and source objects read off a document."""
+
     class Config:
         arbitrary_types_allowed = True
         extra = "allow"
 
     name: str
+
+    _parent: Any = PrivateAttr(default=None)
+    _id: str | None = PrivateAttr(default=None)
+
+    def __init__(__pydantic_self__, parent=None, id=None, **data: Any) -> None:  # noqa
+        super().__init__(**data)
+        __pydantic_self__._parent = parent
+        __pydantic_self__._id = id
+
+    @field_validator("parameters", mode="plain", check_fields=False)
+    @classmethod
+    def _keep_parameters_as_given(cls, parameters: Any) -> Any:
+        """Take the parameters as handed over, without union coercion.
+
+        The factory has already decided whether it could type them, and letting
+        pydantic re-resolve the union relabels a type it has no model for as
+        whichever model happens to fit its keys.
+        """
+        return parameters
+
+    @property
+    def id(self) -> str | None:
+        """The identifier this object is stored under, when it is stored."""
+        return self._id
+
+    @property
+    def document(self) -> GISDocument | None:
+        """The document this object was read from."""
+        return self._parent
+
+    def get_parameter(self, name: str, default: Any = None) -> Any:
+        """Read a parameter, whether the parameters are typed or a raw dict."""
+        parameters = self.parameters
+        if isinstance(parameters, dict):
+            return parameters.get(name, default)
+        return getattr(parameters, name, default)
+
+    def __repr__(self) -> str:
+        """Identify the object without printing all of its parameters."""
+        type_name = getattr(self.type, "value", self.type)
+        return (
+            f"{type(self).__name__}(name={self.name!r}, "
+            f"type={type_name!r}, id={self._id!r})"
+        )
+
+
+class JGISLayer(JGISObject):
     type: LayerType
     visible: bool
     parameters: (
@@ -1432,20 +1534,21 @@ class JGISLayer(BaseModel):
         | IGeoZarrLayer
         | IStorySegmentLayer
         | IOpenEOTileLayer
+        | dict[str, Any]
     )
-    _parent = GISDocument | None
 
-    def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
-        super().__init__(**data)
-        __pydantic_self__._parent = parent
+    @property
+    def source(self) -> JGISSource | None:
+        """The source this layer draws from, or ``None`` if it has none."""
+        source_id = self.get_parameter("source")
+
+        if source_id is None or self._parent is None:
+            return None
+
+        return self._parent.sources.get(source_id)
 
 
-class JGISSource(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        extra = "allow"
-
-    name: str
+class JGISSource(JGISObject):
     type: SourceType
     parameters: (
         IRasterSource
@@ -1461,12 +1564,20 @@ class JGISSource(BaseModel):
         | IGeoPackageRasterSource
         | IWmsTileSource
         | IOpenEOTileSource
+        | dict[str, Any]
     )
-    _parent = GISDocument | None
 
-    def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
-        super().__init__(**data)
-        __pydantic_self__._parent = parent
+    @property
+    def layers(self) -> list[JGISLayer]:
+        """The layers drawing from this source."""
+        if self._parent is None or self._id is None:
+            return []
+
+        return [
+            layer
+            for layer in self._parent.layers.values()
+            if layer.get_parameter("source") == self._id
+        ]
 
 
 class SingletonMeta(type):
@@ -1490,6 +1601,74 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
     ) -> None:
         if shape_type not in self._factories:
             self._factories[shape_type] = cls
+
+    def _read_parameters(
+        self,
+        object_type: Any,
+        enum_cls: type[LayerType | SourceType],
+        parameters: dict,
+    ) -> Any:
+        """Validate stored parameters, falling back to the raw dict.
+
+        Types the factory has no model for, and parameters this version has no
+        field for, still have to read back rather than disappear.
+        """
+        # Stored documents hold the type as a string, while the factory is keyed
+        # by the enum, and these enums do not compare equal to their values.
+        if not isinstance(object_type, enum_cls):
+            try:
+                object_type = enum_cls(object_type)
+            except ValueError:
+                return parameters
+
+        Model = self._factories.get(object_type)
+
+        if Model is None:
+            return parameters
+
+        try:
+            return Model(**parameters)
+        except ValidationError:
+            return parameters
+
+    def read_layer(
+        self,
+        id: str,
+        data: dict,
+        parent: GISDocument | None = None,
+    ) -> JGISLayer:
+        rest = dict(data)
+        object_type = rest.pop("type", None)
+        parameters = rest.pop("parameters", None) or {}
+
+        return JGISLayer(
+            parent=parent,
+            id=id,
+            name=rest.pop("name", ""),
+            type=object_type,
+            visible=rest.pop("visible", True),
+            parameters=self._read_parameters(object_type, LayerType, parameters),
+            **rest,
+        )
+
+    def read_source(
+        self,
+        id: str,
+        data: dict,
+        parent: GISDocument | None = None,
+    ) -> JGISSource:
+        rest = dict(data)
+        object_type = rest.pop("type", None)
+        parameters = rest.pop("parameters", None) or {}
+
+        return JGISSource(
+            parent=parent,
+            id=id,
+            name=rest.pop("name", ""),
+            type=object_type,
+            parameters=self._read_parameters(object_type, SourceType, parameters),
+            **rest,
+        )
 
     def create_layer(
         self,

@@ -1,4 +1,5 @@
 import pytest
+from jupytergis_core.schema import LayerType, SourceType
 from pycrdt import Map
 
 from jupytergis_lab import GISDocument
@@ -80,8 +81,107 @@ class TestGeoParquetLayer(TestDocument):
         geoparquet_layer = self.doc.add_geoparquet_layer(
             TEST_GEOPARQUET,
         )
-        state = self.doc.layers[geoparquet_layer]["parameters"]["symbologyState"]
-        assert "layers" in state
+        state = self.doc.layers[geoparquet_layer].get_parameter("symbologyState")
+        assert state is not None
+
+
+class TestLayerAndSourceObjects(TestDocument):
+    RASTER_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+
+    def setup_method(self):
+        super().setup_method()
+        self.doc._is_ready = True
+
+    def test_layers_read_back_as_objects(self):
+        layer_id = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        layer = self.doc.layers[layer_id]
+
+        assert layer.id == layer_id
+        assert layer.name == "Basemap"
+        assert layer.type == LayerType.RasterLayer
+        assert layer.visible is True
+
+    def test_layer_reaches_its_own_source(self):
+        layer_id = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        source = self.doc.layers[layer_id].source
+
+        assert source is not None
+        assert source.type == SourceType.RasterSource
+        assert source.parameters.url == self.RASTER_URL
+        assert source.get_parameter("url") == self.RASTER_URL
+
+    def test_sources_are_public(self):
+        layer_id = self.doc.add_raster_layer(url=self.RASTER_URL)
+        source_id = self.doc.layers[layer_id].get_parameter("source")
+
+        assert source_id in self.doc.sources
+        assert self.doc.sources[source_id].id == source_id
+
+    def test_source_lists_the_layers_using_it(self):
+        layer_id = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+        source = self.doc.layers[layer_id].source
+
+        assert [layer.id for layer in source.layers] == [layer_id]
+
+    def test_get_layer_by_id_and_by_name(self):
+        layer_id = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        assert self.doc.get_layer(layer_id).id == layer_id
+        assert self.doc.get_layer("Basemap").id == layer_id
+
+    def test_get_layer_without_a_match_raises(self):
+        with pytest.raises(KeyError, match="No layer found"):
+            self.doc.get_layer("Nope")
+
+    def test_get_layer_with_an_ambiguous_name_raises(self):
+        first = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+        second = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        with pytest.raises(ValueError, match="2 layers are named") as error:
+            self.doc.get_layer("Basemap")
+
+        assert first in str(error.value)
+        assert second in str(error.value)
+
+    def test_get_source_by_name(self):
+        layer_id = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+        source = self.doc.layers[layer_id].source
+
+        assert self.doc.get_source(source.name).id == source.id
+
+    def test_unknown_types_read_back_with_raw_parameters(self):
+        # A type this version has no model for still has to read back, rather
+        # than disappear or be relabelled as whichever model fits its keys.
+        self.doc._sources["source-1"] = {
+            "name": "Shapes",
+            "type": "ShapefileSource",
+            "parameters": {"path": "shapes.shp"},
+        }
+        self.doc._layers["layer-1"] = {
+            "name": "Shapes",
+            "type": "StacLayer",
+            "visible": True,
+            "parameters": {"source": "source-1", "opacity": 0.5},
+        }
+
+        layer = self.doc.layers["layer-1"]
+
+        assert isinstance(layer.parameters, dict)
+        assert layer.get_parameter("opacity") == 0.5
+        assert layer.source.name == "Shapes"
+        assert isinstance(self.doc.sources["source-1"].parameters, dict)
+
+    def test_unknown_parameters_are_not_dropped(self):
+        self.doc._layers["layer-1"] = {
+            "name": "Future",
+            "type": "RasterLayer",
+            "visible": True,
+            "parameters": {"source": "source-1", "opacity": 1.0, "unknown": 7},
+        }
+
+        assert self.doc.layers["layer-1"].get_parameter("unknown") == 7
 
 
 class TestGrammarSymbologyBuilders:
@@ -231,10 +331,10 @@ class TestGeoJSONGrammarSymbology(TestDocument):
             name="Quakes",
             symbology=[[constant("#00FF00").encoding("fill")]],
         )
-        state = self.doc.layers[layer_id]["parameters"]["symbologyState"]
-        assert "layers" in state
-        assert len(state["layers"]) == 1
-        assert len(state["layers"][0]["rules"]) >= 1
+        state = self.doc.layers[layer_id].get_parameter("symbologyState")
+        assert state.layers is not None
+        assert len(state.layers) == 1
+        assert len(state.layers[0].rules) >= 1
 
     def test_apply_symbology_overwrites_with_grammar_state(self):
         # TODO implement it
