@@ -4,6 +4,7 @@ import {
   LayerType,
 } from '@jupytergis/schema';
 
+import { launchFollowable } from '@/src/features/follow/followDialogs';
 import { editOpenEOLayer } from '@/src/features/layers/openeo';
 import { ObjectPropertiesWidget } from '@/src/features/objectproperties/objectPropertiesDialog';
 
@@ -34,10 +35,15 @@ export type LayerEditHandler = (context: ILayerEditContext) => Promise<void>;
  */
 const defaultLayerEdit: LayerEditHandler = async ({
   model,
+  selectedId,
   formSchemaRegistry,
 }) => {
   const dialog = new ObjectPropertiesWidget({ model, formSchemaRegistry });
-  await dialog.launch();
+  await launchFollowable(
+    model,
+    { kind: 'layerProperties', params: { objectId: selectedId } },
+    dialog,
+  );
 };
 
 /**

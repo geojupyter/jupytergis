@@ -4,7 +4,7 @@ import React, { ReactNode } from 'react';
 import { Button } from './Button';
 import {
   Collapsible,
-  CollapsibleContent,
+  CollapsibleContentAnimated,
   CollapsibleTrigger,
 } from './Collapsible';
 import { HoverCardTrigger, HoverCardContent, HoverCard } from './HoverCard';
@@ -41,37 +41,43 @@ export function HoverTip({
   openDelay = 100,
   closeDelay = 100,
   className,
-  portalContainerRef,
   ...contentProps
 }: IHoverTipProps) {
   return (
-    <HoverCard openDelay={openDelay} closeDelay={closeDelay}>
-      <HoverCardTrigger aria-label={triggerLabel}>{icon}</HoverCardTrigger>
+    <HoverCard>
+      <HoverCardTrigger
+        aria-label={triggerLabel}
+        className="m-0 inline-flex cursor-help items-center border-0 bg-transparent p-0 leading-none text-foreground"
+        closeDelay={closeDelay}
+        delay={openDelay}
+      >
+        {icon}
+      </HoverCardTrigger>
       <HoverCardContent
-        portalContainerRef={portalContainerRef}
-        className={cn('jgis-info-tip-content', className)}
+        className={cn(
+          'flex flex-col [&_a]:text-primary [&_a]:underline',
+          className,
+        )}
         {...contentProps}
       >
         {text}
         {children && (
-          <Collapsible asChild>
-            <div className="jgis-info-tip-collapsible">
-              <CollapsibleTrigger asChild>
-                <div className="jgis-info-tip-collapsible-trigger">
-                  <Button
-                    size="icon-sm"
-                    variant="icon"
-                    className="jgis-rotate-90 jgis-bg-transparent"
-                  >
-                    <ChevronRightIcon data-icon="inline-start" />
-                  </Button>
-                  <span className="jgis-info-tip-more-info">More Info</span>
-                </div>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="jgis-info-tip-collapsible-content">
-                {children}
-              </CollapsibleContent>
-            </div>
+          <Collapsible
+            render={<div className="flex flex-col self-start pt-2" />}
+          >
+            <CollapsibleTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  className="h-auto justify-start pl-0 text-muted-foreground hover:bg-transparent hover:text-foreground data-panel-open:bg-transparent data-panel-open:hover:bg-transparent"
+                />
+              }
+            >
+              <ChevronRightIcon className="transition-transform group-data-panel-open/button:rotate-90" />
+              More Info
+            </CollapsibleTrigger>
+            <CollapsibleContentAnimated>{children}</CollapsibleContentAnimated>
           </Collapsible>
         )}
       </HoverCardContent>

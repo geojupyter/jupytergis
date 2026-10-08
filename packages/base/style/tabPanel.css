@@ -1,3 +1,25 @@
+.jgis-panel-tabs {
+  gap: 0;
+  background-color: var(--jp-layout-color0);
+}
+
+.jgis-panel-tabs [data-slot='tabs-list'] {
+  width: 100%;
+  justify-content: space-evenly;
+  gap: 1rem;
+  overflow-x: auto;
+  cursor: grab;
+}
+
+.jgis-panel-tabs [data-slot='tabs-list']:active {
+  cursor: grabbing;
+}
+
+.jgis-panel-tabs [data-slot='tabs-trigger'] {
+  flex: none;
+  height: auto;
+}
+
 .jgis-panel-tab-content {
   font-size: var(--jp-ui-font-size0);
   padding-bottom: 50px;

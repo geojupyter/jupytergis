@@ -143,24 +143,26 @@ export function SegmentMarkdownEditor({
 
   return (
     <Tabs
+      className={'gap-0'}
       value={tab}
       onValueChange={nextTab => setTab(nextTab as MarkdownEditorTab)}
     >
       <TabsList
-        className="jgis-story-editor-markdown-tabs"
+        variant="underline"
+        className="w-full cursor-auto rounded-b-none"
         aria-label="Markdown editor"
       >
-        <TabsTrigger className="jgis-underline-indicator" value="write">
-          Write
+        <TabsTrigger value="write">
+          <span className="jgis-underline-indicator">Write</span>
         </TabsTrigger>
-        <TabsTrigger className="jgis-underline-indicator" value="preview">
-          Preview
+        <TabsTrigger value="preview">
+          <span className="jgis-underline-indicator">Preview</span>
         </TabsTrigger>
       </TabsList>
 
       <TabsContent
         value="write"
-        forceMount
+        keepMounted
         className="jgis-story-editor-markdown-tab-content"
       >
         <div

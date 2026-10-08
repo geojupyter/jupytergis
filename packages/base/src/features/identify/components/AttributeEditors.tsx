@@ -44,25 +44,27 @@ export const AttributeActionsMenu: React.FC<IAttributeActionsMenuProps> = ({
   items,
 }) => {
   return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          className="jgis-attribute-col-actions"
-          title={title}
-          variant="icon"
-          size="icon-md"
-        >
-          <Ellipsis />
-        </Button>
-      </DropdownMenuTrigger>
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            className="jgis-attribute-col-actions"
+            title={title}
+            variant="ghost"
+            size="icon-sm"
+          >
+            <Ellipsis />
+          </Button>
+        }
+      />
       <DropdownMenuContent side={side} onClick={onContentClick}>
         {items.map(item => (
           <DropdownMenuItem
             key={item.label}
             disabled={item.disabled}
             variant={item.variant ?? 'default'}
-            onSelect={item.onSelect}
+            onClick={item.onSelect}
           >
             {item.icon}
             {item.label}
@@ -84,7 +86,7 @@ export const AttributeActionMenu: React.FC<IAttributeActionMenuProps> = ({
       items={[
         {
           label: 'Save',
-          icon: <Save data-icon="inline-start" className="jgis-inline-icon" />,
+          icon: <Save />,
           disabled:
             !editorState.newAttributeKey.trim() ||
             editorState.isSavingAttribute,
@@ -94,7 +96,7 @@ export const AttributeActionMenu: React.FC<IAttributeActionMenuProps> = ({
         },
         {
           label: 'Cancel',
-          icon: <Ban data-icon="inline-start" className="jgis-inline-icon" />,
+          icon: <Ban />,
           variant: 'destructive',
           onSelect: () => {
             editorActions.onCancelAttribute();
@@ -168,7 +170,7 @@ export const AddAttributeEditor: React.FC<IAddAttributeEditorProps> = ({
         variant="outline"
         size="sm"
       >
-        <CirclePlus data-icon="inline-start" className="jgis-inline-icon" />
+        <CirclePlus data-icon="inline-start" />
         Add Attribute
       </Button>
     </div>

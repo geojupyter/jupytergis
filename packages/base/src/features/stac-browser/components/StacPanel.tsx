@@ -8,7 +8,10 @@ import {
   StacResultsProvider,
   useStacResultsContext,
 } from '@/src/features/stac-browser/context/StacResultsContext';
-import { Select, type ISelectItem } from '@/src/shared/components/Select';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 import {
   Tabs,
   TabsContent,
@@ -57,23 +60,18 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
     URL_TO_PANEL_MAP[selectedUrl] ?? StacFilterExtensionPanel;
 
   return (
-    <Tabs
-      defaultValue="filters"
-      className="jgis-panel-tabs"
-      style={{ boxShadow: 'none' }}
-    >
-      <TabsList className="jgis-stac-panel-tabs-list">
-        <TabsTrigger className="jGIS-layer-browser-category" value="filters">
+    <Tabs defaultValue="filters" style={{ boxShadow: 'none' }}>
+      <TabsList variant="underline" className="jgis-stac-panel-tabs-list">
+        <TabsTrigger
+          className="jgis-underline-indicator text-sm"
+          value="filters"
+        >
           Filters
         </TabsTrigger>
         <TabsTrigger
-          className="jGIS-layer-browser-category"
+          className="jgis-underline-indicator"
           value="results"
-          // Total results will always be the the same as the limit if the
-          // provider doesn't support the context extension (where totalPages comes from)
-        >
-          {`Results (${totalResults})`}
-        </TabsTrigger>
+        >{`Results (${totalResults})`}</TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
         <div className="jgis-stac-filter-extension-panel">
@@ -110,26 +108,25 @@ const StacPanel = ({ model }: IStacViewProps) => {
 function ProviderSelect() {
   const { selectedUrl, setSelectedUrl } = useStacResultsContext();
 
-  const selectedProvider = PROVIDERS.find(
-    provider => provider.url === selectedUrl,
-  );
-  const buttonText = selectedProvider?.name || 'Select a provider...';
-
-  const items: ISelectItem[] = PROVIDERS.map(provider => ({
-    value: provider.url,
-    label: provider.name,
-    onSelect: () => setSelectedUrl(provider.url),
-  }));
-
   return (
     <div className="jgis-stac-filter-extension-section">
       <label className="jgis-stac-filter-extension-label">Provider</label>
-      <Select
-        items={items}
-        buttonText={buttonText}
-        emptyText="No provider found."
-        buttonClassName="jgis-stac-filter-extension-select"
-      />
+      <NativeSelect
+        className="w-full"
+        value={selectedUrl ?? ''}
+        onChange={event => {
+          setSelectedUrl(event.target.value);
+        }}
+      >
+        <NativeSelectOption value="" disabled>
+          Select a provider...
+        </NativeSelectOption>
+        {PROVIDERS.map(provider => (
+          <NativeSelectOption key={provider.url} value={provider.url}>
+            {provider.name}
+          </NativeSelectOption>
+        ))}
+      </NativeSelect>
     </div>
   );
 }

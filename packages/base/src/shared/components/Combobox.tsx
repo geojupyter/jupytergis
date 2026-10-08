@@ -3,7 +3,7 @@ import { useVirtualizer } from '@tanstack/react-virtual';
 import { CheckIcon, ChevronDownIcon, XIcon } from 'lucide-react';
 import * as React from 'react';
 
-import { ButtonTw } from './ButtonTw';
+import { Button } from './Button';
 import {
   InputGroup,
   InputGroupAddon,
@@ -57,13 +57,13 @@ function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
   return <ComboboxPrimitive.Value data-slot="combobox-value" {...props} />;
 }
 
-const ComboboxTrigger = React.forwardRef<
-  HTMLButtonElement,
-  ComboboxPrimitive.Trigger.Props
->(({ className, children, ...props }, ref) => {
+function ComboboxTrigger({
+  className,
+  children,
+  ...props
+}: ComboboxPrimitive.Trigger.Props) {
   return (
     <ComboboxPrimitive.Trigger
-      ref={ref}
       data-slot="combobox-trigger"
       className={cn("[&_svg:not([class*='size-'])]:size-4", className)}
       {...props}
@@ -72,7 +72,7 @@ const ComboboxTrigger = React.forwardRef<
       <ChevronDownIcon className="pointer-events-none size-4 text-muted-foreground" />
     </ComboboxPrimitive.Trigger>
   );
-});
+}
 
 function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
   return (
@@ -101,7 +101,7 @@ function ComboboxInput({
   showClear?: boolean;
 }) {
   return (
-    <InputGroup className={cn('w-auto', className)}>
+    <InputGroup className={cn('w-auto hover:bg-muted', className)}>
       <ComboboxPrimitive.Input
         render={<InputGroupInput disabled={disabled} />}
         {...props}
@@ -176,7 +176,7 @@ function ComboboxList({
     <ComboboxPrimitive.List
       data-slot="combobox-list"
       className={cn(
-        'data-empty:p-0 p-1',
+        'p-1 data-empty:p-0',
         virtualized
           ? 'overflow-hidden'
           : cn(comboboxListSizeClass, comboboxListScrollClass),
@@ -270,7 +270,7 @@ function ComboboxVirtualizedList<T>({
     >
       <div
         role="presentation"
-        className="relative w-full pointer-events-none"
+        className="pointer-events-none relative w-full"
         style={{ height: totalSize }}
       >
         {virtualizer.getVirtualItems().map(virtualItem => {
@@ -402,9 +402,9 @@ function ComboboxChip({
           className="-ml-1 opacity-50 hover:opacity-100"
           data-slot="combobox-chip-remove"
           render={
-            <ButtonTw variant="ghost" size="icon-xs">
+            <Button variant="ghost" size="icon-xs">
               <XIcon className="pointer-events-none" />
-            </ButtonTw>
+            </Button>
           }
         />
       )}

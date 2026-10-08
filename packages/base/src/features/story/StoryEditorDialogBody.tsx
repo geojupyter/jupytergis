@@ -3,7 +3,7 @@ import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import SegmentImageCaptionField from '@/src/features/story/components/SegmentImageCaptionField';
 import { SegmentImageUrlField } from '@/src/features/story/components/SegmentImageUrlField';
@@ -16,6 +16,7 @@ import { StoryEditorHeaderBar } from '@/src/features/story/components/StoryEdito
 import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
 import { StoryEditorSection } from '@/src/features/story/components/StoryEditorSection';
 import { StoryEditorSegmentList } from '@/src/features/story/components/StoryEditorSegmentList';
+import { useStoryEditorSegmentKeyboard } from '@/src/features/story/hooks/useStoryEditorSegmentKeyboard';
 import { useStoryEditorSegmentList } from '@/src/features/story/hooks/useStoryEditorSegmentList';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import type {
@@ -49,6 +50,7 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 import { Slider } from '@/src/shared/components/Slider';
+import { Switch } from '@/src/shared/components/Switch';
 import { JGIS_NARROW_BREAKPOINT } from '@/src/shared/hooks/useIsMobile';
 
 export interface IStoryEditorDialogBodyProps {
@@ -64,12 +66,12 @@ function SegmentEditor({
   state,
   segment,
   editorServices,
-  portalContainerRef,
   canRemoveSegment,
   isMobile,
   onContentModeChange,
   onContentChange,
   onLayerNameChange,
+  onEnableIdentifyChange,
   onTransitionChange,
   onRemoveSegment,
   isTextSegmentWidthFull,
@@ -78,12 +80,12 @@ function SegmentEditor({
   state: IStateDB;
   segment: IStorySegmentViewItem;
   editorServices: IEditorServices;
-  portalContainerRef: React.RefObject<HTMLElement | null>;
   canRemoveSegment: boolean;
   isMobile: boolean;
   onContentModeChange: (mode: StorySegmentDisplayMode) => void;
   onContentChange: (patch: SegmentContentPatch) => void;
   onLayerNameChange: (name: string) => void;
+  onEnableIdentifyChange: (enableIdentify: boolean) => void;
   onTransitionChange: (patch: SegmentTransitionPatch) => void;
   onRemoveSegment: () => void;
   isTextSegmentWidthFull: boolean;
@@ -127,15 +129,22 @@ function SegmentEditor({
           disabled={!canRemoveSegment}
           onClick={onRemoveSegment}
         >
-          <Trash2
-            data-icon={isMobile ? undefined : 'inline-start'}
-            className="jgis-inline-icon"
-          />
+          <Trash2 data-icon={isMobile ? undefined : 'inline-start'} />
           {isMobile ? null : 'Delete'}
         </Button>
       </div>
 
       <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
+
+      {segmentMode === 'map' ? (
+        <label className="jgis-story-editor-toggle-row jgis-story-editor-label justify-start!">
+          <span>Enable identify</span>
+          <Switch
+            checked={segment.activeSlide?.enableIdentify === true}
+            onCheckedChange={onEnableIdentifyChange}
+          />
+        </label>
+      ) : null}
 
       {segmentMode === 'map' || !isTextSegmentWidthFull ? (
         <div className="jgis-story-editor-split">
@@ -181,7 +190,6 @@ function SegmentEditor({
                 </Button>
                 <Button
                   type="button"
-                  className="jp-mod-styled jp-mod-accept"
                   onClick={() => {
                     StoryEditorSession.getInstance().enterPreviewMode(
                       segment.id,
@@ -226,7 +234,6 @@ function SegmentEditor({
               state={state}
               segmentId={segment.id}
               isMobile={isMobile}
-              portalContainerRef={portalContainerRef}
             />
           </StoryEditorSection>
 
@@ -262,7 +269,8 @@ function SegmentEditor({
                   disabled={isImmediateTransition}
                   aria-label="Transition duration"
                   style={{ maxWidth: '10rem' }}
-                  onValueChange={([time]) => {
+                  onValueChange={value => {
+                    const time = Array.isArray(value) ? value[0] : value;
                     onTransitionChange({ time });
                   }}
                 />
@@ -315,14 +323,16 @@ export function StoryEditorDialogBody({
     updateSegmentContentMode,
     updateSegmentContent,
     updateSegmentLayerName,
+    updateSegmentEnableIdentify,
     updateSegmentTransition,
   } = useStoryEditorSegmentList(model, commands);
+
+  useStoryEditorSegmentKeyboard(model, story);
 
   const isTextSegmentWidthFull = isMarkdownOverlayWidthFull(
     story?.overlayContentWidth,
   );
 
-  const portalContainerRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -341,14 +351,13 @@ export function StoryEditorDialogBody({
   }, []);
 
   return (
-    <div ref={portalContainerRef} className="jgis-story-editor" tabIndex={-1}>
+    <div className="jgis-story-editor" tabIndex={-1}>
       <StoryEditorHeaderBar
         model={model}
         story={story}
         segmentCount={segments.length}
         isMobile={isMobile}
         onUpdateStory={updateStory}
-        portalContainerRef={portalContainerRef}
       />
 
       <div className="jgis-story-editor-main">
@@ -369,7 +378,6 @@ export function StoryEditorDialogBody({
               state={state}
               segment={selectedSegment}
               editorServices={editorServices}
-              portalContainerRef={portalContainerRef}
               canRemoveSegment={canRemoveSegment}
               isMobile={isMobile}
               onContentModeChange={mode => {
@@ -380,6 +388,9 @@ export function StoryEditorDialogBody({
               }}
               onLayerNameChange={name => {
                 updateSegmentLayerName(selectedSegment.id, name);
+              }}
+              onEnableIdentifyChange={enableIdentify => {
+                updateSegmentEnableIdentify(selectedSegment.id, enableIdentify);
               }}
               onTransitionChange={patch => {
                 updateSegmentTransition(selectedSegment.id, patch);

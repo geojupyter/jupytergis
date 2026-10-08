@@ -22,31 +22,8 @@
 @import url('./shared/propertyRows.css');
 @import url('./labels.css');
 @import url('./openeo.css');
-@import url('./shared/button.css');
-@import url('./shared/toggle.css');
-@import url('./shared/tabs.css');
-@import url('./shared/pagination.css');
-@import url('./shared/calendar.css');
-@import url('./shared/dropdownMenu.css');
-@import url('./shared/badge.css');
-@import url('./shared/checkbox.css');
-@import url('./shared/radioGroup.css');
-@import url('./shared/dialog.css');
-@import url('./shared/drawer.css');
-@import url('./shared/sheet.css');
-@import url('./shared/switch.css');
-@import url('./shared/slider.css');
-@import url('./shared/popover.css');
-@import url('./shared/hoverCard.css');
-@import url('./shared/infoTip.css');
 @import url('./shared/errorBanner.css');
 @import url('./shared/errorTip.css');
-@import url('./shared/command.css');
-@import url('./shared/combobox.css');
-@import url('./shared/input.css');
-@import url('./shared/nativeSelect.css');
-@import url('./shared/separator.css');
-@import url('./shared/buttonGroup.css');
 
 /* JupyterLab modal dialogs (.jp-Dialog) use z-index: 10000, which sits above
    the notification toast container (react-toastify default: 9999). Without this
@@ -54,6 +31,26 @@
    dialog is open. Lift the toast container above the dialog. */
 .Toastify__toast-container {
   z-index: 10001 !important;
+}
+
+/*
+  JupyterLab sets border-radius. So corner utilities get overwritten.
+   `revert-layer` drops back to the utilities layer for our data-slot
+   controls only.
+*/
+.jp-ThemedContainer button[data-slot],
+.jp-ThemedContainer [data-slot] :is(button) {
+  border-radius: revert-layer;
+}
+
+/*
+  JupyterLab unsets link color/decoration on `.jp-ThemedContainer a`.
+  Revert so Tailwind utilities on hover-card content can apply.
+*/
+.jp-ThemedContainer [data-slot='hover-card-content'] a,
+.jp-ThemedContainer [data-slot='hover-card-content'] a:hover {
+  color: revert-layer;
+  text-decoration: revert-layer;
 }
 
 .jgis-underline-indicator {
@@ -67,10 +64,11 @@
 .jgis-underline-indicator::after {
   content: '';
   position: absolute;
-  bottom: -2px;
+  bottom: 0;
   left: 0;
   width: 0;
   height: 3px;
+  opacity: 1;
   transition:
     background-color 300ms ease-in,
     width 300ms ease-in,
@@ -78,9 +76,17 @@
   background-color: transparent;
 }
 
-.jgis-underline-indicator[data-state='active']::after {
+.jgis-underline-indicator[data-active]::after,
+[data-active] > .jgis-underline-indicator::after {
   width: 100%;
   background-color: var(--jp-inverse-layout-color2);
+}
+
+.jgis-underline-indicator[data-active],
+[data-active] > .jgis-underline-indicator,
+.jgis-underline-indicator:hover,
+:hover > .jgis-underline-indicator {
+  opacity: 1;
 }
 
 .errors {
@@ -117,14 +123,6 @@
 
 .jGIS-property-panel .rjsf .array-item-list:has(.field-array) {
   flex-direction: column;
-}
-
-.jp-gis-text-label {
-  margin: 0;
-  padding: 0;
-  font-weight: bold;
-  display: block;
-  position: relative;
 }
 
 /*This is being upstreamed. Will remove once upstream's been fixed.*/
@@ -243,7 +241,8 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-content[data-state='active'] {
+  .jgis-panel-tabs
+  [data-slot='tabs-content']:not([hidden]) {
   flex: 1;
   min-height: 0;
   height: unset;
@@ -253,7 +252,8 @@ button.jp-mod-styled.jp-mod-reject {
 /* Tab list: natural-width tabs, horizontal scroll, thin scrollbar */
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-list {
+  .jgis-panel-tabs
+  [data-slot='tabs-list'] {
   cursor: ns-resize;
   justify-content: flex-start;
   touch-action: pan-x;
@@ -263,25 +263,29 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-list:active {
+  .jgis-panel-tabs
+  [data-slot='tabs-list']:active {
   cursor: ns-resize;
 }
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-list::-webkit-scrollbar {
+  .jgis-panel-tabs
+  [data-slot='tabs-list']::-webkit-scrollbar {
   height: 3px;
 }
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-list::-webkit-scrollbar-track {
+  .jgis-panel-tabs
+  [data-slot='tabs-list']::-webkit-scrollbar-track {
   background: transparent;
 }
 
 .jGIS-Mainview-Container.jgis-narrow
   .jgis-merged-panel-container
-  .jgis-tabs-list::-webkit-scrollbar-thumb {
+  .jgis-panel-tabs
+  [data-slot='tabs-list']::-webkit-scrollbar-thumb {
   background-color: var(--jp-border-color1);
   border-radius: 2px;
 }
@@ -343,7 +347,9 @@ body[data-notebook='specta']
   bottom: 1.25rem;
   right: 1.75rem;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
+  max-width: min(24rem, 60%);
   padding: 0.375rem;
   background-color: color-mix(
     in srgb,
@@ -352,8 +358,14 @@ body[data-notebook='specta']
   );
   color: var(--jp-ui-font-color0);
   border-radius: 0.375rem;
-  gap: 0.5rem;
+  gap: 0.375rem;
   z-index: 9999;
+}
+
+.jgis-vector-draw-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .jGIS-Mainview-Container.jgis-narrow .jgis-panels-wrapper {
@@ -379,33 +391,13 @@ body[data-notebook='specta'] #main.jp-ThemedContainer {
   overflow: visible;
 }
 
-.jgis-center-content {
-  text-align: center;
-}
-
-.jgis-button.jgis-bg-transparent {
-  background-color: transparent;
-}
-
-.jgis-button.jgis-bg-transparent:hover {
-  background-color: transparent;
-}
-
 .jgis-rotate-90 {
   rotate: 0deg;
   transition: rotate 150ms ease;
 }
 
-[data-slot='collapsible-trigger'][data-state='open'] .jgis-rotate-90 {
+[data-slot='collapsible-trigger'][data-panel-open] .jgis-rotate-90 {
   rotate: 90deg;
-}
-
-[data-icon='inline-start'] {
-  padding-right: 0.375rem;
-}
-
-[data-icon='inline-end'] {
-  padding-left: 0.375rem;
 }
 
 .cm-editor {
@@ -433,4 +425,73 @@ svg[data-size='lg'] {
   width: 1.25rem;
   height: 1.25rem;
   flex-shrink: 0;
+}
+
+.jgis-swipe-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  margin-left: -5px;
+  z-index: 30;
+  cursor: ew-resize;
+  touch-action: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jgis-swipe-divider::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--jp-ui-font-color1);
+  opacity: 0.7;
+}
+
+.jgis-swipe-divider .jgis-swipe-divider-stop {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  /* Sits just above the drag handle: the middle of the map is the only strip
+     the floating panels never cover. */
+  transform: translate(-50%, calc(-50% - 28px));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid var(--jp-ui-font-color1);
+  background: var(--jp-layout-color1);
+  color: var(--jp-ui-font-color1);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.jgis-swipe-divider .jgis-swipe-divider-stop:hover {
+  color: var(--jp-error-color1);
+  border-color: var(--jp-error-color1);
+}
+
+.jgis-swipe-divider-handle {
+  position: relative;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--jp-ui-font-color1);
+  background: var(--jp-layout-color1);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.jgis-swipe-divider:focus-visible {
+  outline: none;
+}
+
+.jgis-swipe-divider:focus-visible .jgis-swipe-divider-handle {
+  border-color: var(--jp-brand-color1);
 }

@@ -27,6 +27,7 @@ import {
 import { UUID } from '@lumino/coreutils';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useFollowedState } from '@/src/features/follow/useFollowedState';
 import MappingRow, {
   IGrammarRow,
   WhenRow,
@@ -345,7 +346,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <Button
             type="button"
             variant="ghost"
-            style={{ height: 32, width: 32 }}
+            size="icon-sm"
             onClick={onMoveUp}
             title="Move layer up"
           >
@@ -356,7 +357,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <Button
             type="button"
             variant="ghost"
-            style={{ height: 32, width: 32 }}
+            size="icon-sm"
             onClick={onMoveDown}
             title="Move layer down"
           >
@@ -367,7 +368,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <Button
             type="button"
             variant="ghost"
-            style={{ height: 32, width: 32 }}
+            size="icon-sm"
             onClick={onDelete}
             title="Remove layer"
           >
@@ -382,6 +383,8 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {(layer.when?.length ?? 0) > 1 && (
           <Button
             type="button"
+            variant="ghost"
+            size="xs"
             className="jp-gis-grammar-when-op"
             onClick={() =>
               onChange({
@@ -404,7 +407,9 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         ))}
         <Button
           type="button"
-          className="jp-gis-grammar-when-add-btn"
+          variant="ghost"
+          size="icon-xs"
+          className="rounded-[10px] border-dashed"
           onClick={addLayerPredicate}
           title="Add condition"
         >
@@ -634,6 +639,11 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     );
   }, [params]);
 
+  // Declared after the effect above so that, in a mirrored dialog, the
+  // collaborator's in-progress rules win over the document's saved ones on
+  // mount.
+  useFollowedState(model, 'symbology:layers', layers, setLayers);
+
   const handleOk = () => {
     if (!layerId || !layer?.parameters) {
       return;
@@ -745,7 +755,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         />
       ))}
       <div className="jp-gis-symbology-button-container">
-        <Button className="jp-gis-grammar-action-btn" onClick={addLayer}>
+        <Button variant="outline" size="sm" onClick={addLayer}>
           Add Layer
         </Button>
       </div>

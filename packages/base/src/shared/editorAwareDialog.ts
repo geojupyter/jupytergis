@@ -18,7 +18,7 @@ const NON_TEXT_INPUT_TYPES = new Set([
  * rather than submit the dialog (CodeMirror, textarea, contenteditable, or a
  * text-entry input).
  */
-function isTextEntryTarget(target: EventTarget | null): boolean {
+export function isTextEntryTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
     return false;
   }

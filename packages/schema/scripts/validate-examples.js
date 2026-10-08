@@ -36,6 +36,7 @@ const SOURCE_SCHEMAS = {
   GeoTiffSource: 'sources/geoTiffSource.json',
   GeoZarrSource: 'sources/geoZarrSource.json',
   GeoParquetSource: 'sources/geoParquetSource.json',
+  FeatureStoreSource: 'sources/featureStoreSource.json',
   MarkerSource: 'sources/markerSource.json',
 };
 

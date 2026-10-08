@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling>=1.5.0,<2"]
+requires = ["hatchling>=1.5.0,<1.32.2"]
 
 [project]
 name = "jupytergis-root"
@@ -28,7 +28,7 @@ typecheck = [
 build = [
     "build",
     "datamodel-code-generator>=0.52.1",
-    "hatchling>=1.5.0,<2",
+    "hatchling>=1.5.0,<1.32.2",
     "jupyterlab>=4.5.1",
     "uv",  # Only used for the layer gallery build,
 ]
@@ -82,6 +82,7 @@ ignore = [
     "C408",    # unnecessary-collection-call
     "C419",    # unnecessary-comprehension-in-call
     "C901",    # complex-structure
+    "CPY001",  # missing-copyright-notice
     "D100",    # undocumented-public-module
     "D101",    # undocumented-public-class
     "D102",    # undocumented-public-method
@@ -126,6 +127,7 @@ ignore = [
     "PLR0912", # too-many-branches
     "PLR0913", # too-many-arguments
     "PLR0915", # too-many-statements
+    "PLR0917", # too-many-positional-arguments
     "PLR2004", # magic-value-comparison
     "PLW1508", # invalid-envvar-default
     "PLW0603", # use global variables freely
@@ -162,7 +164,6 @@ ignore = [
     "TRY003",  # raise-vanilla-args
     "TRY300",  # try-consider-else
     "TRY400",  # error-instead-of-exception
-    "UP045",   # non-pep604-annotation-optional
 ]
 
 [tool.mypy]

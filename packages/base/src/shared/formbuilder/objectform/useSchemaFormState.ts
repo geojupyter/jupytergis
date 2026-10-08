@@ -15,6 +15,7 @@ import {
   useState,
 } from 'react';
 
+import { useFollowedState } from '@/src/features/follow/useFollowedState';
 import { deepCopy } from '@/src/tools';
 import { IDict } from '@/src/types';
 
@@ -82,6 +83,16 @@ export function useSchemaFormState(
     () => ({ model, formData }),
     [model, formData],
   );
+
+  // Every rjsf form in the app goes through this hook, so this one call is
+  // what lets a follower watch a collaborator fill any of them in. Schemas
+  // carry a title, which keeps the layer and source forms of the Layer
+  // Properties dialog apart.
+  const followKey = useMemo(
+    () => `form:${schemaProp?.title ?? schemaProp?.description ?? 'form'}`,
+    [schemaProp],
+  );
+  useFollowedState(model, followKey, formData, setFormData);
 
   const handleChangeBase = useCallback(
     (data: IDict) => {

@@ -47,13 +47,11 @@ from jupytergis import GISDocument, constant
 doc = GISDocument()
 await doc.ready()
 
-doc.add_raster_layer(
-    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-)
+doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 doc.add_geojson_layer(
     name="Ship Trajectories",
     path="https://openlayers.org/en/latest/examples/data/geojson/ship-trajectories.json",
-    symbology=[constant("red").encoding("stroke")]
+    symbology=[constant("red").encoding("stroke")],
 )
 doc.add_geotiff_layer(
     name="Sentinel-2 cloudless",
@@ -93,7 +91,7 @@ doc.add_geojson_layer(
         constant("red").encoding("fill"),
         constant(3).encoding("circle-stroke-width"),
         constant(20).encoding("radius"),
-    ]
+    ],
 )
 
 doc
@@ -132,7 +130,7 @@ await doc.ready()
 doc.add_vectortile_layer(
     name="Buildings",
     url="https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/{z}/{x}/{y}",
-    symbology=[constant("lightblue").encoding("stroke")]
+    symbology=[constant("lightblue").encoding("stroke")],
 )
 
 doc
@@ -152,7 +150,7 @@ layers = doc.get_wms_available_layers("https://ows.terrestris.de/osm/service")
 doc.add_wms_tile_layer(
     url="https://ows.terrestris.de/osm/service",
     layer_name=layers[0]["name"],
-    name="WMS layer"
+    name="WMS layer",
 )
 
 doc
@@ -187,7 +185,7 @@ doc.add_geoparquet_layer(
     symbology=[
         constant("blue").encoding("stroke"),
         constant("lightblue").encoding("fill"),
-    ]
+    ],
 )
 
 doc
@@ -208,7 +206,7 @@ doc.add_geopackage_vector_layer(
     symbology=[
         constant("blue").encoding("stroke"),
         constant("green").encoding("fill"),
-    ]
+    ],
 )
 
 doc
@@ -225,7 +223,7 @@ doc.remove_layer(layer_id)
 You can also inspect convenience properties:
 
 ```python
-print(doc.layers)      # dict keyed by layer id
+print(doc.layers)  # dict keyed by layer id
 print(doc.layer_tree)  # ordered layer ids / groups
 ```
 

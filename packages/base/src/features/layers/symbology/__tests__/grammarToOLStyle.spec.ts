@@ -7,7 +7,7 @@
  *   - fan-out (one mapping → multiple encodings)
  *   - sub-encoding assembly (fill-red/green/blue/alpha → fill-color array)
  *   - constant and identity scales
- *   - multiple rules on the same encoding (last unconditional wins)
+ *   - multiple rules on the same encoding (top wins: first rule that applies)
  */
 
 jest.mock('ol/expr/expression', () => ({}));
@@ -238,7 +238,7 @@ describe('grammarToOLStyle — when predicates', () => {
     expect(style['fill-color'][1][0]).toBe('all');
   });
 
-  it('last unconditional rule wins when mixed with conditional', () => {
+  it('falls back to the unconditional rule listed below a conditional one', () => {
     const style = grammarToOLStyle(
       makeState(
         {
@@ -272,6 +272,74 @@ describe('grammarToOLStyle — when predicates', () => {
     expect(style['fill-color'][0]).toBe('case');
     // else branch is the unconditional rule
     expect(style['fill-color'][3]).toEqual([0, 255, 0, 1]);
+  });
+
+  it('gives the first of two unconditional rules the encoding', () => {
+    const style = grammarToOLStyle(
+      makeState(
+        {
+          id: '1',
+          mappings: [
+            {
+              scale: {
+                scheme: 'constant_rgba',
+                params: { value: [255, 0, 0, 1] },
+              },
+              encodings: ['fill-color'],
+            },
+          ],
+        },
+        {
+          id: '2',
+          mappings: [
+            {
+              scale: {
+                scheme: 'constant_rgba',
+                params: { value: [0, 255, 0, 1] },
+              },
+              encodings: ['fill-color'],
+            },
+          ],
+        },
+      ),
+    ) as any;
+    // Top of the list wins, so the second rule never colours anything.
+    expect(style['fill-color']).toEqual([255, 0, 0, 1]);
+  });
+
+  it('ignores a conditional rule listed below an unconditional one', () => {
+    const style = grammarToOLStyle(
+      makeState(
+        {
+          id: '1',
+          mappings: [
+            {
+              scale: {
+                scheme: 'constant_rgba',
+                params: { value: [255, 0, 0, 1] },
+              },
+              encodings: ['fill-color'],
+            },
+          ],
+        },
+        {
+          id: '2',
+          when: [{ type: 'geometryType', value: 'Point' }],
+          mappings: [
+            {
+              scale: {
+                scheme: 'constant_rgba',
+                params: { value: [0, 255, 0, 1] },
+              },
+              encodings: ['fill-color'],
+            },
+          ],
+        },
+      ),
+    ) as any;
+    // The rule above always applies, so the guarded one below is unreachable
+    // and no case expression is emitted at all.
+    expect(style['fill-color']).toEqual([255, 0, 0, 1]);
   });
 });
 

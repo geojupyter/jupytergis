@@ -21,6 +21,7 @@
           "mode": "equal interval",
           "nClasses": 9.0,
           "radius": 5.0,
+          "renderType": "Graduated",
           "reverseRamp": false,
           "strokeColor": [
             51.0,
@@ -30,6 +31,7 @@
           ],
           "strokeFollowsFill": false,
           "strokeWidth": 1.25,
+          "value": "POP_RANK",
           "vmax": 18.0,
           "vmin": 1.0
         }

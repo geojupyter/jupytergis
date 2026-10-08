@@ -40,6 +40,10 @@
   border-radius: var(--jp-border-radius);
 }
 
+.jgis-story-viewer-image-zoomable {
+  cursor: zoom-in;
+}
+
 .jgis-story-viewer-nav-container {
   position: absolute;
   bottom: 0;
@@ -60,11 +64,6 @@
   display: flex;
   gap: 8px;
   justify-content: center;
-}
-
-.jgis-story-navbar .jgis-button.jgis-story-navbar-button {
-  color: var(--jp-ui-inverse-font-color0);
-  background-color: var(--jp-inverse-layout-color0);
 }
 
 .jgis-story-viewer-image-container
@@ -88,12 +87,16 @@
   justify-content: space-between;
 }
 
-.jgis-story-navbar-specta-mod > .jgis-button {
-  padding: 0;
+.jgis-story-viewer-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .jgis-story-viewer-title {
   text-align: center;
+  margin: 0;
 }
 
 .jgis-story-viewer-caption {
@@ -198,30 +201,16 @@
   overflow: hidden;
 }
 
-.jgis-story-title-bar-scroll-btn,
-.jgis-story-title-bar-menu-btn {
-  flex-shrink: 0;
-  min-width: 2rem;
-  padding-left: 0.5rem;
-  padding-right: 0.5rem;
-}
-
 .jgis-story-title-bar--mobile {
   display: grid;
   grid-template-columns: 1fr;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 0;
   overflow: visible;
 }
 
 .jgis-story-title-bar--mobile > * {
   grid-area: 1 / 1;
-}
-
-.jgis-story-title-bar--mobile .jgis-story-title-bar-menu-btn {
-  justify-self: start;
-  position: relative;
-  z-index: 1;
 }
 
 .jgis-story-title-bar-active-segment {
@@ -264,7 +253,6 @@
   display: flex;
   flex-wrap: nowrap;
   gap: 1.5rem;
-  margin-top: 3px;
   min-width: 0;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-x: contain;
@@ -272,19 +260,6 @@
   scrollbar-width: none;
   overflow-x: auto;
   overflow-y: hidden;
-}
-
-.jgis-story-title-bar-label {
-  position: relative;
-  opacity: 0.7;
-  padding: 0.25rem 0;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.jgis-story-title-bar-label[data-state='active'] {
-  opacity: 1;
-  font-weight: bold;
 }
 
 .jgis-story-title-bar-segment {
@@ -296,26 +271,16 @@
   color: inherit;
 }
 
-.jgis-popover-content.jgis-story-title-bar-segment-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  min-width: 12rem;
-  max-height: 16rem;
-  overflow-y: auto;
-  padding: 0.5rem;
-  width: calc(var(--radix-popper-available-width) - 1rem);
-  margin: 0 0.5rem;
-  box-sizing: border-box;
+.jgis-story-title-bar-segment[data-active],
+.jgis-story-title-bar-segment-menu-item[data-active] {
+  opacity: 1;
+  font-weight: bold;
 }
 
 .jgis-story-title-bar-segment-menu-item {
-  width: 100%;
   border: none;
   background: transparent;
   font: inherit;
-  color: inherit;
-  cursor: pointer;
 }
 
 .jgis-story-stage-scroll-host {
@@ -336,6 +301,7 @@
   inset: 0;
   top: var(--jgis-story-title-bar-height);
   z-index: 5;
+  pointer-events: none;
 }
 
 .jgis-story-stage-overlay--sized {
@@ -375,6 +341,7 @@
 
 .jgis-story-stage-overlay-content {
   box-sizing: border-box;
+  pointer-events: auto;
   /* Background-only opacity so text stays fully opaque. */
   background-color: color-mix(
     in srgb,
@@ -400,7 +367,6 @@
 }
 
 .jgis-story-segment-transition-stack .jgis-story-map-scroll-pane {
-  height: var(--jgis-handoff-gap-height, 100%);
   min-height: var(--jgis-handoff-gap-height, 100%);
 }
 
@@ -423,6 +389,7 @@
   padding: 1.25rem;
   box-sizing: border-box;
   border-radius: 8px;
+  pointer-events: auto;
   /* Background-only opacity so text stays fully opaque. */
   background-color: color-mix(
     in srgb,
@@ -501,11 +468,12 @@
   right: 0.125rem;
 }
 
-/* Full-viewport touch scroll driver; segment UI is on ListStoryStageOverlay. */
+/* Full-viewport touch scroll driver; sits under the segment UI so that taps
+   reach the overlay controls, and above the map so swipes never pan it. */
 .jgis-story-mobile-list-scroll {
   position: fixed;
   inset: 0;
-  z-index: 6;
+  z-index: 4;
   top: var(--jgis-story-title-bar-height);
   width: 100%;
   overflow-y: auto;
@@ -513,6 +481,31 @@
   overscroll-behavior: contain;
   touch-action: pan-y;
   background: transparent;
+}
+
+/* The segment UI covers the scroll driver, so it stays transparent to touch
+   and only its controls take the tap. */
+.jgis-mainview-stage:has(.jgis-story-mobile-list-scroll)
+  .jgis-story-stage-overlay {
+  pointer-events: none;
+}
+
+.jgis-mainview-stage:has(.jgis-story-mobile-list-scroll)
+  .jgis-story-stage-overlay
+  :is(
+    a[href],
+    button,
+    summary,
+    input,
+    select,
+    textarea,
+    label,
+    .jgis-story-markdown-zoomable-image,
+    .jgis-story-viewer-image-zoomable,
+    [role='button'],
+    [role='link']
+  ) {
+  pointer-events: auto;
 }
 
 /* Mobile list only (scroll driver mounted); desktop list keeps 25% map cards. */
@@ -555,24 +548,4 @@
 
 .jp-arrayFieldWrapper legend {
   border-bottom: none;
-}
-
-.jgis-symbology-override-collapsible-trigger {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-  cursor: pointer;
-  padding: 0.5rem 0.25rem;
-  background-color: var(--jp-layout-color0);
-  border-radius: var(--jp-border-radius);
-}
-
-.jgis-symbology-override-collapsible-trigger[data-state='open'] {
-  background-color: var(--jp-layout-color3);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-}
-
-.jgis-symbology-override-collapsible-trigger span {
-  font-weight: bold;
 }

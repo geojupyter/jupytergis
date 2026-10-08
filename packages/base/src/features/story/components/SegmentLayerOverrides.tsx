@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CheckIcon, RotateCcw } from 'lucide-react';
-import React, { type RefObject } from 'react';
+import React from 'react';
 
 import { SegmentOverrideSheet } from '@/src/features/story/components/SegmentOverrideSheet';
 import {
@@ -20,7 +20,6 @@ export interface ISegmentLayerOverridesProps {
   state: IStateDB;
   segmentId: string;
   isMobile?: boolean;
-  portalContainerRef: RefObject<HTMLElement | null>;
 }
 
 export function SegmentLayerOverrides({
@@ -28,7 +27,6 @@ export function SegmentLayerOverrides({
   state,
   segmentId,
   isMobile = false,
-  portalContainerRef,
 }: ISegmentLayerOverridesProps): JSX.Element {
   const rows = buildSegmentLayerRows(model, segmentId);
 
@@ -96,7 +94,8 @@ export function SegmentLayerOverrides({
                   step={1}
                   value={[Math.round(row.effectiveOpacity * 100)]}
                   aria-label={`Opacity for ${row.layerName}`}
-                  onValueChange={([opacity]) => {
+                  onValueChange={value => {
+                    const opacity = Array.isArray(value) ? value[0] : value;
                     setSegmentLayerOpacity(
                       model,
                       segmentId,
@@ -115,7 +114,6 @@ export function SegmentLayerOverrides({
                     model={model}
                     segmentId={segmentId}
                     layerId={row.layerId}
-                    portalContainerRef={portalContainerRef}
                   />
                 ) : null}
               </span>
@@ -130,8 +128,7 @@ export function SegmentLayerOverrides({
               <span className="jgis-story-editor-segment-layer-reset">
                 <Button
                   type="button"
-                  variant="icon"
-                  size="icon-sm"
+                  variant="ghost"
                   disabled={!row.isChanged}
                   aria-label={`Reset overrides for ${row.layerName}`}
                   onClick={() => {

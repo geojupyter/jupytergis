@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      klaw-sync:
-        specifier: ^6.0.0
-        version: 6.0.0
     devDependencies:
       '@jupyterlab/galata':
         specifier: ^5.6.0-rc.0
@@ -18,9 +14,6 @@ importers:
       '@playwright/test':
         specifier: ^1.57.0
         version: 1.61.1
-      '@types/klaw-sync':
-        specifier: ^6.0.1
-        version: 6.0.5
 
 packages:
 
@@ -574,12 +567,6 @@ packages:
   '@types/geojson@7946.0.4':
     resolution: {integrity: sha512-MHmwBtCb7OCv1DSivz2UNJXPGU/1btAWRKlqJ2saEhVJkpkvqHMMaOpKg0v4sAbDWSQekHGvPVMM8nQ+Jen03Q==}
 
-  '@types/klaw-sync@6.0.5':
-    resolution: {integrity: sha512-xlavCRyu5ibDjsOc7PSgeUbwOBZdnJsND8gFUVfBilplbBIWhLZVjwtqbZq0327ny3jNt7oviEh5NS9a4LudeQ==}
-
-  '@types/node@26.1.1':
-    resolution: {integrity: sha512-nxAkRSVkN1Y0JC1W8ky/fTfkGsMmcrRsbx+3XoZE+rMOX71kLYTV7fLXpqud1GpbpP5TuffXFqfX7fH2GgZREw==}
-
   '@types/prop-types@15.7.15':
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
 
@@ -975,9 +962,6 @@ packages:
   khroma@2.1.0:
     resolution: {integrity: sha512-Ls993zuzfayK269Svk9hzpeGUKob/sIgZzyHYdjQoAdQetRKpOLj+k/QQQ/6Qi0Yz65mlROrfd+Ev+1+7dz9Kw==}
 
-  klaw-sync@6.0.0:
-    resolution: {integrity: sha512-nIeuVSzdCCs6TDPTqI8w1Yre34sSq7AkZ4B3sfOBbI2CgVSB4Du4aLQijFU2+lhAFCwt9+42Hel6lQNIv6AntQ==}
-
   layout-base@1.0.2:
     resolution: {integrity: sha512-8h2oVEZNktL4BH2JCOI90iD1yXwL6iNW7KcCKT2QZgQJR2vbqDsldCTPRU9NifTCqHZci57XvQQ15YTu+sTYPg==}
 
@@ -1216,9 +1200,6 @@ packages:
 
   typestyle@2.4.0:
     resolution: {integrity: sha512-/d1BL6Qi+YlMLEydnUEB8KL/CAjAN8cyt3/UyGnOyBrWf7bLGcR/6yhmsaUstO2IcYwZfagjE7AIzuI2vUW9mg==}
-
-  undici-types@8.3.0:
-    resolution: {integrity: sha512-j375ScV60dom+YkPFIfTLcOiPxkN/buHz5GobjLhixFuANaNs3C9l4GmrWqejgXWJ7BbJcFYpTEUkS1Ge8bpZQ==}
 
   universalify@2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
@@ -2887,14 +2868,6 @@ snapshots:
 
   '@types/geojson@7946.0.4': {}
 
-  '@types/klaw-sync@6.0.5':
-    dependencies:
-      '@types/node': 26.1.1
-
-  '@types/node@26.1.1':
-    dependencies:
-      undici-types: 8.3.0
-
   '@types/prop-types@15.7.15': {}
 
   '@types/react@18.3.31':
@@ -3294,10 +3267,6 @@ snapshots:
 
   khroma@2.1.0: {}
 
-  klaw-sync@6.0.0:
-    dependencies:
-      graceful-fs: 4.2.11
-
   layout-base@1.0.2: {}
 
   layout-base@2.0.1: {}
@@ -3523,8 +3492,6 @@ snapshots:
     dependencies:
       csstype: 3.0.10
       free-style: 3.1.0
-
-  undici-types@8.3.0: {}
 
   universalify@2.0.1: {}
 
