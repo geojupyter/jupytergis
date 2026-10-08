@@ -3,6 +3,7 @@ import React from 'react';
 
 import { DrawCustomAttributesDialog } from '@/src/features/labels/components/DrawCustomAttributesDialog';
 import { DrawCustomAttributesPreview } from '@/src/features/labels/components/DrawCustomAttributesPreview';
+import { Button } from '@/src/shared/components/Button';
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -59,6 +60,9 @@ export function VectorDrawControls({
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
+        <Button type="button" variant="outline" size="sm">
+          Delete
+        </Button>
         {drawLayerId ? (
           <DrawCustomAttributesDialog model={model} drawLayerId={drawLayerId} />
         ) : null}
