@@ -3,7 +3,7 @@ import React from 'react';
 
 import { DrawCustomAttributesDialog } from '@/src/features/labels/components/DrawCustomAttributesDialog';
 import { DrawCustomAttributesPreview } from '@/src/features/labels/components/DrawCustomAttributesPreview';
-import { Button } from '@/src/shared/components/Button';
+import { Switch } from '@/src/shared/components/Switch';
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -22,6 +22,7 @@ const SELECT_TOOL_VALUE = 'select';
 export interface IVectorDrawControlsProps {
   drawGeometryLabel: string | undefined;
   onDrawGeometryTypeChange: (geometryType: string) => void;
+  onToggleDeleteMode: () => void;
   model: IJupyterGISModel;
   drawLayerId?: string;
 }
@@ -29,10 +30,12 @@ export interface IVectorDrawControlsProps {
 export function VectorDrawControls({
   drawGeometryLabel,
   onDrawGeometryTypeChange,
+  onToggleDeleteMode,
   model,
   drawLayerId,
 }: IVectorDrawControlsProps): JSX.Element {
   const toggleValue = drawGeometryLabel || SELECT_TOOL_VALUE;
+  const isDeleting = drawGeometryLabel === 'delete';
 
   return (
     <div className="jgis-vector-draw-controls">
@@ -60,9 +63,14 @@ export function VectorDrawControls({
             </ToggleGroupItem>
           ))}
         </ToggleGroup>
-        <Button type="button" variant="outline" size="sm">
+        <label className="flex items-center gap-2 text-sm">
           Delete
-        </Button>
+          <Switch
+            size="sm"
+            checked={isDeleting}
+            onCheckedChange={onToggleDeleteMode}
+          />
+        </label>
         {drawLayerId ? (
           <DrawCustomAttributesDialog model={model} drawLayerId={drawLayerId} />
         ) : null}

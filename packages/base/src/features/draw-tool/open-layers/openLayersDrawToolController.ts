@@ -9,15 +9,17 @@ import type {
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 import type { Map as OlMap } from 'ol';
-import Feature from 'ol/Feature';
+import Feature, { type FeatureLike } from 'ol/Feature';
 import { Coordinate } from 'ol/coordinate';
-import { primaryAction } from 'ol/events/condition';
+import { primaryAction, singleClick } from 'ol/events/condition';
 import { GeoJSON } from 'ol/format';
 import { Type } from 'ol/geom/Geometry';
 import Draw, { DrawEvent } from 'ol/interaction/Draw';
+import Interaction from 'ol/interaction/Interaction';
 import Modify, { ModifyEvent } from 'ol/interaction/Modify';
 import Snap from 'ol/interaction/Snap';
 import { Layer } from 'ol/layer';
+import RenderFeature from 'ol/render/Feature';
 import { Vector as VectorSource } from 'ol/source';
 
 import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
@@ -46,6 +48,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
   private _draw: Draw | undefined;
   private _snap: Snap | undefined;
   private _modify: Modify | undefined;
+  private _deleteClick: Interaction | undefined;
+  private _deleting = false;
   private _currentDrawLayerId: string | undefined;
   private _currentDrawSource: IJGISSource | undefined;
   private _currentVectorSource: VectorSource | undefined;
@@ -63,6 +67,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
   }
 
   handleGeometryTypeChange(drawGeometryLabel: string): void {
+    this._deleting = false;
+
     if (!drawGeometryLabel || this._currentDrawGeometry === drawGeometryLabel) {
       this._currentDrawGeometry = undefined;
       this._updateInteractions();
@@ -73,6 +79,15 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     this._currentDrawGeometry = drawGeometryLabel as Type;
     this._updateInteractions();
     this._host.onDrawGeometryLabelChange(drawGeometryLabel);
+  }
+
+  toggleDeleteMode(): void {
+    this._deleting = !this._deleting;
+    if (this._deleting) {
+      this._currentDrawGeometry = undefined;
+    }
+    this._updateInteractions();
+    this._host.onDrawGeometryLabelChange(this._deleting ? 'delete' : '');
   }
 
   enterLayer(): void {
@@ -86,6 +101,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
 
   leaveDrawMode(): void {
     this._removeInteractions();
+    this._deleting = false;
     this._currentDrawGeometry = undefined;
     this._currentDrawLayerId = undefined;
     this._currentDrawSourceId = undefined;
@@ -120,28 +136,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       return false;
     }
 
-    for (const hit of hits) {
-      if (!(hit instanceof Feature)) {
-        continue;
-      }
-
-      const featureId = hit.get('_id');
-      const onSource =
-        featureId !== undefined
-          ? source.getFeatures().find(f => f.get('_id') === featureId)
-          : hit;
-
-      if (onSource) {
-        source.removeFeature(onSource);
-      } else {
-        source.removeFeature(hit);
-      }
-    }
-
-    this._currentVectorSource = source;
-    this._persist(source);
-
-    return true;
+    return this._deleteHits(source, hits);
   }
 
   getFeatureAtCoordinate(
@@ -233,6 +228,87 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
   setDrawLayerId(layerId: string): void {
     this._currentDrawLayerId = layerId;
     this._host.onDrawLayerIdChange(layerId);
+  }
+
+  private _deleteHits(source: VectorSource, hits: FeatureLike[]): boolean {
+    const featureStoreIds: string[] = [];
+    let removedFromSource = false;
+
+    for (const hit of hits) {
+      if (hit instanceof RenderFeature) {
+        const baselineId = baselineFeatureId(hit);
+        if (baselineId) {
+          featureStoreIds.push(baselineId);
+        }
+        continue;
+      }
+
+      if (!(hit instanceof Feature)) {
+        continue;
+      }
+
+      const featureId = hit.get('_id');
+      const onSource =
+        featureId !== undefined
+          ? source
+              .getFeatures()
+              .find(feature => feature.get('_id') === featureId)
+          : hit;
+      const target = onSource ?? hit;
+
+      if (source.hasFeature(target)) {
+        source.removeFeature(target);
+        removedFromSource = true;
+      }
+
+      const id = overlayFeatureId(target);
+      if (id) {
+        featureStoreIds.push(id);
+      }
+    }
+
+    if (!removedFromSource && featureStoreIds.length === 0) {
+      return false;
+    }
+
+    this._currentVectorSource = source;
+    return this._commitDeletion(source, removedFromSource, featureStoreIds);
+  }
+
+  private _commitDeletion(
+    source: VectorSource,
+    removedFromSource: boolean,
+    featureStoreIds: string[],
+  ): boolean {
+    if (!this._currentDrawSource && this._currentDrawLayerId) {
+      this._bindFromSelectedLayer();
+    }
+
+    if (this._currentDrawSource?.type === 'FeatureStoreSource') {
+      const storeId = (
+        this._currentDrawSource.parameters as IFeatureStoreSource | undefined
+      )?.storeId;
+      const model = this._host.getModel();
+
+      if (!storeId) {
+        return false;
+      }
+
+      for (const featureId of featureStoreIds) {
+        model.removeFeatureStoreFeature(storeId, featureId, {
+          tombstone: true,
+        });
+      }
+
+      return featureStoreIds.length > 0;
+    }
+
+    if (removedFromSource) {
+      this._persist(source);
+      return true;
+    }
+
+    return false;
   }
 
   private _bindFromSelectedLayer(): void {
@@ -355,6 +431,12 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       this._host.setModifyHighlight([]);
     }
 
+    if (this._deleteClick) {
+      this._deleteClick.setActive(false);
+      map.removeInteraction(this._deleteClick);
+      this._deleteClick = undefined;
+    }
+
     if (this._snap) {
       this._snap.setActive(false);
       map.removeInteraction(this._snap);
@@ -375,6 +457,22 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     }
 
     const drawSource = this._currentVectorSource;
+
+    if (this._deleting) {
+      this._deleteClick = new Interaction({
+        handleEvent: event => {
+          if (!singleClick(event)) {
+            return true;
+          }
+
+          this.deleteAtCoordinate(event.coordinate);
+          return false;
+        },
+      });
+
+      map.addInteraction(this._deleteClick);
+      return;
+    }
 
     this._modify = new Modify({ source: drawSource });
     this._modify.on('modifystart', (event: ModifyEvent) => {
@@ -513,4 +611,20 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       );
     }
   }
+}
+
+function overlayFeatureId(feature: Feature): string | undefined {
+  const id = feature.get('_id') ?? feature.getId();
+  return typeof id === 'string' && id ? id : undefined;
+}
+
+function baselineFeatureId(feature: RenderFeature): string | undefined {
+  const raw = feature.get('id') ?? feature.get('_id');
+  if (typeof raw === 'string' && raw) {
+    return raw;
+  }
+  if (typeof raw === 'number') {
+    return String(raw);
+  }
+  return undefined;
 }
