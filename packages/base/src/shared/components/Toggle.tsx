@@ -16,6 +16,8 @@ const toggleVariants = cva(
       variant: {
         default: 'bg-transparent',
         outline: 'border border-input bg-transparent hover:bg-muted',
+        destructive:
+          'bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive focus-visible:border-destructive/40 focus-visible:ring-destructive/20 aria-pressed:bg-destructive/20 aria-pressed:text-destructive data-[state=on]:bg-destructive/20 data-[state=on]:text-destructive',
       },
       size: {
         default:

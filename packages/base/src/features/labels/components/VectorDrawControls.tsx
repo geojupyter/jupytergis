@@ -1,15 +1,13 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
-import {
-  Circle,
-  MousePointer2,
-  Pentagon,
-  Spline,
-  Trash2,
-} from 'lucide-react';
+import { Circle, MousePointer2, Pentagon, Spline, Trash2 } from 'lucide-react';
 import React from 'react';
 
 import { DrawCustomAttributesDialog } from '@/src/features/labels/components/DrawCustomAttributesDialog';
 import { DrawCustomAttributesPreview } from '@/src/features/labels/components/DrawCustomAttributesPreview';
+import {
+  Collapsible,
+  CollapsibleContentAnimated,
+} from '@/src/shared/components/Collapsible';
 import {
   ToggleGroup,
   ToggleGroupItem,
@@ -24,6 +22,13 @@ const DRAW_GEOMETRIES = [
 /** Empty string = select/edit mode (no draw tool armed). */
 export const DRAW_SELECT_TOOL = '';
 const SELECT_TOOL_VALUE = 'select';
+
+const DRAW_STATUS: Record<string, string> = {
+  Point: 'Click to add a point.',
+  LineString: 'Click to add vertices. Double-click to finish.',
+  Polygon: 'Click to add vertices. Double-click to finish.',
+  delete: 'Click a feature to remove it.',
+};
 
 export interface IVectorDrawControlsProps {
   drawGeometryLabel: string | undefined;
@@ -41,6 +46,11 @@ export function VectorDrawControls({
   drawLayerId,
 }: IVectorDrawControlsProps): JSX.Element {
   const toggleValue = drawGeometryLabel || SELECT_TOOL_VALUE;
+  const status = drawGeometryLabel ? DRAW_STATUS[drawGeometryLabel] : undefined;
+  const statusText = React.useRef(status ?? '');
+  if (status) {
+    statusText.current = status;
+  }
 
   return (
     <div className="jgis-vector-draw-controls">
@@ -75,6 +85,7 @@ export function VectorDrawControls({
             value="delete"
             aria-label="Delete"
             title="Delete"
+            variant={'destructive'}
             onClick={onToggleDeleteMode}
           >
             <Trash2 />
@@ -84,6 +95,16 @@ export function VectorDrawControls({
           <DrawCustomAttributesDialog model={model} drawLayerId={drawLayerId} />
         ) : null}
       </div>
+      <Collapsible
+        // className={'pt-1.5'}
+        open={Boolean(status)}
+      >
+        <CollapsibleContentAnimated>
+          <p className="jgis-vector-draw-controls-status" role="status">
+            {status || statusText.current}
+          </p>
+        </CollapsibleContentAnimated>
+      </Collapsible>
       {drawLayerId ? (
         <DrawCustomAttributesPreview model={model} drawLayerId={drawLayerId} />
       ) : null}
