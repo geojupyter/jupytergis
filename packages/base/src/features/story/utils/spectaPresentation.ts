@@ -65,6 +65,8 @@ export function getSpectaPresentationCssVars(
 
     if (bgColor) {
       (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
+      (style as Record<string, string>)['--jgis-specta-content-bg-color'] =
+        bgColor;
     }
 
     if (overlayContentWidth) {
@@ -83,6 +85,8 @@ export function getSpectaPresentationCssVars(
 
   if (bgColor) {
     (style as Record<string, string>)['--jgis-specta-panel-color'] = bgColor;
+    (style as Record<string, string>)['--jgis-specta-content-bg-color'] =
+      bgColor;
   }
 
   return style;
