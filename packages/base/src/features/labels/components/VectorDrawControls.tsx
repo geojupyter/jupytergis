@@ -5,10 +5,6 @@ import React from 'react';
 import { DrawCustomAttributesDialog } from '@/src/features/labels/components/DrawCustomAttributesDialog';
 import { DrawCustomAttributesPreview } from '@/src/features/labels/components/DrawCustomAttributesPreview';
 import {
-  Collapsible,
-  CollapsibleContentAnimated,
-} from '@/src/shared/components/Collapsible';
-import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@/src/shared/components/ToggleGroup';
@@ -47,20 +43,15 @@ export function VectorDrawControls({
 }: IVectorDrawControlsProps): JSX.Element {
   const toggleValue = drawGeometryLabel || SELECT_TOOL_VALUE;
   const status = drawGeometryLabel ? DRAW_STATUS[drawGeometryLabel] : undefined;
-  const statusText = React.useRef(status ?? '');
-  if (status) {
-    statusText.current = status;
-  }
 
   return (
-    <div className="jgis-vector-draw-controls">
-      <Collapsible open={Boolean(status)}>
-        <CollapsibleContentAnimated>
-          <p className="jgis-vector-draw-controls-status" role="status">
-            {status || statusText.current}
-          </p>
-        </CollapsibleContentAnimated>
-      </Collapsible>
+    <div
+      className="jgis-vector-draw-controls"
+      data-tool={drawGeometryLabel || undefined}
+    >
+      <p className="jgis-vector-draw-controls-status" role="status">
+        {status}
+      </p>
       <div className="jgis-vector-draw-controls-row">
         <ToggleGroup
           variant="outline"
