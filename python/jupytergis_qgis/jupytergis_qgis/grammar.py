@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, cast
 
 from jupytergis_core.color_ramps import sample_colors
 from jupytergis_core.colors import hex_to_rgba, rgb_to_hex
-from PyQt5.QtGui import QColor
+from PyQt6.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
     QgsColorRampShader,
