@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING, Any, cast
 
 from jupytergis_core.color_ramps import sample_colors
 from jupytergis_core.colors import hex_to_rgba, rgb_to_hex
-from PyQt5.QtGui import QColor
 from qgis.core import (  # type: ignore[import-untyped]
     Qgis,
     QgsColorRampShader,
@@ -32,6 +31,7 @@ from qgis.core import (  # type: ignore[import-untyped]
 )
 from qgis.PyQt import sip
 from qgis.PyQt.QtCore import Qt
+from qgis.PyQt.QtGui import QColor
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
@@ -1465,7 +1465,7 @@ def _vt_spec_to_style(spec: dict, index: int):
         if stroke is not None:
             symbol_layer.setStrokeColor(_vt_qcolor(stroke))
         else:
-            symbol_layer.setStrokeStyle(Qt.NoPen)
+            symbol_layer.setStrokeStyle(Qt.PenStyle.NoPen)
         if width is not None:
             symbol_layer.setStrokeWidth(width)
     elif geom == 1:  # line — its single colour is the stroke (fall back to fill)
@@ -1528,7 +1528,7 @@ def _vt_style_width(style) -> float | None:
         default = fresh.symbolLayer(0).width()
         return width if width != default else None
     stroke_style = getattr(symbol_layer, "strokeStyle", None)
-    if stroke_style is not None and stroke_style() == Qt.NoPen:
+    if stroke_style is not None and stroke_style() == Qt.PenStyle.NoPen:
         return None
     stroke_width = getattr(symbol_layer, "strokeWidth", None)
     if stroke_width is None:
