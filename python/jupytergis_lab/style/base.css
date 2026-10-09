@@ -213,6 +213,10 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   border: solid 1.5px red;
 }
 
+.jGIS-toolbar-widget .jp-toolbar-maprenderer {
+  padding-top: 5px;
+}
+
 .jGIS-toolbar-widget svg path {
   fill: var(--jp-ui-font-color2) !important;
 }
@@ -231,8 +235,10 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
 
 .jGIS-Mainview {
   width: 100%;
+  height: 100%;
   box-sizing: border-box;
   flex: 1;
+  min-height: 0;
   position: relative;
   display: flex;
 }

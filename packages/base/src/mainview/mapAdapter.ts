@@ -8,6 +8,7 @@ import type {
   IJGISSources,
   IJGISUIState,
   IJupyterGISModel,
+  IMapAdapterType,
   JgisCoordinates,
 } from '@jupytergis/schema';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -15,8 +16,12 @@ import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
 import type { IDrawToolAdapter } from '@/src/features/draw-tool';
 import { ClientPointer } from './CollaboratorPointers';
+import { IMapAdapterFeatures } from './mapAdapterFeatures';
 
-export type MapAdapterType = 'openlayers';
+/**
+ * Renderer used when a document does not specify one.
+ */
+export const DEFAULT_MAP_ADAPTER: IMapAdapterType = 'openlayers';
 
 export const VIEWPORT_SYNC_INTERVAL = 200;
 
@@ -114,6 +119,8 @@ export interface IMapAdapter {
 
   drawTool: IDrawToolAdapter;
   onFeatureStoresChanged(): void;
+
+  readonly supportedFeatures: IMapAdapterFeatures;
 }
 
 export interface IMapAdapterOptions {
@@ -160,7 +167,7 @@ export interface IMapAdapterCallbacks {
  * - OpenLayers → OpenLayers implementation
  */
 export async function createMapAdapter(
-  type: MapAdapterType,
+  type: IMapAdapterType,
   model: IJupyterGISModel,
 ): Promise<IMapAdapter> {
   switch (type) {
@@ -168,6 +175,11 @@ export async function createMapAdapter(
       const { OpenLayersAdapter } =
         await import('./adapters/openlayersAdapter');
       return new OpenLayersAdapter(model);
+    }
+
+    case 'maplibre': {
+      const { MapLibreAdapter } = await import('./adapters/maplibreAdapter');
+      return new MapLibreAdapter(model);
     }
 
     default: {

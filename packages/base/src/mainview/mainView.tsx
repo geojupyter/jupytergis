@@ -18,6 +18,7 @@ import {
   JupyterGISModel,
   IJupyterGISSettings,
   DEFAULT_PROJECTION,
+  IMapAdapterType,
   IIdentifiedFeature,
   IIdentifiedFeatures,
   JgisCoordinates,
@@ -63,9 +64,10 @@ import {
   createMapAdapter,
   IMapAdapter,
   IMapLayerComparison,
-  MapAdapterType,
+  DEFAULT_MAP_ADAPTER,
   VIEWPORT_SYNC_INTERVAL,
 } from './mapAdapter';
+import { setMapFeatures } from './mapFeaturesRegistry';
 import { getFeatureIdentifier } from '../features/identify/utils/getFeatureIdentifier';
 import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
 import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
@@ -264,13 +266,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     window.addEventListener('resize', this._handleWindowResize);
     const options = this._model.getOptions();
     const projection = options.projection ?? DEFAULT_PROJECTION;
+    const mapAdapterType: IMapAdapterType =
+      options.mapAdapter ?? DEFAULT_MAP_ADAPTER;
     const lonLat: [number, number] =
       options.longitude !== undefined && options.latitude !== undefined
         ? [options.longitude, options.latitude]
         : [0, 0];
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
-    await this.generateMap(lonLat, zoom, projection);
+    await this.generateMap(lonLat, zoom, projection, mapAdapterType);
 
     this._syncComparison();
 
@@ -415,6 +419,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mapAdapter?.stopLocationIndicator();
     if (this._mapAdapter) {
       this._mapAdapter.destroy();
+      setMapFeatures(this._model, undefined);
     }
 
     this._mainViewModel.dispose();
@@ -424,7 +429,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     center: number[],
     zoom: number,
     projection = DEFAULT_PROJECTION,
-    mapAdapterType: MapAdapterType = 'openlayers',
+    mapAdapterType: IMapAdapterType = DEFAULT_MAP_ADAPTER,
   ): Promise<void> {
     const layers = this._model.getLayers();
 
@@ -437,6 +442,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._mapAdapter = await createMapAdapter(mapAdapterType, this._model);
+    this._mapAdapterType = mapAdapterType;
+    setMapFeatures(this._model, this._mapAdapter.supportedFeatures);
 
     await this._mapAdapter.initialize(this.divRef.current, {
       projection,
@@ -988,6 +995,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       return;
     }
 
+    const requestedType =
+      this._model.getOptions().mapAdapter ?? DEFAULT_MAP_ADAPTER;
+    if (requestedType !== this._mapAdapterType) {
+      void this._remountMap(requestedType);
+      return;
+    }
+
     if (!this._contextMenuAttached && !this._model.isSpectaMode()) {
       this.addContextMenu();
       this._contextMenuAttached = true;
@@ -1000,6 +1014,64 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     this._syncComparison();
+  }
+
+  private _getMapAdapter(): IMapAdapter | undefined {
+    return this._mapAdapter;
+  }
+
+  private async _remountMap(type: IMapAdapterType): Promise<void> {
+    if (this._isRemounting) {
+      return;
+    }
+    this._isRemounting = true;
+
+    try {
+      if (this._model.currentMode === 'drawing') {
+        this._model.currentMode = 'panning';
+      }
+
+      // Tear down the old adapter (mirrors componentWillUnmount)
+      this._mapAdapter?.unregisterMap();
+      this._mapAdapter?.stopLocationIndicator();
+      this._mapAdapter?.destroy();
+      this._mapAdapter = undefined;
+      this._mapAdapterType = undefined;
+      setMapFeatures(this._model, undefined);
+
+      // Reset the loading state that the new adapter will report again
+      this.setState(old => ({
+        ...old,
+        loading: true,
+        loadingLayer: false,
+        initialLayersReady: false,
+        loadingErrors: [],
+        clientPointers: {},
+        comparison: null,
+      }));
+
+      // Mount again from the saved options
+      const options = this._model.getOptions();
+      const lonLat: [number, number] =
+        options.longitude !== undefined && options.latitude !== undefined
+          ? [options.longitude, options.latitude]
+          : [0, 0];
+
+      await this.generateMap(
+        lonLat,
+        options.zoom ?? 1,
+        options.projection ?? DEFAULT_PROJECTION,
+        type,
+      );
+
+      this._syncComparison();
+
+      if (window.jupytergisMaps !== undefined) {
+        this._getMapAdapter()?.registerMap(this._documentPath);
+      }
+    } finally {
+      this._isRemounting = false;
+    }
   }
 
   private async _syncSettingsFromRegistry() {
@@ -1809,6 +1881,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private storyViewerPanelRef = React.createRef<IStoryViewerPanelHandle>();
   private storyScrollContainerRef = React.createRef<HTMLDivElement>();
   private _mapAdapter: IMapAdapter | undefined;
+  private _mapAdapterType: IMapAdapterType | undefined;
+  private _isRemounting = false;
   private _followedClientId: number | null = null;
   private _followedViewport: { x: number; y: number; zoom: number } | null =
     null;

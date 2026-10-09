@@ -1,0 +1,100 @@
+{
+  "annotations": {},
+  "layerTree": [
+    "426013ee-b266-451e-a92f-57dff547f036",
+    "08706eff-7b80-4372-9f0a-ddbb47c1c74a"
+  ],
+  "layers": {
+    "08706eff-7b80-4372-9f0a-ddbb47c1c74a": {
+      "name": "MacroStrat VectorTile Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "e0642dae-dcbe-42b0-9c23-2744377bb98f",
+        "symbologyState": {
+          "layers": [
+            {
+              "id": "70df0d8d-1824-41ad-828e-e96ad783915e",
+              "rules": [
+                {
+                  "fields": [
+                    "color"
+                  ],
+                  "id": "9e22b4e7-ae85-460a-8594-17d2591491dc",
+                  "mappings": [
+                    {
+                      "encodings": [
+                        "fill-color",
+                        "circle-fill-color"
+                      ],
+                      "scale": {
+                        "scheme": "identity"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "type": "VectorTileLayer",
+      "visible": true
+    },
+    "426013ee-b266-451e-a92f-57dff547f036": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "992d7cfd-4a25-4694-9aa1-859c91828f13"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -324.20224375460606,
+      -85.05112899999992,
+      313.3308049334434,
+      85.05112900000006
+    ],
+    "latitude": 1.1368683772161603e-13,
+    "longitude": -5.435719410579395,
+    "mapAdapter": "maplibre",
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 0.41151096755408034
+  },
+  "presets": {},
+  "schemaVersion": "0.6.0",
+  "sources": {
+    "992d7cfd-4a25-4694-9aa1-859c91828f13": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "e0642dae-dcbe-42b0-9c23-2744377bb98f": {
+      "name": "Custom Vector Tile Layer Source",
+      "parameters": {
+        "attribution": "",
+        "httpHeaders": "",
+        "maxZoom": 24.0,
+        "minZoom": 0.0,
+        "provider": "",
+        "sourceLayer": "units",
+        "url": "https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.mvt",
+        "useProxy": false
+      },
+      "type": "VectorTileSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}

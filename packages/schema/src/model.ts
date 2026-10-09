@@ -206,6 +206,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return Array.from(this._tileFeatureCache.get(sourceId) ?? []);
   }
 
+  get tileFeaturesChanged(): ISignal<this, string> {
+    return this._tileFeaturesChanged;
+  }
+
   syncTileFeatures({
     sourceId,
     features,
@@ -219,7 +223,11 @@ export class JupyterGISModel implements IJupyterGISModel {
       featureSet = new Set();
       this._tileFeatureCache.set(sourceId, featureSet);
     }
+    const before = featureSet.size;
     features.forEach(feature => featureSet.add(feature));
+    if (featureSet.size > before) {
+      this._tileFeaturesChanged.emit(sourceId);
+    }
   }
 
   private _onSharedModelChanged = (sender: any, changes: any): void => {
@@ -1828,6 +1836,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _localUIState: Partial<IJGISUIState> = {};
   private _uiStateChanged = new Signal<this, IJGISUIState>(this);
+  private _tileFeaturesChanged = new Signal<this, string>(this);
 }
 
 export namespace JupyterGISModel {

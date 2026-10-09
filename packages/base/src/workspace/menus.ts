@@ -69,6 +69,11 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
+    command: CommandIDs.openNewTerrainDialog,
+  });
+
+  subMenu.addItem({
+    type: 'command',
     command: CommandIDs.openNewImageDialog,
   });
 

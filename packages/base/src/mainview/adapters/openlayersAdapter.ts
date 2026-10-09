@@ -154,6 +154,10 @@ import {
 } from '@/src/tools';
 import { ClientPointer } from '.././CollaboratorPointers';
 import {
+  MAP_ADAPTER_FEATURES,
+  getUnsupportedReason,
+} from '../mapAdapterFeatures';
+import {
   getZoomExtentForOlLayer,
   isValidExtent,
   transformExtentToViewProjection,
@@ -885,6 +889,12 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     this._drawTool.leaveDrawMode();
+
+    // Clearing the collection calls setMap(null) on each control, which
+    // removes its element from controlsTarget (scale, fullscreen, rotate, zoom).
+    this._map.getControls().clear();
+    this._zoomControl = undefined;
+
     this._map.setTarget(undefined);
     this._sources.clear();
   }
@@ -1324,6 +1334,11 @@ export class OpenLayersAdapter implements IMapAdapter {
 
       case 'StorySegmentLayer': {
         // Special layer not for this
+        return;
+      }
+
+      case 'TerrainLayer': {
+        // 3D terrain is only supported by the MapLibre adapter.
         return;
       }
     }
@@ -1768,6 +1783,22 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     try {
+      const sourceId = layer.parameters?.source;
+      const source = sourceId ? this._model.getSource(sourceId) : undefined;
+      const unsupported = getUnsupportedReason(
+        this.supportedFeatures,
+        layer,
+        source,
+      );
+      if (unsupported) {
+        this._log(
+          'warning',
+          `OpenLayersAdapter: skipping layer ${id}. ${unsupported}`,
+        );
+        this._callbacks?.onLayerError?.(id, unsupported);
+        return;
+      }
+
       this.addProjection(layer);
       const newMapLayer = await this._buildMapLayer(id, layer);
 
@@ -3455,6 +3486,10 @@ export class OpenLayersAdapter implements IMapAdapter {
 
   get drawTool(): IDrawToolAdapter {
     return this._drawTool;
+  }
+
+  get supportedFeatures() {
+    return MAP_ADAPTER_FEATURES.openlayers;
   }
 
   private _map: OlMap;
