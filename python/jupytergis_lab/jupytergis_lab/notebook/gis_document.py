@@ -7,6 +7,7 @@ import math
 import types
 import warnings
 import xml.etree.ElementTree as ET
+from enum import Enum
 from importlib.metadata import version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, Self, cast
@@ -1516,6 +1517,38 @@ class JGISObject(BaseModel):
             return parameters.get(name, default)
         return getattr(parameters, name, default)
 
+    def set_parameter(self, name: str, value: Any) -> None:
+        """Change one parameter and write it to the document."""
+        parameters = self.parameters
+        if isinstance(parameters, dict):
+            self.parameters = {**parameters, name: value}
+        else:
+            self.parameters = type(parameters)(
+                **{**parameters.model_dump(), name: value},
+            )
+
+    def _store(self) -> Map | None:
+        return None
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Write public field changes through to the document."""
+        super().__setattr__(name, value)
+
+        store = self._store()
+        if name.startswith("_") or store is None or self._id is None:
+            return
+
+        stored = store.get(self._id)
+        if stored is None:
+            raise KeyError(f"{self._id!r} is no longer in the document")
+
+        if isinstance(value, BaseModel):
+            value = value.model_dump(mode="json")
+        elif isinstance(value, Enum):
+            value = value.value
+
+        store[self._id] = {**stored, name: value}
+
     def __repr__(self) -> str:
         """Identify the object without printing all of its parameters."""
         type_name = getattr(self.type, "value", self.type)
@@ -1540,6 +1573,9 @@ class JGISLayer(JGISObject):
         | IOpenEOTileLayer
         | dict[str, Any]
     )
+
+    def _store(self) -> Map | None:
+        return None if self._parent is None else self._parent._layers
 
     @property
     def source(self) -> JGISSource | None:
@@ -1570,6 +1606,9 @@ class JGISSource(JGISObject):
         | IOpenEOTileSource
         | dict[str, Any]
     )
+
+    def _store(self) -> Map | None:
+        return None if self._parent is None else self._parent._sources
 
     @property
     def layers(self) -> list[JGISLayer]:
