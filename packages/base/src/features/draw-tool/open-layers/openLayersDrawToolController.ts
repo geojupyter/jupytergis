@@ -87,6 +87,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     if (this._deleting) {
       this._currentDrawGeometry = undefined;
     }
+
     this._updateInteractions();
     this._host.onDrawGeometryLabelChange(this._deleting ? 'delete' : '');
   }
@@ -255,6 +256,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
               .getFeatures()
               .find(feature => feature.get('_id') === featureId)
           : hit;
+
       const target = onSource ?? hit;
 
       if (source.hasFeature(target)) {
@@ -273,6 +275,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     }
 
     this._currentVectorSource = source;
+
     return this._commitDeletion(source, removedFromSource, featureStoreIds);
   }
 
@@ -289,6 +292,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       const storeId = (
         this._currentDrawSource.parameters as IFeatureStoreSource | undefined
       )?.storeId;
+
       const model = this._host.getModel();
 
       if (!storeId) {
@@ -644,16 +648,20 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
 
 function overlayFeatureId(feature: Feature): string | undefined {
   const id = feature.get('_id') ?? feature.getId();
+
   return typeof id === 'string' && id ? id : undefined;
 }
 
 function baselineFeatureId(feature: RenderFeature): string | undefined {
-  const raw = feature.get('id') ?? feature.get('_id');
+  const raw = feature.get('id');
+
   if (typeof raw === 'string' && raw) {
     return raw;
   }
+
   if (typeof raw === 'number') {
     return String(raw);
   }
+
   return undefined;
 }

@@ -3112,7 +3112,7 @@ export class OpenLayersAdapter implements IMapAdapter {
 
     return url;
   }
-  //sdsds
+
   /**
    * Taken from https://openlayers.org/en/latest/examples/webgl-shaded-relief.html
    * @returns
