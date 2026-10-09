@@ -41,8 +41,8 @@ class TestZoomTo:
         layer_id = self.doc.add_raster_layer(TEST_URL, zoom_to=True)
 
         layer = self.doc.layers[layer_id]
-        assert "zoom_to" not in layer
-        assert "zoomRequest" not in layer
+        assert "zoom_to" not in layer.model_extra
+        assert "zoomRequest" not in layer.model_extra
 
     def test_zoom_to_layer_public_method_sends_comm_message(self):
         layer_id = self.doc.add_raster_layer(TEST_URL)

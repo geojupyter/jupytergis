@@ -223,9 +223,25 @@ doc.remove_layer(layer_id)
 You can also inspect convenience properties:
 
 ```python
-print(doc.layers)  # dict keyed by layer id
+print(doc.layers)  # dict of layer objects, keyed by layer id
+print(doc.sources)  # dict of source objects, keyed by source id
 print(doc.layer_tree)  # ordered layer ids / groups
 ```
+
+Layers and sources read back as objects rather than nested dictionaries, and a layer reaches its own source:
+
+```python
+layer = doc.get_layer("Open Street Map")  # by name, or by id
+
+layer.name
+layer.visible
+layer.parameters.opacity
+layer.source.parameters.url
+```
+
+`get_layer` and `get_source` take an id or a name. Looking a name up that several layers share raises a `ValueError` listing the ids to pick from.
+
+Parameters come back typed for the layer and source types the Python API knows about, and as a plain dict for anything else, so a document written by a newer version still reads. `layer.get_parameter("opacity")` works either way.
 
 ## Open in a sidecar
 
