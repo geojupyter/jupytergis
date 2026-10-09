@@ -122,37 +122,49 @@ export function getUnsupportedReason(
   return undefined;
 }
 
-const LAYER_LABELS: Record<LayerType, string> = {
-  RasterLayer: 'Raster',
-  VectorLayer: 'Vector (GeoJSON, Shapefile, GeoParquet, GeoPackage)',
-  VectorTileLayer: 'Vector tiles',
-  HillshadeLayer: 'Hillshade',
-  TerrainLayer: '3D terrain',
-  GeoTiffLayer: 'GeoTIFF',
-  GeoZarrLayer: 'GeoZarr',
-  ImageLayer: 'Image',
-  StacLayer: 'STAC',
-  StorySegmentLayer: 'Story segment',
-  OpenEOTileLayer: 'OpenEO',
-};
+interface ILayerEntry {
+  label: string;
+  layer: LayerType;
+  /** Omitted for layers that have no source of their own (e.g. STAC). */
+  source?: SourceType;
+}
 
-const SOURCE_LABELS: Record<SourceType, string> = {
-  RasterSource: 'Raster tiles',
-  WmsTileSource: 'WMS',
-  VectorTileSource: 'Vector tiles',
-  GeoJSONSource: 'GeoJSON',
-  RasterDemSource: 'Elevation (DEM) tiles',
-  ImageSource: 'Image',
-  ShapefileSource: 'Shapefile',
-  GeoTiffSource: 'GeoTIFF',
-  GeoZarrSource: 'GeoZarr',
-  GeoPackageVectorSource: 'GeoPackage (vector)',
-  GeoPackageRasterSource: 'GeoPackage (raster)',
-  GeoParquetSource: 'GeoParquet',
-  MarkerSource: 'Markers',
-  OpenEOTileSource: 'OpenEO',
-  FeatureStoreSource: 'Feature store',
-};
+const LAYER_ENTRIES: ILayerEntry[] = [
+  // Raster
+  { label: 'Raster tiles', layer: 'RasterLayer', source: 'RasterSource' },
+  { label: 'WMS', layer: 'RasterLayer', source: 'WmsTileSource' },
+  { label: 'Hillshade', layer: 'HillshadeLayer', source: 'RasterDemSource' },
+  { label: '3D terrain', layer: 'TerrainLayer', source: 'RasterDemSource' },
+  { label: 'Image', layer: 'ImageLayer', source: 'ImageSource' },
+  { label: 'GeoTIFF', layer: 'GeoTiffLayer', source: 'GeoTiffSource' },
+  { label: 'GeoZarr', layer: 'GeoZarrLayer', source: 'GeoZarrSource' },
+  {
+    label: 'GeoPackage (raster)',
+    layer: 'RasterLayer',
+    source: 'GeoPackageRasterSource',
+  },
+  { label: 'OpenEO', layer: 'OpenEOTileLayer', source: 'OpenEOTileSource' },
+  { label: 'STAC', layer: 'StacLayer' },
+  // Vector
+  {
+    label: 'Vector tiles',
+    layer: 'VectorTileLayer',
+    source: 'VectorTileSource',
+  },
+  { label: 'GeoJSON', layer: 'VectorLayer', source: 'GeoJSONSource' },
+  { label: 'Shapefile', layer: 'VectorLayer', source: 'ShapefileSource' },
+  { label: 'GeoParquet', layer: 'VectorLayer', source: 'GeoParquetSource' },
+  {
+    label: 'GeoPackage (vector)',
+    layer: 'VectorLayer',
+    source: 'GeoPackageVectorSource',
+  },
+  {
+    label: 'Feature store',
+    layer: 'VectorLayer',
+    source: 'FeatureStoreSource',
+  },
+];
 
 type ToolKey =
   | 'addMarker'
@@ -193,23 +205,15 @@ export function getSupportTable(): ISupportGroup[] {
     ) as Record<IMapAdapterType, boolean>,
   });
 
-  // Not shown: story segments are never rendered (always "supported"), and the
-  // marker source is covered by the "Place markers" tool row.
-  const hiddenLayers: LayerType[] = ['StorySegmentLayer'];
-  const hiddenSources: SourceType[] = ['MarkerSource'];
-
   return [
     {
       title: 'Layers',
-      rows: (Object.keys(LAYER_LABELS) as LayerType[])
-        .filter(key => !hiddenLayers.includes(key))
-        .map(key => row(LAYER_LABELS[key], f => f.layers[key])),
-    },
-    {
-      title: 'Sources',
-      rows: (Object.keys(SOURCE_LABELS) as SourceType[])
-        .filter(key => !hiddenSources.includes(key))
-        .map(key => row(SOURCE_LABELS[key], f => f.sources[key])),
+      rows: LAYER_ENTRIES.map(({ label, layer, source }) =>
+        row(
+          label,
+          f => f.layers[layer] && (source === undefined || f.sources[source]),
+        ),
+      ),
     },
     {
       title: 'Tools',
