@@ -1595,6 +1595,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mapAdapter?.drawTool.handleGeometryTypeChange(drawGeometryLabel);
   };
 
+  private _handleToggleDeleteMode = (): void => {
+    this._mapAdapter?.drawTool.toggleDeleteMode();
+  };
+
   private _handleEditedFeatureSave = (attributeUpdates: IDict<any>): void => {
     const editedFeature = this.state.editedFeature;
 
@@ -1721,6 +1725,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           drawGeometryLabel={drawGeometryLabel}
           drawLayerId={currentDrawLayerId}
           onDrawGeometryTypeChange={this._handleDrawGeometryTypeChange}
+          onToggleDeleteMode={this._handleToggleDeleteMode}
           model={this._model}
         />
 

@@ -247,6 +247,14 @@ def ensure_feature_store_table(postgis_url: str, table_name: str) -> None:
     _psql_run(postgis_url, sql)
 
 
+def drop_feature_store_table(postgis_url: str, table_name: str) -> None:
+    """Drop a per-store baseline table. The name must already be validated."""
+    if not re.match(r"^jgis_store_[a-z0-9_]+$", table_name):
+        raise ValueError(f"Refusing DROP for unexpected table name: {table_name}")
+
+    _psql_run(postgis_url, f"DROP TABLE IF EXISTS {table_name}")
+
+
 def merge_overlay_features_via_psql(
     postgis_url: str,
     store_id: str,
