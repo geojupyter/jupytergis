@@ -139,9 +139,7 @@ class FeatureStoreFold:
         self._in_flight: set[str] = set()
         self._pending_drop: set[str] = set()
         self._known_store_ids: set[str] = {
-            store_id
-            for store_id in yfeature_stores.keys()
-            if isinstance(store_id, str)
+            store_id for store_id in yfeature_stores if isinstance(store_id, str)
         }
         self._subscription = yfeature_stores.observe_deep(self._on_change)
 
@@ -160,14 +158,12 @@ class FeatureStoreFold:
 
     def _scan(self) -> None:
         current = {
-            store_id
-            for store_id in self._yfeature_stores.keys()
-            if isinstance(store_id, str)
+            store_id for store_id in self._yfeature_stores if isinstance(store_id, str)
         }
 
         removed = self._known_store_ids - current
         self._known_store_ids = current
-        
+
         for store_id in removed:
             self._queue_drop(store_id)
 
