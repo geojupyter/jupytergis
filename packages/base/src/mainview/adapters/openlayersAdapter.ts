@@ -1,4 +1,5 @@
 import { faCrosshairs } from '@fortawesome/free-solid-svg-icons';
+import { asArray } from 'ol/color';
 import {
   IJGISLayer,
   IJGISSource,
@@ -195,8 +196,6 @@ function setClipPath(
     });
 }
 
-const TOMBSTONE_HIGHLIGHT_FILL = 'rgba(230, 126, 34, 0.28)';
-
 /** Highlight tombstoned baseline features that are pending delete. */
 function highlightTombstones(rules: Rule[], ids: readonly string[]): Rule[] {
   if (ids.length === 0) {
@@ -209,6 +208,9 @@ function highlightTombstones(rules: Rule[], ids: readonly string[]): Rule[] {
     ['in', ['get', '_id'], ['literal', ids]],
   ];
   const stroke = getCssVarValue('--jp-error-color1') || '#e67e22';
+  const [red, green, blue] = asArray(
+    getCssVarValue('--jp-error-color0') || '#e67e22',
+  );
 
   return [
     ...rules,
@@ -218,7 +220,7 @@ function highlightTombstones(rules: Rule[], ids: readonly string[]): Rule[] {
         'stroke-color': stroke,
         'stroke-width': 3,
         'stroke-line-dash': [8, 6],
-        'fill-color': TOMBSTONE_HIGHLIGHT_FILL,
+        'fill-color': `rgba(${red}, ${green}, ${blue}, 0.28)`,
         'circle-radius': 9,
         'circle-fill-color': 'none',
         'circle-stroke-color': stroke,
@@ -2991,8 +2993,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     feature: IIdentifiedFeature,
   ): { x: number; y: number } | undefined {
     const geometry = (feature?.geometry ?? feature?._geometry) as
-      | Geometry
-      | OLGeometry;
+      Geometry | OLGeometry;
 
     if (!geometry) {
       return undefined;
@@ -3169,13 +3170,9 @@ export class OpenLayersAdapter implements IMapAdapter {
     mapLayer: Layer | LayerGroup,
   ): void {
     const layerParams = layer.parameters as
-      | IVectorLayer
-      | IGeoTiffLayer
-      | IGeoZarrLayer
-      | undefined;
+      IVectorLayer | IGeoTiffLayer | IGeoZarrLayer | undefined;
     const grammarState = layerParams?.symbologyState as
-      | IGrammarSymbologyState
-      | undefined;
+      IGrammarSymbologyState | undefined;
 
     if (!grammarState || !Array.isArray(grammarState.layers)) {
       return;
