@@ -320,8 +320,29 @@ class GISDocument(CommWidget):
             )
 
     @property
-    def layers(self) -> dict[str, JGISLayer]:
-        """Get the document layers, keyed by layer id."""
+    def layers(self) -> list[JGISLayer | JGISLayerGroup]:
+        """Get the document layers in layer tree order, groups as sub-lists."""
+        layers = self._layer_objects()
+
+        def build(items: list[Any]) -> list[JGISLayer | JGISLayerGroup]:
+            result: list[JGISLayer | JGISLayerGroup] = []
+            for item in items:
+                if isinstance(item, str):
+                    if item in layers:
+                        result.append(layers[item])
+                else:
+                    result.append(
+                        JGISLayerGroup(
+                            build(item.get("layers", [])),
+                            name=item["name"],
+                            visible=item.get("visible", True),
+                        ),
+                    )
+            return result
+
+        return build(self.layer_tree or [])
+
+    def _layer_objects(self) -> dict[str, JGISLayer]:
         return {
             layer_id: OBJECT_FACTORY.read_layer(layer_id, layer, self)
             for layer_id, layer in (self._layers.to_py() or {}).items()
@@ -342,7 +363,7 @@ class GISDocument(CommWidget):
         :raises KeyError: If nothing matches.
         :raises ValueError: If several layers share that name.
         """
-        return _find_by_name_or_id(self.layers, name_or_id, "layer")
+        return _find_by_name_or_id(self._layer_objects(), name_or_id, "layer")
 
     def get_source(self, name_or_id: str) -> JGISSource:
         """Find a source by id, or by name when the name is unambiguous.
@@ -1662,9 +1683,22 @@ class JGISSource(JGISObject):
 
         return [
             layer
-            for layer in self._parent.layers.values()
+            for layer in self._parent._layer_objects().values()
             if layer.get_parameter("source") == self._id
         ]
+
+
+class JGISLayerGroup(list):
+    """A layer group: the list of its layers and sub-groups, plus its name."""
+
+    def __init__(self, layers: list[Any], name: str, visible: bool = True) -> None:
+        super().__init__(layers)
+        self.name = name
+        self.visible = visible
+
+    def __repr__(self) -> str:
+        """Show the group name alongside its layers."""
+        return f"JGISLayerGroup(name={self.name!r}, {list.__repr__(self)})"
 
 
 class SingletonMeta(type):

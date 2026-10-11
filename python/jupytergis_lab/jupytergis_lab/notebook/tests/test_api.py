@@ -58,21 +58,25 @@ class TestTiffLayer(TestDocument):
     def test_sourcelayer(self):
         self.doc._is_ready = True
         tif_layer = self.doc.add_geotiff_layer(url=TEST_TIF)
-        assert self.doc.layers[tif_layer.id] == tif_layer
+        assert self.doc.layers == [tif_layer]
 
 
 class TestGeoPackageVectorLayer(TestDocument):
     def test_sourcelayer(self):
         self.doc._is_ready = True
         gpkg_layers = self.doc.add_geopackage_vector_layer(TEST_GPKG_VECTOR)
-        assert all(layer.id in self.doc.layers for layer in gpkg_layers)
+        assert [layer.id for layer in self.doc.layers] == [
+            layer.id for layer in gpkg_layers
+        ]
 
 
 class TestGeoPackageRasterLayer(TestDocument):
     def test_sourcelayer(self):
         self.doc._is_ready = True
         gpkg_layers = self.doc.add_geopackage_raster_layer(TEST_GPKG_RASTER)
-        assert all(layer.id in self.doc.layers for layer in gpkg_layers)
+        assert [layer.id for layer in self.doc.layers] == [
+            layer.id for layer in gpkg_layers
+        ]
 
 
 class TestGeoParquetLayer(TestDocument):
@@ -95,7 +99,7 @@ class TestLayerAndSourceObjects(TestDocument):
     def test_layers_read_back_as_objects(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
 
-        assert self.doc.layers[layer.id] == layer
+        assert self.doc.layers == [layer]
         assert layer.id in self.doc.layer_tree
         assert layer.name == "Basemap"
         assert layer.type == LayerType.RasterLayer
@@ -162,7 +166,7 @@ class TestLayerAndSourceObjects(TestDocument):
             "parameters": {"source": "source-1", "opacity": 0.5},
         }
 
-        layer = self.doc.layers["layer-1"]
+        layer = self.doc.get_layer("layer-1")
 
         assert isinstance(layer.parameters, dict)
         assert layer.get_parameter("opacity") == 0.5
@@ -177,7 +181,22 @@ class TestLayerAndSourceObjects(TestDocument):
             "parameters": {"source": "source-1", "opacity": 1.0, "unknown": 7},
         }
 
-        assert self.doc.layers["layer-1"].get_parameter("unknown") == 7
+        assert self.doc.get_layer("layer-1").get_parameter("unknown") == 7
+
+    def test_layers_follow_the_layer_tree_with_groups_as_sub_lists(self):
+        first = self.doc.add_raster_layer(url=self.RASTER_URL, name="First")
+        second = self.doc.add_raster_layer(url=self.RASTER_URL, name="Second")
+        self.doc._layerTree.clear()
+        self.doc._layerTree.extend(
+            [first.id, Map({"name": "Group", "layers": [second.id]})],
+        )
+
+        layers = self.doc.layers
+
+        assert [layer.id for layer in layers[:1]] == [first.id]
+        assert isinstance(layers[1], list)
+        assert layers[1].name == "Group"
+        assert [layer.id for layer in layers[1]] == [second.id]
 
     def test_setting_a_layer_field_updates_the_document(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
@@ -369,7 +388,7 @@ class TestQgisUnsupportedFeatures(TestDocument):
     def test_jgis_document_allows_unsupported_layers(self):
         assert not self.doc._is_qgis_document
         layer = self.doc.add_geoZarr_layer(url="http://example.com/data.zarr")
-        assert self.doc.layers[layer.id] == layer
+        assert self.doc.layers == [layer]
 
     @pytest.mark.parametrize("ext", [".qgz", ".qgs", ".QGZ"])
     def test_qgis_document_is_detected(self, ext):
@@ -423,7 +442,7 @@ class TestQgisUnsupportedFeatures(TestDocument):
             name="Quakes",
             symbology=[[vega_expr("datum.mag * 2").encoding("radius")]],
         )
-        assert self.doc.layers[layer.id] == layer
+        assert self.doc.layers == [layer]
 
 
 def _feature_stores(doc: GISDocument) -> dict:

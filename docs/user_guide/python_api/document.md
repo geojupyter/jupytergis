@@ -223,7 +223,7 @@ doc.remove_layer(layer)
 You can also inspect convenience properties:
 
 ```python
-print(doc.layers)  # dict of layer objects, keyed by layer id
+print(doc.layers)  # layer objects in layer tree order, groups as sub-lists
 print(doc.sources)  # dict of source objects, keyed by source id
 print(doc.layer_tree)  # ordered layer ids / groups
 ```
