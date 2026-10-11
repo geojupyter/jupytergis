@@ -239,6 +239,13 @@ layer.parameters.opacity
 layer.source.parameters.url
 ```
 
+Setting an attribute writes it back to the document, so the map updates:
+
+```python
+layer.visible = False
+layer.source.parameters.url = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+```
+
 `get_layer` and `get_source` take an id or a name. Looking a name up that several layers share raises a `ValueError` listing the ids to pick from.
 
 Parameters come back typed for the layer and source types the Python API knows about, and as a plain dict for anything else, so a document written by a newer version still reads. `layer.get_parameter("opacity")` works either way.

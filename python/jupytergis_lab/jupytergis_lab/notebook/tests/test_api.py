@@ -183,6 +183,25 @@ class TestLayerAndSourceObjects(TestDocument):
 
         assert self.doc.layers["layer-1"].get_parameter("unknown") == 7
 
+    def test_setting_a_layer_field_updates_the_document(self):
+        layer_id = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        self.doc.layers[layer_id].visible = False
+
+        assert self.doc._layers[layer_id]["visible"] is False
+
+    def test_setting_a_nested_source_parameter_updates_the_document(self):
+        layer_id = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+        layer = self.doc.layers[layer_id]
+        url = "https://example.com/{z}/{y}/{x}"
+
+        layer.source.parameters.url = url
+
+        assert (
+            self.doc._sources[layer.get_parameter("source")]["parameters"]["url"] == url
+        )
+        assert layer.source.parameters.url == url
+
 
 class TestGrammarSymbologyBuilders:
     def test_single_list_of_mappings_is_single_layer(self):

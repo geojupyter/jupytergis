@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import functools
 import json
 import logging
 import math
@@ -1468,6 +1469,30 @@ class GISDocument(CommWidget):
         self._layers[layer_id] = layer
 
 
+class _WritesThrough(BaseModel):
+    """Parameters that write their own attribute changes to the document."""
+
+    _owner: Any = PrivateAttr(default=None)
+
+    __hash__ = None  # type: ignore[assignment]
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        super().__setattr__(name, value)
+
+        if not name.startswith("_") and self._owner is not None:
+            self._owner._write("parameters", self)
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, BaseModel):
+            return NotImplemented
+        return type(self) is type(other) and self.model_dump() == other.model_dump()
+
+
+@functools.cache
+def _writes_through(model: type[BaseModel]) -> type[BaseModel]:
+    return type(model.__name__, (_WritesThrough, model), {})
+
+
 class JGISObject(BaseModel):
     """Base class for the layer and source objects read off a document."""
 
@@ -1487,6 +1512,8 @@ class JGISObject(BaseModel):
         obj = cls(**data)
         obj._parent = parent
         obj._id = id
+        if isinstance(obj.parameters, _WritesThrough):
+            obj.parameters._owner = obj
         return obj
 
     @field_validator("parameters", mode="plain", check_fields=False)
@@ -1534,8 +1561,15 @@ class JGISObject(BaseModel):
         """Write public field changes through to the document."""
         super().__setattr__(name, value)
 
+        if not name.startswith("_"):
+            self._write(name, value)
+
+    def _write(self, name: str, value: Any) -> None:
+        if isinstance(value, _WritesThrough):
+            value._owner = self
+
         store = self._store()
-        if name.startswith("_") or store is None or self._id is None:
+        if store is None or self._id is None:
             return
 
         stored = store.get(self._id)
@@ -1670,7 +1704,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
             return parameters
 
         try:
-            return Model(**parameters)
+            return _writes_through(Model)(**parameters)
         except ValidationError:
             return parameters
 
