@@ -215,9 +215,9 @@ doc
 ## Remove layers and inspect document content
 
 ```python
-layer_id = doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+layer = doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 
-doc.remove_layer(layer_id)
+doc.remove_layer(layer)
 ```
 
 You can also inspect convenience properties:
@@ -238,6 +238,8 @@ layer.visible
 layer.parameters.opacity
 layer.source.parameters.url
 ```
+
+The `add_*_layer` methods return the new layer object. `remove_layer`, `zoom_to_layer` and `apply_symbology` take a layer object or its id.
 
 Setting an attribute writes it back to the document, so the map updates:
 

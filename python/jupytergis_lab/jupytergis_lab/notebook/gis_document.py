@@ -180,6 +180,10 @@ def _find_by_name_or_id[T: JGISObject](
     return matches[0]
 
 
+def _layer_id(layer: str | JGISLayer) -> str:
+    return layer if isinstance(layer, str) else str(layer.id)
+
+
 class GISDocument(CommWidget):
     """Create a new GISDocument object.
 
@@ -669,7 +673,7 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
-        layer_id = self._add_layer(
+        new_layer = self._add_layer(
             OBJECT_FACTORY.create_layer(layer, self),
             zoom_to=zoom_to,
         )
@@ -684,7 +688,7 @@ class GISDocument(CommWidget):
                 self._options["extent"] = _openeo_view_extent(extent)
                 self._options["useExtent"] = True
 
-        return layer_id
+        return new_layer
 
     def add_image_layer(
         self,
@@ -980,7 +984,7 @@ class GISDocument(CommWidget):
         if name is None:
             name = _extract_layer_name(path)
 
-        layer_ids = []
+        new_layers = []
 
         if "projection" in self._options:
             projection = self._options["projection"]
@@ -1020,7 +1024,7 @@ class GISDocument(CommWidget):
                 layer_params["symbologyState"] = symbology_state
 
             layer_id = str(uuid4()) + "/" + str(table_name)
-            layer_ids.append(
+            new_layers.append(
                 self._add_layer(
                     OBJECT_FACTORY.create_layer(layer, self),
                     layer_id,
@@ -1028,7 +1032,7 @@ class GISDocument(CommWidget):
                 ),
             )
 
-        return layer_ids
+        return new_layers
 
     def add_geopackage_raster_layer(
         self,
@@ -1059,7 +1063,7 @@ class GISDocument(CommWidget):
         if name is None:
             name = _extract_layer_name(path)
 
-        layer_ids = []
+        new_layers = []
 
         for index, table_name in enumerate(table_names):
             source = {
@@ -1084,7 +1088,7 @@ class GISDocument(CommWidget):
             }
 
             layer_id = str(uuid4()) + "/" + str(table_name)
-            layer_ids.append(
+            new_layers.append(
                 self._add_layer(
                     OBJECT_FACTORY.create_layer(layer, self),
                     layer_id,
@@ -1092,7 +1096,7 @@ class GISDocument(CommWidget):
                 ),
             )
 
-        return layer_ids
+        return new_layers
 
     async def add_data_array_layer(
         self,
@@ -1339,12 +1343,13 @@ class GISDocument(CommWidget):
             zoom_to=zoom_to,
         )
 
-    def remove_layer(self, layer_id: str):
+    def remove_layer(self, layer_id: str | JGISLayer):
         """Remove a layer from the GIS document.
 
-        :param layer_id: The ID of the layer to remove.
+        :param layer_id: The layer to remove, or its ID.
         :raises KeyError: If the layer does not exist.
         """
+        layer_id = _layer_id(layer_id)
         layer = self._layers.get(layer_id)
 
         if layer is None:
@@ -1379,7 +1384,7 @@ class GISDocument(CommWidget):
         new_object,
         id: str | None = None,
         zoom_to: bool = False,
-    ) -> str:
+    ) -> JGISLayer:
         self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
@@ -1390,9 +1395,9 @@ class GISDocument(CommWidget):
         self._layerTree.append(_id)
         if zoom_to:
             self.zoom_to_layer(_id)
-        return _id
+        return OBJECT_FACTORY.read_layer(_id, obj_dict, self)
 
-    def zoom_to_layer(self, layer_id: str) -> None:
+    def zoom_to_layer(self, layer_id: str | JGISLayer) -> None:
         """Zoom the map to the extent of ``layer_id``.
 
         This sends a one-off custom message over the widget comm channel; it is
@@ -1400,9 +1405,9 @@ class GISDocument(CommWidget):
         frontend listens for ``zoom-to`` messages on the comm and re-centers the
         map accordingly.
 
-        :param layer_id: The ID of the layer to zoom to.
+        :param layer_id: The layer to zoom to, or its ID.
         """
-        self._comm.send(data={"type": "zoom-to", "layerId": layer_id})
+        self._comm.send(data={"type": "zoom-to", "layerId": _layer_id(layer_id)})
 
     @classmethod
     def _make_comm(cls, *, path: str | None) -> dict:
@@ -1447,7 +1452,12 @@ class GISDocument(CommWidget):
             "metadata": self._metadata.to_py(),
         }
 
-    def apply_symbology(self, layer_id: str, symbology: SymbologyInput | None):
+    def apply_symbology(
+        self,
+        layer_id: str | JGISLayer,
+        symbology: SymbologyInput | None,
+    ):
+        layer_id = _layer_id(layer_id)
         layer = self._layers.get(layer_id)
 
         if layer is None:
