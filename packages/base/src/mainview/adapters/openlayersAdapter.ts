@@ -259,7 +259,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       controls.push(this._zoomControl);
     }
 
-    // Discard keyboard events target only for Notbooks
+    // Discard events that should not apply to the map.
     const discardEventTarget = (
       event: MapBrowserEvent<KeyboardEvent | PointerEvent | WheelEvent>,
     ): boolean => {
