@@ -38,6 +38,7 @@ interface IDrawCustomAttributeDraftRowProps {
   onSave: () => void;
   onCancel: () => void;
   canSave: boolean;
+  readOnly?: boolean;
 }
 
 function DrawCustomAttributeDraftRow({
@@ -48,6 +49,7 @@ function DrawCustomAttributeDraftRow({
   onSave,
   onCancel,
   canSave,
+  readOnly = false,
 }: IDrawCustomAttributeDraftRowProps): JSX.Element {
   const handleKeyDown = (
     event: React.KeyboardEvent<HTMLInputElement>,
@@ -71,6 +73,7 @@ function DrawCustomAttributeDraftRow({
         onPropertyKeyChange={onDraftKeyChange}
         onPropertyValueChange={onDraftValueChange}
         onKeyDown={handleKeyDown}
+        disabled={readOnly}
       />
       <div className="inline-flex gap-0">
         <Button
@@ -79,7 +82,7 @@ function DrawCustomAttributeDraftRow({
           size="icon-sm"
           title="Save"
           onClick={onSave}
-          disabled={!canSave}
+          disabled={!canSave || readOnly}
         >
           <Save />
         </Button>
@@ -89,6 +92,7 @@ function DrawCustomAttributeDraftRow({
           size="icon-sm"
           title="Cancel"
           onClick={onCancel}
+          disabled={readOnly}
           className="text-destructive"
         >
           <Ban />
@@ -270,6 +274,7 @@ export function DrawCustomAttributesDialogContent({
                   onSave={saveDraft}
                   onCancel={cancelDraft}
                   canSave={canSaveDraft}
+                  readOnly={readOnly}
                 />
               );
             }
@@ -319,6 +324,7 @@ export function DrawCustomAttributesDialogContent({
               onSave={saveDraft}
               onCancel={cancelDraft}
               canSave={canSaveDraft}
+              readOnly={readOnly}
             />
           ) : null}
         </div>

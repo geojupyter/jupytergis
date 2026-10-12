@@ -10,6 +10,7 @@ export interface IPropertyKeyValueFieldsProps {
   keyPlaceholder?: string;
   valuePlaceholder?: string;
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
+  disabled?: boolean;
 }
 
 export function PropertyKeyValueFields({
@@ -20,6 +21,7 @@ export function PropertyKeyValueFields({
   keyPlaceholder = 'key',
   valuePlaceholder = 'value',
   onKeyDown,
+  disabled = false,
 }: IPropertyKeyValueFieldsProps): JSX.Element {
   return (
     <>
@@ -30,6 +32,7 @@ export function PropertyKeyValueFields({
         value={propertyKey}
         onChange={event => onPropertyKeyChange(event.target.value)}
         onKeyDown={onKeyDown}
+        disabled={disabled}
       />
       <Input
         className="jgis-attribute-col-value"
@@ -38,6 +41,7 @@ export function PropertyKeyValueFields({
         value={propertyValue}
         onChange={event => onPropertyValueChange(event.target.value)}
         onKeyDown={onKeyDown}
+        disabled={disabled}
       />
     </>
   );

@@ -1,4 +1,5 @@
 import { faArrowPointer } from '@fortawesome/free-solid-svg-icons';
+import { collaboratorPill } from '@jupyter/collaboration';
 import {
   FollowDialogKind,
   IDict,
@@ -279,7 +280,6 @@ function shareDialogView(
  */
 export function pointerElement(user: User.IIdentity | undefined): HTMLElement {
   const color = user?.color ?? 'var(--jp-brand-color1)';
-  const name = user?.display_name ?? user?.name ?? '';
   const [width, height, , , path] = faArrowPointer.icon;
 
   const wrapper = document.createElement('div');
@@ -293,37 +293,7 @@ export function pointerElement(user: User.IIdentity | undefined): HTMLElement {
     `<svg class="jGIS-Remote-Pointer-Icon" viewBox="0 0 ${width} ${height}">` +
     `<path d="${path}"/></svg>`;
 
-  const label = document.createElement('div');
-  label.className = 'jGIS-Remote-Pointer-Label';
-  label.style.borderColor = color;
-
-  const avatar = document.createElement('div');
-  avatar.className = 'jGIS-Remote-Pointer-Avatar';
-  avatar.title = name;
-
-  if (user?.avatar_url) {
-    const image = document.createElement('img');
-    image.src = user.avatar_url;
-    image.alt = '';
-    // Fall back to the initials if the avatar cannot be loaded, the same way
-    // the map pointers do.
-    image.addEventListener('error', () => {
-      image.remove();
-      avatar.style.backgroundColor = color;
-      avatar.textContent = user.initials ?? '';
-    });
-    avatar.append(image);
-  } else {
-    avatar.style.backgroundColor = color;
-    avatar.textContent = user?.initials ?? '';
-  }
-
-  const text = document.createElement('span');
-  text.className = 'jGIS-Remote-Pointer-Name';
-  text.textContent = name;
-
-  label.append(avatar, text);
-  pointer.append(label);
+  pointer.append(collaboratorPill(user));
   wrapper.append(pointer);
 
   return wrapper;

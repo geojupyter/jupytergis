@@ -40,10 +40,8 @@ export function VectorDrawControls({
 }: IVectorDrawControlsProps): JSX.Element {
   const toggleValue = drawGeometryLabel || SELECT_TOOL_VALUE;
 
-  // Disabled toggles are drawn at half opacity, which all but hides the armed
-  // tool's background. Paint it the way mirrored forms paint a focused field.
   const armed = (value: string): string | undefined =>
-    readOnly && value === toggleValue ? 'jgis-follow-focus' : undefined;
+    readOnly && value === toggleValue ? 'jgis-follow-armed' : undefined;
 
   return (
     <div

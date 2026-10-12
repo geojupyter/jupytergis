@@ -368,6 +368,23 @@ body[data-notebook='specta']
   gap: 0.5rem;
 }
 
+/* The armed tool in a mirror, repainted because disabled toggles are drawn at
+   half opacity. */
+.jgis-vector-draw-controls.jgis-follow-mirror .jgis-follow-armed {
+  opacity: 1;
+  background-color: color-mix(
+    in srgb,
+    var(--jgis-follow-color, var(--jp-brand-color1)) 28%,
+    transparent
+  );
+  border-color: var(--jgis-follow-color, var(--jp-brand-color1));
+}
+
+.jgis-vector-draw-controls.jgis-follow-mirror
+  [data-slot='toggle-group-item']:has(+ .jgis-follow-armed) {
+  border-right-color: var(--jgis-follow-color, var(--jp-brand-color1));
+}
+
 .jGIS-Mainview-Container.jgis-narrow .jgis-panels-wrapper {
   position: fixed;
   top: 30px;
