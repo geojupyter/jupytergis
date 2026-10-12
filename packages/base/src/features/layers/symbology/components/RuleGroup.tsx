@@ -57,11 +57,15 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
   onDeleteRow,
   ...rowProps
 }) => {
-  const renderRow = ({ row, index }: { row: IGrammarRow; index: number }) => (
+  const renderRow = (
+    { row, index }: { row: IGrammarRow; index: number },
+    hideWhen = false,
+  ) => (
     <MappingRow
       key={row.id}
       row={row}
       {...rowProps}
+      hideWhen={hideWhen}
       onChange={updated => onChangeRow(index, updated)}
       onDelete={() => onDeleteRow(index)}
     />
@@ -123,7 +127,7 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
           ))}
         </div>
       )}
-      {dynamic.map(renderRow)}
+      {dynamic.map(entry => renderRow(entry, true))}
     </div>
   );
 };

@@ -879,6 +879,7 @@ interface IMappingRowProps {
   disabledSchemes?: IScale['scheme'][];
   bandStats?: Record<number, { min: number; max: number }>;
   normalize?: boolean;
+  hideWhen?: boolean;
   onChange: (row: IGrammarRow) => void;
   onDelete: () => void;
 }
@@ -903,6 +904,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   disabledSchemes = [],
   bandStats,
   normalize = true,
+  hideWhen = false,
   onChange,
   onDelete,
 }) => {
@@ -1218,44 +1220,46 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       </div>
 
       {/* When clause */}
-      <div className="jp-gis-grammar-when-row">
-        <span className="jp-gis-grammar-when-label">when</span>
-        {(row.when?.length ?? 0) > 1 && (
+      {!hideWhen && (
+        <div className="jp-gis-grammar-when-row">
+          <span className="jp-gis-grammar-when-label">when</span>
+          {(row.when?.length ?? 0) > 1 && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="xs"
+              className="jp-gis-grammar-when-op"
+              onClick={() =>
+                onChange({
+                  ...row,
+                  whenOp: (row.whenOp ?? 'all') === 'all' ? 'any' : 'all',
+                })
+              }
+            >
+              {row.whenOp ?? 'all'}
+            </Button>
+          )}
+          {row.when?.map((pred, i) => (
+            <WhenRow
+              key={i}
+              predicate={pred}
+              availableFields={availableFields}
+              onChange={updated => updatePredicate(i, updated)}
+              onDelete={() => removePredicate(i)}
+            />
+          ))}
           <Button
             type="button"
-            variant="ghost"
-            size="xs"
-            className="jp-gis-grammar-when-op"
-            onClick={() =>
-              onChange({
-                ...row,
-                whenOp: (row.whenOp ?? 'all') === 'all' ? 'any' : 'all',
-              })
-            }
+            variant="outline"
+            size="icon-xs"
+            className="rounded-[10px] border-dashed hover:border-primary hover:text-primary"
+            onClick={addPredicate}
+            title="Add condition"
           >
-            {row.whenOp ?? 'all'}
+            <FontAwesomeIcon icon={faPlus} />
           </Button>
-        )}
-        {row.when?.map((pred, i) => (
-          <WhenRow
-            key={i}
-            predicate={pred}
-            availableFields={availableFields}
-            onChange={updated => updatePredicate(i, updated)}
-            onDelete={() => removePredicate(i)}
-          />
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          size="icon-xs"
-          className="rounded-[10px] border-dashed hover:border-primary hover:text-primary"
-          onClick={addPredicate}
-          title="Add condition"
-        >
-          <FontAwesomeIcon icon={faPlus} />
-        </Button>
-      </div>
+        </div>
+      )}
 
       {/* Inline scale editor */}
       {expanded && (
