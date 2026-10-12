@@ -54,6 +54,7 @@ import { FeatureLike } from 'ol/Feature';
 import { GeolocationError } from 'ol/Geolocation';
 import { unByKey } from 'ol/Observable';
 import TileState from 'ol/TileState';
+import { asArray } from 'ol/color';
 import { Control, FullScreen, Rotate, ScaleLine, Zoom } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { linear } from 'ol/easing';
@@ -147,6 +148,7 @@ import {
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
+  getCssVarValue,
   INTERNAL_PROXY_BASE,
   isJupyterLite,
   loadFile,
@@ -194,6 +196,46 @@ function setClipPath(
     });
 }
 
+/** Highlight tombstoned baseline features that are pending delete. */
+function highlightTombstones(rules: Rule[], ids: readonly string[]): Rule[] {
+  if (ids.length === 0) {
+    return rules;
+  }
+
+  const marked = [
+    'any',
+    ['in', ['get', 'id'], ['literal', ids]],
+    ['in', ['get', '_id'], ['literal', ids]],
+  ];
+  const stroke = getCssVarValue('--jp-error-color1') || '#e67e22';
+  const [red, green, blue] = asArray(
+    getCssVarValue('--jp-error-color0') || '#e67e22',
+  );
+
+  return [
+    ...rules,
+    {
+      filter: marked,
+      style: {
+        'stroke-color': stroke,
+        'stroke-width': 3,
+        'stroke-line-dash': [8, 6],
+        'fill-color': `rgba(${red}, ${green}, ${blue}, 0.28)`,
+        'circle-radius': 9,
+        'circle-fill-color': 'none',
+        'circle-stroke-color': stroke,
+        'circle-stroke-width': 3,
+        'circle-stroke-line-dash': [4, 3],
+        'z-index': 1,
+      },
+    },
+  ];
+}
+
+function tombstoneKey(ids: readonly string[]): string {
+  return [...ids].sort().join('\0');
+}
+
 export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
@@ -208,6 +250,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         this._callbacks?.onDrawLayerIdChange?.(layerId),
       onDrawGeometryLabelChange: label =>
         this._callbacks?.onDrawGeometryLabelChange?.(label),
+      setModifyHighlight: features => this._setHighlightFeatures(features),
       log: (level, message) => this._log(level, message),
     });
   }
@@ -1158,66 +1201,24 @@ export class OpenLayersAdapter implements IMapAdapter {
       case 'VectorLayer': {
         layerParameters = layer.parameters as IVectorLayer;
 
-        if (Array.isArray(layerParameters.symbologyState?.layers)) {
-          const olSource = this._sources.get(
-            layerParameters.source,
-          ) as VectorSource;
-          const grammarState =
-            layerParameters.symbologyState as IGrammarSymbologyState;
-          const rows =
-            olSource instanceof VectorSource
-              ? olSource.getFeatures().map(f => (f as Feature).getProperties())
-              : [];
-          const featureValues = extractEncodingFieldValues(grammarState, rows);
-          newMapLayer = grammarToOLLayer(
-            layerParameters.symbologyState as IGrammarSymbologyState,
-            olSource,
-            layerParameters.opacity,
-            layer.visible,
-            featureValues,
-            false,
-            className,
-            layerParameters.declutter ? id : false,
-          ) as OlLayerTypes;
-        } else if (source?.type === 'FeatureStoreSource') {
-          const storeParams = source.parameters as IFeatureStoreSource;
-          const style = this.vectorLayerStyleRuleBuilder(layer);
-          const children: Layer[] = [];
-          const baseline = this._featureStoreSources.get(
-            storeParams.storeId,
-          )?.baseline;
-
-          if (baseline) {
-            children.push(
-              new VectorTileLayer({
-                opacity: layerParameters.opacity,
-                source: baseline,
-                style,
-              }),
-            );
-          }
-          children.push(
-            new VectorImageLayer({
-              opacity: layerParameters.opacity,
-              source: this._sources.get(layerParameters.source),
-              style,
-            }),
-          );
-
-          newMapLayer = new LayerGroup({
-            layers: children,
-            visible: layer.visible,
-          });
-        } else {
-          newMapLayer = new VectorImageLayer({
-            opacity: layerParameters.opacity,
-            visible: layer.visible,
-            source: this._sources.get(layerParameters.source),
-            style: this.vectorLayerStyleRuleBuilder(layer),
-            className,
-            declutter: layerParameters.declutter ? id : false,
-          });
+        if (source?.type === 'FeatureStoreSource') {
+          newMapLayer = this._createFeatureStoreGroup(layer, source);
+          break;
         }
+
+        if (Array.isArray(layerParameters.symbologyState?.layers)) {
+          newMapLayer = this._createGrammarVectorLayer(id, layer, className);
+          break;
+        }
+
+        newMapLayer = new VectorImageLayer({
+          opacity: layerParameters.opacity,
+          visible: layer.visible,
+          source: this._sources.get(layerParameters.source),
+          style: this.vectorLayerStyleRuleBuilder(layer),
+          className,
+          declutter: layerParameters.declutter ? id : false,
+        });
 
         break;
       }
@@ -1225,33 +1226,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         layerParameters = layer.parameters as IVectorLayer;
 
         if (source?.type === 'FeatureStoreSource') {
-          const storeParams = source.parameters as IFeatureStoreSource;
-          const style = this.vectorLayerStyleRuleBuilder(layer);
-          const children: Layer[] = [];
-          const baseline = this._featureStoreSources.get(
-            storeParams.storeId,
-          )?.baseline;
-
-          if (baseline) {
-            children.push(
-              new VectorTileLayer({
-                opacity: layerParameters.opacity,
-                source: baseline,
-                style,
-              }),
-            );
-          }
-          children.push(
-            new VectorImageLayer({
-              opacity: layerParameters.opacity,
-              source: this._sources.get(layerParameters.source),
-              style,
-            }),
-          );
-          newMapLayer = new LayerGroup({
-            layers: children,
-            visible: layer.visible,
-          });
+          newMapLayer = this._createFeatureStoreGroup(layer, source);
           break;
         }
 
@@ -1411,6 +1386,79 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._loadingLayers.delete(id);
 
     return newMapLayer;
+  }
+
+  private _createFeatureStoreGroup(
+    layer: IJGISLayer,
+    source: IJGISSource,
+  ): LayerGroup {
+    const layerParameters = layer.parameters as IVectorLayer;
+    const storeParams = source.parameters as IFeatureStoreSource;
+    const overlayStyle = this.vectorLayerStyleRuleBuilder(layer);
+    const baselineStyle = highlightTombstones(
+      overlayStyle,
+      this._tombstoneIds(storeParams.storeId),
+    );
+    const children: Layer[] = [];
+    const baseline = this._featureStoreSources.get(
+      storeParams.storeId,
+    )?.baseline;
+
+    if (baseline) {
+      children.push(
+        new VectorTileLayer({
+          opacity: layerParameters.opacity,
+          source: baseline,
+          style: baselineStyle,
+        }),
+      );
+    }
+    children.push(
+      new VectorImageLayer({
+        opacity: layerParameters.opacity,
+        source: this._sources.get(layerParameters.source),
+        style: overlayStyle,
+      }),
+    );
+
+    if (storeParams.storeId) {
+      this._tombstoneKeys.set(
+        storeParams.storeId,
+        tombstoneKey(this._tombstoneIds(storeParams.storeId)),
+      );
+    }
+
+    return new LayerGroup({
+      layers: children,
+      visible: layer.visible,
+    });
+  }
+
+  private _createGrammarVectorLayer(
+    id: string,
+    layer: IJGISLayer,
+    className: string,
+  ): OlLayerTypes {
+    const layerParameters = layer.parameters as IVectorLayer;
+    const olSource = this._sources.get(layerParameters.source) as VectorSource;
+    const grammarState =
+      layerParameters.symbologyState as IGrammarSymbologyState;
+    const rows =
+      olSource instanceof VectorSource
+        ? olSource.getFeatures().map(f => (f as Feature).getProperties())
+        : [];
+    const featureValues = extractEncodingFieldValues(grammarState, rows);
+
+    return grammarToOLLayer(
+      grammarState,
+      olSource,
+      layerParameters.opacity ?? 1,
+      layer.visible,
+      featureValues,
+      false,
+      className,
+      layerParameters.declutter ? id : false,
+    ) as OlLayerTypes;
   }
 
   // Used by VectorTileLayer (which shares a flat-style API with Grammar output).
@@ -1919,14 +1967,31 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
       case 'VectorLayer': {
         const layerParams = layer.parameters as IVectorLayer;
+        const jgisSource = layerParams.source
+          ? this._model.sharedModel.getLayerSource(layerParams.source)
+          : undefined;
 
-        if (Array.isArray(layerParams.symbologyState?.layers)) {
+        // Feature-store groups stay in place. The grammar rebuild uses only
+        // the overlay source and drops the baseline tiles.
+        if (
+          jgisSource?.type !== 'FeatureStoreSource' &&
+          Array.isArray(layerParams.symbologyState?.layers)
+        ) {
           this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
           break;
         }
 
         if (mapLayer instanceof LayerGroup) {
           mapLayer.setVisible(layer.visible);
+          if (jgisSource?.type === 'FeatureStoreSource') {
+            const storeId = (jgisSource.parameters as IFeatureStoreSource)
+              .storeId;
+            if (storeId) {
+              this._applyFeatureStoreGroupStyle(mapLayer, layer, storeId);
+            }
+            break;
+          }
+
           const style = this.vectorLayerStyleRuleBuilder(layer);
 
           mapLayer.getLayers().forEach(child => {
@@ -1955,6 +2020,22 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
       case 'VectorTileLayer': {
         const layerParams = layer.parameters as IVectorTileLayer;
+        const tileSource = layerParams.source
+          ? this._model.getSource(layerParams.source)
+          : undefined;
+
+        if (
+          mapLayer instanceof LayerGroup &&
+          tileSource?.type === 'FeatureStoreSource'
+        ) {
+          mapLayer.setVisible(layer.visible);
+          const storeId = (tileSource.parameters as IFeatureStoreSource)
+            .storeId;
+          if (storeId) {
+            this._applyFeatureStoreGroupStyle(mapLayer, layer, storeId);
+          }
+          break;
+        }
 
         mapLayer.setOpacity(layerParams.opacity ?? 1);
 
@@ -2639,6 +2720,7 @@ export class OpenLayersAdapter implements IMapAdapter {
                         extent,
                         featureProjection: projection,
                       });
+
                       vtTile.setFeatures(features);
                       return features;
                     })
@@ -2711,6 +2793,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       const storeId = (jgisSource.parameters as IFeatureStoreSource).storeId;
       if (storeId) {
         this._featureStoreSources.delete(storeId);
+        this._tombstoneKeys.delete(storeId);
       }
     }
 
@@ -2970,8 +3053,11 @@ export class OpenLayersAdapter implements IMapAdapter {
         return;
       }
 
-      const style = this.vectorLayerStyleRuleBuilder(
-        this._model.getLayer(layerId)!,
+      const jgisLayer = this._model.getLayer(layerId)!;
+      const overlayStyle = this.vectorLayerStyleRuleBuilder(jgisLayer);
+      const baselineStyle = highlightTombstones(
+        overlayStyle,
+        this._tombstoneIds(parameters.storeId),
       );
 
       const children: Layer[] = [];
@@ -2980,7 +3066,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         children.push(
           new VectorTileLayer({
             source: baseline,
-            style,
+            style: baselineStyle,
           }),
         );
       }
@@ -2988,9 +3074,16 @@ export class OpenLayersAdapter implements IMapAdapter {
       children.push(
         new VectorImageLayer({
           source: overlay,
-          style,
+          style: overlayStyle,
         }),
       );
+
+      if (parameters.storeId) {
+        this._tombstoneKeys.set(
+          parameters.storeId,
+          tombstoneKey(this._tombstoneIds(parameters.storeId)),
+        );
+      }
 
       mapLayer.getLayers().clear();
       children.forEach(child => mapLayer.getLayers().push(child));
@@ -3306,8 +3399,85 @@ export class OpenLayersAdapter implements IMapAdapter {
   onFeatureStoresChanged = (): void => {
     for (const [storeId, { overlay }] of this._featureStoreSources) {
       this._syncFeatureStoreOverlaySource(storeId, overlay);
+      this._refreshBaselineTombstoneStyle(storeId);
     }
   };
+
+  private _tombstoneIds(storeId: string): string[] {
+    if (!storeId) {
+      return [];
+    }
+
+    const features = this._model.getFeatureStoreFeatures(storeId);
+    const ids: string[] = [];
+    for (const feature of Object.values(features)) {
+      if (feature.deleted && feature.id) {
+        ids.push(feature.id);
+      }
+    }
+
+    return ids;
+  }
+
+  private _applyFeatureStoreGroupStyle(
+    group: LayerGroup,
+    layer: IJGISLayer,
+    storeId: string,
+  ): void {
+    const layerParams = layer.parameters as IVectorLayer;
+    const ids = this._tombstoneIds(storeId);
+    const overlayStyle = this.vectorLayerStyleRuleBuilder(layer);
+    const baselineStyle = highlightTombstones(overlayStyle, ids);
+
+    group.getLayers().forEach(child => {
+      const sub = child as Layer;
+      sub.setOpacity(layerParams.opacity ?? 1);
+      if (sub instanceof VectorTileLayer) {
+        sub.setStyle(baselineStyle);
+      } else if (sub instanceof VectorImageLayer) {
+        sub.setStyle(overlayStyle);
+      }
+    });
+
+    this._tombstoneKeys.set(storeId, tombstoneKey(ids));
+  }
+
+  private _refreshBaselineTombstoneStyle(storeId: string): void {
+    const ids = this._tombstoneIds(storeId);
+    const key = tombstoneKey(ids);
+    if (this._tombstoneKeys.get(storeId) === key) {
+      return;
+    }
+
+    if (!this._featureStoreSources.get(storeId)?.baseline) {
+      return;
+    }
+
+    for (const [layerId, layer] of Object.entries(this._model.getLayers())) {
+      if (layer.type !== 'VectorLayer' && layer.type !== 'VectorTileLayer') {
+        continue;
+      }
+
+      const sourceId = (layer.parameters as { source?: string }).source;
+      if (!sourceId) {
+        continue;
+      }
+
+      const source = this._model.getSource(sourceId);
+      if (source?.type !== 'FeatureStoreSource') {
+        continue;
+      }
+
+      if ((source.parameters as IFeatureStoreSource).storeId !== storeId) {
+        continue;
+      }
+
+      const mapLayer = this.getLayer(layerId);
+      if (mapLayer instanceof LayerGroup) {
+        this._applyFeatureStoreGroupStyle(mapLayer, layer, storeId);
+      }
+    }
+  }
 
   private _syncFeatureStoreOverlaySource(
     storeId: string,
@@ -3484,6 +3654,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     string,
     { overlay: VectorSource; baseline?: VectorTileSource }
   >();
+  private _tombstoneKeys = new Map<string, string>();
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',

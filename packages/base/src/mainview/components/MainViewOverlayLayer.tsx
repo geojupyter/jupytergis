@@ -10,6 +10,7 @@ export interface IMainViewOverlayLayerProps {
   isDrawing: boolean;
   drawGeometryLabel: string | undefined;
   onDrawGeometryTypeChange: (geometryType: string) => void;
+  onToggleDeleteMode: () => void;
   model: IJupyterGISModel;
   drawLayerId?: string;
 }
@@ -20,6 +21,7 @@ export function MainViewOverlayLayer({
   isDrawing,
   drawGeometryLabel,
   onDrawGeometryTypeChange,
+  onToggleDeleteMode,
   model,
   drawLayerId,
 }: IMainViewOverlayLayerProps): JSX.Element {
@@ -33,6 +35,7 @@ export function MainViewOverlayLayer({
         drawGeometryLabel={drawGeometryLabel}
         drawLayerId={drawLayerId}
         onDrawGeometryTypeChange={onDrawGeometryTypeChange}
+        onToggleDeleteMode={onToggleDeleteMode}
       />
       <DrawCustomAttributesFollowMirror model={model} />
     </>

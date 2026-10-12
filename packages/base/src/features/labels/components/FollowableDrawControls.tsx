@@ -10,6 +10,7 @@ interface IFollowableDrawControlsProps {
   drawGeometryLabel: string | undefined;
   drawLayerId: string | undefined;
   onDrawGeometryTypeChange: (geometryType: string) => void;
+  onToggleDeleteMode: () => void;
 }
 
 /**
@@ -25,6 +26,7 @@ export function FollowableDrawControls({
   drawGeometryLabel,
   drawLayerId,
   onDrawGeometryTypeChange,
+  onToggleDeleteMode,
 }: IFollowableDrawControlsProps): JSX.Element | null {
   const [followedDraw, setFollowedDraw] = useState<IDrawSessionState | null>(
     null,
@@ -69,6 +71,7 @@ export function FollowableDrawControls({
       <VectorDrawControls
         drawGeometryLabel={drawGeometryLabel}
         onDrawGeometryTypeChange={onDrawGeometryTypeChange}
+        onToggleDeleteMode={onToggleDeleteMode}
         model={model}
         drawLayerId={drawLayerId}
       />
@@ -83,6 +86,7 @@ export function FollowableDrawControls({
     <VectorDrawControls
       drawGeometryLabel={followedDraw.geometry}
       onDrawGeometryTypeChange={() => undefined}
+      onToggleDeleteMode={() => undefined}
       model={model}
       drawLayerId={followedDraw.layerId}
       readOnly
