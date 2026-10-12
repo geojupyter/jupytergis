@@ -258,6 +258,8 @@ export class OpenLayersAdapter implements IMapAdapter {
       controls.push(this._zoomControl);
     }
 
+    target.tabIndex = 0;
+
     this._map = new OlMap({
       target,
       view: new View({
@@ -267,7 +269,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         projection: proj,
       }),
       controls,
-      keyboardEventTarget: document,
+      keyboardEventTarget: target,
     });
 
     for (const [sourceId, source] of Object.entries(sources)) {
