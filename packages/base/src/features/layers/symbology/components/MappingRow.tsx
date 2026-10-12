@@ -1042,23 +1042,6 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange, bandStats, isRaster, normalize, featureValues],
   );
 
-  // A scheme that cannot produce any of this row's outputs is offered but
-  // disabled. Switching to it used to silently retarget the row at whatever
-  // the new scheme could drive, which quietly turned a label into a fill.
-  const schemeKeepsEncodings = useCallback(
-    (scheme: IScale['scheme']) => {
-      if (scheme === row.scale.scheme) {
-        return true;
-      }
-      const compat = compatibleEncodings(
-        defaultScaleForScheme(scheme, row.encodings),
-        isRaster,
-      );
-      return row.encodings.some(ch => compat.includes(ch));
-    },
-    [row.scale.scheme, row.encodings, isRaster],
-  );
-
   const handleScaleChange = useCallback(
     (scale: IScale) => onChange({ ...row, scale }),
     [row, onChange],
@@ -1148,11 +1131,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               ({ value, disabled }) =>
                 !disabled && !disabledSchemes.includes(value),
             ).map(({ value, label }) => (
-              <NativeSelectOption
-                key={value}
-                value={value}
-                disabled={!schemeKeepsEncodings(value)}
-              >
+              <NativeSelectOption key={value} value={value}>
                 {label}
               </NativeSelectOption>
             ))}
