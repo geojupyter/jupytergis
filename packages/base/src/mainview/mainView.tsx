@@ -262,7 +262,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     window.addEventListener('resize', this._handleWindowResize);
-    document.addEventListener('keydown', this._handleDeleteKey, true);
     const options = this._model.getOptions();
     const projection = options.projection ?? DEFAULT_PROJECTION;
     const lonLat: [number, number] =
@@ -287,6 +286,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._model.geolocationChanged.connect(this._geolocationListener, this);
     this._model.flyToGeometrySignal.connect(this._flyToGeometryListner, this);
+    this._model.deleteDrawSelection.connect(this._deleteDrawSelection, this);
     this._model.uiStateChanged.connect(
       this._handleLocationIndicatorListner,
       this,
@@ -334,7 +334,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   componentWillUnmount(): void {
     window.removeEventListener('resize', this._handleWindowResize);
-    document.removeEventListener('keydown', this._handleDeleteKey, true);
     this._mainViewModel.viewSettingChanged.disconnect(
       this._onViewChanged,
       this,
@@ -400,6 +399,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._flyToGeometryListner,
       this,
     );
+    this._model.deleteDrawSelection.disconnect(this._deleteDrawSelection, this);
     this._model.zoomToPositionSignal.disconnect(
       this._onZoomToPositionListner,
       this,
@@ -737,6 +737,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     geometry: Geometry,
   ): void => {
     this._mapAdapter?.flyToGeometry(geometry);
+  };
+
+  private _deleteDrawSelection = (
+    _sender: IJupyterGISModel,
+    result: { deleted: boolean },
+  ): void => {
+    result.deleted =
+      this._mapAdapter?.drawTool.deleteSelectedFeatures() ?? false;
   };
 
   private _onZoomToPositionListner = (
@@ -1528,31 +1536,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _handleWindowResize = (): void => {
     // TODO SOMETHING
-  };
-
-  private _handleDeleteKey = (event: KeyboardEvent): void => {
-    if (event.key !== 'Delete') {
-      return;
-    }
-    if (this._model.currentMode !== 'drawing') {
-      return;
-    }
-
-    const target = event.target;
-    if (
-      target instanceof HTMLElement &&
-      (target.closest('input, textarea, [contenteditable="true"]') ||
-        target.closest('.jgis-story-editor'))
-    ) {
-      return;
-    }
-
-    if (!this._mapAdapter?.drawTool.deleteSelectedFeatures()) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
   };
 
   private _handleSegmentTransitionChange = (

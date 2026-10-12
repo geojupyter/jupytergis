@@ -227,6 +227,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     if (deleted) {
       this._select.getFeatures().clear();
     }
+
     return deleted;
   }
 
