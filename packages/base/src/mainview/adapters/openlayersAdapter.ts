@@ -77,6 +77,7 @@ import {
   PinchZoom,
   Select,
 } from 'ol/interaction';
+import { defaults } from 'ol/interaction/defaults';
 import {
   Image as ImageLayer,
   Layer,
@@ -300,6 +301,32 @@ export class OpenLayersAdapter implements IMapAdapter {
       controls.push(this._zoomControl);
     }
 
+    // Discard events that should not apply to the map.
+    const discardEventTarget = (
+      event: MapBrowserEvent<KeyboardEvent | PointerEvent | WheelEvent>,
+    ): boolean => {
+      const eventTarget = event.originalEvent.target;
+
+      if (!(eventTarget instanceof Node)) {
+        return false;
+      }
+
+      return this._map?.getTargetElement()?.contains(eventTarget) ?? false;
+    };
+
+    const interactions = defaults({
+      keyboard: false,
+    }).extend([
+      new KeyboardPan({
+        condition: discardEventTarget,
+      }),
+      new KeyboardZoom({
+        condition: discardEventTarget,
+      }),
+    ]);
+
+    target.tabIndex = 0;
+
     this._map = new OlMap({
       target,
       view: new View({
@@ -309,7 +336,8 @@ export class OpenLayersAdapter implements IMapAdapter {
         projection: proj,
       }),
       controls,
-      keyboardEventTarget: document,
+      interactions,
+      keyboardEventTarget: target,
     });
 
     for (const [sourceId, source] of Object.entries(sources)) {
