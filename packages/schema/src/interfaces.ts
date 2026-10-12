@@ -163,13 +163,29 @@ export interface IDrawCustomAttributesAwarenessState {
   emitter?: string | null;
 }
 
+/**
+ * The draw tool as a collaborator is using it: which layer they are drawing on
+ * and which geometry they have armed. Shared so a follower can see their draw
+ * controls without entering drawing mode themselves.
+ */
+export interface IDrawSessionState {
+  layerId: string;
+  geometry?: string;
+}
+
+export interface IDrawSessionAwarenessState {
+  value?: IDrawSessionState | null;
+  emitter?: string | null;
+}
+
 export type FollowDialogKind =
   | 'symbology'
   | 'layerProperties'
   | 'layerCreation'
   | 'processing'
   | 'layerBrowser'
-  | 'storyEditor';
+  | 'storyEditor'
+  | 'drawCustomAttributes';
 
 export interface IOpenDialogState {
   kind: FollowDialogKind;
@@ -226,6 +242,7 @@ export interface IJupyterGISClientState {
   pointer: { value?: Pointer; emitter?: string | null };
   identifiedFeatures: IIdentifiedFeaturesAwarenessState;
   drawCustomAttributes: IDrawCustomAttributesAwarenessState;
+  drawSession: IDrawSessionAwarenessState;
   openDialog: IOpenDialogAwarenessState;
   dialogState: IDialogStateAwarenessState;
   dialogView: IDialogViewAwarenessState;
@@ -241,6 +258,7 @@ export const AWARENESS_STATE_FIELDS = {
   viewportState: 'viewportState',
   identifiedFeatures: 'identifiedFeatures',
   drawCustomAttributes: 'drawCustomAttributes',
+  drawSession: 'drawSession',
   openDialog: 'openDialog',
   dialogState: 'dialogState',
   dialogView: 'dialogView',
@@ -430,6 +448,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
   >;
+  drawSessionChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['drawSession']>
+  >;
   openDialogChanged: ISignal<
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['openDialog']>
@@ -557,6 +579,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     name: string,
     attributes: IDrawCustomAttribute[],
   ): void;
+  syncDrawSession(session: IDrawSessionState | null, emitter?: string): void;
   syncOpenDialog(dialog: IOpenDialogState | null, emitter?: string): void;
   syncDialogState(state: IDict | null, emitter?: string): void;
   setDialogStateKey(key: string, value: unknown, emitter?: string): void;

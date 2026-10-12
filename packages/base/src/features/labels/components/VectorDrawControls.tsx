@@ -8,6 +8,7 @@ import {
   ToggleGroup,
   ToggleGroupItem,
 } from '@/src/shared/components/ToggleGroup';
+import { cn } from '@/src/shared/components/utils';
 
 const DRAW_GEOMETRIES = [
   { value: 'Point', label: 'Point', icon: Circle },
@@ -32,6 +33,10 @@ export interface IVectorDrawControlsProps {
   onToggleDeleteMode: () => void;
   model: IJupyterGISModel;
   drawLayerId?: string;
+  /** Showing what a collaborator we follow is doing: look, do not touch. */
+  readOnly?: boolean;
+  /** The followed collaborator's colour, painted on the tool they have armed. */
+  followColor?: string;
 }
 
 export function VectorDrawControls({
@@ -40,13 +45,26 @@ export function VectorDrawControls({
   onToggleDeleteMode,
   model,
   drawLayerId,
+  readOnly = false,
+  followColor,
 }: IVectorDrawControlsProps): JSX.Element {
   const toggleValue = drawGeometryLabel || SELECT_TOOL_VALUE;
   const status = drawGeometryLabel ? DRAW_STATUS[drawGeometryLabel] : undefined;
 
+  const armed = (value: string): string | undefined =>
+    readOnly && value === toggleValue ? 'jgis-follow-armed' : undefined;
+
   return (
     <div
-      className="jgis-vector-draw-controls"
+      className={cn(
+        'jgis-vector-draw-controls',
+        readOnly && 'jgis-follow-mirror',
+      )}
+      style={
+        followColor
+          ? ({ '--jgis-follow-color': followColor } as React.CSSProperties)
+          : undefined
+      }
       data-tool={drawGeometryLabel || undefined}
     >
       <p className="jgis-vector-draw-controls-status" role="status">
@@ -64,6 +82,8 @@ export function VectorDrawControls({
             value={SELECT_TOOL_VALUE}
             aria-label="Modify"
             title="Modify"
+            className={armed(SELECT_TOOL_VALUE)}
+            disabled={readOnly}
             onClick={() => onDrawGeometryTypeChange(DRAW_SELECT_TOOL)}
           >
             <MousePointer2 />
@@ -74,6 +94,8 @@ export function VectorDrawControls({
               value={value}
               aria-label={label}
               title={label}
+              className={armed(value)}
+              disabled={readOnly}
               onClick={() => onDrawGeometryTypeChange(value)}
             >
               <Icon />
@@ -84,13 +106,19 @@ export function VectorDrawControls({
             aria-label="Delete"
             title="Delete"
             variant={'destructive'}
+            className={armed('delete')}
+            disabled={readOnly}
             onClick={onToggleDeleteMode}
           >
             <Trash2 />
           </ToggleGroupItem>
         </ToggleGroup>
         {drawLayerId ? (
-          <DrawCustomAttributesDialog model={model} drawLayerId={drawLayerId} />
+          <DrawCustomAttributesDialog
+            model={model}
+            drawLayerId={drawLayerId}
+            disabled={readOnly}
+          />
         ) : null}
       </div>
       {drawLayerId ? (

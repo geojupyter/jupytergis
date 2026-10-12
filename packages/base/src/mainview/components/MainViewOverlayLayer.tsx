@@ -1,7 +1,8 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-import { VectorDrawControls } from '@/src/features/labels/components/VectorDrawControls';
+import { DrawCustomAttributesFollowMirror } from '@/src/features/labels/components/DrawCustomAttributesFollowMirror';
+import { FollowableDrawControls } from '@/src/features/labels/components/FollowableDrawControls';
 
 export interface IMainViewOverlayLayerProps {
   annotationFloaters: React.ReactNode;
@@ -28,15 +29,15 @@ export function MainViewOverlayLayer({
     <>
       {annotationFloaters}
       {featureFloaters}
-      {isDrawing ? (
-        <VectorDrawControls
-          drawGeometryLabel={drawGeometryLabel}
-          onDrawGeometryTypeChange={onDrawGeometryTypeChange}
-          onToggleDeleteMode={onToggleDeleteMode}
-          model={model}
-          drawLayerId={drawLayerId}
-        />
-      ) : null}
+      <FollowableDrawControls
+        model={model}
+        isDrawing={isDrawing}
+        drawGeometryLabel={drawGeometryLabel}
+        drawLayerId={drawLayerId}
+        onDrawGeometryTypeChange={onDrawGeometryTypeChange}
+        onToggleDeleteMode={onToggleDeleteMode}
+      />
+      <DrawCustomAttributesFollowMirror model={model} />
     </>
   );
 }
