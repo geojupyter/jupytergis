@@ -259,36 +259,27 @@ export class OpenLayersAdapter implements IMapAdapter {
       controls.push(this._zoomControl);
     }
 
-    // Handle keyboard events only for Notbooks
-    const shouldHandleMapKeyboard = (
+    // Discard keyboard events target only for Notbooks
+    const discardEventTarget = (
       event: MapBrowserEvent<KeyboardEvent | PointerEvent | WheelEvent>,
     ): boolean => {
-      const target = event.originalEvent.target;
+      const eventTarget = event.originalEvent.target;
 
-      if (!(target instanceof HTMLElement)) {
-        return true;
-      }
-
-      // Do not intercept keyboard input in notebook editors.
-      if (
-        target.closest(
-          '.jp-InputArea-editor, .cm-content, ' +
-            'input, textarea, [contenteditable="true"]',
-        )
-      ) {
+      if (!(eventTarget instanceof Node)) {
         return false;
       }
-      return true;
+
+      return this._map?.getTargetElement()?.contains(eventTarget) ?? false;
     };
 
     const interactions = defaults({
       keyboard: false,
     }).extend([
       new KeyboardPan({
-        condition: shouldHandleMapKeyboard,
+        condition: discardEventTarget,
       }),
       new KeyboardZoom({
-        condition: shouldHandleMapKeyboard,
+        condition: discardEventTarget,
       }),
     ]);
 
