@@ -155,6 +155,8 @@ export function defaultScaleForScheme(
         scheme: 'constant_num',
         params: { value: 1 },
       } as IConstantNumScale;
+    case 'constant_str':
+      return { scheme: 'constant_str', params: { value: '' } };
     case 'colorMap':
       return {
         scheme: 'colorMap',
