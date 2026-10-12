@@ -76,6 +76,7 @@ import {
   PinchZoom,
   Select,
 } from 'ol/interaction';
+import { defaults } from 'ol/interaction/defaults';
 import {
   Image as ImageLayer,
   Layer,
@@ -258,6 +259,39 @@ export class OpenLayersAdapter implements IMapAdapter {
       controls.push(this._zoomControl);
     }
 
+    // Handle keyboard events only for Notbooks
+    const shouldHandleMapKeyboard = (
+      event: MapBrowserEvent<KeyboardEvent | PointerEvent | WheelEvent>,
+    ): boolean => {
+      const target = event.originalEvent.target;
+
+      if (!(target instanceof HTMLElement)) {
+        return true;
+      }
+
+      // Do not intercept keyboard input in notebook editors.
+      if (
+        target.closest(
+          '.jp-InputArea-editor, .cm-content, ' +
+            'input, textarea, [contenteditable="true"]',
+        )
+      ) {
+        return false;
+      }
+      return true;
+    };
+
+    const interactions = defaults({
+      keyboard: false,
+    }).extend([
+      new KeyboardPan({
+        condition: shouldHandleMapKeyboard,
+      }),
+      new KeyboardZoom({
+        condition: shouldHandleMapKeyboard,
+      }),
+    ]);
+
     target.tabIndex = 0;
 
     this._map = new OlMap({
@@ -269,6 +303,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         projection: proj,
       }),
       controls,
+      interactions,
       keyboardEventTarget: target,
     });
 
