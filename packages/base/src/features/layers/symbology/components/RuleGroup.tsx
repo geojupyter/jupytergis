@@ -1,3 +1,5 @@
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Encoding, IScale } from '@jupytergis/schema';
 import React from 'react';
 
@@ -14,6 +16,7 @@ import {
   numericValuesFor,
   withDataDomain,
 } from '@/src/features/layers/symbology/scaleDomain';
+import { Button } from '@/src/shared/components/Button';
 
 interface IFieldOption {
   value: string;
@@ -107,6 +110,15 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
                 onChange={scale => onChangeRow(index, { ...row, scale })}
                 onPromote={() => promote({ row, index })}
               />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon-xs"
+                onClick={() => onDeleteRow(index)}
+                title="Remove mapping"
+              >
+                <FontAwesomeIcon icon={faTrash} />
+              </Button>
             </label>
           ))}
         </div>
