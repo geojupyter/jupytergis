@@ -216,6 +216,44 @@ class TestLayerAndSourceObjects(TestDocument):
         )
         assert layer.source.parameters.url == url
 
+    def test_parameters_read_and_write_as_attributes(self):
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+        url = "https://example.com/{z}/{y}/{x}"
+
+        layer.opacity = 0.5
+        layer.source.url = url
+
+        assert layer.opacity == 0.5
+        assert self.doc._layers[layer.id]["parameters"]["opacity"] == 0.5
+        assert layer.source.url == url
+        assert self.doc._sources[layer.source.id]["parameters"]["url"] == url
+        assert "opacity" in dir(layer)
+
+    def test_raw_parameters_read_and_write_as_attributes(self):
+        self.doc._layers["layer-1"] = {
+            "name": "Shapes",
+            "type": "StacLayer",
+            "visible": True,
+            "parameters": {"opacity": 0.5},
+        }
+        layer = self.doc.get_layer("layer-1")
+
+        layer.opacity = 0.2
+
+        assert layer.opacity == 0.2
+        assert self.doc._layers["layer-1"]["parameters"]["opacity"] == 0.2
+
+    def test_layer_source_is_the_source_object_not_its_id(self):
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        assert layer.source.id == layer.get_parameter("source")
+
+    def test_unknown_attribute_raises(self):
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        with pytest.raises(AttributeError):
+            _ = layer.nope
+
 
 class TestGrammarSymbologyBuilders:
     def test_single_list_of_mappings_is_single_layer(self):
@@ -368,6 +406,16 @@ class TestGeoJSONGrammarSymbology(TestDocument):
         assert state.layers is not None
         assert len(state.layers) == 1
         assert len(state.layers[0].rules) >= 1
+
+    def test_setting_symbology_on_a_layer_updates_the_document(self):
+        self.doc._is_ready = True
+        layer = self.doc.add_geojson_layer(data=SAMPLE_GEOJSON, name="Quakes")
+
+        layer.symbology = [[constant("#00FF00").encoding("fill")]]
+
+        stored = self.doc._layers[layer.id]["parameters"]["symbologyState"]
+        assert len(stored["layers"]) == 1
+        assert len(layer.symbology.layers) == 1
 
     def test_apply_symbology_overwrites_with_grammar_state(self):
         # TODO implement it

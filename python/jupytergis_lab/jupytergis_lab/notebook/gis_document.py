@@ -1588,12 +1588,46 @@ class JGISObject(BaseModel):
     def _store(self) -> Map | None:
         return None
 
+    def _parameter_names(self) -> set[str]:
+        parameters = self.__dict__.get("parameters")
+        if isinstance(parameters, dict):
+            return set(parameters)
+        if isinstance(parameters, BaseModel):
+            return set(type(parameters).model_fields)
+        return set()
+
+    def __getattr__(self, name: str) -> Any:
+        """Fall back to the parameters, so ``layer.opacity`` reads a parameter."""
+        try:
+            return super().__getattr__(name)  # type: ignore[misc]
+        except AttributeError:
+            if name in self._parameter_names():
+                return self.get_parameter(name)
+            raise
+
     def __setattr__(self, name: str, value: Any) -> None:
-        """Write public field changes through to the document."""
+        """Write public field and parameter changes through to the document."""
+        if isinstance(getattr(type(self), name, None), property):
+            object.__setattr__(self, name, value)
+            return
+
+        if (
+            not name.startswith("_")
+            and name not in type(self).model_fields
+            and name not in (self.__pydantic_extra__ or {})
+            and name in self._parameter_names()
+        ):
+            self.set_parameter(name, value)
+            return
+
         super().__setattr__(name, value)
 
         if not name.startswith("_"):
             self._write(name, value)
+
+    def __dir__(self) -> list[str]:
+        """List the parameters too, so they tab-complete."""
+        return sorted({*super().__dir__(), *self._parameter_names()})
 
     def _write(self, name: str, value: Any) -> None:
         if isinstance(value, _WritesThrough):
@@ -1641,6 +1675,23 @@ class JGISLayer(JGISObject):
 
     def _store(self) -> Map | None:
         return None if self._parent is None else self._parent._layers
+
+    @property
+    def symbology(self) -> Any:
+        """The layer symbology state."""
+        return self.get_parameter("symbologyState")
+
+    @symbology.setter
+    def symbology(self, symbology: SymbologyInput) -> None:
+        if self._parent is None or self._id is None:
+            raise ValueError("Only a layer in a document can have its symbology set")
+
+        self._parent.apply_symbology(self, symbology)
+
+        parameters = self._parent.get_layer(self._id).parameters
+        BaseModel.__setattr__(self, "parameters", parameters)
+        if isinstance(parameters, _WritesThrough):
+            parameters._owner = self
 
     @property
     def source(self) -> JGISSource | None:
