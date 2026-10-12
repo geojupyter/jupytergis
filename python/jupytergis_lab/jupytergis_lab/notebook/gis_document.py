@@ -1299,7 +1299,7 @@ class GISDocument(CommWidget):
         opacity: float = 1,
         interpolate: bool = False,
         zoom_to: bool = False,
-    ) -> str:
+    ) -> JGISLayer:
         """Add a WMS tile layer to the document.
 
         url:
