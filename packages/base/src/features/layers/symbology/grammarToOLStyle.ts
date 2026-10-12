@@ -61,24 +61,11 @@ function fieldExpr(field: string): ExpressionValue {
 /**
  * Read a feature property as a string, whatever type it is stored as.
  *
- * OL's ['string', a, b] returns the first argument that is already a string
- * and throws if none is, so numbers are converted explicitly through
- * ['to-string', ['number', ...]]. Absent properties short-circuit to the empty
- * string: ['to-string'] calls .toString() on the value and would throw on
- * undefined, and a missing attribute should render no label rather than break
- * the whole style.
+ * Missing and null values coalesce to the empty string, so they render no
+ * label rather than break the style.
  */
 function stringFieldExpr(field: string): ExpressionValue {
-  const get = fieldExpr(field);
-  const asString: ExpressionValue = [
-    'string',
-    get,
-    ['to-string', ['number', get, 0]],
-  ] as ExpressionValue;
-  if (fieldAlwaysPresent(field)) {
-    return asString;
-  }
-  return ['case', ['has', field], asString, ''] as ExpressionValue;
+  return ['to-string', ['coalesce', fieldExpr(field), '']] as ExpressionValue;
 }
 
 /**
