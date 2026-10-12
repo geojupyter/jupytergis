@@ -604,8 +604,6 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   centerOnPosition(id: string): void;
 
   toggleMode(mode: Modes): void;
-  deleteSelectedDrawFeatures(): boolean;
-  setDeleteSelectedDrawFeatures(callback: (() => boolean) | undefined): void;
   checkIfIsADrawVectorLayer(layer: IJGISLayer): boolean;
 
   isTemporalControllerActive: boolean;

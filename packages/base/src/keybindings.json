@@ -30,7 +30,7 @@
     "selector": ".data-jgis-keybinding"
   },
   {
-    "command": "jupytergis:deleteSelection",
+    "command": "jupytergis:removeSelected",
     "keys": ["Delete"],
     "selector": ".data-jgis-keybinding"
   },

@@ -262,6 +262,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     window.addEventListener('resize', this._handleWindowResize);
+    document.addEventListener('keydown', this._handleDeleteKey, true);
     const options = this._model.getOptions();
     const projection = options.projection ?? DEFAULT_PROJECTION;
     const lonLat: [number, number] =
@@ -271,10 +272,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const zoom = options.zoom !== undefined ? options.zoom : 1;
 
     await this.generateMap(lonLat, zoom, projection);
-
-    this._model.setDeleteSelectedDrawFeatures(() => {
-      return this._mapAdapter?.drawTool.deleteSelectedFeatures() ?? false;
-    });
 
     this._syncComparison();
 
@@ -337,6 +334,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   componentWillUnmount(): void {
     window.removeEventListener('resize', this._handleWindowResize);
+    document.removeEventListener('keydown', this._handleDeleteKey, true);
     this._mainViewModel.viewSettingChanged.disconnect(
       this._onViewChanged,
       this,
@@ -413,7 +411,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
 
-    this._model.setDeleteSelectedDrawFeatures(undefined);
     this._mapAdapter?.unregisterMap();
 
     this._model.modeChanged.disconnect(this._handleModeChanged, this);
@@ -1531,6 +1528,31 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _handleWindowResize = (): void => {
     // TODO SOMETHING
+  };
+
+  private _handleDeleteKey = (event: KeyboardEvent): void => {
+    if (event.key !== 'Delete') {
+      return;
+    }
+    if (this._model.currentMode !== 'drawing') {
+      return;
+    }
+
+    const target = event.target;
+    if (
+      target instanceof HTMLElement &&
+      (target.closest('input, textarea, [contenteditable="true"]') ||
+        target.closest('.jgis-story-editor'))
+    ) {
+      return;
+    }
+
+    if (!this._mapAdapter?.drawTool.deleteSelectedFeatures()) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
   };
 
   private _handleSegmentTransitionChange = (

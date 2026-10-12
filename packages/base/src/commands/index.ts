@@ -1237,30 +1237,6 @@ export function addCommands(
     ...icons.get(CommandIDs.removeSelected),
   });
 
-  commands.addCommand(CommandIDs.deleteSelection, {
-    label: trans.__('Delete'),
-    isEnabled: () => {
-      const model = tracker.currentWidget?.model;
-      const selected = model?.localState?.selected?.value;
-      return !!selected && Object.keys(selected).length > 0;
-    },
-    execute: async () => {
-      const model = tracker.currentWidget?.model;
-      if (!model) {
-        return;
-      }
-
-      if (
-        model.currentMode === 'drawing' &&
-        model.deleteSelectedDrawFeatures()
-      ) {
-        return;
-      }
-
-      Private.removeSelectedItems(model);
-    },
-  });
-
   commands.addCommand(CommandIDs.duplicateSelected, {
     label: trans.__('Duplicate'),
 
