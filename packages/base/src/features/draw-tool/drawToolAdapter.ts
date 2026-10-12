@@ -12,6 +12,7 @@ export interface IDrawToolAdapter {
   enterLayer(): void;
   leaveDrawMode(): void;
   deleteAtCoordinate(coordinate: number[]): boolean;
+  deleteSelectedFeatures(): boolean;
   toggleDeleteMode(): void;
   getFeatureAtCoordinate(
     coordinate: number[],

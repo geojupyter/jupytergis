@@ -643,8 +643,7 @@ export function addCommands(
       }
 
       const luminoEvent = args['_luminoEvent'] as
-        | ReadonlyPartialJSONObject
-        | undefined;
+        ReadonlyPartialJSONObject | undefined;
 
       if (luminoEvent) {
         const keysPressed = luminoEvent.keys as string[] | undefined;
@@ -1236,6 +1235,30 @@ export function addCommands(
       await Private.removeSelectedItems(model);
     },
     ...icons.get(CommandIDs.removeSelected),
+  });
+
+  commands.addCommand(CommandIDs.deleteSelection, {
+    label: trans.__('Delete'),
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+      return !!selected && Object.keys(selected).length > 0;
+    },
+    execute: async () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return;
+      }
+
+      if (
+        model.currentMode === 'drawing' &&
+        model.deleteSelectedDrawFeatures()
+      ) {
+        return;
+      }
+
+      Private.removeSelectedItems(model);
+    },
   });
 
   commands.addCommand(CommandIDs.duplicateSelected, {

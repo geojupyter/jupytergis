@@ -12,12 +12,13 @@ import { UUID } from '@lumino/coreutils';
 import type { Map as OlMap } from 'ol';
 import Feature, { type FeatureLike } from 'ol/Feature';
 import { Coordinate } from 'ol/coordinate';
-import { primaryAction, singleClick } from 'ol/events/condition';
+import { primaryAction, singleClick, click } from 'ol/events/condition';
 import { GeoJSON } from 'ol/format';
 import { Type } from 'ol/geom/Geometry';
 import Draw, { DrawEvent } from 'ol/interaction/Draw';
 import Interaction from 'ol/interaction/Interaction';
 import Modify, { ModifyEvent } from 'ol/interaction/Modify';
+import Select from 'ol/interaction/Select';
 import Snap from 'ol/interaction/Snap';
 import { Layer } from 'ol/layer';
 import RenderFeature from 'ol/render/Feature';
@@ -49,6 +50,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
   private _draw: Draw | undefined;
   private _snap: Snap | undefined;
   private _modify: Modify | undefined;
+  private _select: Select | undefined;
   private _deleteClick: Interaction | undefined;
   private _deleting = false;
   private _currentDrawLayerId: string | undefined;
@@ -204,6 +206,28 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     this._persist(source);
 
     return true;
+  }
+
+  deleteSelectedFeatures(): boolean {
+    if (!this._select || !this._currentDrawLayerId) {
+      return false;
+    }
+
+    const hits = this._select.getFeatures().getArray().slice();
+    if (hits.length === 0) {
+      return false;
+    }
+
+    const source = this._resolveVectorSource(this._currentDrawLayerId);
+    if (!source) {
+      return false;
+    }
+
+    const deleted = this._deleteHits(source, hits);
+    if (deleted) {
+      this._select.getFeatures().clear();
+    }
+    return deleted;
   }
 
   hasFeatureAtCoordinate(coordinate: Coordinate): boolean {
@@ -464,6 +488,13 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       this._host.setModifyHighlight([]);
     }
 
+    if (this._select) {
+      this._select.getFeatures().clear();
+      this._select.setActive(false);
+      map.removeInteraction(this._select);
+      this._select = undefined;
+    }
+
     if (this._deleteClick) {
       this._deleteClick.setActive(false);
       map.removeInteraction(this._deleteClick);
@@ -507,7 +538,20 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       return;
     }
 
-    this._modify = new Modify({ source: drawSource });
+    if (!this._currentDrawGeometry) {
+      this._select = new Select({
+        condition: click,
+        layers: layer => this._isDrawLayerFilter(layer),
+        style: drawInteractionStyle,
+      });
+      map.addInteraction(this._select);
+    }
+
+    this._modify = new Modify(
+      this._select
+        ? { features: this._select.getFeatures() }
+        : { source: drawSource },
+    );
     this._modify.on('modifystart', (event: ModifyEvent) => {
       if (this._draw) {
         this._draw.setActive(false);

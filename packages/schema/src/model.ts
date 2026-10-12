@@ -435,6 +435,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   dispose(): void {
+    this._deleteSelectedDrawFeatures = undefined;
     this._storyPreviewActive = false;
     if (this._isDisposed) {
       return;
@@ -1479,6 +1480,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.modeChanged.emit(value);
   }
 
+  deleteSelectedDrawFeatures(): boolean {
+    return this._deleteSelectedDrawFeatures?.() ?? false;
+  }
+
+  setDeleteSelectedDrawFeatures(callback: (() => boolean) | undefined): void {
+    this._deleteSelectedDrawFeatures = callback;
+  }
+
   setUIState(value: Partial<IJGISUIState>): void {
     this._localUIState = { ...this._localUIState, ...value };
     this._uiStateChanged.emit(this._localUIState as IJGISUIState);
@@ -1736,6 +1745,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _jgisSettings: IJupyterGISSettings;
 
   private _currentMode: Modes = 'panning';
+  private _deleteSelectedDrawFeatures: (() => boolean) | undefined;
 
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;

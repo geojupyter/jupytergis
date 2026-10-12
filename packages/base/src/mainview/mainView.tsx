@@ -272,6 +272,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     await this.generateMap(lonLat, zoom, projection);
 
+    this._model.setDeleteSelectedDrawFeatures(() => {
+      return this._mapAdapter?.drawTool.deleteSelectedFeatures() ?? false;
+    });
+
     this._syncComparison();
 
     if (window.jupytergisMaps !== undefined) {
@@ -409,6 +413,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // Clean up story scroll listener
     this._cleanupStoryScrollListener();
 
+    this._model.setDeleteSelectedDrawFeatures(undefined);
     this._mapAdapter?.unregisterMap();
 
     this._model.modeChanged.disconnect(this._handleModeChanged, this);

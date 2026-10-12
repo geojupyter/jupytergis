@@ -38,6 +38,7 @@ export const drawFeaturesOnSelectedLayer =
   'jupytergis:drawFeaturesOnSelectedLayer';
 export const drawFeaturesOnNewLayer = 'jupytergis:drawFeaturesOnNewLayer';
 export const deleteSelectedFeatures = 'jupytergis:deleteSelectedFeatures';
+export const deleteSelection = 'jupytergis:deleteSelection';
 export const editSelectedFeature = 'jupytergis:editSelectedFeature';
 
 // Layer and group actions
