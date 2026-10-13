@@ -183,18 +183,24 @@ function compileGrammarLayer(
  * while MapLibre draws later layers on top, so we walk the list in reverse.
  */
 export function grammarToMapLibreLayers(
-  o: IGrammarToMapLibreOptions,
+  options: IGrammarToMapLibreOptions,
 ): IMapLibreLayerSpec[] {
-  const grammarLayers = (o.state?.layers ?? []).filter(
+  const allGrammarLayers = options.state?.layers ?? [];
+  const grammarLayers = allGrammarLayers.filter(
     gl => !gl.preprocess?.some(t => t.type === 'kde'),
   );
 
   if (grammarLayers.length === 0) {
-    // No symbology yet (or only KDE): draw with the default style.
-    return compileGrammarLayer(o, undefined, 0);
+    // Use the default style only when no grammar was configured.
+    if (allGrammarLayers.length === 0) {
+      return compileGrammarLayer(options, undefined, 0);
+    }
+
+    // All configured grammar layers are KDE, which is unsupported for now.
+    return [];
   }
 
   return [...grammarLayers]
     .reverse()
-    .flatMap((gl, i) => compileGrammarLayer(o, gl, i));
+    .flatMap((gl, i) => compileGrammarLayer(options, gl, i));
 }
