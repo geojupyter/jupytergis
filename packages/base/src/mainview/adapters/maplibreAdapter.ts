@@ -612,6 +612,8 @@ export class MapLibreAdapter implements IMapAdapter {
           `MapLibreAdapter: skipping layer ${id}. ${unsupported}`,
         );
         this._callbacks?.onLayerError?.(id, unsupported);
+        this._settledLayers.add(id);
+        this._callbacks?.onLayerInserted?.(this._settledLayers.size);
         return;
       }
 
@@ -624,9 +626,8 @@ export class MapLibreAdapter implements IMapAdapter {
       this._insertIntoLayerOrder(id, index);
       this._trackLayerViewState(id);
 
-      this._callbacks?.onLayerInserted?.(
-        this._map.getStyle().layers?.length ?? 0,
-      );
+      this._settledLayers.add(id);
+      this._callbacks?.onLayerInserted?.(this._settledLayers.size);
     } finally {
       this._loadingLayers.delete(id);
       this._callbacks?.onLayerAddSettled?.(id);
@@ -1555,6 +1556,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _presentationHadNavigationControl = false;
   private _layerVisibility = new Map<string, boolean>();
   private _loadingLayers: Set<string>;
+  private _settledLayers = new Set<string>();
   private _pendingSourceAdds = new Map<string, Promise<void>>();
   private _lastPointerCoord: MLCoordinates | null = null;
   private _sourceToLayerMap = new Map<string, string>();
