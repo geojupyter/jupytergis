@@ -95,8 +95,6 @@ export function ListStoryScrollTrackProvider({
     () => getSpectaPresentationCssVars(storyData),
     [
       storyData?.storyType,
-      storyData?.presentationBgColor,
-      storyData?.presentationTextColor,
       storyData?.overlayContentWidth,
       storyData?.markdownSegmentOpacity,
       storyData?.storyPanelOpacity,
