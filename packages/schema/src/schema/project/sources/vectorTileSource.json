@@ -56,7 +56,7 @@
     },
     "sourceLayer": {
       "type": "string",
-      "description": "The layer name inside the vector tiles",
+      "description": "The layer name inside the vector tiles, Reopen the document after setting this parameter.",
       "default": ""
     }
   }

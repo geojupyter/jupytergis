@@ -503,13 +503,126 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   async updateSource(id: string, source: IJGISSource): Promise<void> {
-    const layerId = this._sourceToLayerMap.get(id);
-    const jgisLayer = layerId ? this._model.getLayer(layerId) : undefined;
+    // One update at a time per source: addSource() hands back an in-flight add
+    // for the same id, which would swallow a newer update.
+    const previous = this._sourceUpdates.get(id) ?? Promise.resolve();
+    const run = previous
+      .catch(() => undefined)
+      .then(() => this._replaceSource(id, source));
+    this._sourceUpdates.set(id, run);
 
-    if (!layerId || !jgisLayer) {
+    try {
+      await run;
+    } finally {
+      if (this._sourceUpdates.get(id) === run) {
+        this._sourceUpdates.delete(id);
+      }
+    }
+  }
+
+  private async _replaceSource(id: string, source: IJGISSource): Promise<void> {
+    const layers = this._model.getLayers();
+
+    // Every JGIS layer currently drawn from this source.
+    const dependentIds = Object.keys(layers).filter(
+      layerId =>
+        layers[layerId].parameters?.source === id &&
+        this._layerSubIds.has(layerId),
+    );
+
+    if (dependentIds.length === 0) {
       this.removeSource(id);
       await this.addSource(id, source);
       return;
+    }
+
+    // Remember where each dependent sits in the style: the first style layer
+    // above it that is not itself being rebuilt.
+    const styleIds = this._map.getStyle().layers.map(l => l.id);
+    const dependentSubIds = new Set(
+      dependentIds.flatMap(layerId => this._layerSubIds.get(layerId) ?? []),
+    );
+    const placements = dependentIds
+      .map(layerId => {
+        const positions = (this._layerSubIds.get(layerId) ?? [])
+          .map(subId => styleIds.indexOf(subId))
+          .filter(position => position >= 0);
+        const top = positions.length ? Math.max(...positions) : -1;
+        const beforeId =
+          top >= 0
+            ? styleIds.slice(top + 1).find(sid => !dependentSubIds.has(sid))
+            : undefined;
+        return { layerId, top, beforeId };
+      })
+      // Rebuild bottom to top so relative order is preserved.
+      .sort((a, b) => a.top - b.top);
+
+    // MapLibre refuses to remove a source that style layers still use.
+    for (const { layerId } of placements) {
+      this._removeStyleLayers(layerId);
+    }
+
+    this.removeSource(id);
+    await this.addSource(id, source);
+
+    if (!this._map.getSource(id)) {
+      for (const { layerId } of placements) {
+        this.removeLayer(layerId);
+        this._callbacks?.onLayerError?.(
+          layerId,
+          `Source "${source.name ?? id}" could not be reloaded.`,
+        );
+      }
+      return;
+    }
+
+    for (const { layerId, beforeId } of placements) {
+      // Re-read: the model may have changed while the source was loading.
+      const layer = this._model.getLayers()[layerId];
+      if (!layer) {
+        this.removeLayer(layerId);
+        continue;
+      }
+
+      const unsupported = getUnsupportedReason(
+        this.supportedFeatures,
+        layer,
+        source,
+      );
+      if (unsupported) {
+        this._log(
+          'warning',
+          `MapLibreAdapter: dropping layer ${layerId} after source update. ${unsupported}`,
+        );
+        this.removeLayer(layerId);
+        this._callbacks?.onLayerError?.(layerId, unsupported);
+        continue;
+      }
+
+      try {
+        await this._buildMapLayer(layerId, layer);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        this._log(
+          'error',
+          `MapLibreAdapter: failed to rebuild layer ${layerId}. ${message}`,
+        );
+        this.removeLayer(layerId);
+        this._callbacks?.onLayerError?.(layerId, message);
+        continue;
+      }
+
+      // _buildMapLayer appends on top; put it back where it was.
+      if (beforeId && this._map.getLayer(beforeId)) {
+        for (const subId of this._layerSubIds.get(layerId) ?? []) {
+          if (this._map.getLayer(subId)) {
+            this._map.moveLayer(subId, beforeId);
+          }
+        }
+      }
+
+      this._sourceToLayerMap.set(id, layerId);
+      this._trackLayerViewState(layerId); // extent may have changed
     }
   }
 
@@ -790,7 +903,9 @@ export class MapLibreAdapter implements IMapAdapter {
 
     this._layerVisibility.set(id, visible);
   }
-  removeLayer(id: string): void {
+
+  /** Removes the layer's MapLibre style layers but keeps its order/visibility. */
+  private _removeStyleLayers(id: string): void {
     if (this._terrainLayerId === id) {
       this._clearTerrain();
     }
@@ -802,6 +917,10 @@ export class MapLibreAdapter implements IMapAdapter {
       }
     }
     this._layerSubIds.delete(id);
+  }
+
+  removeLayer(id: string): void {
+    this._removeStyleLayers(id);
     this._layerVisibility.delete(id);
     const orderIndex = this._layerOrder.indexOf(id);
     if (orderIndex !== -1) {
@@ -1560,6 +1679,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _pendingSourceAdds = new Map<string, Promise<void>>();
   private _lastPointerCoord: MLCoordinates | null = null;
   private _sourceToLayerMap = new Map<string, string>();
+  private _sourceUpdates = new Map<string, Promise<void>>();
   private _geojsonData = new Map<string, GeoJSONFeature | FeatureCollection>();
   private _terrainLayerId: string | null = null;
   private _layerSubIds = new Map<string, string[]>();
