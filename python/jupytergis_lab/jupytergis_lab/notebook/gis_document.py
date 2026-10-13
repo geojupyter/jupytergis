@@ -1628,8 +1628,12 @@ class JGISObject(BaseModel):
             not name.startswith("_")
             and name not in type(self).model_fields
             and name not in (self.__pydantic_extra__ or {})
-            and name in self._parameter_names()
         ):
+            if name not in self._parameter_names():
+                raise AttributeError(
+                    f"{type(self).__name__} has no attribute or parameter {name!r}",
+                )
+
             self.set_parameter(name, value)
             return
 
