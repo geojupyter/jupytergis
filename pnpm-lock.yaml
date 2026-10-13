@@ -252,9 +252,6 @@ importers:
       lerna:
         specifier: ^9.0.7
         version: 9.0.7(@types/node@18.19.130)(debug@4.4.3(supports-color@8.1.1))(supports-color@8.1.1)
-      maplibre-gl:
-        specifier: ^6.10.0
-        version: 6.10.0
       npm-run-all:
         specifier: ^4.1.5
         version: 4.1.5
@@ -465,6 +462,9 @@ importers:
       lucide-react:
         specifier: ^0.513.0
         version: 0.513.0(react@18.3.1)
+      maplibre-gl:
+        specifier: ^6.10.0
+        version: 6.10.0
       ol:
         specifier: ^10.1.0
         version: 10.9.0
