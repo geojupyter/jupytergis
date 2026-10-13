@@ -31,10 +31,12 @@ import {
   IControl,
   LngLatBoundsLike,
   Map as MlMap,
+  MapSourceDataEvent,
   NavigationControl,
   RasterDEMSourceSpecification,
   ScaleControl,
   setWorkerUrl,
+  MapGeoJSONFeature,
 } from 'maplibre-gl';
 import { FeatureLike } from 'ol/Feature';
 
@@ -400,22 +402,42 @@ export class MapLibreAdapter implements IMapAdapter {
             attribution: sourceParameters.attribution,
           });
 
-          this._map.on('sourcedata', e => {
+          const handleSourceData = (e: MapSourceDataEvent) => {
             if (e.sourceId !== id || !e.isSourceLoaded) {
               return;
             }
+
             const sourceLayer = this._resolveVectorSourceLayer(id);
             const features = this._map.querySourceFeatures(id, { sourceLayer });
-            if (features.length > 0) {
-              this._model.syncTileFeatures({
-                sourceId: id,
-                features: features.map(f => ({
-                  ...f,
-                  getProperties: () => f.properties ?? {},
-                })) as unknown as FeatureLike[],
-              });
-            }
-          });
+
+            const featureMap = new Map<string, FeatureLike>();
+
+            features.forEach((feature, index) => {
+              // Prefer the stable ID provided by the vector-tile feature.
+              // Fall back to its content when no ID is available.
+              const features = feature as MapGeoJSONFeature;
+              const featureId =
+                feature.id !== undefined
+                  ? `${features.sourceLayer ?? sourceLayer}:${feature.id}`
+                  : `${features.sourceLayer ?? sourceLayer}:${JSON.stringify([
+                      feature.geometry,
+                      feature.properties,
+                    ])}`;
+
+              featureMap.set(featureId || `${sourceLayer}:${index}`, {
+                ...feature,
+                getProperties: () => feature.properties ?? {},
+              } as unknown as FeatureLike);
+            });
+
+            this._model.replaceTileFeatures({
+              sourceId: id,
+              features: featureMap,
+            });
+          };
+
+          this._map.on('sourcedata', handleSourceData);
+          this._sourceDataHandlers.set(id, handleSourceData);
 
           break;
         }
@@ -472,6 +494,8 @@ export class MapLibreAdapter implements IMapAdapter {
       }
       this._map.removeSource(terrainSourceId);
     }
+    this._clearVectorTileSource(id);
+
     if (this._map.getSource(id)) {
       this._map.removeSource(id);
     }
@@ -487,6 +511,17 @@ export class MapLibreAdapter implements IMapAdapter {
       await this.addSource(id, source);
       return;
     }
+  }
+
+  private _clearVectorTileSource(sourceId: string): void {
+    const handler = this._sourceDataHandlers.get(sourceId);
+
+    if (handler) {
+      this._map.off('sourcedata', handler);
+      this._sourceDataHandlers.delete(sourceId);
+    }
+
+    this._model.clearTileFeatures(sourceId);
   }
 
   private _computeSourceUrl(source: IJGISSource): string {
@@ -1533,4 +1568,8 @@ export class MapLibreAdapter implements IMapAdapter {
   private _controlsTarget?: HTMLElement;
   private _scaleControl?: ScaleControl;
   private _fullscreenControl?: FullscreenControl;
+  private _sourceDataHandlers = new Map<
+    string,
+    (e: MapSourceDataEvent) => void
+  >();
 }

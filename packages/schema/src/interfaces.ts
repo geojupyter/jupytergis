@@ -513,6 +513,14 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     sourceId: string;
     features: FeatureLike[];
   }) => void;
+  replaceTileFeatures: ({
+    sourceId,
+    features,
+  }: {
+    sourceId: string;
+    features: Map<string, FeatureLike>;
+  }) => void;
+  clearTileFeatures: (sourceId: string) => void;
 
   getSettings(): Promise<ISettingRegistry.ISettings>;
   settingsReady: Promise<void>;
