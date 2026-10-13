@@ -449,19 +449,6 @@
   pointer-events: none;
 }
 
-.jGIS-property-panel
-  .jp-FormGroup-content
-  fieldset
-  .jp-inputFieldWrapper
-  > input#root_presentationBgColor,
-.jGIS-property-panel
-  .jp-FormGroup-content
-  fieldset
-  .jp-inputFieldWrapper
-  > input#root_presentationTextColor {
-  height: revert;
-}
-
 .jgis-mobile-specta-trigger-wrapper {
   position: fixed;
   bottom: 0.125rem;
