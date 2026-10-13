@@ -530,19 +530,23 @@ export class OpenLayersAdapter implements IMapAdapter {
       this._addMarker(event);
     });
 
-    this._map
-      .getViewport()
-      .addEventListener('pointermove', (event: PointerEvent) => {
-        const pixel = this._map.getEventPixel(event);
-        this._lastPointerCoord = this._map.getCoordinateFromPixel(pixel);
-        this._syncPointer(this._lastPointerCoord);
-      });
+    const viewport = this._map.getViewport();
 
-    this._map.getViewport().addEventListener('pointerleave', () => {
+    if (!viewport) {
+      return;
+    }
+
+    viewport.addEventListener('pointermove', (event: PointerEvent) => {
+      const pixel = this._map.getEventPixel(event);
+      this._lastPointerCoord = this._map.getCoordinateFromPixel(pixel);
+      this._syncPointer(this._lastPointerCoord);
+    });
+
+    viewport.addEventListener('pointerleave', () => {
       this._syncPointer(null);
     });
 
-    this._map.getViewport().addEventListener('contextmenu', event => {
+    viewport.addEventListener('contextmenu', event => {
       event.preventDefault();
       event.stopPropagation();
       this._callbacks?.onContextMenu?.(
@@ -790,7 +794,13 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   getViewportId(): string {
-    return this._map.getViewport().id;
+    const viewport = this._map.getViewport();
+
+    if (!viewport) {
+      throw new Error('Map viewport is not available');
+    }
+
+    return viewport.id;
   }
 
   getProjection(): IMapProjection {
@@ -1696,6 +1706,11 @@ export class OpenLayersAdapter implements IMapAdapter {
       featureProjection: this._map.getView().getProjection(),
     });
 
+    if (!olGeometry) {
+      this._log('warning', 'Failed to parse geometry for flyToGeometry');
+      return;
+    }
+
     const view = this._map.getView();
 
     view.fit(olGeometry.getExtent(), {
@@ -1726,6 +1741,11 @@ export class OpenLayersAdapter implements IMapAdapter {
       : new GeoJSON().readGeometry(geometry, {
           featureProjection: this._map.getView().getProjection(),
         });
+
+    if (!parsedGeometry) {
+      this._log('warning', 'Failed to parse geometry for highlighting');
+      return;
+    }
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
@@ -3526,6 +3546,10 @@ export class OpenLayersAdapter implements IMapAdapter {
         dataProjection: 'EPSG:4326',
         featureProjection: viewProj,
       });
+
+      if (!geometry) {
+        continue;
+      }
 
       const olFeature = new Feature({ geometry });
       olFeature.setId(feature.id);
