@@ -11,7 +11,7 @@ import xml.etree.ElementTree as ET
 from enum import Enum
 from importlib.metadata import version
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, Self, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, Self, cast
 from urllib.parse import urlparse
 from uuid import uuid4
 
@@ -1544,6 +1544,8 @@ class JGISObject(BaseModel):
     type: Any
     parameters: Any
 
+    _type_enum: ClassVar[type[Enum] | None] = None
+
     _parent: Any = PrivateAttr(default=None)
     _id: str | None = PrivateAttr(default=None)
 
@@ -1555,6 +1557,21 @@ class JGISObject(BaseModel):
         if isinstance(obj.parameters, _WritesThrough):
             obj.parameters._owner = obj
         return obj
+
+    @field_validator("type", mode="plain", check_fields=False)
+    @classmethod
+    def _keep_type_as_stored(cls, object_type: Any) -> Any:
+        """Keep a type this version has no enum member for.
+
+        A document written against a newer schema still has to read back, so an
+        unknown type stays the raw string rather than failing validation.
+        """
+        if cls._type_enum is None:
+            return object_type
+        try:
+            return cls._type_enum(object_type)
+        except ValueError:
+            return object_type
 
     @field_validator("parameters", mode="plain", check_fields=False)
     @classmethod
@@ -1690,7 +1707,7 @@ class JGISObject(BaseModel):
 
 
 class JGISLayer(JGISObject):
-    type: LayerType
+    type: LayerType | str
     visible: bool
     parameters: (
         IRasterLayer
@@ -1704,6 +1721,8 @@ class JGISLayer(JGISObject):
         | IOpenEOTileLayer
         | dict[str, Any]
     )
+
+    _type_enum: ClassVar[type[Enum] | None] = LayerType
 
     def _store(self) -> Map | None:
         return None if self._parent is None else self._parent._layers
@@ -1737,7 +1756,7 @@ class JGISLayer(JGISObject):
 
 
 class JGISSource(JGISObject):
-    type: SourceType
+    type: SourceType | str
     parameters: (
         IRasterSource
         | IVectorTileSource
@@ -1754,6 +1773,8 @@ class JGISSource(JGISObject):
         | IOpenEOTileSource
         | dict[str, Any]
     )
+
+    _type_enum: ClassVar[type[Enum] | None] = SourceType
 
     def _store(self) -> Map | None:
         return None if self._parent is None else self._parent._sources
