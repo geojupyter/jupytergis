@@ -49,13 +49,3 @@ export function getSpectaPresentationCssVars(
 
   return style;
 }
-
-/**
- * Full inline style for solid surfaces (e.g. mobile drawer).
- * Do not use on `.jgis-specta-story-panel-container` — it overrides the gradient.
- */
-export function getSpectaPresentationStyle(
-  story: IJGISStoryMap | null,
-): CSSProperties {
-  return getSpectaPresentationCssVars(story);
-}

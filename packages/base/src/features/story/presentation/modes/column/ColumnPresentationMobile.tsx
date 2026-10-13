@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
 import type { IStoryPresentationMobileChromeProps } from '@/src/features/story/presentation/types';
-import { getSpectaPresentationStyle } from '@/src/features/story/utils/spectaPresentation';
+import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import { Button } from '@/src/shared/components/Button';
 import {
   Drawer,
@@ -67,7 +67,7 @@ export function ColumnPresentationMobile({
   ]);
   const [snap, setSnap] = useState<number | null>(SNAP_FIRST_DEFAULT);
 
-  const presentationStyle = getSpectaPresentationStyle(storyData);
+  const presentationStyle = getSpectaPresentationCssVars(storyData);
 
   useEffect(() => {
     const isInSnapPoints = snapPoints.some(
