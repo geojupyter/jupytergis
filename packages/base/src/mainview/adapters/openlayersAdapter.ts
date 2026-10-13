@@ -62,6 +62,7 @@ import type { EventsKey } from 'ol/events';
 import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
+import FeatureFormat from 'ol/format/Feature';
 import { Geometry as OLGeometry, Point } from 'ol/geom';
 import {
   DoubleClickZoom,
@@ -383,7 +384,7 @@ export class OpenLayersAdapter implements IMapAdapter {
    */
   private _setupInteractions(): void {
     const dragAndDropInteraction = new DragAndDrop({
-      formatConstructors: [GeoJSON],
+      formatConstructors: [GeoJSON as unknown as typeof FeatureFormat],
     });
 
     dragAndDropInteraction.on('addfeatures', event => {
