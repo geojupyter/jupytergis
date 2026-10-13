@@ -54,6 +54,7 @@ import { FeatureLike } from 'ol/Feature';
 import { GeolocationError } from 'ol/Geolocation';
 import { unByKey } from 'ol/Observable';
 import TileState from 'ol/TileState';
+import { asArray } from 'ol/color';
 import { Control, FullScreen, Rotate, ScaleLine, Zoom } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
 import { linear } from 'ol/easing';
@@ -61,6 +62,7 @@ import type { EventsKey } from 'ol/events';
 import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
+import FeatureFormat from 'ol/format/Feature';
 import { Geometry as OLGeometry, Point } from 'ol/geom';
 import {
   DoubleClickZoom,
@@ -76,6 +78,7 @@ import {
   PinchZoom,
   Select,
 } from 'ol/interaction';
+import { defaults } from 'ol/interaction/defaults';
 import {
   Image as ImageLayer,
   Layer,
@@ -147,6 +150,7 @@ import {
 import { markerIcon } from '@/src/shared/icons';
 import {
   debounce,
+  getCssVarValue,
   INTERNAL_PROXY_BASE,
   isJupyterLite,
   loadFile,
@@ -196,6 +200,46 @@ function setClipPath(
         element.style.clipPath = clip;
       }
     });
+}
+
+/** Highlight tombstoned baseline features that are pending delete. */
+function highlightTombstones(rules: Rule[], ids: readonly string[]): Rule[] {
+  if (ids.length === 0) {
+    return rules;
+  }
+
+  const marked = [
+    'any',
+    ['in', ['get', 'id'], ['literal', ids]],
+    ['in', ['get', '_id'], ['literal', ids]],
+  ];
+  const stroke = getCssVarValue('--jp-error-color1') || '#e67e22';
+  const [red, green, blue] = asArray(
+    getCssVarValue('--jp-error-color0') || '#e67e22',
+  );
+
+  return [
+    ...rules,
+    {
+      filter: marked,
+      style: {
+        'stroke-color': stroke,
+        'stroke-width': 3,
+        'stroke-line-dash': [8, 6],
+        'fill-color': `rgba(${red}, ${green}, ${blue}, 0.28)`,
+        'circle-radius': 9,
+        'circle-fill-color': 'none',
+        'circle-stroke-color': stroke,
+        'circle-stroke-width': 3,
+        'circle-stroke-line-dash': [4, 3],
+        'z-index': 1,
+      },
+    },
+  ];
+}
+
+function tombstoneKey(ids: readonly string[]): string {
+  return [...ids].sort().join('\0');
 }
 
 export class OpenLayersAdapter implements IMapAdapter {
@@ -262,6 +306,32 @@ export class OpenLayersAdapter implements IMapAdapter {
       controls.push(this._zoomControl);
     }
 
+    // Discard events that should not apply to the map.
+    const discardEventTarget = (
+      event: MapBrowserEvent<KeyboardEvent | PointerEvent | WheelEvent>,
+    ): boolean => {
+      const eventTarget = event.originalEvent.target;
+
+      if (!(eventTarget instanceof Node)) {
+        return false;
+      }
+
+      return this._map?.getTargetElement()?.contains(eventTarget) ?? false;
+    };
+
+    const interactions = defaults({
+      keyboard: false,
+    }).extend([
+      new KeyboardPan({
+        condition: discardEventTarget,
+      }),
+      new KeyboardZoom({
+        condition: discardEventTarget,
+      }),
+    ]);
+
+    target.tabIndex = 0;
+
     this._map = new OlMap({
       target,
       view: new View({
@@ -271,7 +341,8 @@ export class OpenLayersAdapter implements IMapAdapter {
         projection: proj,
       }),
       controls,
-      keyboardEventTarget: document,
+      interactions,
+      keyboardEventTarget: target,
     });
 
     for (const [sourceId, source] of Object.entries(sources)) {
@@ -317,7 +388,7 @@ export class OpenLayersAdapter implements IMapAdapter {
    */
   private _setupInteractions(): void {
     const dragAndDropInteraction = new DragAndDrop({
-      formatConstructors: [GeoJSON],
+      formatConstructors: [GeoJSON as unknown as typeof FeatureFormat],
     });
 
     dragAndDropInteraction.on('addfeatures', event => {
@@ -464,19 +535,23 @@ export class OpenLayersAdapter implements IMapAdapter {
       this._addMarker(event);
     });
 
-    this._map
-      .getViewport()
-      .addEventListener('pointermove', (event: PointerEvent) => {
-        const pixel = this._map.getEventPixel(event);
-        this._lastPointerCoord = this._map.getCoordinateFromPixel(pixel);
-        this._syncPointer(this._lastPointerCoord);
-      });
+    const viewport = this._map.getViewport();
 
-    this._map.getViewport().addEventListener('pointerleave', () => {
+    if (!viewport) {
+      throw new Error('Map viewport is not available');
+    }
+
+    viewport.addEventListener('pointermove', (event: PointerEvent) => {
+      const pixel = this._map.getEventPixel(event);
+      this._lastPointerCoord = this._map.getCoordinateFromPixel(pixel);
+      this._syncPointer(this._lastPointerCoord);
+    });
+
+    viewport.addEventListener('pointerleave', () => {
       this._syncPointer(null);
     });
 
-    this._map.getViewport().addEventListener('contextmenu', event => {
+    viewport.addEventListener('contextmenu', event => {
       event.preventDefault();
       event.stopPropagation();
       this._callbacks?.onContextMenu?.(
@@ -724,7 +799,13 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   getViewportId(): string {
-    return this._map.getViewport().id;
+    const viewport = this._map.getViewport();
+
+    if (!viewport) {
+      throw new Error('Map viewport is not available');
+    }
+
+    return viewport.id;
   }
 
   getProjection(): IMapProjection {
@@ -1367,7 +1448,11 @@ export class OpenLayersAdapter implements IMapAdapter {
   ): LayerGroup {
     const layerParameters = layer.parameters as IVectorLayer;
     const storeParams = source.parameters as IFeatureStoreSource;
-    const style = this.vectorLayerStyleRuleBuilder(layer);
+    const overlayStyle = this.vectorLayerStyleRuleBuilder(layer);
+    const baselineStyle = highlightTombstones(
+      overlayStyle,
+      this._tombstoneIds(storeParams.storeId),
+    );
     const children: Layer[] = [];
     const baseline = this._featureStoreSources.get(
       storeParams.storeId,
@@ -1378,7 +1463,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         new VectorTileLayer({
           opacity: layerParameters.opacity,
           source: baseline,
-          style,
+          style: baselineStyle,
         }),
       );
     }
@@ -1386,9 +1471,16 @@ export class OpenLayersAdapter implements IMapAdapter {
       new VectorImageLayer({
         opacity: layerParameters.opacity,
         source: this._sources.get(layerParameters.source),
-        style,
+        style: overlayStyle,
       }),
     );
+
+    if (storeParams.storeId) {
+      this._tombstoneKeys.set(
+        storeParams.storeId,
+        tombstoneKey(this._tombstoneIds(storeParams.storeId)),
+      );
+    }
 
     return new LayerGroup({
       layers: children,
@@ -1630,6 +1722,11 @@ export class OpenLayersAdapter implements IMapAdapter {
       featureProjection: this._map.getView().getProjection(),
     });
 
+    if (!olGeometry) {
+      this._log('warning', 'Failed to parse geometry for flyToGeometry');
+      return;
+    }
+
     const view = this._map.getView();
 
     view.fit(olGeometry.getExtent(), {
@@ -1660,6 +1757,11 @@ export class OpenLayersAdapter implements IMapAdapter {
       : new GeoJSON().readGeometry(geometry, {
           featureProjection: this._map.getView().getProjection(),
         });
+
+    if (!parsedGeometry) {
+      this._log('warning', 'Failed to parse geometry for highlighting');
+      return;
+    }
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
@@ -1961,6 +2063,15 @@ export class OpenLayersAdapter implements IMapAdapter {
 
         if (mapLayer instanceof LayerGroup) {
           mapLayer.setVisible(layer.visible);
+          if (jgisSource?.type === 'FeatureStoreSource') {
+            const storeId = (jgisSource.parameters as IFeatureStoreSource)
+              .storeId;
+            if (storeId) {
+              this._applyFeatureStoreGroupStyle(mapLayer, layer, storeId);
+            }
+            break;
+          }
+
           const style = this.vectorLayerStyleRuleBuilder(layer);
 
           mapLayer.getLayers().forEach(child => {
@@ -1989,6 +2100,22 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
       case 'VectorTileLayer': {
         const layerParams = layer.parameters as IVectorTileLayer;
+        const tileSource = layerParams.source
+          ? this._model.getSource(layerParams.source)
+          : undefined;
+
+        if (
+          mapLayer instanceof LayerGroup &&
+          tileSource?.type === 'FeatureStoreSource'
+        ) {
+          mapLayer.setVisible(layer.visible);
+          const storeId = (tileSource.parameters as IFeatureStoreSource)
+            .storeId;
+          if (storeId) {
+            this._applyFeatureStoreGroupStyle(mapLayer, layer, storeId);
+          }
+          break;
+        }
 
         mapLayer.setOpacity(layerParams.opacity ?? 1);
 
@@ -2746,6 +2873,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       const storeId = (jgisSource.parameters as IFeatureStoreSource).storeId;
       if (storeId) {
         this._featureStoreSources.delete(storeId);
+        this._tombstoneKeys.delete(storeId);
       }
     }
 
@@ -3005,8 +3133,11 @@ export class OpenLayersAdapter implements IMapAdapter {
         return;
       }
 
-      const style = this.vectorLayerStyleRuleBuilder(
-        this._model.getLayer(layerId)!,
+      const jgisLayer = this._model.getLayer(layerId)!;
+      const overlayStyle = this.vectorLayerStyleRuleBuilder(jgisLayer);
+      const baselineStyle = highlightTombstones(
+        overlayStyle,
+        this._tombstoneIds(parameters.storeId),
       );
 
       const children: Layer[] = [];
@@ -3015,7 +3146,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         children.push(
           new VectorTileLayer({
             source: baseline,
-            style,
+            style: baselineStyle,
           }),
         );
       }
@@ -3023,9 +3154,16 @@ export class OpenLayersAdapter implements IMapAdapter {
       children.push(
         new VectorImageLayer({
           source: overlay,
-          style,
+          style: overlayStyle,
         }),
       );
+
+      if (parameters.storeId) {
+        this._tombstoneKeys.set(
+          parameters.storeId,
+          tombstoneKey(this._tombstoneIds(parameters.storeId)),
+        );
+      }
 
       mapLayer.getLayers().clear();
       children.forEach(child => mapLayer.getLayers().push(child));
@@ -3341,8 +3479,85 @@ export class OpenLayersAdapter implements IMapAdapter {
   onFeatureStoresChanged = (): void => {
     for (const [storeId, { overlay }] of this._featureStoreSources) {
       this._syncFeatureStoreOverlaySource(storeId, overlay);
+      this._refreshBaselineTombstoneStyle(storeId);
     }
   };
+
+  private _tombstoneIds(storeId: string): string[] {
+    if (!storeId) {
+      return [];
+    }
+
+    const features = this._model.getFeatureStoreFeatures(storeId);
+    const ids: string[] = [];
+    for (const feature of Object.values(features)) {
+      if (feature.deleted && feature.id) {
+        ids.push(feature.id);
+      }
+    }
+
+    return ids;
+  }
+
+  private _applyFeatureStoreGroupStyle(
+    group: LayerGroup,
+    layer: IJGISLayer,
+    storeId: string,
+  ): void {
+    const layerParams = layer.parameters as IVectorLayer;
+    const ids = this._tombstoneIds(storeId);
+    const overlayStyle = this.vectorLayerStyleRuleBuilder(layer);
+    const baselineStyle = highlightTombstones(overlayStyle, ids);
+
+    group.getLayers().forEach(child => {
+      const sub = child as Layer;
+      sub.setOpacity(layerParams.opacity ?? 1);
+      if (sub instanceof VectorTileLayer) {
+        sub.setStyle(baselineStyle);
+      } else if (sub instanceof VectorImageLayer) {
+        sub.setStyle(overlayStyle);
+      }
+    });
+
+    this._tombstoneKeys.set(storeId, tombstoneKey(ids));
+  }
+
+  private _refreshBaselineTombstoneStyle(storeId: string): void {
+    const ids = this._tombstoneIds(storeId);
+    const key = tombstoneKey(ids);
+    if (this._tombstoneKeys.get(storeId) === key) {
+      return;
+    }
+
+    if (!this._featureStoreSources.get(storeId)?.baseline) {
+      return;
+    }
+
+    for (const [layerId, layer] of Object.entries(this._model.getLayers())) {
+      if (layer.type !== 'VectorLayer' && layer.type !== 'VectorTileLayer') {
+        continue;
+      }
+
+      const sourceId = (layer.parameters as { source?: string }).source;
+      if (!sourceId) {
+        continue;
+      }
+
+      const source = this._model.getSource(sourceId);
+      if (source?.type !== 'FeatureStoreSource') {
+        continue;
+      }
+
+      if ((source.parameters as IFeatureStoreSource).storeId !== storeId) {
+        continue;
+      }
+
+      const mapLayer = this.getLayer(layerId);
+      if (mapLayer instanceof LayerGroup) {
+        this._applyFeatureStoreGroupStyle(mapLayer, layer, storeId);
+      }
+    }
+  }
 
   private _syncFeatureStoreOverlaySource(
     storeId: string,
@@ -3363,6 +3578,10 @@ export class OpenLayersAdapter implements IMapAdapter {
         dataProjection: 'EPSG:4326',
         featureProjection: viewProj,
       });
+
+      if (!geometry) {
+        continue;
+      }
 
       const olFeature = new Feature({ geometry });
       olFeature.setId(feature.id);
@@ -3523,6 +3742,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     string,
     { overlay: VectorSource; baseline?: VectorTileSource }
   >();
+  private _tombstoneKeys = new Map<string, string>();
 
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
