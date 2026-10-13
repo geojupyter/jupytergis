@@ -534,7 +534,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const viewport = this._map.getViewport();
 
     if (!viewport) {
-      return;
+      throw new Error('Map viewport is not available');
     }
 
     viewport.addEventListener('pointermove', (event: PointerEvent) => {
