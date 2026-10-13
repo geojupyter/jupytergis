@@ -286,6 +286,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._model.geolocationChanged.connect(this._geolocationListener, this);
     this._model.flyToGeometrySignal.connect(this._flyToGeometryListner, this);
+    this._model.deleteDrawSelection.connect(this._deleteDrawSelection, this);
     this._model.uiStateChanged.connect(
       this._handleLocationIndicatorListner,
       this,
@@ -398,6 +399,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._flyToGeometryListner,
       this,
     );
+    this._model.deleteDrawSelection.disconnect(this._deleteDrawSelection, this);
     this._model.zoomToPositionSignal.disconnect(
       this._onZoomToPositionListner,
       this,
@@ -735,6 +737,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     geometry: Geometry,
   ): void => {
     this._mapAdapter?.flyToGeometry(geometry);
+  };
+
+  private _deleteDrawSelection = (
+    _sender: IJupyterGISModel,
+    result: { deleted: boolean },
+  ): void => {
+    result.deleted =
+      this._mapAdapter?.drawTool.deleteSelectedFeatures() ?? false;
   };
 
   private _onZoomToPositionListner = (
