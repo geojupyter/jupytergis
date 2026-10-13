@@ -201,16 +201,6 @@
           "maximum": 1,
           "default": 1
         },
-        "presentationBgColor": {
-          "type": "string",
-          "title": "Presentation Background Color",
-          "description": "The background color of the story map"
-        },
-        "presentationTextColor": {
-          "type": "string",
-          "title": "Presentation Text Color",
-          "description": "The text color of the story map"
-        },
         "overlayContentWidth": {
           "type": "string",
           "title": "Overlay content width",

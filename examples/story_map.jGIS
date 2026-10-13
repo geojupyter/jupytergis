@@ -194,8 +194,6 @@
   },
   "stories": {
     "1b181980-a95a-4f23-8e5d-980c66ff93ea": {
-      "presentationBgColor": "#171B2C",
-      "presentationTextColor": "#AEBAD3",
       "showGradient": true,
       "storySegments": [
         "5f790e80-230b-4c00-8426-b3a9385937a5",
