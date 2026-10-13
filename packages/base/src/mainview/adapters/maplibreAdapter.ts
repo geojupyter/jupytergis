@@ -61,10 +61,35 @@ import { isValidExtent } from '../utils/olLayerZoomExtent';
 const WORLD_EXTENT = [-180, -85.051129, 180, 85.051129];
 type MLCoordinates = [number, number];
 
+const noop = () => {
+  // Drawing is not supported by the MapLibre adapter yet.
+};
+
+const NOOP_DRAW_TOOL: IDrawToolAdapter = {
+  get currentDrawLayerId() {
+    return undefined;
+  },
+
+  get currentDrawSourceId() {
+    return undefined;
+  },
+
+  handleGeometryTypeChange: noop,
+  enterLayer: noop,
+  leaveDrawMode: noop,
+  deleteAtCoordinate: () => false,
+  toggleDeleteMode: noop,
+  getFeatureAtCoordinate: () => undefined,
+  updateFeatureAttributes: () => false,
+  hasFeatureAtCoordinate: () => false,
+  setDrawLayerId: noop,
+};
+
 export class MapLibreAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
     this._loadingLayers = new Set();
+    this._drawTool = NOOP_DRAW_TOOL;
   }
 
   async initialize(
