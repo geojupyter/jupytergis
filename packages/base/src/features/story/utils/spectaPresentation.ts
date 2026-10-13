@@ -6,27 +6,7 @@ import {
   isColumnPresentation,
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
-import { getCssVarValue } from '@/src/tools';
 import { resolveCssWidth } from './cssWidth';
-
-/** Fallbacks when presentation settings are unset (see storyPanel.css). */
-const PRESENTATION_BG_COLOR_FALLBACK = '--jp-layout-color0';
-const PRESENTATION_TEXT_COLOR_FALLBACK = '--jp-ui-font-color1';
-
-export function resolveStoryPresentationColorForInput(
-  color: string | undefined,
-  kind: 'bg' | 'text',
-): string {
-  if (color) {
-    return color;
-  }
-
-  return getCssVarValue(
-    kind === 'bg'
-      ? PRESENTATION_BG_COLOR_FALLBACK
-      : PRESENTATION_TEXT_COLOR_FALLBACK,
-  );
-}
 
 /** Clamp story overlay opacity to the schema range [0, 1]. */
 export function resolveStoryOpacity(opacity: number | undefined): number {
