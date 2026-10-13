@@ -1201,14 +1201,14 @@ export class MapLibreAdapter implements IMapAdapter {
     this.setNavigationEnabled(false);
     if (this._navigationControl) {
       this._presentationHadNavigationControl = true;
-      this._map.removeControl(this._navigationControl);
+      this._unmountControl(this._navigationControl);
     }
   }
 
   exitPresentationMode(): void {
     this.setNavigationEnabled(true);
     if (this._presentationHadNavigationControl && this._navigationControl) {
-      this._map.addControl(this._navigationControl);
+      this._mountControl(this._navigationControl);
       this._presentationHadNavigationControl = false;
     }
   }

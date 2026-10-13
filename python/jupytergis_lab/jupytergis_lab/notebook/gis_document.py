@@ -75,6 +75,7 @@ QGIS_UNSUPPORTED_TYPES = {
     LayerType.OpenEOTileLayer,
     LayerType.GeoZarrLayer,
     LayerType.StorySegmentLayer,
+    LayerType.TerrainLayer,
     SourceType.OpenEOTileSource,
     SourceType.GeoZarrSource,
 }

@@ -5,6 +5,7 @@ import type {
   LayerType,
   SourceType,
   IMapAdapterType,
+  IVectorTileSource,
 } from '@jupytergis/schema';
 
 export interface IMapAdapterFeatures {
@@ -16,6 +17,7 @@ export interface IMapAdapterFeatures {
   readonly drawTool: boolean;
   readonly geolocation: boolean;
   readonly layerComparison: boolean;
+  readonly requiresVectorTileSourceLayer: boolean;
 }
 
 const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
@@ -55,6 +57,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
   drawTool: false,
   geolocation: false,
   layerComparison: false,
+  requiresVectorTileSourceLayer: true,
 };
 
 const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
@@ -94,6 +97,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
   drawTool: true,
   geolocation: true,
   layerComparison: true,
+  requiresVectorTileSourceLayer: false,
 };
 
 export const MAP_ADAPTER_FEATURES: Readonly<
@@ -117,6 +121,15 @@ export function getUnsupportedReason(
 
   if (source && !features.sources[source.type]) {
     return `${features.name} does not support ${source.type} sources.`;
+  }
+
+  if (
+    features.requiresVectorTileSourceLayer &&
+    layer.type === 'VectorTileLayer' &&
+    source?.type === 'VectorTileSource' &&
+    !(source.parameters as IVectorTileSource)?.sourceLayer
+  ) {
+    return `${features.name} needs a source layer name to draw vector tiles. Set "Source layer" on the vector tile source.`;
   }
 
   return undefined;

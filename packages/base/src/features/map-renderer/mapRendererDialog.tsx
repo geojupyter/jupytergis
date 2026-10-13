@@ -104,7 +104,7 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
   );
 }
 
-class MapRendrerBody
+class MapRendererBody
   extends ReactWidget
   implements Dialog.IBodyWidget<IMapAdapterType>
 {
@@ -142,7 +142,7 @@ export async function showMapRendererDialog(
   model: IJupyterGISModel,
 ): Promise<void> {
   const current = model.getOptions().mapAdapter ?? DEFAULT_MAP_ADAPTER;
-  const body = new MapRendrerBody(model, current);
+  const body = new MapRendererBody(model, current);
   const result = await showDialog({
     title: 'Select map renderer',
     body,

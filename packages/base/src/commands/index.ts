@@ -52,7 +52,7 @@ import {
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
-import { showMapRendererDialog } from '../features/map-renderer/mapRenderDialog';
+import { showMapRendererDialog } from '../features/map-renderer/mapRendererDialog';
 import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
