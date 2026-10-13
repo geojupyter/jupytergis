@@ -1500,6 +1500,15 @@ class GISDocument(CommWidget):
         self._layers[layer_id] = layer
 
 
+def _as_stored(value: Any) -> Any:
+    """Turn a value into what the document stores for it."""
+    if isinstance(value, BaseModel):
+        return value.model_dump(mode="json")
+    if isinstance(value, Enum):
+        return value.value
+    return value
+
+
 class _WritesThrough(BaseModel):
     """Parameters that write their own attribute changes to the document."""
 
@@ -1511,7 +1520,7 @@ class _WritesThrough(BaseModel):
         super().__setattr__(name, value)
 
         if not name.startswith("_") and self._owner is not None:
-            self._owner._write("parameters", self)
+            self._owner._write_parameter(name, getattr(self, name))
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, BaseModel):
@@ -1579,11 +1588,15 @@ class JGISObject(BaseModel):
         """Change one parameter and write it to the document."""
         parameters = self.parameters
         if isinstance(parameters, dict):
-            self.parameters = {**parameters, name: value}
+            updated: Any = {**parameters, name: value}
         else:
-            self.parameters = type(parameters)(
-                **{**parameters.model_dump(), name: value},
-            )
+            updated = type(parameters)(**{**parameters.model_dump(), name: value})
+
+        BaseModel.__setattr__(self, "parameters", updated)
+        if isinstance(updated, _WritesThrough):
+            updated._owner = self
+
+        self._write_parameter(name, value)
 
     def _store(self) -> Map | None:
         return None
@@ -1633,20 +1646,35 @@ class JGISObject(BaseModel):
         if isinstance(value, _WritesThrough):
             value._owner = self
 
+        store, stored = self._stored()
+        if store is None:
+            return
+
+        store[self._id] = {**stored, name: _as_stored(value)}
+
+    def _write_parameter(self, name: str, value: Any) -> None:
+        """Write one parameter, keeping the parameters the document holds now.
+
+        Writing back the whole mapping this object was read with would revert
+        every parameter changed since, by the frontend or by a collaborator.
+        """
+        store, stored = self._stored()
+        if store is None:
+            return
+
+        parameters = {**(stored.get("parameters") or {}), name: _as_stored(value)}
+        store[self._id] = {**stored, "parameters": parameters}
+
+    def _stored(self) -> tuple[Map | None, dict]:
         store = self._store()
         if store is None or self._id is None:
-            return
+            return None, {}
 
         stored = store.get(self._id)
         if stored is None:
             raise KeyError(f"{self._id!r} is no longer in the document")
 
-        if isinstance(value, BaseModel):
-            value = value.model_dump(mode="json")
-        elif isinstance(value, Enum):
-            value = value.value
-
-        store[self._id] = {**stored, name: value}
+        return store, stored
 
     def __repr__(self) -> str:
         """Identify the object without printing all of its parameters."""
