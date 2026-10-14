@@ -93,7 +93,9 @@ import TileLayer from 'ol/layer/Tile';
 import {
   fromLonLat,
   get as getProjection,
+  getPointResolution,
   toLonLat,
+  transform,
   transformExtent,
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
@@ -864,6 +866,100 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     return viewport.id;
+  }
+
+  setProjection(code: string): void {
+    const view = this._map.getView();
+    const currentProjection = view.getProjection();
+    if (currentProjection.getCode() === code) {
+      return;
+    }
+
+    this.ensureProjectionRegistered(code);
+    const nextProjection = getProjection(code);
+    if (!nextProjection) {
+      this._log('warning', `Invalid projection: ${code}`);
+      return;
+    }
+
+    const center = view.getCenter();
+    const resolution = view.getResolution();
+    if (!center || resolution === undefined) {
+      this._log(
+        'warning',
+        'Cannot change projection: view has no center or resolution',
+      );
+      return;
+    }
+
+    const rotation = view.getRotation();
+    const nextCenter = transform(center, currentProjection, nextProjection);
+    const currentMpu = currentProjection.getMetersPerUnit() ?? 1;
+    const nextMpu = nextProjection.getMetersPerUnit() ?? 1;
+    const currentPointResolution =
+      getPointResolution(currentProjection, 1 / currentMpu, center, 'm') *
+      currentMpu;
+    const nextPointResolution =
+      getPointResolution(nextProjection, 1 / nextMpu, nextCenter, 'm') *
+      nextMpu;
+    const nextResolution =
+      (resolution * currentPointResolution) / nextPointResolution;
+
+    const nextView = new View({
+      projection: nextProjection,
+      center: nextCenter,
+      resolution: nextResolution,
+      rotation,
+    });
+    this._geolocation?.setProjection(nextProjection);
+    this._map.setView(nextView);
+
+    const lonLat = toLonLat(nextCenter, nextProjection);
+    const currentOptions = this._model.getOptions();
+    this._model.setOptions({
+      ...currentOptions,
+      projection: nextProjection.getCode(),
+      longitude: lonLat[0],
+      latitude: lonLat[1],
+      zoom: nextView.getZoom() ?? currentOptions.zoom,
+      bearing: rotation,
+      extent: nextView.calculateExtent(this._map.getSize()),
+    });
+
+    void this._rereadViewProjectedVectorSources();
+  }
+
+  /**
+   * Vector sources loaded with `featureProjection: view` keep coords in the
+   * old view CRS. Reread them after the view projection changes. Tile sources
+   * with their own projection are left alone.
+   */
+  private async _rereadViewProjectedVectorSources(): Promise<void> {
+    for (const [storeId, { overlay }] of this._featureStoreSources) {
+      this._syncFeatureStoreOverlaySource(storeId, overlay);
+    }
+
+    this._highlightLayerRef.current?.getSource()?.clear();
+
+    const sources = this._model.getSources();
+    for (const [id, source] of Object.entries(sources)) {
+      if (
+        source.type !== 'GeoJSONSource' &&
+        source.type !== 'ShapefileSource' &&
+        source.type !== 'GeoParquetSource'
+      ) {
+        continue;
+      }
+
+      try {
+        await this.updateSource(id, source);
+      } catch (error: any) {
+        this._log(
+          'warning',
+          `Failed to reread source "${id}" after projection change: ${error?.message ?? error}`,
+        );
+      }
+    }
   }
 
   getProjection(): IMapProjection {
