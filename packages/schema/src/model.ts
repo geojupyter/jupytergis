@@ -557,6 +557,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   readonly flyToGeometrySignal = new Signal<this, any>(this);
+  readonly deleteDrawSelection = new Signal<this, { deleted: boolean }>(this);
   readonly highlightFeatureSignal = new Signal<this, any>(this);
   readonly updateBboxSignal = new Signal<this, any>(this);
   readonly modeChanged = new Signal<this, Modes>(this);

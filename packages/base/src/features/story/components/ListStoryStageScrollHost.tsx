@@ -9,7 +9,7 @@ import type {
   IOverrideLayerEntry,
   IListStorySegmentTransition,
 } from '@/src/features/story/types/types';
-import { getSpectaPresentationStyle } from '@/src/features/story/utils/spectaPresentation';
+import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import { buildStorySegmentViewItems } from '@/src/features/story/utils/storySegmentViewItems';
 
 interface IListStoryStageScrollHostProps {
@@ -53,7 +53,7 @@ export function ListStoryStageScrollHost({
   );
 
   const presentationStyle = useMemo(
-    () => (isMobile ? getSpectaPresentationStyle(storyData) : undefined),
+    () => (isMobile ? getSpectaPresentationCssVars(storyData) : undefined),
     [isMobile, storyData],
   );
 
