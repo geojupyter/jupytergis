@@ -37,9 +37,13 @@ jest.mock('ol/layer/Group', () => ({
 jest.mock('ol/source', () => ({ Vector: class {} }));
 jest.mock('ol/style/flat', () => ({}));
 jest.mock('@jupytergis/schema', () => ({}));
-jest.mock('../styleBuilder', () => ({ DEFAULT_FLAT_STYLE: {} }));
-jest.mock('../colorRampUtils', () => ({ getColorMap: jest.fn() }));
-jest.mock('../grammarToOLStyle', () => ({
+jest.mock('@/src/features/layers/symbology/styleBuilder', () => ({
+  DEFAULT_FLAT_STYLE: {},
+}));
+jest.mock('@/src/features/layers/symbology/colorRampUtils', () => ({
+  getColorMap: jest.fn(),
+}));
+jest.mock('../adapters/openlayers/grammarToOLLayer', () => ({
   grammarToOLStyle: jest.fn((state: any) => ({
     __marker: state.layers[0].id,
     'pixel-color': [state.layers[0].id],
@@ -48,7 +52,7 @@ jest.mock('../grammarToOLStyle', () => ({
 
 import { IGrammarSymbologyState } from '@jupytergis/schema';
 
-import { grammarToOLLayer } from '../grammarToOLLayer';
+import { grammarToOLLayer } from '../adapters/openlayers/grammarToOLLayer';
 
 function vectorMarkerOf(layer: MockVectorLayer): string {
   return layer.opts.style[0].style.__marker;

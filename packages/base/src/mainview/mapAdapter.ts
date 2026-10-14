@@ -178,7 +178,8 @@ export async function createMapAdapter(
     }
 
     case 'maplibre': {
-      const { MapLibreAdapter } = await import('./adapters/maplibre/maplibreAdapter');
+      const { MapLibreAdapter } =
+        await import('./adapters/maplibre/maplibreAdapter');
       return new MapLibreAdapter(model);
     }
 
