@@ -1325,15 +1325,12 @@ export class OpenLayersAdapter implements IMapAdapter {
         await this._waitForSourceReady(geoTiffSource);
 
         if (Array.isArray(layerParameters.symbologyState?.layers)) {
-          newMapLayer = grammarToOLLayer(
-            layerParameters.symbologyState as IGrammarSymbologyState,
-            geoTiffSource,
-            layerParameters.opacity ?? 1,
-            layer.visible ?? true,
-            [],
-            true,
+          newMapLayer = grammarToOLLayer({
+            layer,
+            layerId: id,
+            source: geoTiffSource,
             className,
-          ) as OlLayerTypes;
+          }) as OlLayerTypes;
         } else {
           // This is to handle python sending a None for the color
           const layerOptions: any = {
@@ -1360,15 +1357,12 @@ export class OpenLayersAdapter implements IMapAdapter {
         await this._waitForSourceReady(geoZarrSource);
 
         if (Array.isArray(layerParameters.symbologyState?.layers)) {
-          newMapLayer = grammarToOLLayer(
-            layerParameters.symbologyState as IGrammarSymbologyState,
-            geoZarrSource,
-            layerParameters.opacity ?? 1,
-            layer.visible ?? true,
-            [],
-            true,
+          newMapLayer = grammarToOLLayer({
+            layer,
+            layerId: id,
+            source: geoZarrSource,
             className,
-          ) as OlLayerTypes;
+          }) as OlLayerTypes;
         } else {
           const bands = source?.parameters?.bands || [];
           const defaultColor = buildZarrColorStyle(bands);
@@ -1488,16 +1482,13 @@ export class OpenLayersAdapter implements IMapAdapter {
         : [];
     const featureValues = extractEncodingFieldValues(grammarState, rows);
 
-    return grammarToOLLayer(
-      grammarState,
-      olSource,
-      layerParameters.opacity ?? 1,
-      layer.visible,
+    return grammarToOLLayer({
+      layer,
+      layerId: id,
+      source: olSource,
       featureValues,
-      false,
       className,
-      layerParameters.declutter ? id : false,
-    ) as OlLayerTypes;
+    }) as OlLayerTypes;
   }
 
   // Used by VectorTileLayer (which shares a flat-style API with Grammar output).
@@ -3239,16 +3230,13 @@ export class OpenLayersAdapter implements IMapAdapter {
         ? source.getFeatures().map(f => (f as Feature).getProperties())
         : [];
     const featureValues = extractEncodingFieldValues(grammarState, rows);
-    const nextLayer = grammarToOLLayer(
-      grammarState,
+    const nextLayer = grammarToOLLayer({
+      layer,
+      layerId: id,
       source,
-      layerParams?.opacity ?? layer.parameters?.opacity ?? 1,
-      layer.visible,
       featureValues,
-      layer.type === 'GeoTiffLayer' || layer.type === 'GeoZarrLayer',
-      comparisonLayerClass(id),
-      (layerParams as IVectorLayer | undefined)?.declutter ? id : false,
-    );
+      className: comparisonLayerClass(id),
+    });
 
     if (mapLayer instanceof LayerGroup) {
       if (nextLayer instanceof LayerGroup) {
