@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 import { HYDROWEB_STAC_URL } from '@/src/features/stac-browser/catalogQuery';
 import StacCatalogQueryPanel from '@/src/features/stac-browser/components/catalog-query/StacCatalogQueryPanel';
+import StacWmsCollectionResult from '@/src/features/stac-browser/components/catalog-query/StacWmsCollectionResult';
 import StacFilterExtensionPanel from '@/src/features/stac-browser/components/filter-extension/StacFilterExtensionPanel';
 import StacGeodesFilterPanel from '@/src/features/stac-browser/components/geodes/StacGeodesFilterPanel';
 import StacPanelResults from '@/src/features/stac-browser/components/shared/StacPanelResults';
@@ -56,7 +57,7 @@ interface IStacViewProps {
 
 // Inner component that uses the context
 const StacPanelContent = ({ model }: IStacViewProps) => {
-  const { totalResults, selectedUrl } = useStacResultsContext();
+  const { totalResults, selectedUrl, wmsCollection } = useStacResultsContext();
 
   if (!model) {
     return null;
@@ -73,10 +74,9 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
         >
           Filters
         </TabsTrigger>
-        <TabsTrigger
-          className="jgis-underline-indicator"
-          value="results"
-        >{`Results (${totalResults})`}</TabsTrigger>
+        <TabsTrigger className="jgis-underline-indicator" value="results">
+          {wmsCollection ? 'Results' : `Results (${totalResults})`}
+        </TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
         <div className="jgis-stac-filter-extension-panel">
@@ -92,7 +92,7 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
         </div>
       </TabsContent>
       <TabsContent value="results">
-        <StacPanelResults />
+        {wmsCollection ? <StacWmsCollectionResult /> : <StacPanelResults />}
       </TabsContent>
     </Tabs>
   );

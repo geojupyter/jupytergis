@@ -24,6 +24,7 @@ export interface ICatalogCollectionOption {
   title: string;
   start: string | null;
   end: string | null;
+  wms: ICatalogWmsEndpoint | null;
 }
 
 interface IUseStacCatalogQueryProps {
@@ -50,8 +51,13 @@ export function useStacCatalogQuery({
   model,
   baseUrl,
 }: IUseStacCatalogQueryProps) {
-  const { registerBuildQuery, registerAddToMap, executeQuery } =
-    useStacResultsContext();
+  const {
+    registerBuildQuery,
+    registerAddToMap,
+    executeQuery,
+    setWmsCollection,
+    setResults,
+  } = useStacResultsContext();
   const {
     currentBBox,
     useWorldBBox,
@@ -142,6 +148,7 @@ export function useStacCatalogQuery({
             title: collection.title ?? collection.id,
             start: interval?.[0] ?? null,
             end: interval?.[1] ?? null,
+            wms: pickCollectionWms(collection.assets),
           };
         })
         .sort((a, b) => a.title.localeCompare(b.title));
@@ -204,10 +211,26 @@ export function useStacCatalogQuery({
   }, [model, root, registerAddToMap]);
 
   useEffect(() => {
+    const collection = collections.find(item => item.id === selectedCollection);
+    if (!collection?.wms) {
+      setWmsCollection(null);
+      return;
+    }
+
+    setWmsCollection({
+      title: collection.title,
+      layerName: collection.wms.layers,
+    });
+    setResults([], '0', 0);
+  }, [collections, selectedCollection, setResults, setWmsCollection]);
+
+  useEffect(() => {
+    const collection = collections.find(item => item.id === selectedCollection);
     if (
       !model ||
       !root ||
       selectedCollection === '' ||
+      collection?.wms ||
       !hasLoadedInitialSearchState
     ) {
       return;
@@ -224,6 +247,7 @@ export function useStacCatalogQuery({
   }, [
     model,
     root,
+    collections,
     selectedCollection,
     startTime,
     endTime,
