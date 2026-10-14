@@ -966,6 +966,8 @@ export class OpenLayersAdapter implements IMapAdapter {
         );
       }
     }
+
+    this._drawTool.handleViewProjectionChanged();
   }
 
   getProjection(): IMapProjection {

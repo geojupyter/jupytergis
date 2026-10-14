@@ -115,6 +115,17 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     this._host.onDrawGeometryLabelChange('');
   }
 
+  handleViewProjectionChanged(): void {
+    if (!this._currentDrawLayerId) {
+      return;
+    }
+
+    // GeoJSON rebuilds replace the VectorSource; feature-store overlays keep
+    // the same source but swap geometries. Re-resolve and rebuild interactions.
+    this._bindFromSelectedLayer();
+    this._updateInteractions();
+  }
+
   deleteAtCoordinate(coordinate: Coordinate): boolean {
     const map = this._host.getMap();
     if (!this._currentDrawLayerId || !map) {
