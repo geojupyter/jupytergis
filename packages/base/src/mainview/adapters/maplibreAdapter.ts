@@ -80,6 +80,7 @@ const NOOP_DRAW_TOOL: IDrawToolAdapter = {
   enterLayer: noop,
   leaveDrawMode: noop,
   deleteAtCoordinate: () => false,
+  deleteSelectedFeatures: () => false,
   toggleDeleteMode: noop,
   getFeatureAtCoordinate: () => undefined,
   updateFeatureAttributes: () => false,
