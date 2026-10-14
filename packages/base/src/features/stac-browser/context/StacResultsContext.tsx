@@ -10,6 +10,7 @@ import React, {
   useEffect,
 } from 'react';
 
+import { HYDROWEB_STAC_URL } from '@/src/features/stac-browser/catalogQuery';
 import {
   IStacAsset,
   IStacItem,
@@ -86,10 +87,12 @@ export function StacResultsProvider({
   const handlePaginationClickRef =
     useRef<(dir: 'next' | 'previous') => Promise<void>>();
   const buildQueryRef = useRef<() => IStacQueryBodyUnion>();
+  const hasLoadedSelectedUrlRef = useRef(false);
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-  // Load saved selected URL from StateDB on mount
+  // Load saved selected URL from StateDB on mount. hydroweb is the catalog
+  // to try when nothing has been saved yet.
   useEffect(() => {
     async function loadStacSelectedUrlFromDb() {
       const savedState = (await stateDb?.fetch(STAC_SELECTED_URL_STATE_KEY)) as
@@ -98,15 +101,21 @@ export function StacResultsProvider({
 
       if (savedState?.selectedUrl) {
         setSelectedUrlState(savedState.selectedUrl);
+      } else {
+        setSelectedUrlState(HYDROWEB_STAC_URL);
       }
+      hasLoadedSelectedUrlRef.current = true;
     }
 
     loadStacSelectedUrlFromDb();
   }, [stateDb]);
 
-  // Save selected URL to StateDB on change
+  // Save selected URL to StateDB on change, after the initial load.
   useEffect(() => {
     async function saveStacSelectedUrlToDb() {
+      if (!hasLoadedSelectedUrlRef.current) {
+        return;
+      }
       await stateDb?.save(STAC_SELECTED_URL_STATE_KEY, {
         selectedUrl,
       });
