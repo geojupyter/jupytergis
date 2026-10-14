@@ -1036,11 +1036,15 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   async updateLayers(layerIds: string[]): Promise<void> {
-    for (let index = 0; index < layerIds.length; index++) {
-      const id = layerIds[index];
-      const layer = this._model.getLayers()[id];
+    for (
+      let targetLayerPosition = 0;
+      targetLayerPosition < layerIds.length;
+      targetLayerPosition++
+    ) {
+      const layerId = layerIds[targetLayerPosition];
+      const layer = this._model.getLayers()[layerId];
 
-      if (!layer) {
+      if (this._loadingLayers.has(layerId)) {
         continue;
       }
 
@@ -1054,8 +1058,16 @@ export class MapLibreAdapter implements IMapAdapter {
         }
       }
 
-      if (!this._layerSubIds.has(id)) {
-        await this.addLayer(id, layer);
+      if (!this._layerSubIds.has(layerId)) {
+        await this.addLayer(layerId, layer, targetLayerPosition);
+      }
+    }
+
+    // Remove layers that are no longer in the `layerIds` list.
+    const target = new Set(layerIds);
+    for (const id of [...this._layerSubIds.keys()]) {
+      if (!target.has(id) && !this._loadingLayers.has(id)) {
+        this.removeLayer(id);
       }
     }
 
@@ -1069,29 +1081,6 @@ export class MapLibreAdapter implements IMapAdapter {
       this._pendingZoomLayerId = null;
       this.onZoomToPosition(pendingId);
     }
-  }
-
-  /**
-   * MapLibre layer ids for the JGIS layer that should end up directly
-   * above the layer being placed, so it can be inserted `beforeId` it.
-   * `order` defaults to _layerOrder (the adapter's own record of what's
-   * currently on the map); updateLayers passes the target order being
-   * built instead, since _layerOrder hasn't been updated to it yet.
-   */
-  private _beforeIdForIndex(
-    index?: number,
-    order: string[] = this._layerOrder,
-  ): string | undefined {
-    if (index === undefined) {
-      return undefined;
-    }
-    for (let i = index; i < order.length; i++) {
-      const subIds = this._layerSubIds.get(order[i]);
-      if (subIds?.[0] && this._map.getLayer(subIds[0])) {
-        return subIds[0];
-      }
-    }
-    return undefined;
   }
 
   private _mountControl(control: IControl): void {
