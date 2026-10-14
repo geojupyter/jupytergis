@@ -390,7 +390,7 @@ export class MapLibreAdapter implements IMapAdapter {
         case 'VectorTileSource': {
           const sourceParameters = source.parameters as IVectorTileSource;
 
-          const url = this._computeSourceUrl(source);
+          const url = this.computeSourceUrl(source);
 
           const isTms = url.includes('{-y}');
 
@@ -447,7 +447,7 @@ export class MapLibreAdapter implements IMapAdapter {
           const sourceParameters = source.parameters as IRasterSource;
           this._map.addSource(id, {
             type: 'raster',
-            tiles: [this._computeSourceUrl(source)],
+            tiles: [this.computeSourceUrl(source)],
             tileSize: 256,
             minzoom: sourceParameters.minZoom,
             maxzoom: sourceParameters.maxZoom,
@@ -460,7 +460,7 @@ export class MapLibreAdapter implements IMapAdapter {
           const sourceParameters = source.parameters as IRasterDemSource;
           this._map.addSource(id, {
             type: 'raster-dem',
-            tiles: [this._computeSourceUrl(source)],
+            tiles: [this.computeSourceUrl(source)],
             tileSize: 256,
             encoding: 'terrarium',
             attribution: sourceParameters.attribution,
@@ -638,19 +638,21 @@ export class MapLibreAdapter implements IMapAdapter {
     this._model.clearTileFeatures(sourceId);
   }
 
-  private _computeSourceUrl(source: IJGISSource): string {
-    const sourceParameters = source.parameters as IRasterSource;
-    const urlParameters = sourceParameters.urlParameters || {};
-    let url: string = sourceParameters.url;
+  private computeSourceUrl(source: IJGISSource): string {
+    const parameters = source.parameters as IRasterSource;
+    const urlParameters = parameters.urlParameters || {};
+    let url: string = parameters.url;
 
     for (const parameterName of Object.keys(urlParameters)) {
       url = url.replace(`{${parameterName}}`, urlParameters[parameterName]);
     }
+
+    // Special case for max_zoom and min_zoom
     if (url.includes('{max_zoom}')) {
-      url = url.replace('{max_zoom}', String(sourceParameters.maxZoom));
+      url = url.replace('{max_zoom}', parameters.maxZoom.toString());
     }
     if (url.includes('{min_zoom}')) {
-      url = url.replace('{min_zoom}', String(sourceParameters.minZoom));
+      url = url.replace('{min_zoom}', parameters.minZoom.toString());
     }
 
     return url;
