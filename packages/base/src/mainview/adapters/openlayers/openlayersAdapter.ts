@@ -127,11 +127,6 @@ import {
   OpenEOTileLayer,
   OpenEOTileSource,
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
-import { grammarToOLLayer } from '@/src/features/layers/symbology/grammarToOLLayer';
-import {
-  extractEncodingFieldValues,
-  grammarToOLStyle,
-} from '@/src/features/layers/symbology/grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from '@/src/features/layers/symbology/styleBuilder';
 import {
   buildZarrColorStyle,
@@ -139,6 +134,11 @@ import {
   getDefaultRGBBands,
   IZarrBandInfo,
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
+import { grammarToOLLayer } from '@/src/mainview/adapters/openlayers/grammarToOLLayer';
+import {
+  extractEncodingFieldValues,
+  grammarToOLStyle,
+} from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
 import {
   IMapAdapter,
   IMapLayerComparison,
@@ -156,16 +156,16 @@ import {
   loadFile,
   throttle,
 } from '@/src/tools';
-import { ClientPointer } from '.././CollaboratorPointers';
+import { ClientPointer } from '../../CollaboratorPointers';
 import {
   MAP_ADAPTER_FEATURES,
   getUnsupportedReason,
-} from '../mapAdapterFeatures';
+} from '../../mapAdapterFeatures';
 import {
   getZoomExtentForOlLayer,
   isValidExtent,
   transformExtentToViewProjection,
-} from '../utils/olLayerZoomExtent';
+} from '../../utils/olLayerZoomExtent';
 
 type OlLayerTypes =
   | TileLayer

@@ -173,12 +173,12 @@ export async function createMapAdapter(
   switch (type) {
     case 'openlayers': {
       const { OpenLayersAdapter } =
-        await import('./adapters/openlayersAdapter');
+        await import('./adapters/openlayers/openlayersAdapter');
       return new OpenLayersAdapter(model);
     }
 
     case 'maplibre': {
-      const { MapLibreAdapter } = await import('./adapters/maplibreAdapter');
+      const { MapLibreAdapter } = await import('./adapters/maplibre/maplibreAdapter');
       return new MapLibreAdapter(model);
     }
 

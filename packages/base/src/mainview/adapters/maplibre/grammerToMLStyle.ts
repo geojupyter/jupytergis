@@ -16,8 +16,8 @@
 
 import { IGrammarLayer, IGrammarSymbologyState } from '@jupytergis/schema';
 
-import { grammarToOLStyle } from './grammarToOLStyle';
-import { DEFAULT_FLAT_STYLE } from './styleBuilder';
+import { DEFAULT_FLAT_STYLE } from '../../../features/layers/symbology/styleBuilder';
+import { grammarToOLStyle } from '../openlayers/grammarToOLStyle';
 
 export type MapLibreSubLayerType = 'fill' | 'line' | 'circle';
 

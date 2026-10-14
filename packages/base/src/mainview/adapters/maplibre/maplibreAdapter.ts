@@ -41,24 +41,24 @@ import {
 import { FeatureLike } from 'ol/Feature';
 
 import { IDrawToolAdapter } from '@/src/features/draw-tool';
-import { extractEncodingFieldValues } from '@/src/features/layers/symbology/grammarToOLStyle';
 import {
   grammarToMapLibreLayers,
   MapLibreSubLayerType,
-} from '@/src/features/layers/symbology/grammerToMLStyle';
+} from '@/src/mainview/adapters/maplibre/grammerToMLStyle';
+import { extractEncodingFieldValues } from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
 import { debounce, loadFile, throttle } from '@/src/tools';
-import { ClientPointer } from '.././CollaboratorPointers';
+import { ClientPointer } from '../../CollaboratorPointers';
 import {
   IMapAdapter,
   IMapAdapterOptions,
   IMapProjection,
   VIEWPORT_SYNC_INTERVAL,
-} from '../mapAdapter';
+} from '../../mapAdapter';
 import {
   MAP_ADAPTER_FEATURES,
   getUnsupportedReason,
-} from '../mapAdapterFeatures';
-import { isValidExtent } from '../utils/olLayerZoomExtent';
+} from '../../mapAdapterFeatures';
+import { isValidExtent } from '../../utils/olLayerZoomExtent';
 
 const WORLD_EXTENT = [-180, -85.051129, 180, 85.051129];
 type MLCoordinates = [number, number];
