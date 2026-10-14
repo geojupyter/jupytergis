@@ -449,9 +449,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       return;
     }
 
-    const geojsonWriter = new GeoJSON({
-      featureProjection: map.getView().getProjection(),
-    });
+    const geojsonWriter = new GeoJSON();
+    const viewProjection = map.getView().getProjection();
 
     const liveFeatures = vectorSource.getFeatures();
     const featuresToSerialize =
@@ -460,7 +459,10 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
         : liveFeatures;
 
     const features = featuresToSerialize.map(feature =>
-      geojsonWriter.writeFeatureObject(feature),
+      geojsonWriter.writeFeatureObject(feature, {
+        featureProjection: viewProjection,
+        dataProjection: 'EPSG:4326',
+      }),
     );
 
     const updatedJgisSource: IJGISSource = {
