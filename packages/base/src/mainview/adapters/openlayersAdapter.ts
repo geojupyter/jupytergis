@@ -302,6 +302,12 @@ function loadProxiedWmsTile(
     });
 }
 
+const MM_PER_INCH = 25.4;
+/** OGC default screen pixel size (mm). Used by OpenLayers ScaleLine. */
+const OGC_PIXEL_SIZE_MM = 0.28;
+const OGC_SCREEN_DPI = MM_PER_INCH / OGC_PIXEL_SIZE_MM;
+const INCHES_PER_METER = 1000 / MM_PER_INCH;
+
 export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
@@ -577,15 +583,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         ...updatedOptions,
       });
 
-      // Calculate scale
-      if (resolution) {
-        // DPI and inches per meter values taken from OpenLayers
-        const dpi = 25.4 / 0.28;
-        const inchesPerMeter = 1000 / 25.4;
-        const scale = resolution * inchesPerMeter * dpi;
-
-        this._callbacks?.onScaleChange?.(scale);
-      }
+      this._publishScale();
     });
 
     this._map.on('click', event => {
@@ -915,6 +913,7 @@ export class OpenLayersAdapter implements IMapAdapter {
 
     this._geolocation?.setProjection(nextProjection);
     this._map.setView(nextView);
+    this._publishScale();
 
     const lonLat = toLonLat(nextCenter, nextProjection);
     const currentOptions = this._model.getOptions();
@@ -976,6 +975,27 @@ export class OpenLayersAdapter implements IMapAdapter {
       code: projection.getCode(),
       units: projection.getUnits(),
     };
+  }
+
+  /** Same scale formula as OpenLayers ScaleLine (status bar). */
+  private _publishScale(): void {
+    const view = this._map.getView();
+    const resolution = view.getResolution();
+    const center = view.getCenter();
+    if (resolution === undefined || !center) {
+      return;
+    }
+
+    const metersPerPixel = getPointResolution(
+      view.getProjection(),
+      resolution,
+      center,
+      'm',
+    );
+
+    this._callbacks?.onScaleChange?.(
+      metersPerPixel * INCHES_PER_METER * OGC_SCREEN_DPI,
+    );
   }
 
   getPixelFromCoordinate(coordinate: Coordinate): [number, number] {
@@ -3204,7 +3224,8 @@ export class OpenLayersAdapter implements IMapAdapter {
     feature: IIdentifiedFeature,
   ): { x: number; y: number } | undefined {
     const geometry = (feature?.geometry ?? feature?._geometry) as
-      Geometry | OLGeometry;
+      | Geometry
+      | OLGeometry;
 
     if (!geometry) {
       return undefined;
@@ -3381,9 +3402,13 @@ export class OpenLayersAdapter implements IMapAdapter {
     mapLayer: Layer | LayerGroup,
   ): void {
     const layerParams = layer.parameters as
-      IVectorLayer | IGeoTiffLayer | IGeoZarrLayer | undefined;
+      | IVectorLayer
+      | IGeoTiffLayer
+      | IGeoZarrLayer
+      | undefined;
     const grammarState = layerParams?.symbologyState as
-      IGrammarSymbologyState | undefined;
+      | IGrammarSymbologyState
+      | undefined;
 
     if (!grammarState || !Array.isArray(grammarState.layers)) {
       return;
