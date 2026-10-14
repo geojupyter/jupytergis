@@ -751,7 +751,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     _sender: IJupyterGISModel,
     code: string,
   ): void => {
-    this._mapAdapter?.setProjection(code);
+    const projectionInfo = this._mapAdapter?.setProjection(code);
+    if (projectionInfo) {
+      this.setState(old => ({
+        ...old,
+        viewProjection: projectionInfo,
+      }));
+    }
   };
 
   private _deleteDrawSelection = (

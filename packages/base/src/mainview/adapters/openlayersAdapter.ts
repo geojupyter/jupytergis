@@ -868,18 +868,19 @@ export class OpenLayersAdapter implements IMapAdapter {
     return viewport.id;
   }
 
-  setProjection(code: string): void {
+  setProjection(code: string): IMapProjection | undefined {
     const view = this._map.getView();
     const currentProjection = view.getProjection();
+
     if (currentProjection.getCode() === code) {
-      return;
+      return undefined;
     }
 
     this.ensureProjectionRegistered(code);
     const nextProjection = getProjection(code);
     if (!nextProjection) {
       this._log('warning', `Invalid projection: ${code}`);
-      return;
+      return undefined;
     }
 
     const center = view.getCenter();
@@ -889,7 +890,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         'warning',
         'Cannot change projection: view has no center or resolution',
       );
-      return;
+      return undefined;
     }
 
     const rotation = view.getRotation();
@@ -911,6 +912,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       resolution: nextResolution,
       rotation,
     });
+
     this._geolocation?.setProjection(nextProjection);
     this._map.setView(nextView);
 
@@ -926,7 +928,12 @@ export class OpenLayersAdapter implements IMapAdapter {
       extent: nextView.calculateExtent(this._map.getSize()),
     });
 
-    void this._rereadViewProjectedVectorSources();
+    this._rereadViewProjectedVectorSources();
+
+    return {
+      code: nextProjection.getCode(),
+      units: nextProjection.getUnits(),
+    };
   }
 
   /**
@@ -3197,8 +3204,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     feature: IIdentifiedFeature,
   ): { x: number; y: number } | undefined {
     const geometry = (feature?.geometry ?? feature?._geometry) as
-      | Geometry
-      | OLGeometry;
+      Geometry | OLGeometry;
 
     if (!geometry) {
       return undefined;
@@ -3375,13 +3381,9 @@ export class OpenLayersAdapter implements IMapAdapter {
     mapLayer: Layer | LayerGroup,
   ): void {
     const layerParams = layer.parameters as
-      | IVectorLayer
-      | IGeoTiffLayer
-      | IGeoZarrLayer
-      | undefined;
+      IVectorLayer | IGeoTiffLayer | IGeoZarrLayer | undefined;
     const grammarState = layerParams?.symbologyState as
-      | IGrammarSymbologyState
-      | undefined;
+      IGrammarSymbologyState | undefined;
 
     if (!grammarState || !Array.isArray(grammarState.layers)) {
       return;

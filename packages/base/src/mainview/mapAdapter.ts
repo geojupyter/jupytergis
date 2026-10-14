@@ -48,7 +48,7 @@ export interface IMapAdapter {
   getZoom(): number;
   getViewportId(): string;
   getProjection(): IMapProjection;
-  setProjection(code: string): void;
+  setProjection(code: string): IMapProjection | undefined;
   getPixelFromCoordinate(coordinate: number[]): [number, number];
 
   registerMap(path?: string): void;
