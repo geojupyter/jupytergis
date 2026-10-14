@@ -87,6 +87,7 @@ import {
   VectorTile as VectorTileLayer,
   WebGLTile as RasterLayer,
 } from 'ol/layer';
+import ImageTile from 'ol/ImageTile';
 import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
 import {
@@ -2715,6 +2716,20 @@ export class OpenLayersAdapter implements IMapAdapter {
               LAYERS: selectedLayer,
               TILED: true,
             },
+            ...(sourceParameters.useProxy
+              ? {
+                  tileLoadFunction: (tile, src) => {
+                    const image = (
+                      tile as ImageTile
+                    ).getImage() as HTMLImageElement;
+                    image.src = this.getProxyUrl(
+                      src,
+                      true,
+                      sourceParameters.httpHeaders,
+                    );
+                  },
+                }
+              : {}),
           });
 
           break;

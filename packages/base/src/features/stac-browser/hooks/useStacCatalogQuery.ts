@@ -1,13 +1,19 @@
-import { IJupyterGISModel } from '@jupytergis/schema';
+import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
+import { UUID } from '@lumino/coreutils';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { catalogRoot } from '@/src/features/stac-browser/catalogQuery';
+import {
+  catalogRoot,
+  ICatalogWmsEndpoint,
+  pickCollectionWms,
+} from '@/src/features/stac-browser/catalogQuery';
 import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 import { useStacSearch } from '@/src/features/stac-browser/hooks/useStacSearch';
 import {
   IStacCatalogQueryBody,
   IStacCollection,
   IStacCollectionsReturn,
+  IStacItem,
 } from '@/src/features/stac-browser/types/types';
 import { fetchWithProxies } from '@/src/tools';
 
@@ -44,7 +50,8 @@ export function useStacCatalogQuery({
   model,
   baseUrl,
 }: IUseStacCatalogQueryProps) {
-  const { registerBuildQuery, executeQuery } = useStacResultsContext();
+  const { registerBuildQuery, registerAddToMap, executeQuery } =
+    useStacResultsContext();
   const {
     currentBBox,
     useWorldBBox,
@@ -65,6 +72,8 @@ export function useStacCatalogQuery({
     undefined,
   );
   const lastQueryKeyRef = useRef<string | null>(null);
+  const selectedCollectionRef = useRef(selectedCollection);
+  selectedCollectionRef.current = selectedCollection;
 
   if (root !== trackedRoot) {
     setTrackedRoot(root);
@@ -180,6 +189,21 @@ export function useStacCatalogQuery({
   }, [registerBuildQuery, buildQuery]);
 
   useEffect(() => {
+    if (!model || !root) {
+      return;
+    }
+
+    registerAddToMap(item => {
+      void addCatalogResultToMap(
+        model,
+        root,
+        item,
+        selectedCollectionRef.current,
+      );
+    });
+  }, [model, root, registerAddToMap]);
+
+  useEffect(() => {
     if (
       !model ||
       !root ||
@@ -222,4 +246,128 @@ export function useStacCatalogQuery({
     isLoadingCollections,
     collectionsError,
   };
+}
+
+function flyToItem(model: IJupyterGISModel, item: IStacItem): void {
+  if (item.geometry) {
+    model.flyToGeometrySignal.emit(item.geometry);
+    return;
+  }
+  if (!item.bbox) {
+    return;
+  }
+
+  const [west, south, east, north] = item.bbox;
+  model.flyToGeometrySignal.emit({
+    type: 'Polygon',
+    coordinates: [
+      [
+        [west, south],
+        [east, south],
+        [east, north],
+        [west, north],
+        [west, south],
+      ],
+    ],
+  });
+}
+
+function existingWmsLayerId(
+  model: IJupyterGISModel,
+  endpoint: ICatalogWmsEndpoint,
+): string | undefined {
+  const sourceId = Object.entries(model.getSources()).find(([, source]) => {
+    if (source.type !== 'WmsTileSource') {
+      return false;
+    }
+    const parameters = source.parameters as {
+      url?: string;
+      params?: { layers?: string };
+      useProxy?: boolean;
+    };
+    return (
+      parameters.url === endpoint.url &&
+      parameters.params?.layers === endpoint.layers &&
+      parameters.useProxy === true
+    );
+  })?.[0];
+
+  if (!sourceId) {
+    return undefined;
+  }
+
+  return Object.entries(model.getLayers()).find(([, layer]) => {
+    const parameters = layer.parameters as { source?: string };
+    return parameters.source === sourceId;
+  })?.[0];
+}
+
+function addStacItemLayer(model: IJupyterGISModel, item: IStacItem): void {
+  const layerId = UUID.uuid4();
+  const layerModel: IJGISLayer = {
+    type: 'StacLayer',
+    parameters: { data: item },
+    visible: true,
+    name: item.properties?.title ?? item.id,
+  };
+  model.addLayer(layerId, layerModel);
+  model.centerOnPosition(layerId);
+}
+
+function addWmsLayer(
+  model: IJupyterGISModel,
+  endpoint: ICatalogWmsEndpoint,
+  collectionTitle: string | undefined,
+): void {
+  const sourceId = UUID.uuid4();
+  const layerId = UUID.uuid4();
+  const name = collectionTitle
+    ? `${collectionTitle} — ${endpoint.name}`
+    : endpoint.name;
+
+  model.sharedModel.addSource(sourceId, {
+    name: `${name} Source`,
+    type: 'WmsTileSource',
+    parameters: {
+      url: endpoint.url,
+      params: { layers: endpoint.layers },
+      useProxy: true,
+    },
+  });
+  model.addLayer(layerId, {
+    name,
+    type: 'GeoTiffLayer',
+    visible: true,
+    parameters: { source: sourceId, opacity: 1 },
+  });
+}
+
+async function addCatalogResultToMap(
+  model: IJupyterGISModel,
+  root: string,
+  item: IStacItem,
+  selectedCollection: string,
+): Promise<void> {
+  const collectionId = item.collection || selectedCollection;
+  if (!collectionId) {
+    addStacItemLayer(model, item);
+    return;
+  }
+
+  const collection = await fetchWithProxies(
+    `${root}/collections/${encodeURIComponent(collectionId)}`,
+    model,
+    async response => (await response.json()) as IStacCollection,
+    undefined,
+  );
+  const endpoint = pickCollectionWms(collection?.assets);
+  if (!endpoint) {
+    addStacItemLayer(model, item);
+    return;
+  }
+
+  if (!existingWmsLayerId(model, endpoint)) {
+    addWmsLayer(model, endpoint, collection?.title);
+  }
+  flyToItem(model, item);
 }
