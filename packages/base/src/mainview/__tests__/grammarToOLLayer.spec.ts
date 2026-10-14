@@ -43,7 +43,7 @@ jest.mock('@/src/features/layers/symbology/styleBuilder', () => ({
 jest.mock('@/src/features/layers/symbology/colorRampUtils', () => ({
   getColorMap: jest.fn(),
 }));
-jest.mock('../adapters/openlayers/grammarToOLLayer', () => ({
+jest.mock('../adapters/openlayers/grammarToOLStyle', () => ({
   grammarToOLStyle: jest.fn((state: any) => ({
     __marker: state.layers[0].id,
     'pixel-color': [state.layers[0].id],
