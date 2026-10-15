@@ -106,10 +106,3 @@ export function listCollectionWms(
     ...endpoints.filter(endpoint => !endpoint.layers.endsWith('_wse')),
   ];
 }
-
-/** The layer added when a search result has no layer choice of its own. */
-export function pickCollectionWms(
-  assets: Record<string, IStacAsset> | undefined,
-): ICatalogWmsEndpoint | null {
-  return listCollectionWms(assets)[0] ?? null;
-}

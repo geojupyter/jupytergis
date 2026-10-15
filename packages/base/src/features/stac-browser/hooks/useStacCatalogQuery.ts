@@ -8,7 +8,6 @@ import {
   ICatalogWmsEndpoint,
   listCollectionWms,
   pickCollectionPreview,
-  pickCollectionWms,
 } from '@/src/features/stac-browser/catalogQuery';
 import {
   IWmsCollectionSummary,
@@ -442,7 +441,8 @@ async function addCatalogResultToMap(
     async response => (await response.json()) as IStacCollection,
     undefined,
   );
-  const endpoint = pickCollectionWms(collection?.assets);
+
+  const endpoint = listCollectionWms(collection?.assets)[0];
   if (!endpoint) {
     addStacItemLayer(model, item);
     return;
@@ -451,5 +451,6 @@ async function addCatalogResultToMap(
   if (!existingWmsLayerId(model, endpoint)) {
     addWmsLayer(model, endpoint, collection?.title);
   }
+
   flyToItem(model, item);
 }
