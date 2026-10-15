@@ -83,18 +83,26 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
             {group.rows.map(r => (
               <tr key={r.label}>
                 <td>{r.label}</td>
-                {RENDERERS.map(type => (
-                  <td key={type} style={{ textAlign: 'center' }}>
-                    <span
-                      aria-label={
-                        r.support[type] ? 'Supported' : 'Not supported'
-                      }
-                      title={r.support[type] ? 'Supported' : 'Not supported'}
-                    >
-                      {r.support[type] ? '🗸' : '🗶'}
-                    </span>
-                  </td>
-                ))}
+                {RENDERERS.map(type => {
+                  const supported = r.support[type];
+
+                  return (
+                    <td key={type} style={{ textAlign: 'center' }}>
+                      <span
+                        aria-label={supported ? 'Supported' : 'Not supported'}
+                        title={supported ? 'Supported' : 'Not supported'}
+                        style={{
+                          fontSize: '1.4rem',
+                          fontWeight: 700,
+                          color: supported ? '#16a34a' : '#dc2626',
+                          lineHeight: 1,
+                        }}
+                      >
+                        {supported ? '🗸' : '🗶'}
+                      </span>
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
@@ -146,10 +154,7 @@ export async function showMapRendererDialog(
   const result = await showDialog({
     title: 'Select map renderer',
     body,
-    buttons: [
-      Dialog.cancelButton({ label: 'NeverMind' }),
-      Dialog.okButton({ label: 'Apply' }),
-    ],
+    buttons: [Dialog.cancelButton(), Dialog.okButton({ label: 'Apply' })],
   });
 
   if (!result.button.accept || !result.value || result.value === current) {
