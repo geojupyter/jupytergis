@@ -52,6 +52,7 @@ import {
 } from 'ol';
 import { FeatureLike } from 'ol/Feature';
 import { GeolocationError } from 'ol/Geolocation';
+import ImageTile from 'ol/ImageTile';
 import { unByKey } from 'ol/Observable';
 import TileState from 'ol/TileState';
 import { asArray } from 'ol/color';
@@ -87,7 +88,6 @@ import {
   VectorTile as VectorTileLayer,
   WebGLTile as RasterLayer,
 } from 'ol/layer';
-import ImageTile from 'ol/ImageTile';
 import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
 import {
