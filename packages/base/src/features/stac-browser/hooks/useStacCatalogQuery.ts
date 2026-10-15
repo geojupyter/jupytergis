@@ -4,10 +4,15 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
   catalogRoot,
+  collectionPlainText,
   ICatalogWmsEndpoint,
+  pickCollectionPreview,
   pickCollectionWms,
 } from '@/src/features/stac-browser/catalogQuery';
-import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
+import {
+  IWmsCollectionSummary,
+  useStacResultsContext,
+} from '@/src/features/stac-browser/context/StacResultsContext';
 import { useStacSearch } from '@/src/features/stac-browser/hooks/useStacSearch';
 import {
   IStacCatalogQueryBody,
@@ -22,8 +27,10 @@ const SEARCH_LIMIT = 12;
 export interface ICatalogCollectionOption {
   id: string;
   title: string;
+  description: string;
   start: string | null;
   end: string | null;
+  previewHref: string | null;
   wms: ICatalogWmsEndpoint | null;
 }
 
@@ -55,7 +62,9 @@ export function useStacCatalogQuery({
     registerBuildQuery,
     registerAddToMap,
     executeQuery,
-    setWmsCollection,
+    catalogCollectionId,
+    setCatalogCollectionId,
+    setWmsCollections,
     setResults,
   } = useStacResultsContext();
   const {
@@ -70,7 +79,6 @@ export function useStacCatalogQuery({
   const [collections, setCollections] = useState<ICatalogCollectionOption[]>(
     [],
   );
-  const [selectedCollection, setSelectedCollection] = useState('');
   const [startTime, setStartTime] = useState<Date | undefined>(undefined);
   const [endTime, setEndTime] = useState<Date | undefined>(undefined);
   const [isLoadingCollections, setIsLoadingCollections] = useState(false);
@@ -78,13 +86,14 @@ export function useStacCatalogQuery({
     undefined,
   );
   const lastQueryKeyRef = useRef<string | null>(null);
-  const selectedCollectionRef = useRef(selectedCollection);
-  selectedCollectionRef.current = selectedCollection;
+  const selectedCollectionRef = useRef(catalogCollectionId);
+  selectedCollectionRef.current = catalogCollectionId;
 
   if (root !== trackedRoot) {
     setTrackedRoot(root);
     setCollections([]);
-    setSelectedCollection('');
+    setCatalogCollectionId('');
+    setWmsCollections([]);
     setStartTime(undefined);
     setEndTime(undefined);
     setCollectionsError(undefined);
@@ -146,14 +155,25 @@ export function useStacCatalogQuery({
           return {
             id: collection.id,
             title: collection.title ?? collection.id,
+            description: collectionPlainText(collection.description),
             start: interval?.[0] ?? null,
             end: interval?.[1] ?? null,
+            previewHref: pickCollectionPreview(
+              collection.assets,
+              collection.links,
+            ),
             wms: pickCollectionWms(collection.assets),
           };
         })
         .sort((a, b) => a.title.localeCompare(b.title));
 
       setCollections(options);
+      setWmsCollections(options.flatMap(toWmsSummary));
+      const selected = options.find(
+        item => item.id === selectedCollectionRef.current,
+      );
+      setStartTime(toDate(selected?.start ?? null));
+      setEndTime(toDate(selected?.end ?? null));
       setIsLoadingCollections(false);
     };
 
@@ -162,16 +182,16 @@ export function useStacCatalogQuery({
     return () => {
       cancelled = true;
     };
-  }, [model, root]);
+  }, [model, root, setWmsCollections]);
 
   const selectCollection = useCallback(
     (id: string) => {
-      setSelectedCollection(id);
+      setCatalogCollectionId(id);
       const collection = collections.find(item => item.id === id);
       setStartTime(toDate(collection?.start ?? null));
       setEndTime(toDate(collection?.end ?? null));
     },
-    [collections],
+    [collections, setCatalogCollectionId],
   );
 
   const buildQuery = useCallback((): IStacCatalogQueryBody => {
@@ -185,11 +205,11 @@ export function useStacCatalogQuery({
 
     return {
       bbox: currentBBox,
-      collections: [selectedCollection],
+      collections: [catalogCollectionId],
       limit: SEARCH_LIMIT,
       query,
     };
-  }, [currentBBox, endTime, selectedCollection, startTime]);
+  }, [currentBBox, endTime, catalogCollectionId, startTime]);
 
   useEffect(() => {
     registerBuildQuery(() => buildQuery());
@@ -211,25 +231,25 @@ export function useStacCatalogQuery({
   }, [model, root, registerAddToMap]);
 
   useEffect(() => {
-    const collection = collections.find(item => item.id === selectedCollection);
+    const collection = collections.find(
+      item => item.id === catalogCollectionId,
+    );
     if (!collection?.wms) {
-      setWmsCollection(null);
       return;
     }
 
-    setWmsCollection({
-      title: collection.title,
-      layerName: collection.wms.layers,
-    });
     setResults([], '0', 0);
-  }, [collections, selectedCollection, setResults, setWmsCollection]);
+  }, [collections, catalogCollectionId, setResults]);
 
   useEffect(() => {
-    const collection = collections.find(item => item.id === selectedCollection);
+    const collection = collections.find(
+      item => item.id === catalogCollectionId,
+    );
     if (
       !model ||
       !root ||
-      selectedCollection === '' ||
+      collections.length === 0 ||
+      catalogCollectionId === '' ||
       collection?.wms ||
       !hasLoadedInitialSearchState
     ) {
@@ -248,7 +268,7 @@ export function useStacCatalogQuery({
     model,
     root,
     collections,
-    selectedCollection,
+    catalogCollectionId,
     startTime,
     endTime,
     currentBBox,
@@ -259,7 +279,7 @@ export function useStacCatalogQuery({
 
   return {
     collections,
-    selectedCollection,
+    selectedCollection: catalogCollectionId,
     selectCollection,
     startTime,
     setStartTime,
@@ -336,6 +356,37 @@ function addStacItemLayer(model: IJupyterGISModel, item: IStacItem): void {
   };
   model.addLayer(layerId, layerModel);
   model.centerOnPosition(layerId);
+}
+
+export function addCatalogWmsToMap(
+  model: IJupyterGISModel,
+  summary: IWmsCollectionSummary,
+): void {
+  if (existingWmsLayerId(model, summary.wms)) {
+    return;
+  }
+
+  addWmsLayer(model, summary.wms, summary.title);
+}
+
+function toWmsSummary(
+  option: ICatalogCollectionOption,
+): IWmsCollectionSummary[] {
+  if (!option.wms) {
+    return [];
+  }
+
+  return [
+    {
+      id: option.id,
+      title: option.title,
+      description: option.description,
+      start: option.start,
+      end: option.end,
+      previewHref: option.previewHref,
+      wms: option.wms,
+    },
+  ];
 }
 
 function addWmsLayer(

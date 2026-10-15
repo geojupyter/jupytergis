@@ -10,7 +10,10 @@ import React, {
   useEffect,
 } from 'react';
 
-import { HYDROWEB_STAC_URL } from '@/src/features/stac-browser/catalogQuery';
+import {
+  HYDROWEB_STAC_URL,
+  ICatalogWmsEndpoint,
+} from '@/src/features/stac-browser/catalogQuery';
 import {
   IStacAsset,
   IStacItem,
@@ -50,13 +53,21 @@ interface IStacResultsContext {
     method?: string,
   ) => Promise<void>;
   executeQueryWithPage: (pageNumber: number) => Promise<void>;
+  catalogCollectionId: string;
+  setCatalogCollectionId: (id: string) => void;
+  wmsCollections: IWmsCollectionSummary[];
+  setWmsCollections: (collections: IWmsCollectionSummary[]) => void;
   wmsCollection: IWmsCollectionSummary | null;
-  setWmsCollection: (summary: IWmsCollectionSummary | null) => void;
 }
 
 export interface IWmsCollectionSummary {
+  id: string;
   title: string;
-  layerName: string;
+  description: string;
+  start: string | null;
+  end: string | null;
+  previewHref: string | null;
+  wms: ICatalogWmsEndpoint;
 }
 
 const StacResultsContext = createContext<IStacResultsContext | undefined>(
@@ -85,8 +96,12 @@ export function StacResultsProvider({
   const [paginationLinks, setPaginationLinksState] = useState<
     IStacPaginationLink[]
   >([]);
-  const [wmsCollection, setWmsCollection] =
-    useState<IWmsCollectionSummary | null>(null);
+  const [catalogCollectionId, setCatalogCollectionIdState] = useState('');
+  const [wmsCollections, setWmsCollectionsState] = useState<
+    IWmsCollectionSummary[]
+  >([]);
+  const wmsCollection =
+    wmsCollections.find(item => item.id === catalogCollectionId) ?? null;
   const [selectedUrl, setSelectedUrlState] = useState('');
   const [currentPage, setCurrentPageState] = useState(1);
   const currentPageRef = useRef(1);
@@ -170,8 +185,20 @@ export function StacResultsProvider({
     setPaginationLinksState([]);
     setTotalResults('0');
     setTotalPages(0);
-    setWmsCollection(null);
+    setCatalogCollectionIdState('');
+    setWmsCollectionsState([]);
   }, []);
+
+  const setCatalogCollectionId = useCallback((id: string) => {
+    setCatalogCollectionIdState(id);
+  }, []);
+
+  const setWmsCollections = useCallback(
+    (collections: IWmsCollectionSummary[]) => {
+      setWmsCollectionsState(collections);
+    },
+    [],
+  );
 
   const setCurrentPage = useCallback((page: number) => {
     setCurrentPageState(page);
@@ -445,8 +472,11 @@ export function StacResultsProvider({
         registerBuildQuery,
         executeQuery,
         executeQueryWithPage,
+        catalogCollectionId,
+        setCatalogCollectionId,
+        wmsCollections,
+        setWmsCollections,
         wmsCollection,
-        setWmsCollection,
       }}
     >
       {children}

@@ -91,6 +91,68 @@
   color: var(--jp-ui-font-color2);
 }
 
+.jgis-stac-wms-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0 0.5rem 1rem;
+}
+
+.jgis-stac-wms-result-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.jgis-stac-wms-result-position {
+  font-size: 0.875rem;
+  color: var(--jp-ui-font-color2);
+  white-space: nowrap;
+}
+
+.jgis-stac-wms-result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: var(--jp-border-radius);
+  padding: 0.75rem;
+}
+
+.jgis-stac-wms-result-preview {
+  width: 100%;
+  max-height: 10rem;
+  object-fit: cover;
+  border-radius: var(--jp-border-radius);
+  background: var(--jp-layout-color2);
+}
+
+.jgis-stac-wms-result-title {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.jgis-stac-wms-result-extent {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--jp-ui-font-color2);
+}
+
+.jgis-stac-wms-result-description {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  color: var(--jp-ui-font-color1);
+}
+
+.jgis-stac-wms-result-add {
+  align-self: flex-start;
+}
+
 /* QueryableComboBox styles */
 .jgis-queryable-combo-container {
   display: flex;

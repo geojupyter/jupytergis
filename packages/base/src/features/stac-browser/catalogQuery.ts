@@ -1,4 +1,4 @@
-import { IStacAsset } from '@/src/features/stac-browser/types/types';
+import { IStacAsset, IStacLink } from '@/src/features/stac-browser/types/types';
 
 /** hydroweb.next STAC root. A trailing slash 404s. */
 export const HYDROWEB_STAC_URL =
@@ -47,6 +47,46 @@ export function wmsEndpointFromAsset(
     layers,
     name: asset.title || key,
   };
+}
+
+const PREVIEW_ROLES = ['overview', 'thumbnail'];
+
+/**
+ * Preview image for a collection card. Prefer an `overview` asset, then a
+ * `thumbnail` asset, then a link with rel `preview`.
+ */
+export function pickCollectionPreview(
+  assets: Record<string, IStacAsset> | undefined,
+  links: IStacLink[] = [],
+): string | null {
+  for (const role of PREVIEW_ROLES) {
+    const match = Object.values(assets ?? {}).find(
+      asset => Boolean(asset.href) && asset.roles?.includes(role),
+    );
+
+    if (match?.href) {
+      return match.href;
+    }
+  }
+
+  const previewLink = links.find(
+    link => link.rel === 'preview' && Boolean(link.href),
+  );
+
+  return previewLink?.href ?? null;
+}
+
+/** Collapse markup and extra whitespace so a description can be shown as text. */
+export function collectionPlainText(value: string | undefined): string {
+  if (!value) {
+    return '';
+  }
+
+  return value
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /** Prefer a water-surface-elevation layer when the collection publishes several. */

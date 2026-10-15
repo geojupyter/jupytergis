@@ -92,7 +92,11 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
         </div>
       </TabsContent>
       <TabsContent value="results">
-        {wmsCollection ? <StacWmsCollectionResult /> : <StacPanelResults />}
+        {wmsCollection ? (
+          <StacWmsCollectionResult model={model} />
+        ) : (
+          <StacPanelResults />
+        )}
       </TabsContent>
     </Tabs>
   );
