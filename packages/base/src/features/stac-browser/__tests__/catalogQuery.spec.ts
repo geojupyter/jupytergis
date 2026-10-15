@@ -1,4 +1,8 @@
-import { collectionPlainText, pickCollectionPreview } from '../catalogQuery';
+import {
+  collectionPlainText,
+  listCollectionWms,
+  pickCollectionPreview,
+} from '../catalogQuery';
 import { IStacAsset, IStacLink } from '../types/types';
 
 function asset(href: string, roles: string[]): IStacAsset {
@@ -42,6 +46,20 @@ describe('pickCollectionPreview', () => {
   });
 });
 
+describe('listCollectionWms', () => {
+  it('lists every wms layer and puts water surface elevation first', () => {
+    const assets: Record<string, IStacAsset> = {
+      area: asset('https://example.test/wms?layers=river_area', ['wms']),
+      elevation: asset('https://example.test/wms?layers=river_wse', ['wms']),
+      thumb: asset('https://example.test/thumb.png', ['thumbnail']),
+    };
+
+    expect(listCollectionWms(assets).map(layer => layer.layers)).toEqual([
+      'river_wse',
+      'river_area',
+    ]);
+  });
+});
 describe('collectionPlainText', () => {
   it('strips tags and collapses whitespace', () => {
     expect(collectionPlainText('<p>Lake&nbsp;  level</p>')).toBe('Lake level');

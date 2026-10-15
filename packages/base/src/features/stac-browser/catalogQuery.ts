@@ -1,14 +1,5 @@
 import { IStacAsset, IStacLink } from '@/src/features/stac-browser/types/types';
 
-/** hydroweb.next STAC root. A trailing slash 404s. */
-export const HYDROWEB_STAC_URL =
-  'https://hydroweb.next.theia-land.fr/api/catalog/stac';
-
-/** Catalog root with no trailing slash, so `/search` and `/collections` resolve. */
-export function catalogRoot(url: string): string {
-  return url.trim().replace(/\/+$/, '');
-}
-
 /** Service URL and layer name taken from a collection WMS asset. */
 export interface ICatalogWmsEndpoint {
   url: string;
@@ -16,6 +7,16 @@ export interface ICatalogWmsEndpoint {
   name: string;
 }
 
+/** hydroweb.next STAC root. A trailing slash 404s. */
+export const HYDROWEB_STAC_URL =
+  'https://hydroweb.next.theia-land.fr/api/catalog/stac';
+
+const PREVIEW_ROLES = ['overview', 'thumbnail'];
+
+/** Catalog root with no trailing slash, so `/search` and `/collections` resolve. */
+export function catalogRoot(url: string): string {
+  return url.trim().replace(/\/+$/, '');
+}
 /**
  * A collection WMS asset href is a full GetMap URL. TileWMS builds its own
  * GetMap request, so only the service root and `layers` parameter are kept.
@@ -49,11 +50,10 @@ export function wmsEndpointFromAsset(
   };
 }
 
-const PREVIEW_ROLES = ['overview', 'thumbnail'];
-
 /**
- * Preview image for a collection card. Prefer an `overview` asset, then a
- * `thumbnail` asset, then a link with rel `preview`.
+ * Preview image for a collection card.
+ * Tries an `overview` asset, then a `thumbnail` asset,
+ * then a link with rel `preview`.
  */
 export function pickCollectionPreview(
   assets: Record<string, IStacAsset> | undefined,
@@ -89,21 +89,27 @@ export function collectionPlainText(value: string | undefined): string {
     .trim();
 }
 
-/** Prefer a water-surface-elevation layer when the collection publishes several. */
-export function pickCollectionWms(
+/** Every WMS layer on a collection. Water-surface-elevation layers come first. */
+export function listCollectionWms(
   assets: Record<string, IStacAsset> | undefined,
-): ICatalogWmsEndpoint | null {
+): ICatalogWmsEndpoint[] {
   if (!assets) {
-    return null;
+    return [];
   }
 
   const endpoints = Object.entries(assets)
     .map(([key, asset]) => wmsEndpointFromAsset(asset, key))
     .filter((endpoint): endpoint is ICatalogWmsEndpoint => endpoint !== null);
 
-  return (
-    endpoints.find(endpoint => endpoint.layers.endsWith('_wse')) ??
-    endpoints[0] ??
-    null
-  );
+  return [
+    ...endpoints.filter(endpoint => endpoint.layers.endsWith('_wse')),
+    ...endpoints.filter(endpoint => !endpoint.layers.endsWith('_wse')),
+  ];
+}
+
+/** The layer added when a search result has no layer choice of its own. */
+export function pickCollectionWms(
+  assets: Record<string, IStacAsset> | undefined,
+): ICatalogWmsEndpoint | null {
+  return listCollectionWms(assets)[0] ?? null;
 }

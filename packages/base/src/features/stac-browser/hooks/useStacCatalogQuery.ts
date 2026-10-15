@@ -6,6 +6,7 @@ import {
   catalogRoot,
   collectionPlainText,
   ICatalogWmsEndpoint,
+  listCollectionWms,
   pickCollectionPreview,
   pickCollectionWms,
 } from '@/src/features/stac-browser/catalogQuery';
@@ -31,7 +32,7 @@ export interface ICatalogCollectionOption {
   start: string | null;
   end: string | null;
   previewHref: string | null;
-  wms: ICatalogWmsEndpoint | null;
+  wmsLayers: ICatalogWmsEndpoint[];
 }
 
 interface IUseStacCatalogQueryProps {
@@ -165,7 +166,7 @@ export function useStacCatalogQuery({
               collection.assets,
               collection.links,
             ),
-            wms: pickCollectionWms(collection.assets),
+            wmsLayers: listCollectionWms(collection.assets),
           };
         })
         .sort((a, b) => a.title.localeCompare(b.title));
@@ -239,7 +240,7 @@ export function useStacCatalogQuery({
     const collection = collections.find(
       item => item.id === catalogCollectionId,
     );
-    if (!collection?.wms) {
+    if (!collection || collection.wmsLayers.length === 0) {
       return;
     }
 
@@ -255,7 +256,7 @@ export function useStacCatalogQuery({
       !root ||
       collections.length === 0 ||
       catalogCollectionId === '' ||
-      collection?.wms ||
+      (collection?.wmsLayers.length ?? 0) > 0 ||
       !hasLoadedInitialSearchState
     ) {
       return;
@@ -366,18 +367,19 @@ function addStacItemLayer(model: IJupyterGISModel, item: IStacItem): void {
 export function addCatalogWmsToMap(
   model: IJupyterGISModel,
   summary: IWmsCollectionSummary,
+  endpoint: ICatalogWmsEndpoint,
 ): void {
-  if (existingWmsLayerId(model, summary.wms)) {
+  if (existingWmsLayerId(model, endpoint)) {
     return;
   }
 
-  addWmsLayer(model, summary.wms, summary.title);
+  addWmsLayer(model, endpoint, summary.title);
 }
 
 function toWmsSummary(
   option: ICatalogCollectionOption,
 ): IWmsCollectionSummary[] {
-  if (!option.wms) {
+  if (option.wmsLayers.length === 0) {
     return [];
   }
 
@@ -389,7 +391,7 @@ function toWmsSummary(
       start: option.start,
       end: option.end,
       previewHref: option.previewHref,
-      wms: option.wms,
+      layers: option.wmsLayers,
     },
   ];
 }

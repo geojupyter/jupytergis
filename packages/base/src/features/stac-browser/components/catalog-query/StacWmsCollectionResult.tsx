@@ -2,9 +2,14 @@ import { IJupyterGISModel } from '@jupytergis/schema';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import React, { useCallback, useState } from 'react';
 
+import { ICatalogWmsEndpoint } from '@/src/features/stac-browser/catalogQuery';
 import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 import { addCatalogWmsToMap } from '@/src/features/stac-browser/hooks/useStacCatalogQuery';
 import { Button } from '@/src/shared/components/Button';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 import { INTERNAL_PROXY_BASE } from '@/src/tools';
 
 interface IStacWmsCollectionResultProps {
@@ -14,10 +19,18 @@ interface IStacWmsCollectionResultProps {
 function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
   const { wmsCollection, wmsCollections, selectCatalogCollection } =
     useStacResultsContext();
+  const [layerChoice, setLayerChoice] = useState<{
+    collectionId: string;
+    layerKey: string;
+  } | null>(null);
 
   const index = wmsCollection
     ? wmsCollections.findIndex(item => item.id === wmsCollection.id)
     : -1;
+  const selectedLayer =
+    wmsCollection && wmsCollection.layers.length > 0
+      ? selectedWmsLayer(wmsCollection.id, wmsCollection.layers, layerChoice)
+      : undefined;
 
   const handlePrevious = useCallback(() => {
     const previous = wmsCollections[index - 1];
@@ -34,13 +47,23 @@ function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
   }, [index, selectCatalogCollection, wmsCollections]);
 
   const handleAddToMap = useCallback(() => {
-    if (!model || !wmsCollection) {
+    if (!model || !wmsCollection || !selectedLayer) {
       return;
     }
-    addCatalogWmsToMap(model, wmsCollection);
-  }, [model, wmsCollection]);
+    addCatalogWmsToMap(model, wmsCollection, selectedLayer);
+  }, [model, selectedLayer, wmsCollection]);
 
-  if (!wmsCollection || index < 0) {
+  const handleLayerChange = useCallback(
+    (layerKey: string) => {
+      if (!wmsCollection) {
+        return;
+      }
+      setLayerChoice({ collectionId: wmsCollection.id, layerKey });
+    },
+    [wmsCollection],
+  );
+
+  if (!wmsCollection || index < 0 || !selectedLayer) {
     return null;
   }
 
@@ -89,6 +112,29 @@ function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
             {wmsCollection.description}
           </p>
         ) : null}
+        <label
+          className="jgis-stac-filter-extension-label"
+          htmlFor="jgis-stac-wms-layer"
+        >
+          Layer
+        </label>
+        <NativeSelect
+          id="jgis-stac-wms-layer"
+          className="w-full"
+          value={wmsLayerKey(selectedLayer)}
+          onChange={event => {
+            handleLayerChange(event.target.value);
+          }}
+        >
+          {wmsCollection.layers.map(layer => (
+            <NativeSelectOption
+              key={wmsLayerKey(layer)}
+              value={wmsLayerKey(layer)}
+            >
+              {layer.name}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
         <Button className="jgis-stac-wms-result-add" onClick={handleAddToMap}>
           Add to map
         </Button>
@@ -126,6 +172,24 @@ function CollectionPreview({ href }: ICollectionPreviewProps) {
       onError={handleError}
     />
   );
+}
+
+function wmsLayerKey(layer: ICatalogWmsEndpoint): string {
+  return `${layer.url}|${layer.layers}`;
+}
+
+function selectedWmsLayer(
+  collectionId: string,
+  layers: ICatalogWmsEndpoint[],
+  choice: { collectionId: string; layerKey: string } | null,
+): ICatalogWmsEndpoint {
+  if (choice?.collectionId === collectionId) {
+    const match = layers.find(layer => wmsLayerKey(layer) === choice.layerKey);
+    if (match) {
+      return match;
+    }
+  }
+  return layers[0];
 }
 
 function formatExtent(start: string | null, end: string | null): string | null {

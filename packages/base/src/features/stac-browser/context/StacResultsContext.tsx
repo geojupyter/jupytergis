@@ -73,7 +73,7 @@ export interface IWmsCollectionSummary {
   start: string | null;
   end: string | null;
   previewHref: string | null;
-  wms: ICatalogWmsEndpoint;
+  layers: ICatalogWmsEndpoint[];
 }
 
 const StacResultsContext = createContext<IStacResultsContext | undefined>(
