@@ -1,4 +1,5 @@
 import pytest
+from jupytergis_core.schema import LayerType, SourceType
 from pycrdt import Map
 
 from jupytergis_lab import GISDocument
@@ -57,21 +58,25 @@ class TestTiffLayer(TestDocument):
     def test_sourcelayer(self):
         self.doc._is_ready = True
         tif_layer = self.doc.add_geotiff_layer(url=TEST_TIF)
-        assert self.doc.layers[tif_layer]
+        assert self.doc.layers == [tif_layer]
 
 
 class TestGeoPackageVectorLayer(TestDocument):
     def test_sourcelayer(self):
         self.doc._is_ready = True
         gpkg_layers = self.doc.add_geopackage_vector_layer(TEST_GPKG_VECTOR)
-        assert all(name in self.doc.layers for name in gpkg_layers)
+        assert [layer.id for layer in self.doc.layers] == [
+            layer.id for layer in gpkg_layers
+        ]
 
 
 class TestGeoPackageRasterLayer(TestDocument):
     def test_sourcelayer(self):
         self.doc._is_ready = True
         gpkg_layers = self.doc.add_geopackage_raster_layer(TEST_GPKG_RASTER)
-        assert all(name in self.doc.layers for name in gpkg_layers)
+        assert [layer.id for layer in self.doc.layers] == [
+            layer.id for layer in gpkg_layers
+        ]
 
 
 class TestGeoParquetLayer(TestDocument):
@@ -80,8 +85,174 @@ class TestGeoParquetLayer(TestDocument):
         geoparquet_layer = self.doc.add_geoparquet_layer(
             TEST_GEOPARQUET,
         )
-        state = self.doc.layers[geoparquet_layer]["parameters"]["symbologyState"]
-        assert "layers" in state
+        state = geoparquet_layer.get_parameter("symbologyState")
+        assert state is not None
+
+
+class TestLayerAndSourceObjects(TestDocument):
+    RASTER_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+
+    def setup_method(self):
+        super().setup_method()
+        self.doc._is_ready = True
+
+    def test_layers_read_back_as_objects(self):
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        assert self.doc.layers == [layer]
+        assert layer.id in self.doc.layer_tree
+        assert layer.name == "Basemap"
+        assert layer.type == LayerType.RasterLayer
+        assert layer.visible is True
+
+    def test_layer_reaches_its_own_source(self):
+        source = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap").source
+
+        assert source is not None
+        assert source.type == SourceType.RasterSource
+        assert source.parameters.url == self.RASTER_URL
+        assert source.get_parameter("url") == self.RASTER_URL
+
+    def test_sources_are_public(self):
+        source_id = self.doc.add_raster_layer(url=self.RASTER_URL).get_parameter(
+            "source",
+        )
+
+        assert source_id in self.doc.sources
+        assert self.doc.sources[source_id].id == source_id
+
+    def test_source_lists_the_layers_using_it(self):
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        assert [user.id for user in layer.source.layers] == [layer.id]
+
+    def test_get_layer_by_id_and_by_name(self):
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        assert self.doc.get_layer(layer.id).id == layer.id
+        assert self.doc.get_layer("Basemap").id == layer.id
+
+    def test_get_layer_without_a_match_raises(self):
+        with pytest.raises(KeyError, match="No layer found"):
+            self.doc.get_layer("Nope")
+
+    def test_get_layer_with_an_ambiguous_name_raises(self):
+        first = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+        second = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        with pytest.raises(ValueError, match="2 layers are named") as error:
+            self.doc.get_layer("Basemap")
+
+        assert first.id in str(error.value)
+        assert second.id in str(error.value)
+
+    def test_get_source_by_name(self):
+        source = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap").source
+
+        assert self.doc.get_source(source.name).id == source.id
+
+    def test_unknown_types_read_back_with_raw_parameters(self):
+        # A type this version has no model for still has to read back, rather
+        # than disappear or be relabelled as whichever model fits its keys.
+        self.doc._sources["source-1"] = {
+            "name": "Shapes",
+            "type": "ShapefileSource",
+            "parameters": {"path": "shapes.shp"},
+        }
+        self.doc._layers["layer-1"] = {
+            "name": "Shapes",
+            "type": "StacLayer",
+            "visible": True,
+            "parameters": {"source": "source-1", "opacity": 0.5},
+        }
+
+        layer = self.doc.get_layer("layer-1")
+
+        assert isinstance(layer.parameters, dict)
+        assert layer.get_parameter("opacity") == 0.5
+        assert layer.source.name == "Shapes"
+        assert isinstance(self.doc.sources["source-1"].parameters, dict)
+
+    def test_unknown_parameters_are_not_dropped(self):
+        self.doc._layers["layer-1"] = {
+            "name": "Future",
+            "type": "RasterLayer",
+            "visible": True,
+            "parameters": {"source": "source-1", "opacity": 1.0, "unknown": 7},
+        }
+
+        assert self.doc.get_layer("layer-1").get_parameter("unknown") == 7
+
+    def test_layers_follow_the_layer_tree_with_groups_as_sub_lists(self):
+        first = self.doc.add_raster_layer(url=self.RASTER_URL, name="First")
+        second = self.doc.add_raster_layer(url=self.RASTER_URL, name="Second")
+        self.doc._layerTree.clear()
+        self.doc._layerTree.extend(
+            [first.id, Map({"name": "Group", "layers": [second.id]})],
+        )
+
+        layers = self.doc.layers
+
+        assert [layer.id for layer in layers[:1]] == [first.id]
+        assert isinstance(layers[1], list)
+        assert layers[1].name == "Group"
+        assert [layer.id for layer in layers[1]] == [second.id]
+
+    def test_setting_a_layer_field_updates_the_document(self):
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        layer.visible = False
+
+        assert self.doc._layers[layer.id]["visible"] is False
+
+    def test_setting_a_nested_source_parameter_updates_the_document(self):
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+        url = "https://example.com/{z}/{y}/{x}"
+
+        layer.source.parameters.url = url
+
+        assert (
+            self.doc._sources[layer.get_parameter("source")]["parameters"]["url"] == url
+        )
+        assert layer.source.parameters.url == url
+
+    def test_parameters_read_and_write_as_attributes(self):
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+        url = "https://example.com/{z}/{y}/{x}"
+
+        layer.opacity = 0.5
+        layer.source.url = url
+
+        assert layer.opacity == 0.5
+        assert self.doc._layers[layer.id]["parameters"]["opacity"] == 0.5
+        assert layer.source.url == url
+        assert self.doc._sources[layer.source.id]["parameters"]["url"] == url
+        assert "opacity" in dir(layer)
+
+    def test_raw_parameters_read_and_write_as_attributes(self):
+        self.doc._layers["layer-1"] = {
+            "name": "Shapes",
+            "type": "StacLayer",
+            "visible": True,
+            "parameters": {"opacity": 0.5},
+        }
+        layer = self.doc.get_layer("layer-1")
+
+        layer.opacity = 0.2
+
+        assert layer.opacity == 0.2
+        assert self.doc._layers["layer-1"]["parameters"]["opacity"] == 0.2
+
+    def test_layer_source_is_the_source_object_not_its_id(self):
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        assert layer.source.id == layer.get_parameter("source")
+
+    def test_unknown_attribute_raises(self):
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+
+        with pytest.raises(AttributeError):
+            _ = layer.nope
 
 
 class TestGrammarSymbologyBuilders:
@@ -226,15 +397,25 @@ class TestGrammarSymbologyBuilders:
 class TestGeoJSONGrammarSymbology(TestDocument):
     def test_add_geojson_layer_persists_fill_symbology_as_layers_only(self):
         self.doc._is_ready = True
-        layer_id = self.doc.add_geojson_layer(
+        layer = self.doc.add_geojson_layer(
             data=SAMPLE_GEOJSON,
             name="Quakes",
             symbology=[[constant("#00FF00").encoding("fill")]],
         )
-        state = self.doc.layers[layer_id]["parameters"]["symbologyState"]
-        assert "layers" in state
-        assert len(state["layers"]) == 1
-        assert len(state["layers"][0]["rules"]) >= 1
+        state = layer.get_parameter("symbologyState")
+        assert state.layers is not None
+        assert len(state.layers) == 1
+        assert len(state.layers[0].rules) >= 1
+
+    def test_setting_symbology_on_a_layer_updates_the_document(self):
+        self.doc._is_ready = True
+        layer = self.doc.add_geojson_layer(data=SAMPLE_GEOJSON, name="Quakes")
+
+        layer.symbology = [[constant("#00FF00").encoding("fill")]]
+
+        stored = self.doc._layers[layer.id]["parameters"]["symbologyState"]
+        assert len(stored["layers"]) == 1
+        assert len(layer.symbology.layers) == 1
 
     def test_apply_symbology_overwrites_with_grammar_state(self):
         # TODO implement it
@@ -254,8 +435,8 @@ class TestGeoJSONGrammarSymbology(TestDocument):
 class TestQgisUnsupportedFeatures(TestDocument):
     def test_jgis_document_allows_unsupported_layers(self):
         assert not self.doc._is_qgis_document
-        layer_id = self.doc.add_geoZarr_layer(url="http://example.com/data.zarr")
-        assert self.doc.layers[layer_id]
+        layer = self.doc.add_geoZarr_layer(url="http://example.com/data.zarr")
+        assert self.doc.layers == [layer]
 
     @pytest.mark.parametrize("ext", [".qgz", ".qgs", ".QGZ"])
     def test_qgis_document_is_detected(self, ext):
@@ -304,12 +485,12 @@ class TestQgisUnsupportedFeatures(TestDocument):
 
     def test_expression_symbology_allowed_on_jgis_document(self):
         self.doc._is_ready = True
-        layer_id = self.doc.add_geojson_layer(
+        layer = self.doc.add_geojson_layer(
             data=SAMPLE_GEOJSON,
             name="Quakes",
             symbology=[[vega_expr("datum.mag * 2").encoding("radius")]],
         )
-        assert self.doc.layers[layer_id]
+        assert self.doc.layers == [layer]
 
 
 def _feature_stores(doc: GISDocument) -> dict:

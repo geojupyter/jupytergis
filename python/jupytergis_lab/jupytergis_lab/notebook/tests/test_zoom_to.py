@@ -22,10 +22,10 @@ class TestZoomTo:
         self._loop.close()
 
     def test_zoom_to_true_sends_comm_message(self):
-        layer_id = self.doc.add_raster_layer(TEST_URL, zoom_to=True)
+        layer = self.doc.add_raster_layer(TEST_URL, zoom_to=True)
 
         self.doc._comm.send.assert_called_once_with(
-            data={"type": "zoom-to", "layerId": layer_id},
+            data={"type": "zoom-to", "layerId": layer.id},
         )
 
     def test_default_does_not_request_zoom(self):
@@ -38,18 +38,16 @@ class TestZoomTo:
 
     def test_zoom_to_does_not_leak_onto_the_layer(self):
         # zoom_to is a transient action, not persisted onto the layer object.
-        layer_id = self.doc.add_raster_layer(TEST_URL, zoom_to=True)
-
-        layer = self.doc.layers[layer_id]
-        assert "zoom_to" not in layer
-        assert "zoomRequest" not in layer
+        layer = self.doc.add_raster_layer(TEST_URL, zoom_to=True)
+        assert "zoom_to" not in layer.model_extra
+        assert "zoomRequest" not in layer.model_extra
 
     def test_zoom_to_layer_public_method_sends_comm_message(self):
-        layer_id = self.doc.add_raster_layer(TEST_URL)
+        layer = self.doc.add_raster_layer(TEST_URL)
         self.doc._comm.send.reset_mock()
 
-        self.doc.zoom_to_layer(layer_id)
+        self.doc.zoom_to_layer(layer)
 
         self.doc._comm.send.assert_called_once_with(
-            data={"type": "zoom-to", "layerId": layer_id},
+            data={"type": "zoom-to", "layerId": layer.id},
         )
