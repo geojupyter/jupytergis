@@ -118,7 +118,7 @@ function resultsTabLabel(
   totalResults: string,
 ): string {
   if (hasWmsCollection) {
-    return 'Results (1)';
+    return 'Results (*)';
   }
 
   if (isLoading) {
