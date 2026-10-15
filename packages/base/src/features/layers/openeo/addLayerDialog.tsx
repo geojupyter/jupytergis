@@ -4,7 +4,7 @@ import * as React from 'react';
 import { EditorAwareDialog } from '@/src/shared/editorAwareDialog';
 import { fetchBackendCatalog, IBackendCatalog } from '@/src/tools';
 import {
-  connect as openEOConnect,
+  openEOConnect,
   IOpenEOConnectionInfo,
   listOpenEOConnections,
 } from './OpenEOTileLayer';
@@ -27,7 +27,6 @@ import {
 export interface IOpenEODialogResult {
   layerName: string;
   serverUrl: string;
-  authBearer?: string;
   processGraph: Record<string, any>;
 }
 
@@ -1410,7 +1409,6 @@ class AddLayerBody extends ReactWidget {
     return {
       layerName: this._state.layerName || template.name,
       serverUrl: this._activeConnection.url,
-      authBearer: this._activeConnection.authBearer,
       processGraph:
         this._state.editedGraph ?? template.buildGraph(this._state.params),
     };
