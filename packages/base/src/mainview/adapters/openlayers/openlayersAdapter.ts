@@ -148,14 +148,8 @@ import {
   VIEWPORT_SYNC_INTERVAL,
 } from '@/src/mainview/mapAdapter';
 import { markerIcon } from '@/src/shared/icons';
-import {
-  debounce,
-  getCssVarValue,
-  INTERNAL_PROXY_BASE,
-  isJupyterLite,
-  loadFile,
-  throttle,
-} from '@/src/tools';
+import { buildProxyUrl } from '@/src/shared/tileProxy';
+import { debounce, getCssVarValue, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
   MAP_ADAPTER_FEATURES,
@@ -2250,33 +2244,6 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   /**
-   * Builds the proxy URL for a given URL.
-   * @param url - the URL to proxy.
-   * @param useProxy - whether to use the proxy.
-   * @param httpHeaders - HTTP headers to pass to the proxy.
-   */
-
-  private getProxyUrl(
-    url: string,
-    useProxy?: boolean,
-    httpHeaders?: string,
-  ): string {
-    if (!useProxy) {
-      return url;
-    }
-    const headersParam =
-      httpHeaders && Object.keys(httpHeaders).length > 0
-        ? `&headers=${encodeURIComponent(JSON.stringify(httpHeaders))}`
-        : '';
-
-    const proxyBase = isJupyterLite()
-      ? `${this._model.jgisSettings.proxyUrl}/`
-      : INTERNAL_PROXY_BASE;
-
-    return `${proxyBase}?url=${encodeURIComponent(url)}${headersParam}`;
-  }
-
-  /**
    * Add a source in the map.
    *
    * @param id - the source id.
@@ -2353,7 +2320,8 @@ export class OpenLayersAdapter implements IMapAdapter {
             if (sourceParameters.useProxy) {
               vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
                 const vtTile = tile as VectorTile<RenderFeature>;
-                const proxyUrl = this.getProxyUrl(
+                const proxyUrl = buildProxyUrl(
+                  this._model,
                   tileUrl,
                   sourceParameters.useProxy,
                   sourceParameters.httpHeaders,
@@ -2538,7 +2506,8 @@ export class OpenLayersAdapter implements IMapAdapter {
               if (isRemote) {
                 return {
                   ...addNoData(sourceInfo),
-                  url: this.getProxyUrl(
+                  url: buildProxyUrl(
+                    this._model,
                     sourceInfo.url!,
                     sourceParameters.useProxy,
                     sourceParameters.httpHeaders,

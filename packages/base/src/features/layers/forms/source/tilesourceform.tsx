@@ -1,6 +1,6 @@
 import { IDict } from '@jupytergis/schema';
-import { UiSchema } from '@rjsf/utils';
-import React, { useMemo } from 'react';
+import { UiSchema, WidgetProps } from '@rjsf/utils';
+import React, { useMemo, useRef } from 'react';
 
 import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import {
@@ -9,6 +9,7 @@ import {
 } from '@/src/shared/formbuilder/objectform/schemaUtils';
 import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
+import { SourceLayerField } from './SourceLayerField';
 import type { ISourceFormProps } from './sourceform';
 
 function getUrlParameters(url: string | undefined): string[] {
@@ -21,7 +22,7 @@ function getUrlParameters(url: string | undefined): string[] {
   let match: RegExpExecArray | null;
 
   while ((match = regex.exec(url)) !== null) {
-    if (['max_zoom', 'min_zoom', 'x', 'y', 'z'].includes(match[1])) {
+    if (['max_zoom', 'min_zoom', 'x', 'y', 'z', '-y'].includes(match[1])) {
       continue;
     }
     matches.push(match[1]);
@@ -65,6 +66,23 @@ export function TileSourcePropertiesForm(
       : undefined,
   });
 
+  const formDataRef = useRef(formData);
+  formDataRef.current = formData;
+
+  const SourceLayerWidget = useMemo(
+    () =>
+      function SourceLayerWidget(widgetProps: WidgetProps) {
+        return (
+          <SourceLayerField
+            {...widgetProps}
+            model={model}
+            getSource={() => formDataRef.current ?? {}}
+          />
+        );
+      },
+    [model],
+  );
+
   const uiSchema = useMemo(() => {
     const builtUiSchema: UiSchema = {};
     const dataCopy = deepCopy(formData);
@@ -75,6 +93,10 @@ export function TileSourcePropertiesForm(
       formContext,
       removeFormEntry,
     );
+
+    if ((schema.properties as IDict | undefined)?.sourceLayer) {
+      builtUiSchema.sourceLayer = { 'ui:widget': SourceLayerWidget };
+    }
 
     if (schema.properties && formData?.url) {
       const urlParams = getUrlParameters(formData.url);
@@ -104,7 +126,7 @@ export function TileSourcePropertiesForm(
     }
 
     return builtUiSchema;
-  }, [schema, formData, formContext]);
+  }, [schema, formData, formContext, SourceLayerWidget]);
 
   if (!hasSchema) {
     return null;
