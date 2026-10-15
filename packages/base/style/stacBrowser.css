@@ -134,7 +134,7 @@
   font-weight: 600;
 }
 
-.jgis-stac-wms-result-extent {
+.jgis-stac-wms-result-time-range {
   margin: 0;
   font-size: 0.75rem;
   color: var(--jp-ui-font-color2);
