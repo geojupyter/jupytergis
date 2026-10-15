@@ -55,6 +55,12 @@ interface IStacResultsContext {
   executeQueryWithPage: (pageNumber: number) => Promise<void>;
   catalogCollectionId: string;
   setCatalogCollectionId: (id: string) => void;
+  startTime: Date | undefined;
+  setStartTime: (date: Date | undefined) => void;
+  endTime: Date | undefined;
+  setEndTime: (date: Date | undefined) => void;
+  selectCatalogCollection: (id: string) => void;
+  registerSelectCollection: (selectFn: (id: string) => void) => void;
   wmsCollections: IWmsCollectionSummary[];
   setWmsCollections: (collections: IWmsCollectionSummary[]) => void;
   wmsCollection: IWmsCollectionSummary | null;
@@ -97,6 +103,8 @@ export function StacResultsProvider({
     IStacPaginationLink[]
   >([]);
   const [catalogCollectionId, setCatalogCollectionIdState] = useState('');
+  const [startTime, setStartTimeState] = useState<Date | undefined>(undefined);
+  const [endTime, setEndTimeState] = useState<Date | undefined>(undefined);
   const [wmsCollections, setWmsCollectionsState] = useState<
     IWmsCollectionSummary[]
   >([]);
@@ -111,6 +119,7 @@ export function StacResultsProvider({
   const handlePaginationClickRef =
     useRef<(dir: 'next' | 'previous') => Promise<void>>();
   const buildQueryRef = useRef<() => IStacQueryBodyUnion>();
+  const selectCollectionRef = useRef<(id: string) => void>(() => undefined);
   const hasLoadedSelectedUrlRef = useRef(false);
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
@@ -186,7 +195,28 @@ export function StacResultsProvider({
     setTotalResults('0');
     setTotalPages(0);
     setCatalogCollectionIdState('');
+    setStartTimeState(undefined);
+    setEndTimeState(undefined);
     setWmsCollectionsState([]);
+  }, []);
+
+  const setStartTime = useCallback((date: Date | undefined) => {
+    setStartTimeState(date);
+  }, []);
+
+  const setEndTime = useCallback((date: Date | undefined) => {
+    setEndTimeState(date);
+  }, []);
+
+  const registerSelectCollection = useCallback(
+    (selectFn: (id: string) => void) => {
+      selectCollectionRef.current = selectFn;
+    },
+    [],
+  );
+
+  const selectCatalogCollection = useCallback((id: string) => {
+    selectCollectionRef.current(id);
   }, []);
 
   const setCatalogCollectionId = useCallback((id: string) => {
@@ -474,6 +504,12 @@ export function StacResultsProvider({
         executeQueryWithPage,
         catalogCollectionId,
         setCatalogCollectionId,
+        startTime,
+        setStartTime,
+        endTime,
+        setEndTime,
+        selectCatalogCollection,
+        registerSelectCollection,
         wmsCollections,
         setWmsCollections,
         wmsCollection,

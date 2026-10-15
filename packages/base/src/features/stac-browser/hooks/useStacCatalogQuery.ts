@@ -64,7 +64,12 @@ export function useStacCatalogQuery({
     executeQuery,
     catalogCollectionId,
     setCatalogCollectionId,
+    startTime,
+    setStartTime,
+    endTime,
+    setEndTime,
     setWmsCollections,
+    registerSelectCollection,
     setResults,
   } = useStacResultsContext();
   const {
@@ -79,8 +84,6 @@ export function useStacCatalogQuery({
   const [collections, setCollections] = useState<ICatalogCollectionOption[]>(
     [],
   );
-  const [startTime, setStartTime] = useState<Date | undefined>(undefined);
-  const [endTime, setEndTime] = useState<Date | undefined>(undefined);
   const [isLoadingCollections, setIsLoadingCollections] = useState(false);
   const [collectionsError, setCollectionsError] = useState<string | undefined>(
     undefined,
@@ -169,11 +172,6 @@ export function useStacCatalogQuery({
 
       setCollections(options);
       setWmsCollections(options.flatMap(toWmsSummary));
-      const selected = options.find(
-        item => item.id === selectedCollectionRef.current,
-      );
-      setStartTime(toDate(selected?.start ?? null));
-      setEndTime(toDate(selected?.end ?? null));
       setIsLoadingCollections(false);
     };
 
@@ -191,8 +189,15 @@ export function useStacCatalogQuery({
       setStartTime(toDate(collection?.start ?? null));
       setEndTime(toDate(collection?.end ?? null));
     },
-    [collections, setCatalogCollectionId],
+    [collections, setCatalogCollectionId, setEndTime, setStartTime],
   );
+
+  useEffect(() => {
+    if (collections.length === 0) {
+      return;
+    }
+    registerSelectCollection(selectCollection);
+  }, [collections.length, registerSelectCollection, selectCollection]);
 
   const buildQuery = useCallback((): IStacCatalogQueryBody => {
     const query: IStacCatalogQueryBody['query'] = {};

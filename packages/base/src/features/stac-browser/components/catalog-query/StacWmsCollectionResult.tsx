@@ -12,7 +12,7 @@ interface IStacWmsCollectionResultProps {
 }
 
 function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
-  const { wmsCollection, wmsCollections, setCatalogCollectionId } =
+  const { wmsCollection, wmsCollections, selectCatalogCollection } =
     useStacResultsContext();
 
   const index = wmsCollection
@@ -22,16 +22,16 @@ function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
   const handlePrevious = useCallback(() => {
     const previous = wmsCollections[index - 1];
     if (previous) {
-      setCatalogCollectionId(previous.id);
+      selectCatalogCollection(previous.id);
     }
-  }, [index, setCatalogCollectionId, wmsCollections]);
+  }, [index, selectCatalogCollection, wmsCollections]);
 
   const handleNext = useCallback(() => {
     const next = wmsCollections[index + 1];
     if (next) {
-      setCatalogCollectionId(next.id);
+      selectCatalogCollection(next.id);
     }
-  }, [index, setCatalogCollectionId, wmsCollections]);
+  }, [index, selectCatalogCollection, wmsCollections]);
 
   const handleAddToMap = useCallback(() => {
     if (!model || !wmsCollection) {
