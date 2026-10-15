@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 from importlib.metadata import version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
-from urllib.parse import urlparse, unquote
+from urllib.parse import unquote, urlparse
 from uuid import uuid4
 
 import requests
@@ -590,14 +590,16 @@ class GISDocument(CommWidget):
         """
         self._assert_is_ready()
 
-        service_type = 'XYZ'
+        service_type = "XYZ"
 
-        service_types = connection.list_service_types()
+        service_types = graph.connection.list_service_types()
         if service_types.get(service_type) is None:
-            raise ValueError('The OpenEO backend does not allow XYZ services. We cannot show the OpenEO graph dynamically.')
+            raise ValueError(
+                "The OpenEO backend does not allow XYZ services. We cannot show the OpenEO graph dynamically.",
+            )
 
-        service = graph.connection.create_service(graph, 'XYZ')
-        service_url = unquote(service.describe_service()['url'])
+        service = graph.connection.create_service(graph, "XYZ")
+        service_url = unquote(service.describe_service()["url"])
 
         flat_graph = graph.flat_graph()
 
@@ -607,7 +609,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "processGraph": flat_graph,
                 "serverUrl": graph.connection.root_url,
-                "tileServiceUrl": service_url
+                "tileServiceUrl": service_url,
             },
         }
 
