@@ -936,7 +936,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   /**
-   * Vector sources loaded with `featureProjection: view` keep coords in the
+   * Vector/Image sources loaded with `featureProjection: view` keep coords in the
    * old view CRS. Reread them after the view projection changes. Tile sources
    * with their own projection are left alone.
    */
@@ -952,7 +952,8 @@ export class OpenLayersAdapter implements IMapAdapter {
       if (
         source.type !== 'GeoJSONSource' &&
         source.type !== 'ShapefileSource' &&
-        source.type !== 'GeoParquetSource'
+        source.type !== 'GeoParquetSource' &&
+        source.type !== 'ImageSource'
       ) {
         continue;
       }
@@ -2637,9 +2638,13 @@ export class OpenLayersAdapter implements IMapAdapter {
             ...sourceParameters.coordinates.map(corner => corner[1]),
           );
 
-          // Convert lon/lat to OpenLayer coordinates
-          const topLeft = fromLonLat([leftSide, topSide]);
-          const bottomRight = fromLonLat([rightSide, bottomSide]);
+          // Stored corners are lon/lat. Place them in the current view.
+          const viewProjection = this._map.getView().getProjection();
+          const topLeft = fromLonLat([leftSide, topSide], viewProjection);
+          const bottomRight = fromLonLat(
+            [rightSide, bottomSide],
+            viewProjection,
+          );
 
           // Get extent from coordinates
           const minX = topLeft[0];
