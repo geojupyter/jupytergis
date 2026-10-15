@@ -31,7 +31,7 @@ export const openEOEvents = new OpenEOEvents();
 
 /**
  * Show a small "Log in" dialog for `serverUrl` and, if the user accepts,
- * trigger Martin's sign-in flow via `connect()`. On successful sign-in
+ * trigger sign-in flow via `connect()`. On successful sign-in
  * the resulting `openEOEvents.connected` signal causes mainView to rebuild
  * any tile sources that were waiting on this server.
  *
@@ -55,7 +55,7 @@ async function promptOpenEOLogin(serverUrl: string): Promise<void> {
     }
     try {
       const info: IOpenEOConnectionInfo = { url: serverUrl };
-      await connect(info);
+      await openEOConnect(info);
       // Now that the session is live, ask mainView to rebuild the OpenEO
       // layers that bailed out while waiting for sign-in. Only this
       // recovery path emits `connected` — a normal restore builds each
@@ -97,28 +97,13 @@ export function getLatestOpenEOConnection(): IOpenEOConnectionInfo | null {
 }
 
 /**
- * Build openEO's canonical `type/providerId/token` bearer string from a
- * live connection's active auth provider, or `undefined` if it isn't
- * authenticated. This is the form we persist (and `connect()` restores),
- * rather than `AuthProvider.getToken()` which drops the prefix on JWT
- * backends.
- */
-function bearerFromConnection(connection: Connection): string | undefined {
-  const provider = connection.getAuthProvider();
-  if (!provider || !provider.token) {
-    return undefined;
-  }
-  return `${provider.getType()}/${provider.getProviderId()}/${provider.token}`;
-}
-
-/**
  * Return the live `Connection` for `serverUrl` if the user is currently
  * signed in to it. Throws otherwise — callers (the tile source, the
  * dialog) are expected to surface the error and re-establish the session
  * (silently from a persisted bearer, or via the sign-in flow).
  */
 function getOpenEOConnection(serverUrl: string): Connection {
-  // Match `connect()`'s normalization so cache lookups are consistent.
+  // Match `openEOConnect()`'s normalization so cache lookups are consistent.
   let url = serverUrl;
   if (url && !url.match(/^https?:\/\//i)) {
     url = `https://${url}`;
@@ -226,11 +211,10 @@ async function showSigninDialog(
   return body.getValue();
 }
 
-export async function connect(
+export async function openEOConnect(
   connectionInfo: IOpenEOConnectionInfo,
 ): Promise<Connection> {
   let { url } = connectionInfo;
-  const { authBearer } = connectionInfo;
   // Pre-supplied credentials short-circuit the sign-in dialog — useful
   // when the caller is itself inside another JupyterLab Dialog, since
   // nested showDialog calls queue and never actually display until the
@@ -261,7 +245,6 @@ export async function connect(
     delete CONNECTIONS[url];
     CONNECTIONS[url] = existing;
     connectionInfo.url = url;
-    connectionInfo.authBearer = bearerFromConnection(existing) ?? authBearer;
     return existing;
   }
 
@@ -283,21 +266,6 @@ export async function connect(
     const connection = await OpenEO.connect(url, {
       addNamespaceToProcess: true,
     });
-
-    // Restore a previously-persisted session without prompting. The
-    // bearer is stored in openEO's canonical `type/providerId/token` form
-    // (the same form Python's `connection.auth.bearer` uses), so it can be
-    // handed straight to `setAuthToken`. We don't persist
-    // `AuthProvider.getToken()` directly: on JWT backends it returns a
-    // bare token with no `type/providerId/` prefix, which we couldn't
-    // parse back — that was why reloads kept prompting for sign-in.
-    if (authBearer) {
-      const [type, providerId, ...rest] = authBearer.split('/');
-      const token = rest.join('/');
-      if (type && token) {
-        connection.setAuthToken(type, providerId ?? '', token);
-      }
-    }
 
     if (!connection.isAuthenticated()) {
       if (!signIn) {
@@ -329,15 +297,10 @@ export async function connect(
 
     CONNECTIONS[url] = connection;
 
-    // Reflect the resolved server url + live bearer back so callers (the
-    // layer dialog) can persist them. The bearer is stored in canonical
-    // form so `connect()` can restore the session after a reload (see
-    // above).
     connectionInfo.url = url;
-    connectionInfo.authBearer = bearerFromConnection(connection) ?? authBearer;
 
     // NB: we intentionally do NOT emit `openEOEvents.connected` here. A tile
-    // source that calls connect() during its own construction renders itself
+    // source that calls openEOConnect() during its own construction renders itself
     // once this resolves; emitting would make mainView rebuild it
     // re-entrantly and fire a duplicate createService. Only promptOpenEOLogin
     // (the sign-in recovery path) emits, to rebuild sources that were waiting.
@@ -357,12 +320,7 @@ export interface IOpenEOConnectionInfo {
   url?: string;
 
   /**
-   * The session bearer.
-   */
-  authBearer?: string;
-
-  /**
-   * Optional pre-supplied credentials. When set, connect() uses these
+   * Optional pre-supplied credentials. When set, openEOConnect() uses these
    * directly instead of opening the sign-in dialog — useful when the
    * caller is itself a dialog (JupyterLab queues nested dialogs, so the
    * sign-in popup would otherwise never appear).
@@ -387,12 +345,9 @@ export interface IOpenEOTileSourceOptions extends XYZOptions {
   serverUrl: string;
 
   /**
-   * Optional persisted session bearer. When the server isn't already in
-   * the in-memory cache (e.g. right after a page reload, or a document
-   * opened from a notebook session), it is used to re-establish the
-   * connection silently instead of prompting the user to sign in again.
+   * Optional tile service URL. If not provided, we'll try to create the service.
    */
-  authBearer?: string;
+  tileServiceURL?: string;
 }
 
 export class OpenEOTileSource extends XYZSource {
@@ -460,8 +415,8 @@ export class OpenEOTileSource extends XYZSource {
     });
 
     this.serverUrl = options.serverUrl;
-    this.authBearer = options.authBearer;
-    this._connect(options.serverUrl, options.authBearer, options.processGraph);
+
+    this._initializeTileServiceURL(options);
   }
 
   /**
@@ -482,57 +437,41 @@ export class OpenEOTileSource extends XYZSource {
   }
   private _lastTileErrors = new Map<string, number>();
 
-  /**
-   * Resolve the live OpenEO connection for `serverUrl` and create an XYZ
-   * service for the process graph. Resolution order:
-   *   1. The in-memory cache, if the user already signed in this session.
-   *   2. A persisted `authBearer` (e.g. saved from a notebook session),
-   *      used to re-establish the connection silently.
-   *   3. Otherwise surface a "Log in" dialog and leave the layer
-   *      unrendered until the user signs back in — once they do,
-   *      `openEOEvents.connected` fires and mainView reconstructs this
-   *      source.
-   */
-  private async _connect(
-    serverUrl: string,
-    authBearer: string | undefined,
-    graph: Process,
-  ) {
-    try {
-      this._connection = getOpenEOConnection(serverUrl);
-    } catch {
-      if (authBearer) {
-        try {
-          this._connection = await connect({ url: serverUrl, authBearer });
-        } catch {
-          void promptOpenEOLogin(serverUrl);
-          return;
-        }
-      } else {
-        void promptOpenEOLogin(serverUrl);
-        return;
-      }
-    }
-    this._connected.resolve();
-    this._updateUrl(graph);
-  }
+  private async _initializeTileServiceURL(options: IOpenEOTileSourceOptions) {
+    // If we already have a tile service URL, use it
+    // This happens when e.g. the service was created Python side, or we are refreshing the page.
+    if (options.tileServiceURL) {
+      // TODO Frequently make sure the tile service is still up?
+      // If not up, we should prompt the user for reconnecting
+      this._url = options.tileServiceURL;
 
-  private async _updateUrl(processGraph: Process) {
-    await this._connected.promise;
+      this._connected.resolve();
+
+      this.refresh();
+
+      return;
+    }
+
+    // Otherwise, try to create the service URL
+    try {
+      this._connection = getOpenEOConnection(options.serverUrl);
+    } catch {
+      await promptOpenEOLogin(options.serverUrl);
+    }
 
     if (!this._connection) {
       throw new Error('Failed to get OpenEO service connection');
     }
 
-    let service: Service | null = null;
-
     // Inject `save_result` for graphs that omit it (e.g. ESA UDPs).
-    const graph = ensureSaveResult(processGraph);
+    const graph = ensureSaveResult(options.processGraph);
+
+    let service: Service | null = null;
 
     try {
       service = await this._connection.createService(graph, 'XYZ');
     } catch (e) {
-      throw new Error(`Failed to connect to XYZ service ${e}`);
+      throw new Error(`Failed to create the XYZ service ${e}`);
     }
 
     if (!service.url) {
@@ -540,6 +479,8 @@ export class OpenEOTileSource extends XYZSource {
     }
 
     this._url = service.url;
+
+    this._connected.resolve();
 
     this.refresh();
   }
@@ -553,6 +494,4 @@ export class OpenEOTileSource extends XYZSource {
   processGraph: Process;
 
   serverUrl: string;
-
-  authBearer?: string;
 }

@@ -250,8 +250,8 @@ export async function validateProcessGraph(
   // Lazily imported so the pure validators above (used in unit tests) don't
   // pull OpenEOTileLayer's @jupyterlab/apputils dependency into the module
   // graph. Only the backend pass needs a live connection.
-  const { connect } = await import('./OpenEOTileLayer');
-  const connection = await connect(connectionInfo);
+  const { openEOConnect } = await import('./OpenEOTileLayer');
+  const connection = await openEOConnect(connectionInfo);
   const result = await connection.validateProcess({
     id: 'jp-openeo-validation',
     process_graph: processGraph,

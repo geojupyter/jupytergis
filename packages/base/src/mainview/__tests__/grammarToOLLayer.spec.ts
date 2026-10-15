@@ -50,9 +50,17 @@ jest.mock('../adapters/openlayers/grammarToOLStyle', () => ({
   })),
 }));
 
-import { IGrammarSymbologyState } from '@jupytergis/schema';
+import { IGrammarSymbologyState, IJGISLayer } from '@jupytergis/schema';
 
 import { grammarToOLLayer } from '../adapters/openlayers/grammarToOLLayer';
+
+function layerFor(state: IGrammarSymbologyState, type = 'VectorLayer') {
+  return {
+    type,
+    visible: true,
+    parameters: { symbologyState: state },
+  } as IJGISLayer;
+}
 
 function vectorMarkerOf(layer: MockVectorLayer): string {
   return layer.opts.style[0].style.__marker;
@@ -73,7 +81,11 @@ describe('grammarToOLLayer — multi-layer render order (vector)', () => {
       ],
     } as any;
 
-    const result = grammarToOLLayer(state, {} as any, 1, true) as any;
+    const result = grammarToOLLayer({
+      layer: layerFor(state),
+      layerId: 'layer-1',
+      source: {} as any,
+    }) as any;
 
     // OL renders the last array entry on top, so the UI's top-of-list
     // grammar layer ('top') must end up last.
@@ -89,7 +101,11 @@ describe('grammarToOLLayer — multi-layer render order (vector)', () => {
       ],
     } as any;
 
-    const result = grammarToOLLayer(state, {} as any, 1, true) as any;
+    const result = grammarToOLLayer({
+      layer: layerFor(state),
+      layerId: 'layer-1',
+      source: {} as any,
+    }) as any;
 
     expect(result.opts.layers.map(vectorMarkerOf)).toEqual(['c', 'b', 'a']);
   });
@@ -104,14 +120,11 @@ describe('grammarToOLLayer — multi-layer render order (raster)', () => {
       ],
     } as any;
 
-    const result = grammarToOLLayer(
-      state,
-      { bandCount: 1 },
-      1,
-      true,
-      [],
-      true,
-    ) as any;
+    const result = grammarToOLLayer({
+      layer: layerFor(state, 'GeoTiffLayer'),
+      layerId: 'layer-1',
+      source: { bandCount: 1 },
+    }) as any;
 
     expect(result.opts.layers.map(rasterMarkerOf)).toEqual(['bottom', 'top']);
   });
@@ -130,7 +143,11 @@ describe('grammarToOLLayer — multi-layer render order (mixed vector + KDE)', (
       ],
     } as any;
 
-    const result = grammarToOLLayer(state, {} as any, 1, true) as any;
+    const result = grammarToOLLayer({
+      layer: layerFor(state),
+      layerId: 'layer-1',
+      source: {} as any,
+    }) as any;
     const sublayers = result.opts.layers;
 
     expect(sublayers[0]).toBeInstanceOf(MockHeatmapLayer);

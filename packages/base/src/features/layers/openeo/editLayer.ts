@@ -1,7 +1,7 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 
 import {
-  connect as openEOConnect,
+  openEOConnect,
   IOpenEOConnectionInfo,
   listOpenEOConnections,
 } from './OpenEOTileLayer';
@@ -29,7 +29,6 @@ export async function editOpenEOLayer(
   const source = model.getSource(sourceId);
   const sourceParams = (source?.parameters ?? {}) as {
     serverUrl?: string;
-    authBearer?: string;
     processGraph?: Record<string, any>;
   };
   // Reconnect to the layer's server before editing. `connect` reuses the
@@ -38,7 +37,6 @@ export async function editOpenEOLayer(
   // of prompting the user again.
   const connectionInfo: IOpenEOConnectionInfo = {
     url: sourceParams.serverUrl,
-    authBearer: sourceParams.authBearer,
   };
   try {
     await openEOConnect(connectionInfo);
@@ -63,12 +61,11 @@ export async function editOpenEOLayer(
     return;
   }
   if (source) {
+    // Dropping the tileServiceURL, which needs to be recomputed
     model.sharedModel.updateSource(sourceId, {
       ...source,
       parameters: {
-        ...source.parameters,
         serverUrl: result.serverUrl,
-        authBearer: result.authBearer,
         processGraph: result.processGraph,
       },
     });
