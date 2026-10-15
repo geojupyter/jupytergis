@@ -110,7 +110,7 @@ export function StacResultsProvider({
   >([]);
   const wmsCollection =
     wmsCollections.find(item => item.id === catalogCollectionId) ?? null;
-  const [selectedUrl, setSelectedUrlState] = useState('');
+  const [selectedUrl, setSelectedUrlState] = useState(HYDROWEB_STAC_URL);
   const [currentPage, setCurrentPageState] = useState(1);
   const currentPageRef = useRef(1);
 

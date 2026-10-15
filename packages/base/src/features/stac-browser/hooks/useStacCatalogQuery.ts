@@ -3,7 +3,6 @@ import { UUID } from '@lumino/coreutils';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
-  catalogRoot,
   collectionPlainText,
   ICatalogWmsEndpoint,
   listCollectionWms,
@@ -79,7 +78,7 @@ export function useStacCatalogQuery({
     hasLoadedInitialSearchState,
   } = useStacSearch({ model });
 
-  const root = catalogRoot(baseUrl);
+  const root = baseUrl.trim().replace(/\/+$/, '');
   const [trackedRoot, setTrackedRoot] = useState(root);
   const [collections, setCollections] = useState<ICatalogCollectionOption[]>(
     [],

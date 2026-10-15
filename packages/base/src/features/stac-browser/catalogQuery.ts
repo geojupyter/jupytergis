@@ -13,10 +13,6 @@ export const HYDROWEB_STAC_URL =
 
 const PREVIEW_ROLES = ['overview', 'thumbnail'];
 
-/** Catalog root with no trailing slash, so `/search` and `/collections` resolve. */
-export function catalogRoot(url: string): string {
-  return url.trim().replace(/\/+$/, '');
-}
 /**
  * A collection WMS asset href is a full GetMap URL. TileWMS builds its own
  * GetMap request, so only the service root and `layers` parameter are kept.

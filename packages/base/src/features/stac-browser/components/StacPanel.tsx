@@ -35,6 +35,7 @@ interface IProvider {
 }
 
 const PROVIDERS: IProvider[] = [
+  { url: HYDROWEB_STAC_URL, name: 'Hydroweb' },
   { url: COPERNICUS_URL, name: 'Copernicus' },
   { url: GEODES_URL, name: 'GEODES' },
   { url: WORLDPOP_URL, name: 'WorldPop' },
@@ -82,8 +83,8 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
       </TabsList>
       <TabsContent value="filters">
         <div className="jgis-stac-filter-extension-panel">
-          <CatalogUrlField />
           <StacPanel.ProviderSelect />
+          <CatalogUrlField />
           {selectedUrl ? (
             <ProviderPanel model={model} />
           ) : (
@@ -129,6 +130,10 @@ function resultsTabLabel(
   return `Results (${totalResults})`;
 }
 
+function isPresetUrl(url: string): boolean {
+  return PROVIDERS.some(provider => provider.url === url);
+}
+
 function CatalogUrlField() {
   const { selectedUrl, setSelectedUrl } = useStacResultsContext();
   const [urlDraft, setUrlDraft] = useState(selectedUrl);
@@ -136,6 +141,10 @@ function CatalogUrlField() {
   useEffect(() => {
     setUrlDraft(selectedUrl);
   }, [selectedUrl]);
+
+  if (isPresetUrl(selectedUrl)) {
+    return null;
+  }
 
   const commitUrl = () => {
     const next = urlDraft.trim();
@@ -150,7 +159,7 @@ function CatalogUrlField() {
       <Input
         value={urlDraft}
         spellCheck={false}
-        placeholder={HYDROWEB_STAC_URL}
+        placeholder="https://"
         onChange={event => {
           setUrlDraft(event.target.value);
         }}
@@ -167,7 +176,7 @@ function CatalogUrlField() {
 
 function ProviderSelect() {
   const { selectedUrl, setSelectedUrl } = useStacResultsContext();
-  const isPreset = PROVIDERS.some(provider => provider.url === selectedUrl);
+  const isPreset = isPresetUrl(selectedUrl);
 
   return (
     <div className="jgis-stac-filter-extension-section">
@@ -178,22 +187,20 @@ function ProviderSelect() {
         onChange={event => {
           const next = event.target.value;
           if (next === CATALOG_URL_PRESET) {
-            if (isPreset) {
-              setSelectedUrl(HYDROWEB_STAC_URL);
-            }
+            setSelectedUrl('');
             return;
           }
           setSelectedUrl(next);
         }}
       >
-        <NativeSelectOption value={CATALOG_URL_PRESET}>
-          Catalog URL
-        </NativeSelectOption>
         {PROVIDERS.map(provider => (
           <NativeSelectOption key={provider.url} value={provider.url}>
             {provider.name}
           </NativeSelectOption>
         ))}
+        <NativeSelectOption value={CATALOG_URL_PRESET}>
+          Catalog URL
+        </NativeSelectOption>
       </NativeSelect>
     </div>
   );
