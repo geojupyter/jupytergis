@@ -95,7 +95,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding: 0 0.5rem 1rem;
+  padding: 0 0.5rem;
 }
 
 .jgis-stac-wms-result-nav {
@@ -144,13 +144,15 @@
   display: -webkit-box;
   margin: 0;
   overflow: hidden;
+  line-clamp: 4;
+  color: var(--jp-ui-font-color1);
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
-  color: var(--jp-ui-font-color1);
 }
 
 .jgis-stac-wms-result-add {
   align-self: flex-start;
+  margin: 0 auto;
 }
 
 /* QueryableComboBox styles */

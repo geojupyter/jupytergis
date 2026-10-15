@@ -57,7 +57,8 @@ interface IStacViewProps {
 
 // Inner component that uses the context
 const StacPanelContent = ({ model }: IStacViewProps) => {
-  const { totalResults, selectedUrl, wmsCollection } = useStacResultsContext();
+  const { totalResults, isLoading, selectedUrl, wmsCollection } =
+    useStacResultsContext();
 
   if (!model) {
     return null;
@@ -75,7 +76,7 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
           Filters
         </TabsTrigger>
         <TabsTrigger className="jgis-underline-indicator" value="results">
-          {wmsCollection ? 'Results' : `Results (${totalResults})`}
+          {resultsTabLabel(isLoading, Boolean(wmsCollection), totalResults)}
         </TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
@@ -110,6 +111,22 @@ const StacPanel = ({ model }: IStacViewProps) => {
     </StacResultsProvider>
   );
 };
+
+function resultsTabLabel(
+  isLoading: boolean,
+  hasWmsCollection: boolean,
+  totalResults: string,
+): string {
+  if (hasWmsCollection) {
+    return 'Results (1)';
+  }
+
+  if (isLoading) {
+    return 'Results (...)';
+  }
+
+  return `Results (${totalResults})`;
+}
 
 function CatalogUrlField() {
   const { selectedUrl, setSelectedUrl } = useStacResultsContext();
