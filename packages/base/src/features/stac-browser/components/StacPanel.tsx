@@ -59,6 +59,7 @@ interface IStacViewProps {
 const StacPanelContent = ({ model }: IStacViewProps) => {
   const { totalResults, isLoading, selectedUrl, wmsCollection } =
     useStacResultsContext();
+  const wmsLayerCount = wmsCollection ? wmsCollection.layers.length : null;
 
   if (!model) {
     return null;
@@ -76,7 +77,7 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
           Filters
         </TabsTrigger>
         <TabsTrigger className="jgis-underline-indicator" value="results">
-          {resultsTabLabel(isLoading, Boolean(wmsCollection), totalResults)}
+          {resultsTabLabel(isLoading, wmsLayerCount, totalResults)}
         </TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
@@ -114,11 +115,11 @@ const StacPanel = ({ model }: IStacViewProps) => {
 
 function resultsTabLabel(
   isLoading: boolean,
-  hasWmsCollection: boolean,
+  wmsLayerCount: number | null,
   totalResults: string,
 ): string {
-  if (hasWmsCollection) {
-    return 'Results (*)';
+  if (wmsLayerCount !== null) {
+    return `Results (${wmsLayerCount})`;
   }
 
   if (isLoading) {
