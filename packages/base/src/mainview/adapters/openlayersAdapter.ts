@@ -2375,11 +2375,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         case 'OpenEOTileSource': {
           const sourceParameters = source.parameters as IOpenEOTileSource;
 
-          newSource = new OpenEOTileSource({
-            serverUrl: sourceParameters.serverUrl ?? '',
-            authBearer: sourceParameters.authBearer,
-            processGraph: sourceParameters.processGraph,
-          });
+          newSource = new OpenEOTileSource(sourceParameters);
 
           break;
         }

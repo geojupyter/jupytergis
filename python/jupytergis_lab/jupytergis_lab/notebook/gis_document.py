@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 from importlib.metadata import version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 from uuid import uuid4
 
 import requests
@@ -573,9 +573,14 @@ class GISDocument(CommWidget):
         zoom_to: bool = False,
         zoom_to_extent: bool = True,
     ):
-        """Add an openEO process-graph tile layer to the document.
+        """Add an OpenEO process-graph tile layer to the document.
 
-        :param graph: An openEO datacube / result node (carrying its connection).
+        This requires the OpenEO backend to have an XYZ service type supported.
+        If not supported, this will throw an error.
+
+        This method creates a new XYZ service to render the tiles.
+
+        :param graph: An OpenEO datacube / result node (carrying its connection).
         :param name: Display name for the layer.
         :param opacity: The opacity, between 0 and 1.
         :param zoom_to: When True, zoom the map to the layer once it is added.
@@ -586,12 +591,18 @@ class GISDocument(CommWidget):
             initial view requests — so without this the layer renders blank on
             open. Ignored when the graph declares no spatial extent.
         """
-        # Persist the bearer token alongside the server url so a connection
-        # opened here from the notebook is reused by the frontend without the
-        # user having to sign in a second time from the UI. The bearer is a
-        # session identifier, not long-lived credentials.
-
         self._assert_is_ready()
+
+        service_type = "XYZ"
+
+        service_types = graph.connection.list_service_types()
+        if service_types.get(service_type) is None:
+            raise ValueError(
+                "The OpenEO backend does not allow XYZ services. We cannot show the OpenEO graph dynamically.",
+            )
+
+        service = graph.connection.create_service(graph, "XYZ")
+        service_url = unquote(service.describe_service()["url"])
 
         flat_graph = graph.flat_graph()
 
@@ -601,7 +612,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "processGraph": flat_graph,
                 "serverUrl": graph.connection.root_url,
-                "authBearer": graph.connection.auth.bearer,
+                "tileServiceURL": service_url,
             },
         }
 

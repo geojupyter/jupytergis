@@ -980,7 +980,6 @@ export function addCommands(
         type: 'OpenEOTileSource',
         parameters: {
           serverUrl: result.serverUrl,
-          authBearer: result.authBearer,
           processGraph: result.processGraph,
         },
       });

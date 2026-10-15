@@ -20,7 +20,7 @@ import shp from 'shpjs';
 
 import LAYER_GALLERY from '@/_generated/layer_gallery.json';
 import {
-  connect as openEOConnect,
+  openEOConnect,
   IOpenEOConnectionInfo,
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
 import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
@@ -1342,8 +1342,7 @@ function normalizeOpenEOUrl(url: string): string {
  * to give the ModelBuilder port labels and type-aware validation.
  *
  * Connection (and sign-in) is delegated to the shared `connect` helper in
- * OpenEOTileLayer, which also populates `connectionInfo.authBearer` once the
- * user has authenticated.
+ * OpenEOTileLayer.
  */
 export async function fetchBackendCatalog(
   connectionInfo: IOpenEOConnectionInfo,
