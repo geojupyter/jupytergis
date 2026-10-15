@@ -216,7 +216,12 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.storyNext,
 ]);
 
-type AdapterFlag = 'identify' | 'drawTool' | 'layerComparison' | 'geolocation';
+type AdapterFlag =
+  | 'identify'
+  | 'drawTool'
+  | 'storyMaps'
+  | 'layerComparison'
+  | 'geolocation';
 
 interface IAdapterRequirement {
   sources?: SourceType[];
@@ -330,6 +335,8 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   [CommandIDs.identify]: { flags: ['identify'] },
   [CommandIDs.drawFeaturesOnSelectedLayer]: { flags: ['drawTool'] },
   [CommandIDs.drawFeaturesOnNewLayer]: { flags: ['drawTool'] },
+  [CommandIDs.addStorySegment]: { flags: ['storyMaps'] },
+  [CommandIDs.openStoryEditor]: { flags: ['storyMaps'] },
   [CommandIDs.compareLayers]: { flags: ['layerComparison'] },
   [CommandIDs.getGeolocation]: { flags: ['geolocation'] },
   [CommandIDs.toggleLocationIndicator]: { flags: ['geolocation'] },

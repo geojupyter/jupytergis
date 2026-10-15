@@ -49,9 +49,17 @@ export function SourceLayerField(props: ISourceLayerFieldProps): JSX.Element {
         signal: controller.signal,
         fetchTile: source.useProxy
           ? tileUrl =>
-              fetch(buildProxyUrl(model, tileUrl, source.useProxy, source.httpHeaders), {
-                signal: controller.signal,
-              })
+              fetch(
+                buildProxyUrl(
+                  model,
+                  tileUrl,
+                  source.useProxy,
+                  source.httpHeaders,
+                ),
+                {
+                  signal: controller.signal,
+                },
+              )
           : undefined,
       });
 

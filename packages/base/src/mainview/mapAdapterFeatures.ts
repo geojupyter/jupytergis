@@ -15,6 +15,7 @@ export interface IMapAdapterFeatures {
   readonly addMarker: boolean;
   readonly identify: boolean;
   readonly drawTool: boolean;
+  readonly storyMaps: boolean;
   readonly geolocation: boolean;
   readonly layerComparison: boolean;
   readonly requiresVectorTileSourceLayer: boolean;
@@ -45,7 +46,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     VectorTileLayer: true,
     HillshadeLayer: true,
     TerrainLayer: true,
-    StorySegmentLayer: true,
+    StorySegmentLayer: false,
     ImageLayer: false,
     GeoTiffLayer: false,
     GeoZarrLayer: false,
@@ -55,6 +56,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
   addMarker: false,
   identify: false,
   drawTool: false,
+  storyMaps: false,
   geolocation: false,
   layerComparison: false,
   requiresVectorTileSourceLayer: true,
@@ -96,6 +98,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
   identify: true,
   drawTool: true,
   geolocation: true,
+  storyMaps: true,
   layerComparison: true,
   requiresVectorTileSourceLayer: false,
 };
@@ -183,6 +186,7 @@ type ToolKey =
   | 'addMarker'
   | 'identify'
   | 'drawTool'
+  | 'storyMaps'
   | 'layerComparison'
   | 'geolocation';
 
@@ -190,6 +194,7 @@ const TOOL_LABELS: Record<ToolKey, string> = {
   addMarker: 'Place markers',
   identify: 'Identify features',
   drawTool: 'Drawing tools',
+  storyMaps: 'Story maps',
   layerComparison: 'Layer swipe comparison',
   geolocation: 'Geolocation',
 } as const;
