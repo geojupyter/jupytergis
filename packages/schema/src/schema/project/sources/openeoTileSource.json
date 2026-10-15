@@ -15,7 +15,7 @@
       "description": "The OpenEO backend url.",
       "type": "string"
     },
-    "tileServiceUrl": {
+    "tileServiceURL": {
       "description": "The OpenEO tile url.",
       "type": "string"
     }

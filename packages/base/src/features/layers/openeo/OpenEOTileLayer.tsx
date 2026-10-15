@@ -436,20 +436,6 @@ export class OpenEOTileSource extends XYZSource {
   }
   private _lastTileErrors = new Map<string, number>();
 
-  // private async _connect(
-  //   serverUrl: string,
-  //   graph: Process,
-  // ) {
-  //   try {
-  //     this._connection = getOpenEOConnection(serverUrl);
-  //   } catch {
-  //     void promptOpenEOLogin(serverUrl);
-  //     return;
-  //   }
-  //   this._connected.resolve();
-  //   this._initializeTileServiceURL(graph);
-  // }
-
   private async _initializeTileServiceURL(options: IOpenEOTileSourceOptions) {
     // If we already have a tile service URL, use it
     // This happens when e.g. the service was created Python side, or we are refreshing the page.
@@ -459,6 +445,8 @@ export class OpenEOTileSource extends XYZSource {
       this._url = options.tileServiceURL;
 
       this._connected.resolve();
+
+      this.refresh();
 
       return;
     }
@@ -490,6 +478,8 @@ export class OpenEOTileSource extends XYZSource {
     }
 
     this._url = service.url;
+
+    this._connected.resolve();
 
     this.refresh();
   }

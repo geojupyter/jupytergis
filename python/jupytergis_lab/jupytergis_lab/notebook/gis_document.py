@@ -609,7 +609,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "processGraph": flat_graph,
                 "serverUrl": graph.connection.root_url,
-                "tileServiceUrl": service_url,
+                "tileServiceURL": service_url,
             },
         }
 
