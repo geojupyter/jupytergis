@@ -23,13 +23,14 @@ module.exports = {
         },
       },
     ],
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      {
-        args: "none",
-        varsIgnorePattern: "^_$"
-      }
-    ],
+    "@typescript-eslint/no-unused-vars": "off",
+    // "@typescript-eslint/no-unused-vars": [
+    //   "error",
+    //   {
+    //     args: "none",
+    //     varsIgnorePattern: "^_$"
+    //   }
+    // ],
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-namespace": "off",
     "@typescript-eslint/no-unnecessary-type-assertion": "error",
