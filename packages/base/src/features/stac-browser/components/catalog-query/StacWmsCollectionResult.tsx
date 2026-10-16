@@ -67,7 +67,7 @@ function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
     return null;
   }
 
-  const extent = formatExtent(wmsCollection.start, wmsCollection.end);
+  const timeRange = formatTimeRange(wmsCollection.start, wmsCollection.end);
 
   return (
     <div className="jgis-stac-wms-result">
@@ -104,8 +104,8 @@ function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
           />
         ) : null}
         <h3 className="jgis-stac-wms-result-title">{wmsCollection.title}</h3>
-        {extent ? (
-          <p className="jgis-stac-wms-result-extent">{extent}</p>
+        {timeRange ? (
+          <p className="jgis-stac-wms-result-time-range">{timeRange}</p>
         ) : null}
         {wmsCollection.description ? (
           <p className="jgis-stac-wms-result-description">
@@ -192,7 +192,10 @@ function selectedWmsLayer(
   return layers[0];
 }
 
-function formatExtent(start: string | null, end: string | null): string | null {
+function formatTimeRange(
+  start: string | null,
+  end: string | null,
+): string | null {
   const startLabel = formatDate(start);
   const endLabel = formatDate(end);
   if (startLabel && endLabel) {
