@@ -20,6 +20,9 @@ export const toggleLocationIndicator = 'jupytergis:toggleLocationIndicator';
 // Layers and sources creation commands
 export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 
+// Map renderer
+export const openMapRendererDialog = 'jupytergis:openMapRendererDialog';
+
 // Layer and source
 export const openNewRasterDialog = 'jupytergis:openNewRasterDialog';
 export const openNewWmsDialog = 'jupytergis:openNewWmsDialog';
@@ -27,6 +30,7 @@ export const openNewVectorTileDialog = 'jupytergis:openNewVectorTileDialog';
 export const openNewShapefileDialog = 'jupytergis:openNewShapefileDialog';
 export const openNewGeoJSONDialog = 'jupytergis:openNewGeoJSONDialog';
 export const openNewHillshadeDialog = 'jupytergis:openNewHillshadeDialog';
+export const openNewTerrainDialog = 'jupytergis:openNewTerrainDialog';
 export const openNewImageDialog = 'jupytergis:openNewImageDialog';
 export const openNewGeoTiffDialog = 'jupytergis:openNewGeoTiffDialog';
 export const openNewGeoZarrDialog = 'jupytergis:openNewGeoZarrDialog';
