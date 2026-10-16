@@ -292,6 +292,7 @@ export async function openEOConnect(
       // @ts-expect-error We monkey patch this when using our proxy
       connection.baseUrl = URLExt.join(
         PageConfig.getBaseUrl(),
+        // @ts-expect-error We monkey patch this when using our proxy
         `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(connection.baseUrl)}`,
       );
     }
