@@ -307,7 +307,7 @@ class ProxyHandler(APIHandler):
             request = HTTPRequest(
                 url=url,
                 method=method,
-                body=None if self.request.method == 'GET' else self.request.body,
+                body=None if self.request.method == "GET" else self.request.body,
                 headers=headers or None,
                 validate_cert=validate_cert,
                 allow_nonstandard_methods=False,
