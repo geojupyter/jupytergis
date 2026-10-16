@@ -216,12 +216,32 @@ export interface IStacGeodesQueryBody {
 }
 
 /**
+ * Item-search body for catalogs that honor `collections`, `bbox`, and the
+ * query extension on product time. `datetime` is omitted: some catalogs
+ * treat it as ingestion time.
+ */
+export interface IStacCatalogQueryBody {
+  bbox: [number, number, number, number];
+  collections: string[];
+  limit: number;
+  query: {
+    end_datetime?: {
+      gte: string;
+    };
+    start_datetime?: {
+      lte: string;
+    };
+  };
+}
+
+/**
  * Union type for all STAC query body formats.
  * Used in contexts that need to accept multiple query formats.
  */
 export type IStacQueryBodyUnion =
   | IStacGeodesQueryBody
-  | IStacFilterExtensionQueryBody;
+  | IStacFilterExtensionQueryBody
+  | IStacCatalogQueryBody;
 
 export type StacFilterKey =
   | 'collections'

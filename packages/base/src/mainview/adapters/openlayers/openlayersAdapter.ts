@@ -52,6 +52,7 @@ import {
 } from 'ol';
 import { FeatureLike } from 'ol/Feature';
 import { GeolocationError } from 'ol/Geolocation';
+import ImageTile from 'ol/ImageTile';
 import { unByKey } from 'ol/Observable';
 import TileState from 'ol/TileState';
 import { asArray } from 'ol/color';
@@ -234,6 +235,67 @@ function highlightTombstones(rules: Rule[], ids: readonly string[]): Rule[] {
 
 function tombstoneKey(ids: readonly string[]): string {
   return [...ids].sort().join('\0');
+}
+
+/** Tornado uses 599 when the upstream connection fails before an HTTP status. */
+const WMS_PROXY_RETRY_STATUS = 599;
+const WMS_TILE_MAX_RETRIES = 2;
+
+function loadProxiedWmsTile(
+  tile: ImageTile,
+  proxyUrl: string,
+  attempt = 0,
+): void {
+  if (tile.getState() !== TileState.LOADING) {
+    return;
+  }
+
+  void fetch(proxyUrl, { cache: 'no-store' })
+    .then(async response => {
+      if (tile.getState() !== TileState.LOADING) {
+        return;
+      }
+
+      if (
+        response.status === WMS_PROXY_RETRY_STATUS &&
+        attempt < WMS_TILE_MAX_RETRIES
+      ) {
+        window.setTimeout(
+          () => loadProxiedWmsTile(tile, proxyUrl, attempt + 1),
+          (attempt + 1) * 1000,
+        );
+        return;
+      }
+
+      if (!response.ok) {
+        tile.setState(TileState.ERROR);
+        return;
+      }
+
+      const blob = await response.blob();
+      if (tile.getState() !== TileState.LOADING) {
+        return;
+      }
+      const image = tile.getImage() as HTMLImageElement;
+      const objectUrl = URL.createObjectURL(blob);
+      image.src = objectUrl;
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
+    })
+    .catch(() => {
+      if (tile.getState() !== TileState.LOADING) {
+        return;
+      }
+
+      if (attempt < WMS_TILE_MAX_RETRIES) {
+        window.setTimeout(
+          () => loadProxiedWmsTile(tile, proxyUrl, attempt + 1),
+          (attempt + 1) * 1000,
+        );
+        return;
+      }
+
+      tile.setState(TileState.ERROR);
+    });
 }
 
 export class OpenLayersAdapter implements IMapAdapter {
@@ -2702,6 +2764,16 @@ export class OpenLayersAdapter implements IMapAdapter {
               LAYERS: selectedLayer,
               TILED: true,
             },
+            ...(sourceParameters.useProxy
+              ? {
+                  tileLoadFunction: (tile, src) => {
+                    loadProxiedWmsTile(
+                      tile as ImageTile,
+                      this.getProxyUrl(src, true, sourceParameters.httpHeaders),
+                    );
+                  },
+                }
+              : {}),
           });
 
           break;
