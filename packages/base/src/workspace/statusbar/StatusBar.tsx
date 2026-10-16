@@ -4,9 +4,8 @@ import { Progress } from '@jupyter/react-components';
 import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
 import React, { useEffect, useState } from 'react';
 
-import { getCrsUnits } from '@/src/features/metadata/utils/crs';
 import { version } from '@/package.json';
-
+import { getCrsUnits } from '@/src/features/metadata/utils/crs';
 import { ProjectionCombobox } from './ProjectionCombobox';
 import { getProjectionOption } from './projectionOptions';
 

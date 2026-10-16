@@ -13,7 +13,6 @@ import {
   createComboboxVirtualHighlightHandler,
   type ComboboxVirtualizer,
 } from '@/src/shared/components/Combobox';
-
 import {
   getProjectionOption,
   PROJECTION_OPTIONS,

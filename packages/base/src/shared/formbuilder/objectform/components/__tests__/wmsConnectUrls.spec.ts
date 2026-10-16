@@ -25,7 +25,8 @@ describe('wmsConnectUrls', () => {
       wmsConnectUrls('https://example.test/geoserver/ows?SERVICE=WMS'),
     ).toEqual({
       root: 'https://example.test/geoserver/ows',
-      capabilitiesUrl: `https://example.test/geoserver/ows?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities`,
+      capabilitiesUrl:
+        'https://example.test/geoserver/ows?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetCapabilities',
     });
   });
 });

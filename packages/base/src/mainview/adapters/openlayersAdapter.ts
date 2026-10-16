@@ -567,7 +567,6 @@ export class OpenLayersAdapter implements IMapAdapter {
         getProjection(currentOptions.projection) ?? moveEndView.getProjection();
       const latLng = toLonLat(center, currentProjection);
       const bearing = moveEndView.getRotation();
-      const resolution = moveEndView.getResolution();
 
       const updatedOptions: Partial<IJGISOptions> = {
         latitude: latLng[1],
