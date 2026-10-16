@@ -27,7 +27,7 @@ export const MetadataView: React.FC<IMetadataViewProps> = ({
 }) => {
   const { metadata, loading, error } = useLayerMetadata(model, selectedId);
 
-  if (loading) {
+  if (loading && !metadata) {
     return (
       <div className="jgis-metadata-view flex items-center justify-center p-6">
         <LoadingIcon />
@@ -35,7 +35,7 @@ export const MetadataView: React.FC<IMetadataViewProps> = ({
     );
   }
 
-  if (error || !metadata) {
+  if ((error || !metadata) && !loading) {
     return (
       <div className="jgis-metadata-view p-2">
         <ErrorBanner
@@ -44,6 +44,10 @@ export const MetadataView: React.FC<IMetadataViewProps> = ({
         />
       </div>
     );
+  }
+
+  if (!metadata) {
+    return null;
   }
 
   return (

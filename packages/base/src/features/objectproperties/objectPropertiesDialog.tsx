@@ -93,9 +93,9 @@ function ObjectPropertiesBody({
         />
       </TabsContent>
 
-      {/* Radix unmounts inactive tabs, so metadata is only read — and only
-          fetched — once the user actually opens this tab. */}
-      <TabsContent value="metadata" className={panelClass}>
+      {/* keepMounted so metadata starts loading when the dialog opens and
+          switching tabs does not remount into a loading flash. */}
+      <TabsContent value="metadata" keepMounted className={panelClass}>
         <MetadataView model={model} selectedId={selectedId} />
       </TabsContent>
     </Tabs>
