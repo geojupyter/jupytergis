@@ -520,6 +520,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   readonly deleteDrawSelection = new Signal<this, { deleted: boolean }>(this);
   readonly highlightFeatureSignal = new Signal<this, any>(this);
   readonly updateBboxSignal = new Signal<this, any>(this);
+  readonly projectionChangedSignal = new Signal<this, string>(this);
   readonly modeChanged = new Signal<this, Modes>(this);
 
   getContent(): IJGISContent {

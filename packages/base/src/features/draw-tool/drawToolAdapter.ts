@@ -20,4 +20,5 @@ export interface IDrawToolAdapter {
   updateFeatureAttributes(featureId: string, attributes: IDict<any>): boolean;
   hasFeatureAtCoordinate(coordinate: number[]): boolean;
   setDrawLayerId(layerId: string): void;
+  handleViewProjectionChanged(): void;
 }
