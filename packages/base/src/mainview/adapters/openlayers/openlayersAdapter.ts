@@ -93,7 +93,9 @@ import TileLayer from 'ol/layer/Tile';
 import {
   fromLonLat,
   get as getProjection,
+  getPointResolution,
   toLonLat,
+  transform,
   transformExtent,
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
@@ -298,6 +300,12 @@ function loadProxiedWmsTile(
     });
 }
 
+const MM_PER_INCH = 25.4;
+/** OGC default screen pixel size (mm). Used by OpenLayers ScaleLine. */
+const OGC_PIXEL_SIZE_MM = 0.28;
+const OGC_SCREEN_DPI = MM_PER_INCH / OGC_PIXEL_SIZE_MM;
+const INCHES_PER_METER = 1000 / MM_PER_INCH;
+
 export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
@@ -341,6 +349,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._controlsTarget = controlsTarget;
     this._loggerRegistry = loggerRegistry;
 
+    this.ensureProjectionRegistered(projection);
     const proj = getProjection(projection);
 
     if (!proj) {
@@ -556,7 +565,6 @@ export class OpenLayersAdapter implements IMapAdapter {
         getProjection(currentOptions.projection) ?? moveEndView.getProjection();
       const latLng = toLonLat(center, currentProjection);
       const bearing = moveEndView.getRotation();
-      const resolution = moveEndView.getResolution();
 
       const updatedOptions: Partial<IJGISOptions> = {
         latitude: latLng[1],
@@ -573,15 +581,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         ...updatedOptions,
       });
 
-      // Calculate scale
-      if (resolution) {
-        // DPI and inches per meter values taken from OpenLayers
-        const dpi = 25.4 / 0.28;
-        const inchesPerMeter = 1000 / 25.4;
-        const scale = resolution * inchesPerMeter * dpi;
-
-        this._callbacks?.onScaleChange?.(scale);
-      }
+      this._publishScale();
     });
 
     this._map.on('click', event => {
@@ -778,11 +778,13 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     const coordinate = this._map.getCoordinateFromPixel(e.pixel);
+
+    const lonLat = toLonLat(coordinate, this._map.getView().getProjection());
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
 
     const sourceParameters: IMarkerSource = {
-      feature: { coords: [coordinate[0], coordinate[1]] },
+      feature: { coords: [lonLat[0], lonLat[1]] },
     };
 
     const layerParams: IVectorLayer = {
@@ -864,6 +866,111 @@ export class OpenLayersAdapter implements IMapAdapter {
     return viewport.id;
   }
 
+  setProjection(code: string): IMapProjection | undefined {
+    const view = this._map.getView();
+    const currentProjection = view.getProjection();
+
+    if (currentProjection.getCode() === code) {
+      return undefined;
+    }
+
+    this.ensureProjectionRegistered(code);
+    const nextProjection = getProjection(code);
+    if (!nextProjection) {
+      this._log('warning', `Invalid projection: ${code}`);
+      return undefined;
+    }
+
+    const center = view.getCenter();
+    const resolution = view.getResolution();
+    if (!center || resolution === undefined) {
+      this._log(
+        'warning',
+        'Cannot change projection: view has no center or resolution',
+      );
+      return undefined;
+    }
+
+    const rotation = view.getRotation();
+    const nextCenter = transform(center, currentProjection, nextProjection);
+    const currentMpu = currentProjection.getMetersPerUnit() ?? 1;
+    const nextMpu = nextProjection.getMetersPerUnit() ?? 1;
+    const currentPointResolution =
+      getPointResolution(currentProjection, 1 / currentMpu, center, 'm') *
+      currentMpu;
+    const nextPointResolution =
+      getPointResolution(nextProjection, 1 / nextMpu, nextCenter, 'm') *
+      nextMpu;
+    const nextResolution =
+      (resolution * currentPointResolution) / nextPointResolution;
+
+    const nextView = new View({
+      projection: nextProjection,
+      center: nextCenter,
+      resolution: nextResolution,
+      rotation,
+    });
+
+    this._geolocation?.setProjection(nextProjection);
+    this._map.setView(nextView);
+    this._publishScale();
+
+    const lonLat = toLonLat(nextCenter, nextProjection);
+    const currentOptions = this._model.getOptions();
+    this._model.setOptions({
+      ...currentOptions,
+      projection: nextProjection.getCode(),
+      longitude: lonLat[0],
+      latitude: lonLat[1],
+      zoom: nextView.getZoom() ?? currentOptions.zoom,
+      bearing: rotation,
+      extent: nextView.calculateExtent(this._map.getSize()),
+    });
+
+    this._rereadViewProjectedVectorSources();
+
+    return {
+      code: nextProjection.getCode(),
+      units: nextProjection.getUnits(),
+    };
+  }
+
+  /**
+   * Vector sources loaded with `featureProjection: view` keep coords in the
+   * old view CRS. Reread them after the view projection changes. Tile and
+   * image sources carry their own projection and are left alone.
+   */
+  private async _rereadViewProjectedVectorSources(): Promise<void> {
+    for (const [storeId, { overlay }] of this._featureStoreSources) {
+      this._syncFeatureStoreOverlaySource(storeId, overlay);
+    }
+
+    this._highlightLayerRef.current?.getSource()?.clear();
+
+    const sources = this._model.getSources();
+    for (const [id, source] of Object.entries(sources)) {
+      if (
+        source.type !== 'GeoJSONSource' &&
+        source.type !== 'ShapefileSource' &&
+        source.type !== 'GeoParquetSource' &&
+        source.type !== 'MarkerSource'
+      ) {
+        continue;
+      }
+
+      try {
+        await this.updateSource(id, source);
+      } catch (error: any) {
+        this._log(
+          'warning',
+          `Failed to reread source "${id}" after projection change: ${error?.message ?? error}`,
+        );
+      }
+    }
+
+    this._drawTool.handleViewProjectionChanged();
+  }
+
   getProjection(): IMapProjection {
     const projection = this._map.getView().getProjection();
 
@@ -871,6 +978,27 @@ export class OpenLayersAdapter implements IMapAdapter {
       code: projection.getCode(),
       units: projection.getUnits(),
     };
+  }
+
+  /** Same scale formula as OpenLayers ScaleLine (status bar). */
+  private _publishScale(): void {
+    const view = this._map.getView();
+    const resolution = view.getResolution();
+    const center = view.getCenter();
+    if (resolution === undefined || !center) {
+      return;
+    }
+
+    const metersPerPixel = getPointResolution(
+      view.getProjection(),
+      resolution,
+      center,
+      'm',
+    );
+
+    this._callbacks?.onScaleChange?.(
+      metersPerPixel * INCHES_PER_METER * OGC_SCREEN_DPI,
+    );
   }
 
   getPixelFromCoordinate(coordinate: Coordinate): [number, number] {
@@ -1766,6 +1894,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     const olGeometry = new GeoJSON().readGeometry(geometry, {
+      dataProjection: 'EPSG:4326',
       featureProjection: this._map.getView().getProjection(),
     });
 
@@ -1802,6 +1931,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
+          dataProjection: 'EPSG:4326',
           featureProjection: this._map.getView().getProjection(),
         });
 
@@ -2450,12 +2580,16 @@ export class OpenLayersAdapter implements IMapAdapter {
               model: this._model,
             }));
 
+          const viewProjection = this._map.getView().getProjection();
           const format = new GeoJSON({
-            featureProjection: this._map.getView().getProjection(),
+            featureProjection: viewProjection,
           });
 
+          // Force EPSG:4326 so a legacy GeoJSON `crs` (e.g. CRS84) does not
+          // become dataProjection — OL has no transform CRS84 → custom EPSGs.
           const featureArray = format.readFeatures(data, {
-            featureProjection: this._map.getView().getProjection(),
+            dataProjection: 'EPSG:4326',
+            featureProjection: viewProjection,
           });
 
           const featureCollection = new Collection(featureArray);
@@ -2511,17 +2645,7 @@ export class OpenLayersAdapter implements IMapAdapter {
             ...sourceParameters.coordinates.map(corner => corner[1]),
           );
 
-          // Convert lon/lat to OpenLayer coordinates
-          const topLeft = fromLonLat([leftSide, topSide]);
-          const bottomRight = fromLonLat([rightSide, bottomSide]);
-
-          // Get extent from coordinates
-          const minX = topLeft[0];
-          const maxY = topLeft[1];
-          const maxX = bottomRight[0];
-          const minY = bottomRight[1];
-
-          const extent = [minX, minY, maxX, maxY];
+          const extent = [leftSide, bottomSide, rightSide, topSide];
 
           const imageUrl = await loadFile({
             filepath: sourceParameters.path,
@@ -2532,6 +2656,7 @@ export class OpenLayersAdapter implements IMapAdapter {
           newSource = new Static({
             interpolate: sourceParameters.interpolate,
             imageExtent: extent,
+            projection: 'EPSG:4326',
             url: imageUrl,
             crossOrigin: '',
           });
@@ -2720,8 +2845,12 @@ export class OpenLayersAdapter implements IMapAdapter {
 
         case 'MarkerSource': {
           const parameters = source.parameters as IMarkerSource;
-
-          const point = new Point(parameters.feature.coords);
+          const point = new Point(
+            fromLonLat(
+              parameters.feature.coords,
+              this._map.getView().getProjection(),
+            ),
+          );
           const marker = new Feature({
             type: 'icon',
             geometry: point,
@@ -3204,7 +3333,23 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     // change source of target layer
-    mapLayer.setSource(this._sources.get(id));
+    const nextOlSource = this._sources.get(id);
+    if (!nextOlSource) {
+      return;
+    }
+
+    // Grammar multi-layer symbology (and similar) uses a LayerGroup. Groups
+    // have no setSource — push the rebuilt source onto each child instead.
+    if (mapLayer instanceof LayerGroup) {
+      for (const child of mapLayer.getLayers().getArray()) {
+        if (typeof (child as Layer).setSource === 'function') {
+          (child as Layer).setSource(nextOlSource);
+        }
+      }
+      return;
+    }
+
+    mapLayer.setSource(nextOlSource);
   }
 
   private computeSourceUrl(source: IJGISSource): string {

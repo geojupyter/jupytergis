@@ -115,6 +115,17 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     this._host.onDrawGeometryLabelChange('');
   }
 
+  handleViewProjectionChanged(): void {
+    if (!this._currentDrawLayerId) {
+      return;
+    }
+
+    // Projection change replaces the GeoJSON source and geometries on a
+    // feature-store overlay so we need to recreate the interactions
+    this._bindFromSelectedLayer();
+    this._updateInteractions();
+  }
+
   deleteAtCoordinate(coordinate: Coordinate): boolean {
     const map = this._host.getMap();
     if (!this._currentDrawLayerId || !map) {
@@ -438,9 +449,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       return;
     }
 
-    const geojsonWriter = new GeoJSON({
-      featureProjection: map.getView().getProjection(),
-    });
+    const geojsonWriter = new GeoJSON();
+    const viewProjection = map.getView().getProjection();
 
     const liveFeatures = vectorSource.getFeatures();
     const featuresToSerialize =
@@ -449,7 +459,10 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
         : liveFeatures;
 
     const features = featuresToSerialize.map(feature =>
-      geojsonWriter.writeFeatureObject(feature),
+      geojsonWriter.writeFeatureObject(feature, {
+        dataProjection: 'EPSG:4326',
+        featureProjection: viewProjection,
+      }),
     );
 
     const updatedJgisSource: IJGISSource = {
@@ -650,8 +663,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     }
 
     const geojsonGeometry = new GeoJSON().writeGeometryObject(geometry, {
-      featureProjection: map.getView().getProjection(),
       dataProjection: 'EPSG:4326',
+      featureProjection: map.getView().getProjection(),
     }) as IFeatureStoreGeometry;
 
     const props = Object.fromEntries(

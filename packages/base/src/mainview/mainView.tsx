@@ -290,6 +290,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     this._model.geolocationChanged.connect(this._geolocationListener, this);
     this._model.flyToGeometrySignal.connect(this._flyToGeometryListner, this);
+    this._model.projectionChangedSignal.connect(
+      this._projectionChangedListener,
+      this,
+    );
     this._model.deleteDrawSelection.connect(this._deleteDrawSelection, this);
     this._model.uiStateChanged.connect(
       this._handleLocationIndicatorListner,
@@ -401,6 +405,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
     this._model.flyToGeometrySignal.disconnect(
       this._flyToGeometryListner,
+      this,
+    );
+    this._model.projectionChangedSignal.disconnect(
+      this._projectionChangedListener,
       this,
     );
     this._model.deleteDrawSelection.disconnect(this._deleteDrawSelection, this);
@@ -744,6 +752,19 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     geometry: Geometry,
   ): void => {
     this._mapAdapter?.flyToGeometry(geometry);
+  };
+
+  private _projectionChangedListener = (
+    _sender: IJupyterGISModel,
+    code: string,
+  ): void => {
+    const projectionInfo = this._mapAdapter?.setProjection(code);
+    if (projectionInfo) {
+      this.setState(old => ({
+        ...old,
+        viewProjection: projectionInfo,
+      }));
+    }
   };
 
   private _deleteDrawSelection = (
@@ -1879,6 +1900,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               commands={this._mainViewModel.commands}
               loading={loadingLayer}
               projection={viewProjection}
+              onProjectionChange={code =>
+                this._model.projectionChangedSignal.emit(code)
+              }
               scale={scale}
             />
           ) : null}

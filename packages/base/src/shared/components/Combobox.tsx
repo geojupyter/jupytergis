@@ -162,7 +162,7 @@ function ComboboxContent({
 }
 
 const comboboxListSizeClass =
-  'no-scrollbar max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height)---spacing(9)))]';
+  'no-scrollbar max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--available-height,100vh)---spacing(9)))]';
 
 const comboboxListScrollClass =
   'scroll-py-1 overflow-y-auto overscroll-contain';

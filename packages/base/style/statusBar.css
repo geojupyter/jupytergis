@@ -16,6 +16,10 @@
   min-width: 160px;
 }
 
+.jgis-status-bar-projection [data-slot='combobox-trigger'] {
+  font-size: inherit;
+}
+
 .jgis-status-bar-button {
   background: transparent;
   border: none;

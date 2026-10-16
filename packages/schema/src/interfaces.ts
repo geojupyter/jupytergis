@@ -488,6 +488,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   deleteDrawSelection: Signal<IJupyterGISModel, { deleted: boolean }>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
   updateBboxSignal: Signal<IJupyterGISModel, any>;
+  projectionChangedSignal: Signal<IJupyterGISModel, string>;
   modeChanged: ISignal<IJupyterGISModel, Modes>;
 
   contentsManager: Contents.IManager | undefined;

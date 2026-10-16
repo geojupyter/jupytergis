@@ -1,5 +1,4 @@
 import {
-  faGlobe,
   faLocationDot,
   faMap,
   faRuler,
@@ -12,15 +11,19 @@ import React, { useEffect, useState } from 'react';
 
 import { version } from '@/package.json';
 import { CommandIDs } from '@/src/constants';
+import { getCrsUnits } from '@/src/features/metadata/utils/crs';
 import { useMapFeatures } from '@/src/mainview/hooks/useMapFeatures';
 import { DEFAULT_MAP_ADAPTER } from '@/src/mainview/mapAdapter';
 import { MAP_ADAPTER_FEATURES } from '@/src/mainview/mapAdapterFeatures';
+import { ProjectionCombobox } from './ProjectionCombobox';
+import { getProjectionOption } from './projectionOptions';
 
 interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
   commands: CommandRegistry;
   loading?: boolean;
   projection?: { code: string; units: string };
+  onProjectionChange?: (code: string) => void;
   scale: number;
 }
 const StatusBar: React.FC<IStatusBarProps> = ({
@@ -28,9 +31,22 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   commands,
   loading,
   projection,
+  onProjectionChange,
   scale,
 }) => {
   const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
+  const [projectionCode, setProjectionCode] = useState(projection?.code);
+
+  useEffect(() => {
+    if (projection?.code) {
+      setProjectionCode(projection.code);
+    }
+  }, [projection?.code]);
+
+  const handleProjectionChange = (nextCode: string): void => {
+    setProjectionCode(nextCode);
+    onProjectionChange?.(nextCode);
+  };
 
   const features = useMapFeatures(jgisModel);
   const rendererName =
@@ -79,11 +95,15 @@ const StatusBar: React.FC<IStatusBarProps> = ({
         <FontAwesomeIcon icon={faRuler} />{' '}
         <span>Scale: 1: {Math.trunc(scale)}</span>
       </div>
-      <div className="jgis-status-bar-item">
-        <FontAwesomeIcon icon={faGlobe} />{' '}
-        <span>{projection?.code ?? null}</span>
+      <div className="jgis-status-bar-item jgis-status-bar-projection">
+        <ProjectionCombobox
+          code={projectionCode}
+          onProjectionChange={handleProjectionChange}
+        />
       </div>
-      <div className="jgis-status-bar-item">Units: {projection?.units}</div>
+      <div className="jgis-status-bar-item">
+        Units: {projectionUnits(projectionCode, projection?.units)}
+      </div>
       <button
         type="button"
         className="jgis-status-bar-item jgis-status-bar-button"
@@ -101,5 +121,17 @@ const StatusBar: React.FC<IStatusBarProps> = ({
     </div>
   );
 };
+
+function projectionUnits(
+  code: string | undefined,
+  fallback: string | undefined,
+): string | undefined {
+  const option = getProjectionOption(code);
+  if (!option) {
+    return fallback;
+  }
+
+  return getCrsUnits(option.proj4string) ?? fallback;
+}
 
 export default StatusBar;
