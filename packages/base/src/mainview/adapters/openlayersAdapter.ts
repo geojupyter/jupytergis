@@ -780,11 +780,13 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     const coordinate = this._map.getCoordinateFromPixel(e.pixel);
+
+    const lonLat = toLonLat(coordinate, this._map.getView().getProjection());
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
 
     const sourceParameters: IMarkerSource = {
-      feature: { coords: [coordinate[0], coordinate[1]] },
+      feature: { coords: [lonLat[0], lonLat[1]] },
     };
 
     const layerParams: IVectorLayer = {
@@ -953,7 +955,8 @@ export class OpenLayersAdapter implements IMapAdapter {
         source.type !== 'GeoJSONSource' &&
         source.type !== 'ShapefileSource' &&
         source.type !== 'GeoParquetSource' &&
-        source.type !== 'ImageSource'
+        source.type !== 'ImageSource' &&
+        source.type !== 'MarkerSource'
       ) {
         continue;
       }
@@ -2850,8 +2853,12 @@ export class OpenLayersAdapter implements IMapAdapter {
 
         case 'MarkerSource': {
           const parameters = source.parameters as IMarkerSource;
-
-          const point = new Point(parameters.feature.coords);
+          const point = new Point(
+            fromLonLat(
+              parameters.feature.coords,
+              this._map.getView().getProjection(),
+            ),
+          );
           const marker = new Feature({
             type: 'icon',
             geometry: point,

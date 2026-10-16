@@ -120,8 +120,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       return;
     }
 
-    // GeoJSON rebuilds replace the VectorSource; feature-store overlays keep
-    // the same source but swap geometries. Re-resolve and rebuild interactions.
+    // Projection change replaces the GeoJSON source and geometries on a
+    // feature-store overlay so we need to recreate the interactions
     this._bindFromSelectedLayer();
     this._updateInteractions();
   }
