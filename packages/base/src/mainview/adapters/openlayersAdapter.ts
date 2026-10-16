@@ -351,6 +351,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._controlsTarget = controlsTarget;
     this._loggerRegistry = loggerRegistry;
 
+    this.ensureProjectionRegistered(projection);
     const proj = getProjection(projection);
 
     if (!proj) {
