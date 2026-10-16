@@ -2769,7 +2769,12 @@ export class OpenLayersAdapter implements IMapAdapter {
                   tileLoadFunction: (tile, src) => {
                     loadProxiedWmsTile(
                       tile as ImageTile,
-                      this.getProxyUrl(src, true, sourceParameters.httpHeaders),
+                      buildProxyUrl(
+                        this._model,
+                        src,
+                        true,
+                        sourceParameters.httpHeaders,
+                      ),
                     );
                   },
                 }
