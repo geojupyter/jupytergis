@@ -3334,6 +3334,17 @@ export class OpenLayersAdapter implements IMapAdapter {
       return;
     }
 
+    // Grammar multi-layer symbology (and similar) uses a LayerGroup. Groups
+    // have no setSource — push the rebuilt source onto each child instead.
+    if (mapLayer instanceof LayerGroup) {
+      for (const child of mapLayer.getLayers().getArray()) {
+        if (typeof (child as Layer).setSource === 'function') {
+          (child as Layer).setSource(nextOlSource);
+        }
+      }
+      return;
+    }
+
     mapLayer.setSource(nextOlSource);
   }
 
