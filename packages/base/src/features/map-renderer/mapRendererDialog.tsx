@@ -25,7 +25,11 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
     () => getLayersUnsupportedBy(model, selected),
     [model, selected],
   );
-  const name = (type: IMapAdapterType) => MAP_ADAPTER_FEATURES[type].name;
+  const name = (type: IMapAdapterType) =>
+    `${MAP_ADAPTER_FEATURES[type].name}${
+      type === 'maplibre' ? ' (experimental)' : ''
+    }`;
+
   return (
     <div
       style={{
@@ -94,7 +98,9 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
                         style={{
                           fontSize: '1.4rem',
                           fontWeight: 700,
-                          color: supported ? '#16a34a' : '#dc2626',
+                          color: supported
+                            ? 'var(--jp-success-color1)'
+                            : 'var(--jp-error-color1)',
                           lineHeight: 1,
                         }}
                       >
