@@ -28,8 +28,10 @@
   max-height: 80vh;
 }
 
+/* Scroll lives on each tab panel, not the dialog body — otherwise the
+ * scrollbar runs the full body height and sits next to the tab list. */
 .jp-gis-object-properties-dialog .jp-Dialog-body {
-  overflow: auto;
+  overflow: hidden;
 }
 
 /* A dialog mirrored from the collaborator we are following. It is a view of
