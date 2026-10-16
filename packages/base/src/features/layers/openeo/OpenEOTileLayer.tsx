@@ -5,6 +5,7 @@ import {
   ReactWidget,
   showDialog,
 } from '@jupyterlab/apputils';
+import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import { Connection, OpenEO, Process, Service } from '@openeo/js-client';
@@ -15,9 +16,12 @@ import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
 import React from 'react';
 
-import { describeConnectionError } from '@/src/tools';
+import {
+  describeConnectionError,
+  INTERNAL_PROXY_BASE,
+  isJupyterLite,
+} from '@/src/tools';
 import { ensureSaveResult } from './templates';
-import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 
 Environment.axios.defaults.xsrfCookieName = '_xsrf';
 Environment.axios.defaults.xsrfHeaderName = 'X-XSRFToken';
@@ -242,9 +246,15 @@ export async function openEOConnect(
     url = `https://${url}`;
   }
 
-  url = URLExt.join(PageConfig.getBaseUrl(), `jupytergis_core/proxy?url=${encodeURIComponent(url)}`);
-
-  console.log("DEBUG URL", url);
+  // TODO use the proxy setting instead similar to what fetchWithProxies does
+  // When in JupyterLab, use the internal proxy
+  const useProxy = !isJupyterLite();
+  if (useProxy) {
+    url = URLExt.join(
+      PageConfig.getBaseUrl(),
+      `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(url)}`,
+    );
+  }
 
   // Already connected to that server url. Re-insert so the cache stays
   // ordered by recency (last key === most recently used), and reflect the
@@ -278,8 +288,13 @@ export async function openEOConnect(
       addNamespaceToProcess: true,
     });
 
-    // @ts-expect-error We monkey patch this when using our proxy
-    connection.baseUrl = URLExt.join(PageConfig.getBaseUrl(), `jupytergis_core/proxy?url=${encodeURIComponent(connection.baseUrl)}`);
+    if (useProxy) {
+      // @ts-expect-error We monkey patch this when using our proxy
+      connection.baseUrl = URLExt.join(
+        PageConfig.getBaseUrl(),
+        `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(connection.baseUrl)}`,
+      );
+    }
 
     if (!connection.isAuthenticated()) {
       if (!signIn) {

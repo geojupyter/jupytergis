@@ -437,14 +437,11 @@ export function describeConnectionError(error: unknown, url: string): string {
   return message ?? String(error);
 }
 
-type ProxyStrategy = 'direct' | 'internal' | 'external';
-
 export const fetchWithProxies = async <T>(
   url: string,
   model: IJupyterGISModel,
   parseResponse: (response: Response) => Promise<T>,
   options?: RequestInit,
-  strategy?: ProxyStrategy,
 ): Promise<T | null> => {
   let settings: any = null;
 
@@ -457,31 +454,26 @@ export const fetchWithProxies = async <T>(
   }
 
   const proxyUrl =
-    settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
+    settings && settings.proxyUrl
+      ? settings.proxyUrl
+      : isJupyterLite()
+        ? 'https://corsproxy.io'
+        : INTERNAL_PROXY_BASE;
 
-  const strategies: Record<ProxyStrategy, (url: string) => string> = {
-    direct: url => url,
-    internal: url => `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(url)}`,
-    external: url => `${proxyUrl}/?url=${encodeURIComponent(url)}`,
-  };
+  const strategies = [url, `${proxyUrl}/?url=${encodeURIComponent(url)}`];
 
-  const defaultOrder: ProxyStrategy[] = ['direct', 'internal', 'external'];
-
-  const strategyOrder: ProxyStrategy[] = strategy ? [strategy] : defaultOrder;
-
-  for (const strat of strategyOrder) {
-    const proxyUrl = strategies[strat](url);
+  // TODO reconsider this decision?
+  // Try direct url first
+  for (const tryUrl of strategies) {
     try {
-      const response = await fetch(proxyUrl, options);
+      const response = await fetch(tryUrl, options);
       if (!response.ok) {
-        console.warn(
-          `Failed to fetch from ${proxyUrl}: ${response.statusText}`,
-        );
+        console.warn(`Failed to fetch from ${tryUrl}: ${response.statusText}`);
         continue;
       }
       return await parseResponse(response);
     } catch (error) {
-      console.warn(`Error fetching from ${proxyUrl}:`, error);
+      console.warn(`Error fetching from ${tryUrl}:`, error);
     }
   }
 
