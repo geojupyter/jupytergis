@@ -6,22 +6,13 @@ export interface IProjectionOption {
   proj4string: string;
 }
 
-// Temporary short list for projection-switch testing.
-const TEMP_PROJECTION_CODES = new Set([
-  'EPSG:3857',
-  'EPSG:4326',
-  'EPSG:2154', // RGF93 / Lambert-93 — projected, not web mercator
-]);
-
 export const PROJECTION_OPTIONS: IProjectionOption[] = Object.entries(
   projCodes,
-)
-  .filter(([code]) => TEMP_PROJECTION_CODES.has(code))
-  .map(([code, info]) => ({
-    code,
-    name: info.name,
-    proj4string: info.proj4string,
-  }));
+).map(([code, info]) => ({
+  code,
+  name: info.name,
+  proj4string: info.proj4string,
+}));
 
 const PROJECTION_BY_CODE = new Map(
   PROJECTION_OPTIONS.map(option => [option.code, option]),
