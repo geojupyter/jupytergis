@@ -498,23 +498,31 @@ export function addCommands(
 
   addLayerCreationCommands({ tracker, commands, trans });
 
+  const resolveRendererWidget = (args?: ReadonlyPartialJSONObject) => {
+    const filePath =
+      typeof args?.filePath === 'string' ? args.filePath : undefined;
+    return filePath
+      ? tracker.find(w => w.model.filePath === filePath)
+      : tracker.currentWidget;
+  };
+
   commands.addCommand(CommandIDs.openMapRendererDialog, {
     label: trans.__('Map Renderer…'),
     caption: trans.__(
       'Choose the map renderer for this document and compare what each supports.',
     ),
     describedBy: { args: { type: 'object', properties: {} } },
-    isEnabled: () =>
-      tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false,
-    execute: () => {
-      const model = tracker.currentWidget?.model;
+    isEnabled: args => {
+      const widget = resolveRendererWidget(args);
+      return widget ? widget.model.sharedModel.editable : false;
+    },
+
+    execute: args => {
+      const model = resolveRendererWidget(args)?.model;
       if (model) {
         void showMapRendererDialog(model);
       }
     },
-    ...icons.get(CommandIDs.openMapRendererDialog),
   });
 
   commands.addCommand(CommandIDs.symbology, {

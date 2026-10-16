@@ -1876,6 +1876,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           {!isSpectaPresentation ? (
             <StatusBar
               jgisModel={this._model}
+              commands={this._mainViewModel.commands}
               loading={loadingLayer}
               projection={viewProjection}
               scale={scale}
