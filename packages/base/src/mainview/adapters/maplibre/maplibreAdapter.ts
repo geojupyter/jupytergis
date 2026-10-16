@@ -86,6 +86,7 @@ const NOOP_DRAW_TOOL: IDrawToolAdapter = {
   updateFeatureAttributes: () => false,
   hasFeatureAtCoordinate: () => false,
   setDrawLayerId: noop,
+  handleViewProjectionChanged: noop,
 };
 
 export class MapLibreAdapter implements IMapAdapter {
@@ -1184,6 +1185,16 @@ export class MapLibreAdapter implements IMapAdapter {
 
   getProjection(): IMapProjection {
     return { code: 'EPSG:3857', units: 'm' };
+  }
+
+  setProjection(code: string): IMapProjection | undefined {
+    if (code !== 'EPSG:3857') {
+      this._log(
+        'warning',
+        `MapLibre adapter expects EPSG:3857 map coordinates; received ${code}.`,
+      );
+    }
+    return undefined;
   }
 
   getPixelFromCoordinate(coordinate: number[]): MLCoordinates {
