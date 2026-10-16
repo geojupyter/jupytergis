@@ -1886,6 +1886,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     const olGeometry = new GeoJSON().readGeometry(geometry, {
+      dataProjection: 'EPSG:4326',
       featureProjection: this._map.getView().getProjection(),
     });
 
@@ -1922,6 +1923,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
+          dataProjection: 'EPSG:4326',
           featureProjection: this._map.getView().getProjection(),
         });
 
@@ -2580,12 +2582,16 @@ export class OpenLayersAdapter implements IMapAdapter {
               model: this._model,
             }));
 
+          const viewProjection = this._map.getView().getProjection();
           const format = new GeoJSON({
-            featureProjection: this._map.getView().getProjection(),
+            featureProjection: viewProjection,
           });
 
+          // Force EPSG:4326 so a legacy GeoJSON `crs` (e.g. CRS84) does not
+          // become dataProjection — OL has no transform CRS84 → custom EPSGs.
           const featureArray = format.readFeatures(data, {
-            featureProjection: this._map.getView().getProjection(),
+            dataProjection: 'EPSG:4326',
+            featureProjection: viewProjection,
           });
 
           const featureCollection = new Collection(featureArray);
@@ -3323,7 +3329,12 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     // change source of target layer
-    mapLayer.setSource(this._sources.get(id));
+    const nextOlSource = this._sources.get(id);
+    if (!nextOlSource) {
+      return;
+    }
+
+    mapLayer.setSource(nextOlSource);
   }
 
   private computeSourceUrl(source: IJGISSource): string {

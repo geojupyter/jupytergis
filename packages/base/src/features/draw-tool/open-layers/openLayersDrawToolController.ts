@@ -460,8 +460,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
 
     const features = featuresToSerialize.map(feature =>
       geojsonWriter.writeFeatureObject(feature, {
-        featureProjection: viewProjection,
         dataProjection: 'EPSG:4326',
+        featureProjection: viewProjection,
       }),
     );
 
@@ -663,8 +663,8 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     }
 
     const geojsonGeometry = new GeoJSON().writeGeometryObject(geometry, {
-      featureProjection: map.getView().getProjection(),
       dataProjection: 'EPSG:4326',
+      featureProjection: map.getView().getProjection(),
     }) as IFeatureStoreGeometry;
 
     const props = Object.fromEntries(
