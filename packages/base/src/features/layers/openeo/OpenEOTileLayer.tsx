@@ -8,6 +8,8 @@ import {
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import { Connection, OpenEO, Process, Service } from '@openeo/js-client';
+// @ts-expect-error
+import Environment from '@openeo/js-client/src/env';
 import TileLayer from 'ol/layer/Tile';
 import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
@@ -15,6 +17,11 @@ import React from 'react';
 
 import { describeConnectionError } from '@/src/tools';
 import { ensureSaveResult } from './templates';
+import { PageConfig, URLExt } from '@jupyterlab/coreutils';
+
+Environment.axios.defaults.xsrfCookieName = '_xsrf';
+Environment.axios.defaults.xsrfHeaderName = 'X-XSRFToken';
+Environment.axios.defaults.withCredentials = true;
 
 const CONNECTIONS: { [serverUrl: string]: Connection } = {};
 
@@ -235,6 +242,10 @@ export async function openEOConnect(
     url = `https://${url}`;
   }
 
+  url = URLExt.join(PageConfig.getBaseUrl(), `jupytergis_core/proxy?url=${encodeURIComponent(url)}`);
+
+  console.log("DEBUG URL", url);
+
   // Already connected to that server url. Re-insert so the cache stays
   // ordered by recency (last key === most recently used), and reflect the
   // resolved url + live bearer back so callers can persist them even when
@@ -266,6 +277,9 @@ export async function openEOConnect(
     const connection = await OpenEO.connect(url, {
       addNamespaceToProcess: true,
     });
+
+    // @ts-expect-error We monkey patch this when using our proxy
+    connection.baseUrl = URLExt.join(PageConfig.getBaseUrl(), `jupytergis_core/proxy?url=${encodeURIComponent(connection.baseUrl)}`);
 
     if (!connection.isAuthenticated()) {
       if (!signIn) {
