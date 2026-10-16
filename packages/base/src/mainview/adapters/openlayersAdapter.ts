@@ -938,9 +938,9 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   /**
-   * Vector/Image sources loaded with `featureProjection: view` keep coords in the
-   * old view CRS. Reread them after the view projection changes. Tile sources
-   * with their own projection are left alone.
+   * Vector sources loaded with `featureProjection: view` keep coords in the
+   * old view CRS. Reread them after the view projection changes. Tile and
+   * image sources carry their own projection and are left alone.
    */
   private async _rereadViewProjectedVectorSources(): Promise<void> {
     for (const [storeId, { overlay }] of this._featureStoreSources) {
@@ -955,7 +955,6 @@ export class OpenLayersAdapter implements IMapAdapter {
         source.type !== 'GeoJSONSource' &&
         source.type !== 'ShapefileSource' &&
         source.type !== 'GeoParquetSource' &&
-        source.type !== 'ImageSource' &&
         source.type !== 'MarkerSource'
       ) {
         continue;
@@ -2641,21 +2640,7 @@ export class OpenLayersAdapter implements IMapAdapter {
             ...sourceParameters.coordinates.map(corner => corner[1]),
           );
 
-          // Stored corners are lon/lat. Place them in the current view.
-          const viewProjection = this._map.getView().getProjection();
-          const topLeft = fromLonLat([leftSide, topSide], viewProjection);
-          const bottomRight = fromLonLat(
-            [rightSide, bottomSide],
-            viewProjection,
-          );
-
-          // Get extent from coordinates
-          const minX = topLeft[0];
-          const maxY = topLeft[1];
-          const maxX = bottomRight[0];
-          const minY = bottomRight[1];
-
-          const extent = [minX, minY, maxX, maxY];
+          const extent = [leftSide, bottomSide, rightSide, topSide];
 
           const imageUrl = await loadFile({
             filepath: sourceParameters.path,
@@ -2666,6 +2651,7 @@ export class OpenLayersAdapter implements IMapAdapter {
           newSource = new Static({
             interpolate: sourceParameters.interpolate,
             imageExtent: extent,
+            projection: 'EPSG:4326',
             url: imageUrl,
             crossOrigin: '',
           });
