@@ -18,6 +18,8 @@ export interface IMapAdapterFeatures {
   readonly storyMaps: boolean;
   readonly geolocation: boolean;
   readonly layerComparison: boolean;
+  readonly heatmapSymbology: boolean;
+  readonly clusterSymbology: boolean;
   readonly requiresVectorTileSourceLayer: boolean;
 }
 
@@ -59,6 +61,8 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
   storyMaps: false,
   geolocation: false,
   layerComparison: false,
+  heatmapSymbology: false,
+  clusterSymbology: false,
   requiresVectorTileSourceLayer: true,
 };
 
@@ -100,6 +104,8 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
   geolocation: true,
   storyMaps: true,
   layerComparison: true,
+  heatmapSymbology: true,
+  clusterSymbology: true,
   requiresVectorTileSourceLayer: false,
 };
 
@@ -199,6 +205,13 @@ const TOOL_LABELS: Record<ToolKey, string> = {
   geolocation: 'Geolocation',
 } as const;
 
+type SymbologyKey = 'heatmapSymbology' | 'clusterSymbology';
+
+const SYMBOLOGY_LABELS: Record<SymbologyKey, string> = {
+  heatmapSymbology: 'Heatmap (KDE)',
+  clusterSymbology: 'Point Clustring',
+};
+
 export interface ISupportRow {
   label: string;
   support: Record<IMapAdapterType, boolean>;
@@ -237,6 +250,12 @@ export function getSupportTable(): ISupportGroup[] {
       title: 'Tools',
       rows: (Object.keys(TOOL_LABELS) as ToolKey[]).map(key =>
         row(TOOL_LABELS[key], f => f[key]),
+      ),
+    },
+    {
+      title: 'Symbology',
+      rows: (Object.keys(SYMBOLOGY_LABELS) as SymbologyKey[]).map(key =>
+        row(SYMBOLOGY_LABELS[key], f => f[key]),
       ),
     },
   ];
