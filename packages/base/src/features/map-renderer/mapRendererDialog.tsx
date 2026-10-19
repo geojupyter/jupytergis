@@ -25,10 +25,7 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
     () => getLayersUnsupportedBy(model, selected),
     [model, selected],
   );
-  const name = (type: IMapAdapterType) =>
-    `${MAP_ADAPTER_FEATURES[type].name}${
-      type === 'maplibre' ? ' (experimental)' : ''
-    }`;
+  const name = (type: IMapAdapterType) => `${MAP_ADAPTER_FEATURES[type].name}`;
 
   return (
     <div
@@ -70,7 +67,10 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
           <tr>
             <th style={{ textAlign: 'left' }}>Feature</th>
             {RENDERERS.map(type => (
-              <th key={type}>{name(type)}</th>
+              <th key={type}>
+                {name(type)}
+                {type === 'maplibre' ? '(experimental)' : ' '}
+              </th>
             ))}
           </tr>
         </thead>

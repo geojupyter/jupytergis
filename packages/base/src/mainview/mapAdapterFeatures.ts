@@ -20,6 +20,7 @@ export interface IMapAdapterFeatures {
   readonly layerComparison: boolean;
   readonly heatmapSymbology: boolean;
   readonly clusterSymbology: boolean;
+  readonly customProjections: boolean;
   readonly requiresVectorTileSourceLayer: boolean;
 }
 
@@ -63,6 +64,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
   layerComparison: false,
   heatmapSymbology: false,
   clusterSymbology: false,
+  customProjections: false,
   requiresVectorTileSourceLayer: true,
 };
 
@@ -106,6 +108,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
   layerComparison: true,
   heatmapSymbology: true,
   clusterSymbology: true,
+  customProjections: true,
   requiresVectorTileSourceLayer: false,
 };
 
@@ -194,7 +197,8 @@ type ToolKey =
   | 'drawTool'
   | 'storyMaps'
   | 'layerComparison'
-  | 'geolocation';
+  | 'geolocation'
+  | 'customProjections';
 
 const TOOL_LABELS: Record<ToolKey, string> = {
   addMarker: 'Place markers',
@@ -203,6 +207,7 @@ const TOOL_LABELS: Record<ToolKey, string> = {
   storyMaps: 'Story maps',
   layerComparison: 'Layer swipe comparison',
   geolocation: 'Geolocation',
+  customProjections: 'Custom projections',
 } as const;
 
 type SymbologyKey = 'heatmapSymbology' | 'clusterSymbology';

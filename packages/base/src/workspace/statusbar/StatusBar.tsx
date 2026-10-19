@@ -44,16 +44,21 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   }, [projection?.code]);
 
   const handleProjectionChange = (nextCode: string): void => {
+    if (!canChangeProjection) {
+      return;
+    }
     setProjectionCode(nextCode);
     onProjectionChange?.(nextCode);
   };
 
   const features = useMapFeatures(jgisModel);
-  const rendererName =
-    features?.name ??
+  const activeFeatures =
+    features ??
     MAP_ADAPTER_FEATURES[
       jgisModel.getOptions().mapAdapter ?? DEFAULT_MAP_ADAPTER
-    ].name;
+    ];
+  const rendererName = activeFeatures.name;
+  const canChangeProjection = activeFeatures.customProjections;
 
   useEffect(() => {
     const handlePointerChanged = () => {
@@ -96,10 +101,20 @@ const StatusBar: React.FC<IStatusBarProps> = ({
         <span>Scale: 1: {Math.trunc(scale)}</span>
       </div>
       <div className="jgis-status-bar-item jgis-status-bar-projection">
-        <ProjectionCombobox
-          code={projectionCode}
-          onProjectionChange={handleProjectionChange}
-        />
+        {canChangeProjection ? (
+          <ProjectionCombobox
+            code={projectionCode}
+            onProjectionChange={handleProjectionChange}
+          />
+        ) : (
+          <span
+            title={
+              'Maplibre only supports EPSG:3857. Switch to OpenLayers to use other projections.'
+            }
+          >
+            {projectionCode ?? 'EPSG:3857'}
+          </span>
+        )}
       </div>
       <div className="jgis-status-bar-item">
         Units: {projectionUnits(projectionCode, projection?.units)}
