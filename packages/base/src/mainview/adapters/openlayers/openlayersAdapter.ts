@@ -130,11 +130,6 @@ import {
   OpenEOTileLayer,
   OpenEOTileSource,
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
-import { grammarToOLLayer } from '@/src/features/layers/symbology/grammarToOLLayer';
-import {
-  extractEncodingFieldValues,
-  grammarToOLStyle,
-} from '@/src/features/layers/symbology/grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from '@/src/features/layers/symbology/styleBuilder';
 import {
   buildZarrColorStyle,
@@ -142,6 +137,11 @@ import {
   getDefaultRGBBands,
   IZarrBandInfo,
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
+import { grammarToOLLayer } from '@/src/mainview/adapters/openlayers/grammarToOLLayer';
+import {
+  extractEncodingFieldValues,
+  grammarToOLStyle,
+} from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
 import {
   IMapAdapter,
   IMapLayerComparison,
@@ -151,20 +151,18 @@ import {
   VIEWPORT_SYNC_INTERVAL,
 } from '@/src/mainview/mapAdapter';
 import { markerIcon } from '@/src/shared/icons';
+import { buildProxyUrl } from '@/src/shared/tileProxy';
+import { debounce, getCssVarValue, loadFile, throttle } from '@/src/tools';
+import { ClientPointer } from '../../CollaboratorPointers';
 import {
-  debounce,
-  getCssVarValue,
-  INTERNAL_PROXY_BASE,
-  isJupyterLite,
-  loadFile,
-  throttle,
-} from '@/src/tools';
-import { ClientPointer } from '.././CollaboratorPointers';
+  MAP_ADAPTER_FEATURES,
+  getUnsupportedReason,
+} from '../../mapAdapterFeatures';
 import {
   getZoomExtentForOlLayer,
   isValidExtent,
   transformExtentToViewProjection,
-} from '../utils/olLayerZoomExtent';
+} from '../../utils/olLayerZoomExtent';
 
 type OlLayerTypes =
   | TileLayer
@@ -1156,6 +1154,12 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     this._drawTool.leaveDrawMode();
+
+    // Clearing the collection calls setMap(null) on each control, which
+    // removes its element from controlsTarget (scale, fullscreen, rotate, zoom).
+    this._map.getControls().clear();
+    this._zoomControl = undefined;
+
     this._map.setTarget(undefined);
     this._sources.clear();
   }
@@ -1589,6 +1593,11 @@ export class OpenLayersAdapter implements IMapAdapter {
 
       case 'StorySegmentLayer': {
         // Special layer not for this
+        return;
+      }
+
+      case 'TerrainLayer': {
+        // 3D terrain is only supported by the MapLibre adapter.
         return;
       }
     }
@@ -2053,6 +2062,22 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     try {
+      const sourceId = layer.parameters?.source;
+      const source = sourceId ? this._model.getSource(sourceId) : undefined;
+      const unsupported = getUnsupportedReason(
+        this.supportedFeatures,
+        layer,
+        source,
+      );
+      if (unsupported) {
+        this._log(
+          'warning',
+          `OpenLayersAdapter: skipping layer ${id}. ${unsupported}`,
+        );
+        this._callbacks?.onLayerError?.(id, unsupported);
+        return;
+      }
+
       this.addProjection(layer);
       const newMapLayer = await this._buildMapLayer(id, layer);
 
@@ -2402,33 +2427,6 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   /**
-   * Builds the proxy URL for a given URL.
-   * @param url - the URL to proxy.
-   * @param useProxy - whether to use the proxy.
-   * @param httpHeaders - HTTP headers to pass to the proxy.
-   */
-
-  private getProxyUrl(
-    url: string,
-    useProxy?: boolean,
-    httpHeaders?: string,
-  ): string {
-    if (!useProxy) {
-      return url;
-    }
-    const headersParam =
-      httpHeaders && Object.keys(httpHeaders).length > 0
-        ? `&headers=${encodeURIComponent(JSON.stringify(httpHeaders))}`
-        : '';
-
-    const proxyBase = isJupyterLite()
-      ? `${this._model.jgisSettings.proxyUrl}/`
-      : INTERNAL_PROXY_BASE;
-
-    return `${proxyBase}?url=${encodeURIComponent(url)}${headersParam}`;
-  }
-
-  /**
    * Add a source in the map.
    *
    * @param id - the source id.
@@ -2505,7 +2503,8 @@ export class OpenLayersAdapter implements IMapAdapter {
             if (sourceParameters.useProxy) {
               vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
                 const vtTile = tile as VectorTile<RenderFeature>;
-                const proxyUrl = this.getProxyUrl(
+                const proxyUrl = buildProxyUrl(
+                  this._model,
                   tileUrl,
                   sourceParameters.useProxy,
                   sourceParameters.httpHeaders,
@@ -2681,7 +2680,8 @@ export class OpenLayersAdapter implements IMapAdapter {
               if (isRemote) {
                 return {
                   ...addNoData(sourceInfo),
-                  url: this.getProxyUrl(
+                  url: buildProxyUrl(
+                    this._model,
                     sourceInfo.url!,
                     sourceParameters.useProxy,
                     sourceParameters.httpHeaders,
@@ -2898,7 +2898,12 @@ export class OpenLayersAdapter implements IMapAdapter {
                   tileLoadFunction: (tile, src) => {
                     loadProxiedWmsTile(
                       tile as ImageTile,
-                      this.getProxyUrl(src, true, sourceParameters.httpHeaders),
+                      buildProxyUrl(
+                        this._model,
+                        src,
+                        true,
+                        sourceParameters.httpHeaders,
+                      ),
                     );
                   },
                 }
@@ -3875,6 +3880,10 @@ export class OpenLayersAdapter implements IMapAdapter {
 
   get drawTool(): IDrawToolAdapter {
     return this._drawTool;
+  }
+
+  get supportedFeatures() {
+    return MAP_ADAPTER_FEATURES.openlayers;
   }
 
   private _map: OlMap;

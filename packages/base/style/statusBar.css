@@ -19,3 +19,20 @@
 .jgis-status-bar-projection [data-slot='combobox-trigger'] {
   font-size: inherit;
 }
+
+.jgis-status-bar-button {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.jgis-status-bar-button:hover:not(:disabled) {
+  background: var(--jp-layout-color3);
+}
+
+.jgis-status-bar-button:focus-visible {
+  outline: 1px solid var(--jp-brand-color1);
+  outline-offset: -1px;
+}

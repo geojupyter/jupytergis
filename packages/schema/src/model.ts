@@ -207,6 +207,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return Array.from(this._tileFeatureCache.get(sourceId) ?? []);
   }
 
+  get tileFeaturesChanged(): ISignal<this, string> {
+    return this._tileFeaturesChanged;
+  }
+
   syncTileFeatures({
     sourceId,
     features,
@@ -220,7 +224,43 @@ export class JupyterGISModel implements IJupyterGISModel {
       featureSet = new Set();
       this._tileFeatureCache.set(sourceId, featureSet);
     }
+    const before = featureSet.size;
     features.forEach(feature => featureSet.add(feature));
+    if (featureSet.size > before) {
+      this._tileFeaturesChanged.emit(sourceId);
+    }
+  }
+
+  replaceTileFeatures({
+    sourceId,
+    features,
+  }: {
+    sourceId: string;
+    features: Map<string, FeatureLike>;
+  }): void {
+    const nextKeys = new Set(features.keys());
+    const previousKeys = this._tileFeatureCacheKeys.get(sourceId);
+
+    const keysUnchanged =
+      previousKeys !== undefined &&
+      previousKeys.size === nextKeys.size &&
+      [...previousKeys].every(key => nextKeys.has(key));
+
+    this._tileFeatureCache.set(sourceId, new Set(features.values()));
+    this._tileFeatureCacheKeys.set(sourceId, nextKeys);
+
+    if (!keysUnchanged) {
+      this._tileFeaturesChanged.emit(sourceId);
+    }
+  }
+
+  clearTileFeatures(sourceId: string): void {
+    const hadFeatures = this._tileFeatureCache.delete(sourceId);
+    this._tileFeatureCacheKeys.delete(sourceId);
+
+    if (hadFeatures) {
+      this._tileFeaturesChanged.emit(sourceId);
+    }
   }
 
   private _onSharedModelChanged = (sender: any, changes: any): void => {
@@ -1851,6 +1891,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
+  private _tileFeatureCacheKeys: Map<string, Set<string>> = new Map();
   private _currentSegmentIndex: number;
   private _currentSegmentIndexChanged = new Signal<this, number>(this);
   private _storyPreviewActive = false;
@@ -1859,6 +1900,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _localUIState: Partial<IJGISUIState> = {};
   private _uiStateChanged = new Signal<this, IJGISUIState>(this);
+  private _tileFeaturesChanged = new Signal<this, string>(this);
 }
 
 export namespace JupyterGISModel {

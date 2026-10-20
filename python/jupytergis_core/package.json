@@ -28,8 +28,8 @@
   "scripts": {
     "build": "pnpm run build:lib && pnpm run build:labextension:dev",
     "build:prod": "pnpm run clean && pnpm run build:lib:prod && pnpm run build:labextension",
-    "build:labextension": "jupyter-builder build . && pnpm run cp:sqlwasm",
-    "build:labextension:dev": "jupyter-builder build --development True . && pnpm run cp:sqlwasm",
+    "build:labextension": "jupyter-builder build . && pnpm run cp:sqlwasm && pnpm run cp:maplibreworker",
+    "build:labextension:dev": "jupyter-builder build --development True . && pnpm run cp:sqlwasm && pnpm run cp:maplibreworker",
     "build:lib": "tsc --sourceMap",
     "build:lib:prod": "tsc",
     "build:dev": "pnpm run build",
@@ -44,6 +44,7 @@
     "lint": "pnpm run stylelint && pnpm run prettier && pnpm run eslint",
     "lint:check": "pnpm run stylelint:check && pnpm run prettier:check && pnpm run eslint:check",
     "cp:sqlwasm": "cp ../../node_modules/sql.js/dist/sql-wasm-browser.wasm jupytergis_core/labextension/static/sql-wasm-browser.wasm",
+    "cp:maplibreworker": "cp ../../node_modules/maplibre-gl/dist/maplibre-gl-worker.mjs ../../node_modules/maplibre-gl/dist/maplibre-gl-shared.mjs jupytergis_core/labextension/static/",
     "prettier": "pnpm run prettier:base -- --write",
     "prettier:base": "prettier \"**/*{.ts,.tsx,.js,.jsx,.css,.json,.md}\"",
     "prettier:check": "pnpm run prettier:base -- --check",

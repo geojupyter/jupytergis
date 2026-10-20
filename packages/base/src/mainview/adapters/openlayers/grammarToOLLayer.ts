@@ -28,9 +28,9 @@ import LayerGroup from 'ol/layer/Group';
 import { Vector as VectorSource } from 'ol/source';
 import { Rule } from 'ol/style/flat';
 
-import { getColorMap } from './colorRampUtils';
+import { getColorMap } from '@/src/features/layers/symbology/colorRampUtils';
+import { DEFAULT_FLAT_STYLE } from '@/src/features/layers/symbology/styleBuilder';
 import { grammarToOLStyle } from './grammarToOLStyle';
-import { DEFAULT_FLAT_STYLE } from './styleBuilder';
 
 // Default OL heatmap gradient (cool → warm).
 const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];

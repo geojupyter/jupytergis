@@ -34,7 +34,7 @@ import {
   STOP_NULL,
   STOP_UNDEFINED,
   SymbologyState,
-} from './styleBuilder';
+} from '@/src/features/layers/symbology/styleBuilder';
 
 // '$density' is the pseudo-field produced by a kde transform (KDE density raster).
 // Encoding rules referencing it are compiled only when a kde transform is present;
