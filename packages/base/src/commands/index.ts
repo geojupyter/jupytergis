@@ -224,122 +224,122 @@ type AdapterFlag =
   | 'geolocation';
 
 interface IAdapterRequirement {
-  sources?: SourceType[];
-  layers?: LayerType[];
-  flags?: AdapterFlag[];
+  source?: SourceType[];
+  layer?: LayerType[];
+  flag?: AdapterFlag[];
 }
 
 const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   // Layer creation dialogs
   [CommandIDs.openNewRasterDialog]: {
-    sources: ['RasterSource'],
-    layers: ['RasterLayer'],
+    source: ['RasterSource'],
+    layer: ['RasterLayer'],
   },
   [CommandIDs.openNewWmsDialog]: {
-    sources: ['WmsTileSource'],
-    layers: ['RasterLayer'],
+    source: ['WmsTileSource'],
+    layer: ['RasterLayer'],
   },
   [CommandIDs.openNewVectorTileDialog]: {
-    sources: ['VectorTileSource'],
-    layers: ['VectorTileLayer'],
+    source: ['VectorTileSource'],
+    layer: ['VectorTileLayer'],
   },
   [CommandIDs.openNewGeoJSONDialog]: {
-    sources: ['GeoJSONSource'],
-    layers: ['VectorLayer'],
+    source: ['GeoJSONSource'],
+    layer: ['VectorLayer'],
   },
   [CommandIDs.openNewShapefileDialog]: {
-    sources: ['ShapefileSource'],
-    layers: ['VectorLayer'],
+    source: ['ShapefileSource'],
+    layer: ['VectorLayer'],
   },
   [CommandIDs.openNewGeoParquetDialog]: {
-    sources: ['GeoParquetSource'],
-    layers: ['VectorLayer'],
+    source: ['GeoParquetSource'],
+    layer: ['VectorLayer'],
   },
   [CommandIDs.openNewHillshadeDialog]: {
-    sources: ['RasterDemSource'],
-    layers: ['HillshadeLayer'],
+    source: ['RasterDemSource'],
+    layer: ['HillshadeLayer'],
   },
   [CommandIDs.openNewTerrainDialog]: {
-    sources: ['RasterDemSource'],
-    layers: ['TerrainLayer'],
+    source: ['RasterDemSource'],
+    layer: ['TerrainLayer'],
   },
   [CommandIDs.openNewImageDialog]: {
-    sources: ['ImageSource'],
-    layers: ['ImageLayer'],
+    source: ['ImageSource'],
+    layer: ['ImageLayer'],
   },
   [CommandIDs.openNewGeoTiffDialog]: {
-    sources: ['GeoTiffSource'],
-    layers: ['GeoTiffLayer'],
+    source: ['GeoTiffSource'],
+    layer: ['GeoTiffLayer'],
   },
   [CommandIDs.openNewGeoZarrDialog]: {
-    sources: ['GeoZarrSource'],
-    layers: ['GeoZarrLayer'],
+    source: ['GeoZarrSource'],
+    layer: ['GeoZarrLayer'],
   },
   [CommandIDs.openNewOpenEODialog]: {
-    sources: ['OpenEOTileSource'],
-    layers: ['OpenEOTileLayer'],
+    source: ['OpenEOTileSource'],
+    layer: ['OpenEOTileLayer'],
   },
   [CommandIDs.openNewFeatureStoreDialog]: {
-    sources: ['FeatureStoreSource'],
-    layers: ['VectorLayer'],
+    source: ['FeatureStoreSource'],
+    layer: ['VectorLayer'],
   },
   [CommandIDs.newGeoPackageVectorEntry]: {
-    sources: ['GeoPackageVectorSource'],
-    layers: ['VectorLayer'],
+    source: ['GeoPackageVectorSource'],
+    layer: ['VectorLayer'],
   },
   [CommandIDs.newGeoPackageRasterEntry]: {
-    sources: ['GeoPackageRasterSource'],
-    layers: ['RasterLayer'],
+    source: ['GeoPackageRasterSource'],
+    layer: ['RasterLayer'],
   },
 
   // Programmatic creation commands
   [LayerCreationCommandIDs.newGeoJSONWithParams]: {
-    sources: ['GeoJSONSource'],
-    layers: ['VectorLayer'],
+    source: ['GeoJSONSource'],
+    layer: ['VectorLayer'],
   },
   [LayerCreationCommandIDs.newRasterWithParams]: {
-    sources: ['RasterSource'],
-    layers: ['RasterLayer'],
+    source: ['RasterSource'],
+    layer: ['RasterLayer'],
   },
   [LayerCreationCommandIDs.newVectorTileWithParams]: {
-    sources: ['VectorTileSource'],
-    layers: ['VectorTileLayer'],
+    source: ['VectorTileSource'],
+    layer: ['VectorTileLayer'],
   },
   [LayerCreationCommandIDs.newGeoParquetWithParams]: {
-    sources: ['GeoParquetSource'],
-    layers: ['VectorLayer'],
+    source: ['GeoParquetSource'],
+    layer: ['VectorLayer'],
   },
   [LayerCreationCommandIDs.newHillshadeWithParams]: {
-    sources: ['RasterDemSource'],
-    layers: ['HillshadeLayer'],
+    source: ['RasterDemSource'],
+    layer: ['HillshadeLayer'],
   },
   [LayerCreationCommandIDs.newImageWithParams]: {
-    sources: ['ImageSource'],
-    layers: ['ImageLayer'],
+    source: ['ImageSource'],
+    layer: ['ImageLayer'],
   },
   [LayerCreationCommandIDs.newGeoTiffWithParams]: {
-    sources: ['GeoTiffSource'],
-    layers: ['GeoTiffLayer'],
+    source: ['GeoTiffSource'],
+    layer: ['GeoTiffLayer'],
   },
   [LayerCreationCommandIDs.newGeoZarrWithParams]: {
-    sources: ['GeoZarrSource'],
-    layers: ['GeoZarrLayer'],
+    source: ['GeoZarrSource'],
+    layer: ['GeoZarrLayer'],
   },
   [LayerCreationCommandIDs.newShapefileWithParams]: {
-    sources: ['ShapefileSource'],
-    layers: ['VectorLayer'],
+    source: ['ShapefileSource'],
+    layer: ['VectorLayer'],
   },
 
   // Interaction features
-  [CommandIDs.addMarker]: { sources: ['MarkerSource'] },
-  [CommandIDs.identify]: { flags: ['identify'] },
-  [CommandIDs.drawFeaturesOnSelectedLayer]: { flags: ['drawTool'] },
-  [CommandIDs.drawFeaturesOnNewLayer]: { flags: ['drawTool'] },
-  [CommandIDs.addStorySegment]: { flags: ['storyMaps'] },
-  [CommandIDs.openStoryEditor]: { flags: ['storyMaps'] },
-  [CommandIDs.compareLayers]: { flags: ['layerComparison'] },
-  [CommandIDs.getGeolocation]: { flags: ['geolocation'] },
-  [CommandIDs.toggleLocationIndicator]: { flags: ['geolocation'] },
+  [CommandIDs.addMarker]: { source: ['MarkerSource'] },
+  [CommandIDs.identify]: { flag: ['identify'] },
+  [CommandIDs.drawFeaturesOnSelectedLayer]: { flag: ['drawTool'] },
+  [CommandIDs.drawFeaturesOnNewLayer]: { flag: ['drawTool'] },
+  [CommandIDs.addStorySegment]: { flag: ['storyMaps'] },
+  [CommandIDs.openStoryEditor]: { flag: ['storyMaps'] },
+  [CommandIDs.compareLayers]: { flag: ['layerComparison'] },
+  [CommandIDs.getGeolocation]: { flag: ['geolocation'] },
+  [CommandIDs.toggleLocationIndicator]: { flag: ['geolocation'] },
 };
 
 interface ICreateEntry {
@@ -420,9 +420,9 @@ export function addCommands(
         return undefined;
       }
       const supported =
-        (req.sources ?? []).every(s => features.sources[s]) &&
-        (req.layers ?? []).every(l => features.layers[l]) &&
-        (req.flags ?? []).every(f => features[f]);
+        (req.source ?? []).every(s => features.sources[s]) &&
+        (req.layer ?? []).every(l => features.layers[l]) &&
+        (req.flag ?? []).every(f => features[f]);
       return supported ? undefined : features.name;
     };
 

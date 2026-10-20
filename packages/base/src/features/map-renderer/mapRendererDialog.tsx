@@ -69,7 +69,7 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
             {RENDERERS.map(type => (
               <th key={type}>
                 {name(type)}
-                {type === 'maplibre' ? '(experimental)' : ' '}
+                {type === 'maplibre' ? ' (experimental)' : ' '}
               </th>
             ))}
           </tr>
