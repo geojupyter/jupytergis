@@ -78,10 +78,7 @@ test.describe('#stac-browser', () => {
     // overwrites anything selected before that lands, so let it settle first.
     await page.waitForTimeout(2000);
 
-    await page
-      .getByRole('tabpanel', { name: 'Filters' })
-      .getByRole('combobox')
-      .selectOption({ label: 'GEODES' });
+    await page.getByLabel('Provider').selectOption({ label: 'GEODES' });
     await page.getByRole('button', { name: 'Collection' }).click();
     await page.getByRole('menuitem', { name: 'Sentinel 2' }).hover();
     await page.getByRole('menuitemcheckbox', { name: 'PEPS_S2_L1C' }).click();
