@@ -180,8 +180,14 @@ function ProviderSelect() {
 
   return (
     <div className="jgis-stac-filter-extension-section">
-      <label className="jgis-stac-filter-extension-label">Provider</label>
+      <label
+        htmlFor="stac-provider-select"
+        className="jgis-stac-filter-extension-label"
+      >
+        Provider
+      </label>
       <NativeSelect
+        id="stac-provider-select"
         className="w-full"
         value={isPreset ? selectedUrl : CATALOG_URL_PRESET}
         onChange={event => {
