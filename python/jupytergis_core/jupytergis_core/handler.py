@@ -246,6 +246,12 @@ class ProxyHandler(APIHandler):
 
         """
         if method == "POST":
+            content_type = self.request.headers.get("Content-Type", "")
+            if content_type.startswith("application/x-www-form-urlencoded"):
+                if len(self.request.body) > self.proxy_config.max_body_size:
+                    raise ValidationError("Request body too large")
+                return self.request.body.decode("utf-8")
+
             try:
                 body = self.get_json_body()
                 if not body or not isinstance(body, dict):
@@ -315,7 +321,7 @@ class ProxyHandler(APIHandler):
                 follow_redirects=False,
             )
 
-            return await self.http_client.fetch(request)
+            return await self.http_client.fetch(request, raise_error=False)
 
         except tornado.httpclient.HTTPClientError as e:
             logger.error("Upstream error: %d %s", e.code, e.message)
@@ -343,6 +349,12 @@ class ProxyHandler(APIHandler):
             "Content-Type",
             response.headers.get("Content-Type", "application/json"),
         )
+        # openEO returns the id of a created job or service in a header, not
+        # in the body, and the client reads it from there.
+        for header in ("OpenEO-Identifier", "Location"):
+            value = response.headers.get(header)
+            if value is not None:
+                self.set_header(header, value)
 
     def _handle_error_response(self, error: Exception) -> None:
         """Standardized error response handling.
