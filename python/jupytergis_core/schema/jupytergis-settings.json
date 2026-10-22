@@ -36,8 +36,8 @@
     "proxyUrl": {
       "type": "string",
       "title": "Proxy URL",
-      "description": "The proxy URL to use for external requests.",
-      "default": "https://corsproxy.io"
+      "description": "The proxy URL to use for external requests. If not set, we'll use the default proxy",
+      "default": ""
     },
     "leftPanelDisabled": {
       "type": "boolean",

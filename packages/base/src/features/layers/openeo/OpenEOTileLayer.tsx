@@ -5,16 +5,34 @@ import {
   ReactWidget,
   showDialog,
 } from '@jupyterlab/apputils';
+import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
-import { Connection, OpenEO, Process, Service } from '@openeo/js-client';
+import {
+  AuthProvider,
+  Connection,
+  OpenEO,
+  Process,
+  Service,
+} from '@openeo/js-client';
+// @ts-expect-error
+import Environment from '@openeo/js-client/src/env';
 import TileLayer from 'ol/layer/Tile';
 import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
 import React from 'react';
 
-import { describeConnectionError } from '@/src/tools';
+import {
+  describeConnectionError,
+  INTERNAL_PROXY_BASE,
+  isJupyterLite,
+} from '@/src/tools';
+import { expandDeviceProviders, OpenEODeviceProvider } from './deviceLogin';
+import { showOpenEOSigninDialog } from './signin';
 import { ensureSaveResult } from './templates';
+
+Environment.axios.defaults.xsrfCookieName = '_xsrf';
+Environment.axios.defaults.xsrfHeaderName = 'X-XSRFToken';
 
 const CONNECTIONS: { [serverUrl: string]: Connection } = {};
 
@@ -24,6 +42,12 @@ const CONNECTIONS: { [serverUrl: string]: Connection } = {};
  * the session wasn't available yet (typical after a page reload) the
  * moment the user signs back in to the same server.
  */
+/**
+ * Thrown when the user gives up on the sign-in form, so `openEOConnect`
+ * can skip the "failed to connect" error dialog.
+ */
+export class OpenEOSigninCancelled extends Error {}
+
 class OpenEOEvents {
   readonly connected = new Signal<this, { serverUrl: string }>(this);
 }
@@ -235,6 +259,25 @@ export async function openEOConnect(
     url = `https://${url}`;
   }
 
+  // js-client appends its own leading slash to every path. A trailing slash
+  // here would make that a `//`, which survives percent-encoding into the
+  // proxy url and which servers answer with a redirect we do not follow.
+  url = url.replace(/\/+$/, '');
+
+  // TODO use the proxy setting instead similar to what fetchWithProxies does
+  // When in JupyterLab, use the internal proxy
+  const useProxy = !isJupyterLite();
+  const proxyPrefix = URLExt.join(PageConfig.getBaseUrl(), INTERNAL_PROXY_BASE);
+  // Callers hand back the url we resolved for them, which is already
+  // proxied. Wrapping it again builds a url that misses the connection
+  // cache, so we would open a second, unauthenticated connection.
+  if (useProxy && !url.startsWith(proxyPrefix)) {
+    url = URLExt.join(
+      PageConfig.getBaseUrl(),
+      `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(url)}`,
+    );
+  }
+
   // Already connected to that server url. Re-insert so the cache stays
   // ordered by recency (last key === most recently used), and reflect the
   // resolved url + live bearer back so callers can persist them even when
@@ -267,25 +310,46 @@ export async function openEOConnect(
       addNamespaceToProcess: true,
     });
 
-    if (!connection.isAuthenticated()) {
-      if (!signIn) {
-        // TODO Add support for signin dialogs for OIDC?
-        signIn = await showSigninDialog(url);
+    // @ts-expect-error We monkey patch this when using our proxy
+    const baseUrl: string = connection.baseUrl;
+    // js-client keeps the url we connected with when the server advertises no
+    // separate version url, so it is already proxied. Wrapping it again asks
+    // the proxy to fetch the Jupyter server itself, which answers 403.
+    if (useProxy && !baseUrl.startsWith(proxyPrefix)) {
+      // @ts-expect-error We monkey patch this when using our proxy
+      connection.baseUrl = URLExt.join(
+        PageConfig.getBaseUrl(),
+        `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(baseUrl)}`,
+      );
+    }
 
-        if (!signIn) {
-          throw new Error('Needs credentials to connect to OpenEO server.');
+    if (!connection.isAuthenticated()) {
+      connection.setOidcProviderFactory(info =>
+        OpenEODeviceProvider.create(connection, info),
+      );
+      const providers = expandDeviceProviders(
+        connection,
+        await connection.listAuthProviders(),
+      );
+
+      if (signIn) {
+        const authProvider = providers.find(
+          provider => provider.type === 'basic',
+        );
+        if (!authProvider) {
+          throw new Error('Failed to get "basic" OpenEO provider.');
+        }
+
+        await authProvider.login(signIn.username, signIn.password);
+      } else {
+        const authenticate =
+          connectionInfo.authenticate ?? showOpenEOSigninDialog;
+        if (!(await authenticate(providers, connection))) {
+          throw new OpenEOSigninCancelled(
+            'Needs credentials to connect to OpenEO server.',
+          );
         }
       }
-
-      const providers = await connection.listAuthProviders();
-      const authProvider = providers.find(
-        provider => provider.type === 'basic',
-      );
-      if (!authProvider) {
-        throw new Error('Failed to get "basic" OpenEO provider.');
-      }
-
-      await authProvider.login(signIn.username, signIn.password);
     }
 
     const serviceTypes = await connection.listServiceTypes();
@@ -307,7 +371,9 @@ export async function openEOConnect(
 
     return connection;
   } catch (error) {
-    showErrorMessage(errorTitle, describeConnectionError(error, url));
+    if (!(error instanceof OpenEOSigninCancelled)) {
+      showErrorMessage(errorTitle, describeConnectionError(error, url));
+    }
 
     throw error;
   }
@@ -326,6 +392,17 @@ export interface IOpenEOConnectionInfo {
    * sign-in popup would otherwise never appear).
    */
   signIn?: ISigninValues;
+
+  /**
+   * Called with the server's auth providers when a sign-in is needed, in
+   * place of the sign-in dialog, and resolves to false if the user gives
+   * up. The Add OpenEO Layer dialog passes this so the form renders
+   * inline: it is itself a dialog, and nested dialogs queue.
+   */
+  authenticate?: (
+    providers: AuthProvider[],
+    connection: Connection,
+  ) => Promise<boolean>;
 }
 
 export class OpenEOTileLayer extends TileLayer {
