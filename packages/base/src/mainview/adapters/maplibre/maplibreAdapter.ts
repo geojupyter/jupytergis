@@ -1,5 +1,8 @@
 /* eslint-disable no-console */
-import { cogProtocol } from '@geomatico/maplibre-cog-protocol';
+import {
+  cogProtocol,
+  setColorFunction,
+} from '@geomatico/maplibre-cog-protocol';
 import type {
   IDict,
   IGrammarSymbologyState,
@@ -65,6 +68,10 @@ import {
   getUnsupportedReason,
 } from '../../mapAdapterFeatures';
 import { isValidExtent } from '../../utils/olLayerZoomExtent';
+import {
+  compileCogColorExpression,
+  compileCogColorFunction,
+} from '../maplibre/cogColorFunction';
 
 const WORLD_EXTENT = [-180, -85.051129, 180, 85.051129];
 type MLCoordinates = [number, number];
@@ -103,6 +110,15 @@ const NOOP_DRAW_TOOL: IDrawToolAdapter = {
   setDrawLayerId: noop,
   handleViewProjectionChanged: noop,
 };
+
+interface ICogSourceInfo {
+  /** URL as handed to the protocol, without the `cog://` prefix. */
+  url: string;
+  normalize?: boolean;
+  min?: number;
+  max?: number;
+  nodata?: number;
+}
 
 export class MapLibreAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
@@ -506,6 +522,19 @@ export class MapLibreAdapter implements IMapAdapter {
             sourceParameters,
           );
 
+          const urlInfo = first as {
+            min?: number;
+            max?: number;
+            nodata?: number;
+          };
+          this._cogSources.set(id, {
+            url,
+            normalize: sourceParameters.normalize,
+            min: urlInfo.min,
+            max: urlInfo.max,
+            nodata: urlInfo.nodata,
+          });
+
           this._map.addSource(id, {
             type: 'raster',
             url: `cog://${url}`,
@@ -522,6 +551,7 @@ export class MapLibreAdapter implements IMapAdapter {
               this._map.removeSource(id);
             }
             this._revokeObjectUrls(id);
+            this._forgetCogSource(id);
             throw error;
           }
           break;
@@ -562,6 +592,7 @@ export class MapLibreAdapter implements IMapAdapter {
     this._geojsonData.delete(id);
     this._sourceBounds.delete(id);
     this._revokeObjectUrls(id);
+    this._forgetCogSource(id);
   }
 
   async updateSource(id: string, source: IJGISSource): Promise<void> {
@@ -779,6 +810,76 @@ export class MapLibreAdapter implements IMapAdapter {
     });
   }
 
+  private _forgetCogSource(sourceId: string): void {
+    const info = this._cogSources.get(sourceId);
+    if (info) {
+      // Color functions are global and keyed by URL; don't leave a stale one.
+      setColorFunction(info.url, undefined);
+      this._cogSources.delete(sourceId);
+    }
+  }
+
+  private _applyCogSymbology(sourceId: string, layer: IJGISLayer): void {
+    const info = this._cogSources.get(sourceId);
+    if (!info) {
+      return;
+    }
+
+    const parameters = layer.parameters as IGeoTiffLayer;
+    const options = {
+      normalize: info.normalize,
+      min: info.min,
+      max: info.max,
+      nodata: info.nodata,
+      onWarn: (message: string) =>
+        this._log(
+          'warning',
+          `MapLibreAdapter: GeoTIFF layer "${layer.name}": ${message}`,
+        ),
+    };
+
+    const state = parameters.symbologyState as
+      | IGrammarSymbologyState
+      | undefined;
+
+    let colorFunction;
+    if (state && Array.isArray(state.layers) && state.layers.length > 0) {
+      colorFunction = compileCogColorFunction(state, options);
+    } else if (parameters.color) {
+      // Legacy `color` parameter: a raw OL style expression.
+      colorFunction = compileCogColorExpression(parameters.color, options);
+    }
+
+    setColorFunction(info.url, colorFunction);
+  }
+
+  /**
+   * The protocol only applies a new color function to tiles rendered from
+   * then on, so re-create the style layer (same position) to repaint.
+   */
+  private _refreshRasterLayer(
+    id: string,
+    sourceId: string,
+    layer: IJGISLayer,
+  ): void {
+    const ids = this._map.getStyle().layers.map(l => l.id);
+    const beforeId = ids[ids.indexOf(id) + 1];
+    const visible = layer.visible ?? true;
+    const parameters = layer.parameters as IGeoTiffLayer;
+
+    this._map.removeLayer(id);
+    this._map.addLayer(
+      {
+        id,
+        type: 'raster',
+        source: sourceId,
+        layout: { visibility: visible ? 'visible' : 'none' },
+        paint: { 'raster-opacity': parameters.opacity ?? 1 },
+      },
+      beforeId,
+    );
+  }
+
   private computeSourceUrl(source: IJGISSource): string {
     const parameters = source.parameters as IRasterSource;
     const urlParameters = parameters.urlParameters || {};
@@ -935,6 +1036,10 @@ export class MapLibreAdapter implements IMapAdapter {
         case 'RasterLayer':
         case 'GeoTiffLayer': {
           const parameters = layer.parameters as IRasterLayer | IGeoTiffLayer;
+
+          if (layer.type === 'GeoTiffLayer') {
+            this._applyCogSymbology(sourceId, layer);
+          }
 
           this._map.addLayer({
             id,
@@ -1103,6 +1208,21 @@ export class MapLibreAdapter implements IMapAdapter {
           layerParameters.opacity ?? 1,
         );
         this._map.setLayoutProperty(id, 'visibility', visibility);
+
+        if (layer.type === 'GeoTiffLayer') {
+          const next = layerParameters as IGeoTiffLayer;
+          const previous = oldLayer?.parameters;
+          // Opacity drags also land here; only repaint for a style change.
+          const styleChanged =
+            JSON.stringify(previous?.symbologyState) !==
+              JSON.stringify(next.symbologyState) ||
+            JSON.stringify(previous?.color) !== JSON.stringify(next.color);
+
+          if (styleChanged) {
+            this._applyCogSymbology(next.source, layer);
+            this._refreshRasterLayer(id, next.source, layer);
+          }
+        }
         break;
       }
 
@@ -1835,6 +1955,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _sourceUpdates = new Map<string, Promise<void>>();
   private _sourceBounds = new Map<string, number[]>();
   private _objectUrls = new Map<string, string[]>();
+  private _cogSources = new Map<string, ICogSourceInfo>();
   private _geojsonData = new Map<string, GeoJSONFeature | FeatureCollection>();
   private _terrainLayerId: string | null = null;
   private _layerSubIds = new Map<string, string[]>();
