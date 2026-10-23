@@ -54,7 +54,7 @@ import {
   MapLibreSubLayerType,
 } from '@/src/mainview/adapters/maplibre/grammerToMLStyle';
 import { extractEncodingFieldValues } from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
-import { buildProxyUrl } from '@/src/shared/tileProxy';
+import { buildProxyUrl } from '@/src/shared/proxy';
 import { debounce, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
