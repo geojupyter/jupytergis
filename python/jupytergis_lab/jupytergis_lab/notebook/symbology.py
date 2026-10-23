@@ -561,18 +561,30 @@ class MappingChain:
 class Layer:
     """A single symbology layer made of mapping chains."""
 
-    __slots__ = ("_when", "_when_op", "mappings", "preprocess")
+    __slots__ = ("_when", "_when_op", "declutter", "mappings", "preprocess")
 
     def __init__(
         self,
         mappings: Sequence[Mapping] | None = None,
         *,
         preprocess: Sequence[schema_symbology.ITransform] | None = None,
+        declutter: bool = False,
     ) -> None:
         self.mappings = [_coerce_mapping(mapping) for mapping in (mappings or [])]
         self.preprocess = list(preprocess) if preprocess is not None else None
+        self.declutter = declutter
         self._when: list[schema_symbology.IPredicate] | None = None
         self._when_op: Literal["all", "any"] | None = None
+
+    def _copy(self) -> "Layer":
+        updated = Layer(
+            mappings=self.mappings,
+            preprocess=self.preprocess,
+            declutter=self.declutter,
+        )
+        updated._when = self._when
+        updated._when_op = self._when_op
+        return updated
 
     def when(self, *when: Predicate) -> "Layer":
         """Attach layer-level predicates.
@@ -581,9 +593,8 @@ class Layer:
             :func:`field`, :func:`has_field`, or :func:`between`.
         :returns: A new :class:`Layer` with the predicates applied.
         """
-        updated = Layer(mappings=self.mappings, preprocess=self.preprocess)
+        updated = self._copy()
         updated._when = _normalize_when(when)
-        updated._when_op = self._when_op
         return updated
 
     def when_op(self, when_op: WhenOpInput) -> "Layer":
@@ -592,8 +603,7 @@ class Layer:
         :param when_op: ``"all"`` or ``"any"``.
         :returns: A new :class:`Layer` with the combinator applied.
         """
-        updated = Layer(mappings=self.mappings, preprocess=self.preprocess)
-        updated._when = self._when
+        updated = self._copy()
         updated._when_op = when_op
         return updated
 
@@ -607,6 +617,7 @@ class Layer:
             preprocess=self.preprocess,
             when=self._when,
             when_op=self._when_op,
+            declutter=self.declutter,
         )
 
 
@@ -709,11 +720,17 @@ def when(*when: Predicate) -> WhenBuilder:
 def layer(
     *mappings: Mapping,
     preprocess: Sequence[schema_symbology.ITransform] | None = None,
+    declutter: bool = False,
 ) -> Layer:
-    """Build a layer from one or more finalized mappings."""
+    """Build a layer from one or more finalized mappings.
+
+    :param declutter: Skip drawing anything that would overlap something
+        already drawn on this layer. Off by default because it hides data.
+    """
     return Layer(
         mappings=list(mappings),
         preprocess=preprocess,
+        declutter=declutter,
     )
 
 
@@ -958,6 +975,7 @@ def grammar_layer(
     preprocess: Sequence[schema_symbology.ITransform] | None = None,
     when: Sequence[schema_symbology.IPredicate] | None = None,
     when_op: Literal["all", "any"] | None = None,
+    declutter: bool = False,
     id: str | None = None,
 ) -> schema_symbology.IGrammarLayer:
     """Create a grammar layer containing encoding rules and optional transforms.
@@ -969,6 +987,8 @@ def grammar_layer(
     :param when: Optional predicates that gate whether the layer is rendered.
     :param when_op: How to combine multiple predicates: ``"all"`` (AND) or
         ``"any"`` (OR). Defaults to ``"all"`` when omitted.
+    :param declutter: Skip drawing anything that would overlap something
+        already drawn on this layer. Off by default because it hides data.
     :param id: Explicit layer identifier. A UUID is generated when ``None``.
     :returns: A grammar layer that can be passed to ``symbology_state``.
     """
@@ -978,6 +998,7 @@ def grammar_layer(
         rules=list(rules),
         when=list(when) if when is not None else None,
         whenOp=schema_symbology.WhenOp(when_op) if when_op is not None else None,
+        declutter=declutter or None,
     )
 
 
