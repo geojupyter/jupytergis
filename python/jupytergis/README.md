@@ -6,7 +6,7 @@
 [![doi-badge]][doi] [![lite-badge]][lite] [![docs-badge]][docs] [![jupytergis-badge]][marketplace]
 
 [doi-badge]: https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22045276-blue.svg
-[doi]: https://doi.org/10.5281/zenodo.23399216
+[doi]: https://doi.org/10.5281/zenodo.22045276
 [lite-badge]: https://jupyterlite.rtfd.io/en/latest/_static/badge.svg
 [lite]: https://jupytergis.readthedocs.io/en/latest/lite/lab/index.html?path=france_hiking.jGIS/
 [docs-badge]: https://readthedocs.org/projects/jupytergis/badge/?version=latest
