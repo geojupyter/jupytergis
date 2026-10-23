@@ -5,7 +5,7 @@ message: >-
 title: "JupyterGIS"
 url: "https://jupytergis.readthedocs.io"
 repository-code: "https://github.com/geojupyter/jupytergis"
-doi: "10.5281/zenodo.22045276"
+doi: "10.5281/zenodo.23399216"
 abstract: >-
   JupyterGIS is a collaborative Geographical Information System (GIS)
   environment in JupyterLab.
