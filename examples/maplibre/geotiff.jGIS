@@ -1,0 +1,77 @@
+{
+  "annotations": {},
+  "layerTree": [
+    "7d6bdb9c-9033-4533-b2c5-92929763e61a",
+    "c0a277fb-fbd0-4690-a131-7fec43a651bc"
+  ],
+  "layers": {
+    "7d6bdb9c-9033-4533-b2c5-92929763e61a": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "101c468c-bd1e-4184-b4e6-380bdfdde00b"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "c0a277fb-fbd0-4690-a131-7fec43a651bc": {
+      "name": "Custom GeoTiff Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "a67f5b38-5af7-4b9f-9863-1f63bf800c48"
+      },
+      "type": "GeoTiffLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      11.378326162125632,
+      47.256119623430976,
+      11.418304697249852,
+      47.268791957534546
+    ],
+    "latitude": 47.26245616965281,
+    "longitude": 11.3983154296875,
+    "mapAdapter": "maplibre",
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 14.64625867998297
+  },
+  "presets": {},
+  "schemaVersion": "0.7.0",
+  "sources": {
+    "101c468c-bd1e-4184-b4e6-380bdfdde00b": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "a67f5b38-5af7-4b9f-9863-1f63bf800c48": {
+      "name": "Custom GeoTiff Source",
+      "parameters": {
+        "httpHeaders": "",
+        "interpolate": false,
+        "normalize": true,
+        "projection": "",
+        "urls": [
+          {
+            "url": "https://maplibre.org/maplibre-gl-js/docs/assets/cog.tif"
+          }
+        ],
+        "useProxy": false,
+        "wrapX": false
+      },
+      "type": "GeoTiffSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}

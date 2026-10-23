@@ -1,4 +1,8 @@
 /* eslint-disable no-console */
+import {
+  cogProtocol,
+  setColorFunction,
+} from '@geomatico/maplibre-cog-protocol';
 import type {
   IDict,
   IGrammarSymbologyState,
@@ -8,6 +12,8 @@ import type {
   IJGISOptions,
   IJGISSource,
   IJupyterGISModel,
+  IGeoTiffSource,
+  IGeoTiffLayer,
   IRasterLayer,
   IRasterSource,
   IRasterDemSource,
@@ -26,6 +32,7 @@ import type {
   Geometry,
 } from 'geojson';
 import {
+  addProtocol,
   FullscreenControl,
   GeoJSONSource,
   IControl,
@@ -34,6 +41,7 @@ import {
   MapSourceDataEvent,
   NavigationControl,
   RasterDEMSourceSpecification,
+  RasterTileSource,
   ScaleControl,
   setWorkerUrl,
   MapGeoJSONFeature,
@@ -46,6 +54,7 @@ import {
   MapLibreSubLayerType,
 } from '@/src/mainview/adapters/maplibre/grammerToMLStyle';
 import { extractEncodingFieldValues } from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
+import { buildProxyUrl } from '@/src/shared/proxy';
 import { debounce, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
@@ -59,9 +68,22 @@ import {
   getUnsupportedReason,
 } from '../../mapAdapterFeatures';
 import { isValidExtent } from '../../utils/olLayerZoomExtent';
+import {
+  compileCogColorExpression,
+  compileCogColorFunction,
+} from '../maplibre/cogColorFunction';
 
 const WORLD_EXTENT = [-180, -85.051129, 180, 85.051129];
 type MLCoordinates = [number, number];
+
+let cogProtocolRegistred = false;
+const registerProtocol = (): void => {
+  if (cogProtocolRegistred) {
+    return;
+  }
+  addProtocol('cog', cogProtocol);
+  cogProtocolRegistred = true;
+};
 
 const noop = () => {
   // Drawing is not supported by the MapLibre adapter yet.
@@ -89,6 +111,15 @@ const NOOP_DRAW_TOOL: IDrawToolAdapter = {
   handleViewProjectionChanged: noop,
 };
 
+interface ICogSourceInfo {
+  /** URL as handed to the protocol, without the `cog://` prefix. */
+  url: string;
+  normalize?: boolean;
+  min?: number;
+  max?: number;
+  nodata?: number;
+}
+
 export class MapLibreAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
@@ -112,6 +143,8 @@ export class MapLibreAdapter implements IMapAdapter {
       callbacks,
       loggerRegistry,
     } = options;
+
+    registerProtocol();
 
     this._callbacks = callbacks;
     this._mainViewId = mainViewId;
@@ -469,6 +502,61 @@ export class MapLibreAdapter implements IMapAdapter {
           break;
         }
 
+        case 'GeoTiffSource': {
+          const sourceParameters = source.parameters as IGeoTiffSource;
+          const [first, ...rest] = sourceParameters.urls ?? [];
+
+          if (!first?.url) {
+            throw new Error('GeoTIFF source has no URL.');
+          }
+          if (rest.length > 0) {
+            this._log(
+              'warning',
+              `MapLibreAdapter: the COG protocol reads a single GeoTIFF; only the first URL of source "${source.name ?? id}" is used.`,
+            );
+          }
+
+          const url = await this._resolveCogUrl(
+            id,
+            first.url,
+            sourceParameters,
+          );
+
+          const urlInfo = first as {
+            min?: number;
+            max?: number;
+            nodata?: number;
+          };
+          this._cogSources.set(id, {
+            url,
+            normalize: sourceParameters.normalize,
+            min: urlInfo.min,
+            max: urlInfo.max,
+            nodata: urlInfo.nodata,
+          });
+
+          this._map.addSource(id, {
+            type: 'raster',
+            url: `cog://${url}`,
+            tileSize: 256,
+          });
+
+          try {
+            // The protocol answers the TileJSON request with the file's
+            // bounds and zoom range; wait for it so load errors,
+            // notify to surface here and the extent is known.
+            await this._waitForSourceMetadata(id);
+          } catch (error) {
+            if (this._map.getSource(id)) {
+              this._map.removeSource(id);
+            }
+            this._revokeObjectUrls(id);
+            this._forgetCogSource(id);
+            throw error;
+          }
+          break;
+        }
+
         default: {
           this._log(
             'warning',
@@ -502,6 +590,9 @@ export class MapLibreAdapter implements IMapAdapter {
       this._map.removeSource(id);
     }
     this._geojsonData.delete(id);
+    this._sourceBounds.delete(id);
+    this._revokeObjectUrls(id);
+    this._forgetCogSource(id);
   }
 
   async updateSource(id: string, source: IJGISSource): Promise<void> {
@@ -637,6 +728,156 @@ export class MapLibreAdapter implements IMapAdapter {
     }
 
     this._model.clearTileFeatures(sourceId);
+  }
+
+  /**
+   * Turns a GeoTIFF source URL into something the COG protocol can fetch:
+   */
+  private async _resolveCogUrl(
+    sourceId: string,
+    url: string,
+    parameters: IGeoTiffSource,
+  ): Promise<string> {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      const proxied = buildProxyUrl(
+        this._model,
+        url,
+        parameters.useProxy,
+        parameters.httpHeaders,
+      );
+      return new URL(proxied, window.location.href).href;
+    }
+
+    let blob: Blob;
+    if (url.startsWith('data:')) {
+      blob = await (await fetch(url)).blob();
+    } else {
+      const geotiff = await loadFile({
+        filepath: url,
+        type: 'GeoTiffSource',
+        model: this._model,
+      });
+      blob = geotiff.file;
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
+    this._objectUrls.set(sourceId, [
+      ...(this._objectUrls.get(sourceId) ?? []),
+      objectUrl,
+    ]);
+    return objectUrl;
+  }
+
+  private _revokeObjectUrls(sourceId: string): void {
+    this._objectUrls.get(sourceId)?.forEach(u => URL.revokeObjectURL(u));
+    this._objectUrls.delete(sourceId);
+  }
+
+  /** Resolves once a raster source's TileJSON is loaded; rejects on error. */
+  private _waitForSourceMetadata(sourceId: string): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      const cleanup = () => {
+        this._map.off('sourcedata', onData);
+        this._map.off('error', onError);
+      };
+
+      const onData = (e: MapSourceDataEvent) => {
+        if (e.sourceId !== sourceId || e.sourceDataType !== 'metadata') {
+          return;
+        }
+        cleanup();
+        const bounds = (this._map.getSource(sourceId) as RasterTileSource)
+          ?.bounds;
+        if (bounds) {
+          this._sourceBounds.set(sourceId, [...bounds]);
+        }
+        resolve();
+      };
+
+      const onError = (e: {
+        sourceId?: string;
+        error?: { message?: string };
+      }) => {
+        if (e.sourceId !== sourceId) {
+          return;
+        }
+        cleanup();
+        reject(e.error ?? new Error(`Failed to load COG source ${sourceId}`));
+      };
+
+      this._map.on('sourcedata', onData);
+      this._map.on('error', onError);
+    });
+  }
+
+  private _forgetCogSource(sourceId: string): void {
+    const info = this._cogSources.get(sourceId);
+    if (info) {
+      // Color functions are global and keyed by URL; don't leave a stale one.
+      setColorFunction(info.url, undefined);
+      this._cogSources.delete(sourceId);
+    }
+  }
+
+  private _applyCogSymbology(sourceId: string, layer: IJGISLayer): void {
+    const info = this._cogSources.get(sourceId);
+    if (!info) {
+      return;
+    }
+
+    const parameters = layer.parameters as IGeoTiffLayer;
+    const options = {
+      normalize: info.normalize,
+      min: info.min,
+      max: info.max,
+      nodata: info.nodata,
+      onWarn: (message: string) =>
+        this._log(
+          'warning',
+          `MapLibreAdapter: GeoTIFF layer "${layer.name}": ${message}`,
+        ),
+    };
+
+    const state = parameters.symbologyState as
+      | IGrammarSymbologyState
+      | undefined;
+
+    let colorFunction;
+    if (state && Array.isArray(state.layers) && state.layers.length > 0) {
+      colorFunction = compileCogColorFunction(state, options);
+    } else if (parameters.color) {
+      // Legacy `color` parameter: a raw OL style expression.
+      colorFunction = compileCogColorExpression(parameters.color, options);
+    }
+
+    setColorFunction(info.url, colorFunction);
+  }
+
+  /**
+   * The protocol only applies a new color function to tiles rendered from
+   * then on, so re-create the style layer (same position) to repaint.
+   */
+  private _refreshRasterLayer(
+    id: string,
+    sourceId: string,
+    layer: IJGISLayer,
+  ): void {
+    const ids = this._map.getStyle().layers.map(l => l.id);
+    const beforeId = ids[ids.indexOf(id) + 1];
+    const visible = layer.visible ?? true;
+    const parameters = layer.parameters as IGeoTiffLayer;
+
+    this._map.removeLayer(id);
+    this._map.addLayer(
+      {
+        id,
+        type: 'raster',
+        source: sourceId,
+        layout: { visibility: visible ? 'visible' : 'none' },
+        paint: { 'raster-opacity': parameters.opacity ?? 1 },
+      },
+      beforeId,
+    );
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -792,8 +1033,13 @@ export class MapLibreAdapter implements IMapAdapter {
 
     try {
       switch (layer.type) {
-        case 'RasterLayer': {
-          const parameters = layer.parameters as IRasterLayer;
+        case 'RasterLayer':
+        case 'GeoTiffLayer': {
+          const parameters = layer.parameters as IRasterLayer | IGeoTiffLayer;
+
+          if (layer.type === 'GeoTiffLayer') {
+            this._applyCogSymbology(sourceId, layer);
+          }
 
           this._map.addLayer({
             id,
@@ -951,14 +1197,32 @@ export class MapLibreAdapter implements IMapAdapter {
     const visibility = visible ? 'visible' : 'none';
 
     switch (layer.type) {
-      case 'RasterLayer': {
-        const layerParameters = layer.parameters as IRasterLayer;
+      case 'RasterLayer':
+      case 'GeoTiffLayer': {
+        const layerParameters = layer.parameters as
+          | IRasterLayer
+          | IGeoTiffLayer;
         this._map.setPaintProperty(
           id,
           'raster-opacity',
           layerParameters.opacity ?? 1,
         );
         this._map.setLayoutProperty(id, 'visibility', visibility);
+
+        if (layer.type === 'GeoTiffLayer') {
+          const next = layerParameters as IGeoTiffLayer;
+          const previous = oldLayer?.parameters;
+          // Opacity drags also land here; only repaint for a style change.
+          const styleChanged =
+            JSON.stringify(previous?.symbologyState) !==
+              JSON.stringify(next.symbologyState) ||
+            JSON.stringify(previous?.color) !== JSON.stringify(next.color);
+
+          if (styleChanged) {
+            this._applyCogSymbology(next.source, layer);
+            this._refreshRasterLayer(id, next.source, layer);
+          }
+        }
         break;
       }
 
@@ -1444,6 +1708,12 @@ export class MapLibreAdapter implements IMapAdapter {
       case 'VectorTileSource':
         return [...WORLD_EXTENT];
 
+      case 'GeoTiffSource': {
+        // Bounds come from the COG's TileJSON, captured when the source loaded.
+        const bounds = this._sourceBounds.get(sourceId);
+        return bounds ? [...bounds] : undefined;
+      }
+
       default:
         return undefined;
     }
@@ -1683,6 +1953,9 @@ export class MapLibreAdapter implements IMapAdapter {
   private _lastPointerCoord: MLCoordinates | null = null;
   private _sourceToLayerMap = new Map<string, string>();
   private _sourceUpdates = new Map<string, Promise<void>>();
+  private _sourceBounds = new Map<string, number[]>();
+  private _objectUrls = new Map<string, string[]>();
+  private _cogSources = new Map<string, ICogSourceInfo>();
   private _geojsonData = new Map<string, GeoJSONFeature | FeatureCollection>();
   private _terrainLayerId: string | null = null;
   private _layerSubIds = new Map<string, string[]>();

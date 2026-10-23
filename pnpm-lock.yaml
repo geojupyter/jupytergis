@@ -297,6 +297,9 @@ importers:
       '@fortawesome/react-fontawesome':
         specifier: '>=0.2.6 <3.0.0'
         version: 0.2.6(@fortawesome/fontawesome-svg-core@6.7.2)(react@18.3.1)
+      '@geomatico/maplibre-cog-protocol':
+        specifier: ^0.10.0
+        version: 0.10.0(maplibre-gl@6.10.0)
       '@jupyter/collaboration':
         specifier: ^5.0.4
         version: 5.0.4
@@ -1326,6 +1329,11 @@ packages:
     resolution: {integrity: sha512-GmzA9ckNokPypTg10pgpeHNQe7ph+iIKKmhKu3Ob9ANkswreCx7R3cKmY781K8QK3AqVL3xVh9A42JvIAbkkSA==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
+  '@geomatico/maplibre-cog-protocol@0.10.0':
+    resolution: {integrity: sha512-6E0VdMJdozai6hbTIKcfaJAlUmYkKPVaiXvEZ8e6BH0tP9dy86p2zDiehExsG4eivzfBY+t196ThBhkYkDAwXA==}
+    peerDependencies:
+      maplibre-gl: ^4.5.0 || ^5.0.0 || ^6.0.0
+
   '@gilbarbara/deep-equal@0.1.2':
     resolution: {integrity: sha512-jk+qzItoEb0D0xSSmrKDDzf9sheQj/BAPxlgNxgmOaA3mxpUa6ndJLYGZKsJnIVEQSD8zcTbyILz7I0HcnBCRA==}
 
@@ -1985,6 +1993,9 @@ packages:
 
   '@mapbox/point-geometry@1.1.0':
     resolution: {integrity: sha512-YGcBz1cg4ATXDCM/71L9xveh4dynfGmcLDqufR+nQQy3fKwsAZsWd/x4621/6uJaeB9mwOHE6hPeDgXz9uViUQ==}
+
+  '@mapbox/sphericalmercator@2.0.2':
+    resolution: {integrity: sha512-Ai/S9qXupBzFCM0i4sYDIx1A0pDYMaD3xlhVg05JToYeyORq8aAuHbd6CCPC86HlLSjYmoPeljJ5tMVKtzd4Lg==}
 
   '@mapbox/tiny-sdf@2.2.0':
     resolution: {integrity: sha512-LVL4wgI9YAum5V+LNVQO6QgFBPw7/MIIY4XJPNsPDMrjEwcE+JfKk1LuIl8GnF197ejVdC9QdPaxrx5gfgdGXg==}
@@ -8095,6 +8106,10 @@ packages:
     resolution: {integrity: sha512-AAFUA5O1d83pIHEhJwWCq/RQcRukCkn/NSm2QsTEMle5f2hP0ChI2+3Xb051PZCkLryI/Ir1MVKviT2FIloaTQ==}
     engines: {node: '>=12'}
 
+  quick-lru@7.3.0:
+    resolution: {integrity: sha512-k9lSsjl36EJdK7I06v7APZCbyGT2vMTsYSRX1Q2nbYmnkBqgUhRkAuzH08Ciotteu/PLJmIF2+tti7o3C/ts2g==}
+    engines: {node: '>=18'}
+
   quickselect@2.0.0:
     resolution: {integrity: sha512-RKJ22hX8mHe3Y6wH/N3wCM6BWtjaxIyyUIkpHOvfFnxdI4yD4tBXEBKSbriGujF6jnSVkJrffuo6vxACiSSxIw==}
 
@@ -10205,6 +10220,14 @@ snapshots:
 
   '@gar/promise-retry@1.0.3': {}
 
+  '@geomatico/maplibre-cog-protocol@0.10.0(maplibre-gl@6.10.0)':
+    dependencies:
+      '@mapbox/sphericalmercator': 2.0.2
+      d3-scale: 4.0.2
+      geotiff: 3.0.5
+      maplibre-gl: 6.10.0
+      quick-lru: 7.3.0
+
   '@gilbarbara/deep-equal@0.1.2': {}
 
   '@gilbarbara/deep-equal@0.3.1': {}
@@ -11603,6 +11626,8 @@ snapshots:
   '@mapbox/jsonlint-lines-primitives@2.0.3': {}
 
   '@mapbox/point-geometry@1.1.0': {}
+
+  '@mapbox/sphericalmercator@2.0.2': {}
 
   '@mapbox/tiny-sdf@2.2.0': {}
 
@@ -18654,6 +18679,8 @@ snapshots:
   quick-lru@4.0.1: {}
 
   quick-lru@6.1.2: {}
+
+  quick-lru@7.3.0: {}
 
   quickselect@2.0.0: {}
 
