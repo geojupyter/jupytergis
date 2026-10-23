@@ -22,6 +22,12 @@ import {
   normalizeSpatialExtent,
 } from './templates';
 import {
+  IUserProcess,
+  canSaveUserProcesses,
+  fetchUserProcess,
+  saveUserProcess,
+} from './userProcesses';
+import {
   IValidationError,
   mergeValidationErrors,
   validateProcessGraph,
@@ -151,6 +157,8 @@ interface ICatalogPaletteProps {
   outputFormats: any[] | undefined;
   loading: boolean;
   onBack: () => void;
+  /** Load a stored user-defined process into the editor. */
+  onOpenUserProcess: (id: string) => void;
 }
 
 const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
@@ -160,6 +168,7 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
   outputFormats,
   loading,
   onBack,
+  onOpenUserProcess,
 }) => {
   const [filter, setFilter] = React.useState('');
   const [openCollections, setOpenCollections] = React.useState(true);
@@ -290,6 +299,8 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
                   id={p.id}
                   subtitle={p.summary ?? p.description}
                   onDragStart={e => onDragStart(e, { kind: 'udp', id: p.id })}
+                  onOpen={() => onOpenUserProcess(p.id)}
+                  openTitle={`Open ${p.id} in the editor`}
                 />
               ))}
             </PaletteSection>
@@ -354,7 +365,9 @@ const PaletteRow: React.FC<{
   id: string;
   subtitle?: string;
   onDragStart: (e: React.DragEvent) => void;
-}> = ({ id, subtitle, onDragStart }) => {
+  onOpen?: () => void;
+  openTitle?: string;
+}> = ({ id, subtitle, onDragStart, onOpen, openTitle }) => {
   return (
     <div
       className="jp-openeo-palette-row"
@@ -369,6 +382,17 @@ const PaletteRow: React.FC<{
         <span className="jp-openeo-id">{id}</span>
         {subtitle && <span className="jp-openeo-secondary">{subtitle}</span>}
       </span>
+      {onOpen && (
+        <button
+          type="button"
+          className="jp-openeo-palette-row-open"
+          onClick={onOpen}
+          title={openTitle ?? `Open ${id}`}
+          aria-label={openTitle ?? `Open ${id}`}
+        >
+          ✎
+        </button>
+      )}
     </div>
   );
 };
@@ -557,6 +581,18 @@ const Form: React.FC<IFormProps> = ({
     'graph',
   );
   const [editMode, setEditMode] = React.useState(false);
+  // The stored user-defined process the editor is currently working on, if
+  // any. Holds the UDP's metadata (parameters, summary…) so saving back
+  // round-trips everything the graph editor doesn't touch.
+  const [editingUdp, setEditingUdp] = React.useState<IUserProcess | null>(null);
+  const [udpBusy, setUdpBusy] = React.useState(false);
+  const [udpError, setUdpError] = React.useState<string | null>(null);
+  const [canSaveUdp, setCanSaveUdp] = React.useState(false);
+  // Non-null while the "save as a new process" form is open.
+  const [saveAsForm, setSaveAsForm] = React.useState<{
+    id: string;
+    summary: string;
+  } | null>(null);
   // Local JSON buffer so the user can type freely; on valid parse, push
   // back to state.editedGraph. Reseeded whenever effectiveGraph changes
   // from outside (template/param change, reset).
@@ -656,6 +692,8 @@ const Form: React.FC<IFormProps> = ({
   // Backend catalog (processes + collections + output formats).
   const [catalog, setCatalog] = React.useState<IBackendCatalog | null>(null);
   const [catalogLoading, setCatalogLoading] = React.useState(false);
+  // Bumped after storing a UDP so the palette picks up the new/changed entry.
+  const [catalogVersion, setCatalogVersion] = React.useState(0);
 
   // Two validation passes, both race-guarded by a version counter:
   //   - Local (synchronous-ish, via @openeo/js-processgraphs): catches
@@ -707,6 +745,7 @@ const Form: React.FC<IFormProps> = ({
       parsed,
       catalog?.processes,
       catalog?.userProcesses,
+      editingUdp?.parameters,
     ).then(local => {
       if (versionRef.current !== myVersion) {
         return;
@@ -735,7 +774,11 @@ const Form: React.FC<IFormProps> = ({
       let backendErrors: IValidationError[] = [];
       let networkErrorMessage: string | null = null;
       try {
-        backendErrors = await validateProcessGraph(connectionInfo, parsed);
+        backendErrors = await validateProcessGraph(
+          connectionInfo,
+          parsed,
+          editingUdp?.parameters,
+        );
       } catch (err: any) {
         networkErrorMessage = err?.message ?? String(err);
       }
@@ -767,6 +810,7 @@ const Form: React.FC<IFormProps> = ({
     connectionInfo,
     catalog?.processes,
     catalog?.userProcesses,
+    editingUdp,
   ]);
 
   React.useEffect(() => {
@@ -815,7 +859,118 @@ const Form: React.FC<IFormProps> = ({
     return () => {
       cancelled = true;
     };
+  }, [connectionInfo, catalogVersion]);
+
+  // Does this backend let the signed-in user store process graphs? Backends
+  // without PUT /process_graphs hide the save UI.
+  React.useEffect(() => {
+    let cancelled = false;
+    if (!connectionInfo) {
+      setCanSaveUdp(false);
+      return;
+    }
+    canSaveUserProcesses(connectionInfo).then(ok => {
+      if (!cancelled) {
+        setCanSaveUdp(ok);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [connectionInfo]);
+
+  // Pull a stored UDP's full definition (the list endpoint only returns
+  // summaries) and load its graph into the editor.
+  const onOpenUserProcess = (id: string) => {
+    if (!connectionInfo) {
+      return;
+    }
+    guardReseed(() => {
+      setUdpBusy(true);
+      setUdpError(null);
+      fetchUserProcess(connectionInfo, id)
+        .then(udp => {
+          setEditingUdp(udp);
+          setState(prev => {
+            const next = { ...prev, editedGraph: udp.processGraph };
+            onChange(next);
+            return next;
+          });
+          setSaveAsForm(null);
+          setViewMode('graph');
+        })
+        .catch(err => {
+          setUdpError(`Couldn't load '${id}': ${err?.message ?? String(err)}`);
+        })
+        .finally(() => setUdpBusy(false));
+    });
+  };
+
+  const storeUserProcess = (udp: IUserProcess, label: string) => {
+    if (!connectionInfo) {
+      return;
+    }
+    setUdpBusy(true);
+    setUdpError(null);
+    saveUserProcess(connectionInfo, udp)
+      .then(() => {
+        setEditingUdp(udp);
+        setSaveAsForm(null);
+        setCatalogVersion(v => v + 1);
+        Notification.success(label, { autoClose: 2500 });
+      })
+      .catch(err => {
+        setUdpError(
+          `Couldn't save '${udp.id}': ${err?.message ?? String(err)}`,
+        );
+      })
+      .finally(() => setUdpBusy(false));
+  };
+
+  const onSaveUserProcess = () => {
+    if (!editingUdp) {
+      return;
+    }
+    storeUserProcess(
+      { ...editingUdp, processGraph: effectiveGraph },
+      `Saved changes to user-defined process "${editingUdp.id}".`,
+    );
+  };
+
+  const onSaveUserProcessAs = () => {
+    const form = saveAsForm;
+    if (!form) {
+      return;
+    }
+    const id = form.id.trim();
+    if (!/^\w+$/.test(id)) {
+      setUdpError(
+        'A process id may only contain letters, digits and underscores.',
+      );
+      return;
+    }
+    const summary = form.summary.trim();
+    storeUserProcess(
+      {
+        id,
+        processGraph: effectiveGraph,
+        // A graph saved from the layer editor has no declared parameters
+        // unless it came from a UDP that did.
+        parameters: editingUdp?.parameters ?? [],
+        metadata: {
+          ...(editingUdp?.metadata ?? {}),
+          ...(summary ? { summary } : {}),
+        },
+      },
+      `Stored process graph as user-defined process "${id}".`,
+    );
+  };
+
+  const onStopEditingUserProcess = () => {
+    setEditingUdp(null);
+    setUdpError(null);
+    setSaveAsForm(null);
+  };
 
   // Invoke a method on the embedded openeo-model-builder Vue instance
   // (e.g. undo/redo). Resolves the instance from the live DOM rather
@@ -936,6 +1091,7 @@ const Form: React.FC<IFormProps> = ({
             outputFormats={catalog?.outputFormats}
             loading={catalogLoading}
             onBack={() => setEditMode(false)}
+            onOpenUserProcess={onOpenUserProcess}
           />
         ) : (
           <>
@@ -1272,6 +1428,19 @@ const Form: React.FC<IFormProps> = ({
           >
             ⤒
           </button>
+          {canSaveUdp && !saveAsForm && !editingUdp && (
+            <button
+              type="button"
+              className="jp-openeo-toolbar-btn"
+              onClick={() => {
+                setUdpError(null);
+                setSaveAsForm({ id: '', summary: '' });
+              }}
+              title="Store the current process graph on the server as a user-defined process"
+            >
+              Save as UDP
+            </button>
+          )}
           <div className="jp-openeo-toolbar-spacer" />
           <span
             className={
@@ -1305,6 +1474,130 @@ const Form: React.FC<IFormProps> = ({
             Editing is advanced. Click an edge or block then press Backspace (or
             fn+Delete) to remove it. Use Reset to restore the template.
           </p>
+        )}
+        {(editingUdp || saveAsForm || udpBusy || udpError) && (
+          <div className="jp-openeo-udp-bar">
+            {udpBusy && !editingUdp && (
+              <div className="jp-openeo-udp-bar-row">
+                <span className="jp-openeo-spinner" aria-label="Working">
+                  ⟳
+                </span>
+                <span className="jp-openeo-udp-bar-label">
+                  Talking to the server…
+                </span>
+              </div>
+            )}
+            {editingUdp && (
+              <div className="jp-openeo-udp-bar-row">
+                <span className="jp-openeo-udp-bar-label">
+                  Editing user-defined process
+                </span>
+                <code>{editingUdp.id}</code>
+                <div className="jp-openeo-toolbar-spacer" />
+                {udpBusy && (
+                  <span className="jp-openeo-spinner" aria-label="Working">
+                    ⟳
+                  </span>
+                )}
+                {canSaveUdp && (
+                  <>
+                    <button
+                      type="button"
+                      className="jp-openeo-toolbar-btn"
+                      onClick={onSaveUserProcess}
+                      disabled={udpBusy}
+                      title={`Save the current graph back to '${editingUdp.id}' on the server`}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      className="jp-openeo-toolbar-btn"
+                      onClick={() => {
+                        setUdpError(null);
+                        setSaveAsForm({ id: '', summary: '' });
+                      }}
+                      disabled={udpBusy || Boolean(saveAsForm)}
+                      title="Store the current graph under a new id"
+                    >
+                      Save as…
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  className="jp-openeo-link-btn"
+                  onClick={onStopEditingUserProcess}
+                  disabled={udpBusy}
+                  title="Keep the graph in the editor but stop tracking the stored process"
+                >
+                  Stop editing
+                </button>
+              </div>
+            )}
+            {saveAsForm && (
+              <div className="jp-openeo-udp-bar-row">
+                <input
+                  type="text"
+                  className="jp-openeo-udp-id"
+                  placeholder="process id (letters, digits, _)"
+                  autoFocus
+                  value={saveAsForm.id}
+                  onChange={e =>
+                    setSaveAsForm({ ...saveAsForm, id: e.target.value })
+                  }
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      onSaveUserProcessAs();
+                    }
+                  }}
+                />
+                <input
+                  type="text"
+                  className="jp-openeo-udp-summary"
+                  placeholder="summary (optional)"
+                  value={saveAsForm.summary}
+                  onChange={e =>
+                    setSaveAsForm({ ...saveAsForm, summary: e.target.value })
+                  }
+                />
+                <button
+                  type="button"
+                  className="jp-openeo-toolbar-btn"
+                  onClick={onSaveUserProcessAs}
+                  disabled={udpBusy || !saveAsForm.id.trim()}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="jp-openeo-link-btn"
+                  onClick={() => {
+                    setSaveAsForm(null);
+                    setUdpError(null);
+                  }}
+                  disabled={udpBusy}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+            {saveAsForm &&
+              (catalog?.userProcesses ?? []).some(
+                (up: any) => up?.id === saveAsForm.id.trim(),
+              ) && (
+                <div className="jp-openeo-server-alert jp-mod-warn">
+                  A user-defined process with this id already exists and will be
+                  replaced.
+                </div>
+              )}
+            {udpError && (
+              <div className="jp-openeo-server-alert jp-mod-error">
+                {udpError}
+              </div>
+            )}
+          </div>
         )}
         <div
           className={

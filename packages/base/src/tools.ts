@@ -1338,6 +1338,14 @@ function normalizeOpenEOUrl(url: string): string {
 }
 
 /**
+ * Drop a backend's cached catalog so the next fetch sees server-side changes
+ * (e.g. a user-defined process the user just stored).
+ */
+export function invalidateBackendCatalog(url: string | undefined): void {
+  _openEOCatalogCache.delete(normalizeOpenEOUrl(url ?? ''));
+}
+
+/**
  * Fetch (and cache) an OpenEO backend's process + collection catalog. Used
  * to give the ModelBuilder port labels and type-aware validation.
  *
