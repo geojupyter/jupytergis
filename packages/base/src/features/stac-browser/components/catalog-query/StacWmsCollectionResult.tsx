@@ -10,7 +10,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
-import { INTERNAL_PROXY_BASE } from '@/src/tools';
+import { buildProxyUrl } from '@/src/shared/proxy';
 
 interface IStacWmsCollectionResultProps {
   model?: IJupyterGISModel;
@@ -101,6 +101,7 @@ function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
           <CollectionPreview
             key={wmsCollection.previewHref}
             href={wmsCollection.previewHref}
+            model={model}
           />
         ) : null}
         <h3 className="jgis-stac-wms-result-title">{wmsCollection.title}</h3>
@@ -145,20 +146,21 @@ function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
 
 interface ICollectionPreviewProps {
   href: string;
+  model?: IJupyterGISModel;
 }
 
-function CollectionPreview({ href }: ICollectionPreviewProps) {
+function CollectionPreview({ href, model }: ICollectionPreviewProps) {
   const [src, setSrc] = useState(href);
   const [isHidden, setIsHidden] = useState(false);
 
   const handleError = useCallback(() => {
-    const proxied = `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(href)}`;
+    const proxied = buildProxyUrl(model, href, true);
     if (src !== proxied) {
       setSrc(proxied);
       return;
     }
     setIsHidden(true);
-  }, [href, src]);
+  }, [href, model, src]);
 
   if (isHidden) {
     return null;

@@ -5,6 +5,7 @@ export * from './commands/index';
 export * from './constants';
 export * from './features/layers/layerCreationFormDialog';
 export * from './shared/icons';
+export * from './shared/proxy';
 export * from './mainview';
 export * from './workspace/menus';
 export * from './workspace/panels';

@@ -24,6 +24,7 @@ import {
   IOpenEOConnectionInfo,
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
 import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
+import { buildProxyUrl } from '@/src/shared/proxy';
 import { getGdal } from './gdal';
 
 export const debounce = (
@@ -443,24 +444,8 @@ export const fetchWithProxies = async <T>(
   parseResponse: (response: Response) => Promise<T>,
   options?: RequestInit,
 ): Promise<T | null> => {
-  let settings: any = null;
-
-  if (model) {
-    try {
-      settings = model.getSettings();
-    } catch (e) {
-      console.warn('Failed to get settings from model. Falling back.', e);
-    }
-  }
-
-  const proxyUrl =
-    settings && settings.proxyUrl
-      ? settings.proxyUrl
-      : isJupyterLite()
-        ? 'https://corsproxy.io'
-        : INTERNAL_PROXY_BASE;
-
-  const strategies = [url, `${proxyUrl}/?url=${encodeURIComponent(url)}`];
+  const proxiedUrl = buildProxyUrl(model, url, true);
+  const strategies = proxiedUrl === url ? [url] : [url, proxiedUrl];
 
   // TODO reconsider this decision?
   // Try direct url first
@@ -990,8 +975,6 @@ export const base64ToBlob = async (
 /**
  * A mapping of file extensions to their corresponding MIME types.
  */
-export const INTERNAL_PROXY_BASE = '/jupytergis_core/proxy';
-
 export const MIME_TYPES: { [ext: string]: string } = {
   // from https://github.com/python/cpython/blob/3.9/Lib/mimetypes.py
   '.a': 'application/octet-stream',

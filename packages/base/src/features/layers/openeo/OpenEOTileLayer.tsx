@@ -5,7 +5,6 @@ import {
   ReactWidget,
   showDialog,
 } from '@jupyterlab/apputils';
-import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import {
@@ -22,11 +21,8 @@ import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
 import React from 'react';
 
-import {
-  describeConnectionError,
-  INTERNAL_PROXY_BASE,
-  isJupyterLite,
-} from '@/src/tools';
+import { buildProxyUrl, getProxyEndpoint } from '@/src/shared/proxy';
+import { describeConnectionError } from '@/src/tools';
 import { expandDeviceProviders, OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
 import { ensureSaveResult } from './templates';
@@ -264,18 +260,13 @@ export async function openEOConnect(
   // proxy url and which servers answer with a redirect we do not follow.
   url = url.replace(/\/+$/, '');
 
-  // TODO use the proxy setting instead similar to what fetchWithProxies does
-  // When in JupyterLab, use the internal proxy
-  const useProxy = !isJupyterLite();
-  const proxyPrefix = URLExt.join(PageConfig.getBaseUrl(), INTERNAL_PROXY_BASE);
+  // TODO read the proxy setting too, which needs the model down here
+  const proxyPrefix = getProxyEndpoint();
   // Callers hand back the url we resolved for them, which is already
   // proxied. Wrapping it again builds a url that misses the connection
   // cache, so we would open a second, unauthenticated connection.
-  if (useProxy && !url.startsWith(proxyPrefix)) {
-    url = URLExt.join(
-      PageConfig.getBaseUrl(),
-      `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(url)}`,
-    );
+  if (proxyPrefix && !url.startsWith(proxyPrefix)) {
+    url = buildProxyUrl(undefined, url, true);
   }
 
   // Already connected to that server url. Re-insert so the cache stays
@@ -315,12 +306,9 @@ export async function openEOConnect(
     // js-client keeps the url we connected with when the server advertises no
     // separate version url, so it is already proxied. Wrapping it again asks
     // the proxy to fetch the Jupyter server itself, which answers 403.
-    if (useProxy && !baseUrl.startsWith(proxyPrefix)) {
+    if (proxyPrefix && !baseUrl.startsWith(proxyPrefix)) {
       // @ts-expect-error We monkey patch this when using our proxy
-      connection.baseUrl = URLExt.join(
-        PageConfig.getBaseUrl(),
-        `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(baseUrl)}`,
-      );
+      connection.baseUrl = buildProxyUrl(undefined, baseUrl, true);
     }
 
     if (!connection.isAuthenticated()) {

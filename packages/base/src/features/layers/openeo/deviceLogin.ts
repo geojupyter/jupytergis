@@ -1,4 +1,3 @@
-import { PageConfig, URLExt } from '@jupyterlab/coreutils';
 import {
   AuthProvider,
   Connection,
@@ -8,7 +7,7 @@ import {
 // @ts-expect-error the env module has no type definitions
 import Environment from '@openeo/js-client/src/env';
 
-import { INTERNAL_PROXY_BASE, isJupyterLite } from '@/src/tools';
+import { buildProxyUrl, getProxyEndpoint } from '@/src/shared/proxy';
 
 const DEVICE_GRANT = 'urn:ietf:params:oauth:grant-type:device_code';
 
@@ -30,13 +29,7 @@ export interface IDeviceCode {
 }
 
 function proxied(url: string): string {
-  if (isJupyterLite()) {
-    return url;
-  }
-  return URLExt.join(
-    PageConfig.getBaseUrl(),
-    `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(url)}`,
-  );
+  return buildProxyUrl(undefined, url, getProxyEndpoint() !== null);
 }
 
 async function postForm(
