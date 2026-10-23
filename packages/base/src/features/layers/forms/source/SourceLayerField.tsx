@@ -7,7 +7,7 @@ import {
   detectVectorTileLayers,
   resolveTileUrlTemplate,
 } from '@/src/shared/detectVectorTileLayers';
-import { buildProxyUrl } from '@/src/shared/tileProxy';
+import { buildProxyUrl } from '@/src/shared/proxy';
 
 interface ISourceLayerFieldProps extends WidgetProps {
   model: IJupyterGISModel;
