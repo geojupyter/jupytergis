@@ -117,6 +117,11 @@ class ProxyHandler(APIHandler):
         """Process POST requests with validation and error handling."""
         await self._handle_request("POST")
 
+    @tornado.web.authenticated
+    async def put(self) -> None:
+        """Process PUT requests with validation and error handling."""
+        await self._handle_request("PUT")
+
     def _parse_headers(self) -> dict[str, str]:
         """Parse and validate optional forwarded headers from the request.
 
