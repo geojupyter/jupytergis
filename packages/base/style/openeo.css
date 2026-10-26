@@ -645,32 +645,95 @@
   line-height: 1.4;
 }
 
+.jp-openeo-server-alert.jp-mod-warn {
+  background: var(--jp-warn-color3);
+  border-left: 3px solid var(--jp-warn-color1);
+  color: var(--jp-ui-font-color1);
+}
+
 .jp-openeo-server-alert.jp-mod-error {
   background: var(--jp-error-color3);
   border-left: 3px solid var(--jp-error-color1);
   color: var(--jp-ui-font-color1);
 }
 
-.jp-openeo-signin-header {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: var(--jp-ui-font-size1);
-}
-
-.jp-openeo-signin-header code {
-  font-family: var(--jp-code-font-family);
-  font-size: var(--jp-code-font-size);
-  color: var(--jp-ui-font-color1);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .jp-openeo-signin-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+/* Connect / sign-in stages: a single narrow panel instead of the
+   two-pane editor, which only appears once there is a session. */
+.jp-openeo-dialog.jp-mod-connect {
+  width: min(520px, 92vw);
+  height: auto;
+  overflow: visible;
+}
+
+.jp-openeo-connect-panel {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 2px;
+}
+
+.jp-openeo-connect-status {
+  padding: 24px 0;
+  text-align: center;
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-openeo-signin {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jp-openeo-signin-title {
+  margin: 0;
+  font-size: var(--jp-ui-font-size2);
+  font-weight: 600;
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-openeo-signin-methods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.jp-openeo-signin > .jp-openeo-link-btn {
+  align-self: flex-start;
+}
+
+.jp-openeo-signin-note {
+  margin: 0;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size0);
+  line-height: 1.4;
+}
+
+.jp-openeo-signin-code {
+  padding: 8px 10px;
+  border-radius: 4px;
+  background: var(--jp-layout-color2);
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.jp-openeo-signin-code code {
+  font-family: var(--jp-code-font-family);
+  font-size: var(--jp-code-font-size);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.jp-openeo-server-anon {
+  color: var(--jp-warn-color1);
+  font-weight: bold;
 }
 
 .jp-openeo-field span {
@@ -819,6 +882,10 @@
 
 .jp-openeo-status-bad {
   color: var(--jp-error-color1);
+}
+
+.jp-openeo-status-warn {
+  color: var(--jp-warn-color1);
 }
 
 .jp-openeo-status-pending {

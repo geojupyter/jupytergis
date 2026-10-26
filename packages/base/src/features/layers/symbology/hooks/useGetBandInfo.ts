@@ -2,7 +2,8 @@ import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { fromUrl, fromBlob } from 'geotiff';
 import { useEffect, useState } from 'react';
 
-import { isJupyterLite, loadFile } from '@/src/tools';
+import { buildProxyUrl } from '@/src/shared/proxy';
+import { loadFile } from '@/src/tools';
 import { getBandInfoFromZarr } from '../zarrBandDiscovery';
 
 export interface IBandRow {
@@ -76,15 +77,12 @@ const useGetBandInfo = (
         sourceInfo.url.startsWith('https://');
 
       if (isRemote) {
-        let url = sourceInfo.url;
-
-        if (source?.parameters?.useProxy) {
-          const proxyBase = isJupyterLite()
-            ? `${model.jgisSettings.proxyUrl}/`
-            : '/jupytergis_core/proxy';
-
-          url = `${proxyBase}?url=${encodeURIComponent(sourceInfo.url)}`;
-        }
+        const url = buildProxyUrl(
+          model,
+          sourceInfo.url,
+          source?.parameters?.useProxy,
+          source?.parameters?.httpHeaders,
+        );
 
         tiff = await fromUrl(url);
       } else {

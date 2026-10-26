@@ -79,7 +79,7 @@ const SPECTA_STORY_TYPES: IJGISStoryMap['storyType'][] = [
 ];
 
 const DEFAULT_SETTINGS: IJupyterGISSettings = {
-  proxyUrl: 'https://corsproxy.io',
+  proxyUrl: '',
   leftPanelDisabled: false,
   rightPanelDisabled: false,
   layersDisabled: false,
