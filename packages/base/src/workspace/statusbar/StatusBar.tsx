@@ -1,22 +1,20 @@
-import {
-  faLocationDot,
-  faMap,
-  faRuler,
-} from '@fortawesome/free-solid-svg-icons';
+import { faLocationDot, faMap } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
-import { IJupyterGISModel, JgisCoordinates } from '@jupytergis/schema';
+import { IJupyterGISModel } from '@jupytergis/schema';
 import { CommandRegistry } from '@lumino/commands';
 import React, { useEffect, useState } from 'react';
 
 import { version } from '@/package.json';
 import { CommandIDs } from '@/src/constants';
-import { getCrsUnits } from '@/src/features/metadata/utils/crs';
 import { useMapFeatures } from '@/src/mainview/hooks/useMapFeatures';
-import { DEFAULT_MAP_ADAPTER } from '@/src/mainview/mapAdapter';
+import {
+  DEFAULT_MAP_ADAPTER,
+  ICursorReadout,
+} from '@/src/mainview/mapAdapter';
 import { MAP_ADAPTER_FEATURES } from '@/src/mainview/mapAdapterFeatures';
+import { wrapToInterval } from '@/src/tools';
 import { ProjectionCombobox } from './ProjectionCombobox';
-import { getProjectionOption } from './projectionOptions';
 
 interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
@@ -24,7 +22,7 @@ interface IStatusBarProps {
   loading?: boolean;
   projection?: { code: string; units: string };
   onProjectionChange?: (code: string) => void;
-  scale: number;
+  cursor: ICursorReadout | null;
 }
 const StatusBar: React.FC<IStatusBarProps> = ({
   jgisModel,
@@ -32,9 +30,8 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   loading,
   projection,
   onProjectionChange,
-  scale,
+  cursor,
 }) => {
-  const [coords, setCoords] = useState<JgisCoordinates>({ x: 0, y: 0 });
   const [projectionCode, setProjectionCode] = useState(projection?.code);
 
   useEffect(() => {
@@ -60,25 +57,6 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   const rendererName = activeFeatures.name;
   const canChangeProjection = activeFeatures.customProjections;
 
-  useEffect(() => {
-    const handlePointerChanged = () => {
-      const pointer = jgisModel?.localState?.pointer?.value;
-
-      if (!pointer) {
-        return;
-      }
-
-      setCoords({ x: pointer?.coordinates.x, y: pointer?.coordinates.y });
-    };
-
-    jgisModel.pointerChanged.connect(handlePointerChanged);
-    handlePointerChanged();
-
-    return () => {
-      jgisModel.pointerChanged.disconnect(handlePointerChanged);
-    };
-  }, [jgisModel]);
-
   return (
     <div className="jgis-status-bar">
       {loading && (
@@ -91,14 +69,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
       </div>
       <div className="jgis-status-bar-item jgis-status-bar-coords">
         <FontAwesomeIcon icon={faLocationDot} />
-        <span>
-          {' '}
-          x: {Math.trunc(coords.x)} y: {Math.trunc(coords.y)}
-        </span>
-      </div>
-      <div className="jgis-status-bar-item">
-        <FontAwesomeIcon icon={faRuler} />{' '}
-        <span>Scale: 1: {Math.trunc(scale)}</span>
+        <span> {formatCursor(cursor)}</span>
       </div>
       <div className="jgis-status-bar-item jgis-status-bar-projection">
         {canChangeProjection ? (
@@ -115,9 +86,6 @@ const StatusBar: React.FC<IStatusBarProps> = ({
             {projectionCode ?? 'EPSG:3857'}
           </span>
         )}
-      </div>
-      <div className="jgis-status-bar-item">
-        Units: {projectionUnits(projectionCode, projection?.units)}
       </div>
       <button
         type="button"
@@ -137,16 +105,27 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   );
 };
 
-function projectionUnits(
-  code: string | undefined,
-  fallback: string | undefined,
-): string | undefined {
-  const option = getProjectionOption(code);
-  if (!option) {
-    return fallback;
+function formatCursor(cursor: ICursorReadout | null): string {
+  if (!cursor) {
+    return '—';
   }
 
-  return getCrsUnits(option.proj4string) ?? fallback;
+  const isAngular = cursor.unit === 'degrees' || cursor.unit === 'deg';
+  const x = isAngular ? wrapToInterval(cursor.x, -180, 180) : cursor.x;
+
+  return (
+    `x: ${formatCoordinate(x, cursor.unit)}  ` +
+    `y: ${formatCoordinate(cursor.y, cursor.unit)}`
+  );
+}
+
+function formatCoordinate(value: number, unit: string): string {
+  const isAngular = unit === 'degrees' || unit === 'deg';
+  if (isAngular) {
+    return `${value.toFixed(5)}°`;
+  }
+
+  return `${Math.round(value).toLocaleString()} ${unit}`;
 }
 
 export default StatusBar;

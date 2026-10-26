@@ -13,7 +13,13 @@
 }
 
 .jgis-status-bar-coords {
-  min-width: 160px;
+  /* Wide enough for e.g. "x: -20,037,508 m  y: -20,037,508 m"
+     or "x: -180.00000 degrees  y: -85.05113 degrees". */
+  flex: 0 0 48ch;
+  width: 48ch;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .jgis-status-bar-projection [data-slot='combobox-trigger'] {

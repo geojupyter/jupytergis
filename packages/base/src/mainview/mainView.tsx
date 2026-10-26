@@ -62,6 +62,7 @@ import {
 import { MainViewModel } from './mainviewmodel';
 import {
   createMapAdapter,
+  ICursorReadout,
   IMapAdapter,
   IMapLayerComparison,
   DEFAULT_MAP_ADAPTER,
@@ -98,6 +99,7 @@ interface IStates {
   viewProjection: { code: string; units: string };
   loadingLayer: boolean;
   scale: number;
+  cursor: ICursorReadout | null;
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
@@ -233,6 +235,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       viewProjection: { code: '', units: '' },
       loadingLayer: false,
       scale: 0,
+      cursor: null,
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
@@ -476,6 +479,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           this.setState(old => ({
             ...old,
             scale,
+          }));
+        },
+        onCursorChange: cursor => {
+          this.setState(old => ({
+            ...old,
+            cursor,
           }));
         },
         onContextMenu: (event, lastPointerCoordinate) => {
@@ -1799,10 +1808,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       initialLayersReady,
       isSpectaPresentation,
       jgisSettings,
+      cursor,
       loading,
       loadingLayer,
       remoteUser,
-      scale,
       segmentTransition,
       viewProjection,
     } = this.state;
@@ -1903,7 +1912,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               onProjectionChange={code =>
                 this._model.projectionChangedSignal.emit(code)
               }
-              scale={scale}
+              cursor={cursor}
             />
           ) : null}
         </div>
