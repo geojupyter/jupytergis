@@ -14,14 +14,12 @@ import {
   ICursorDisplay,
 } from '@/src/mainview/mapAdapter';
 import { MAP_ADAPTER_FEATURES } from '@/src/mainview/mapAdapterFeatures';
-import { Button } from '@/src/shared/components/Button';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuTrigger,
-} from '@/src/shared/components/DropdownMenu';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from '@/src/shared/components/Select';
 import { wrapToInterval } from '@/src/mainview/utils/wrapToInterval';
 import { ProjectionCombobox } from './ProjectionCombobox';
 
@@ -86,41 +84,29 @@ const StatusBar: React.FC<IStatusBarProps> = ({
       <div className="jgis-status-bar-item">
         <span>jgis: {version}</span>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          className="jgis-status-bar-item jgis-status-bar-coords jgis-status-bar-button h-4 min-h-0 justify-start border-0 bg-transparent px-1 text-inherit shadow-none"
+      <Select
+        value={cursorCoordMode}
+        onValueChange={value => {
+          value && onCursorCoordModeChange?.(value);
+        }}
+      >
+        <SelectTrigger
+          size="sm"
+          className="jgis-status-bar-item jgis-status-bar-coords jgis-status-bar-button h-4 min-h-0 justify-start gap-1 border-0 bg-transparent px-1 text-inherit shadow-none [&_svg]:size-3"
           title="Coordinate units"
           aria-label={`Coordinates (${cursorCoordMode}). Click to change units.`}
-          render={<Button variant="ghost" size="xs" />}
         >
           <FontAwesomeIcon icon={faLocationDot} />
-          <span> {formatCursor(cursor)}</span>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          side="top"
-          align="start"
-          className="w-auto min-w-44"
-        >
-          <DropdownMenuRadioGroup
-            value={cursorCoordMode}
-            onValueChange={value => {
-              if (
-                value === 'degrees' ||
-                value === 'meters' ||
-                value === 'projection'
-              ) {
-                onCursorCoordModeChange?.(value);
-              }
-            }}
-          >
-            {CURSOR_COORD_MODES.map(option => (
-              <DropdownMenuRadioItem key={option.value} value={option.value}>
-                {option.label}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          <span>{formatCursor(cursor)}</span>
+        </SelectTrigger>
+        <SelectContent side="top" align="start" className="w-auto min-w-44">
+          {CURSOR_COORD_MODES.map(option => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
       <div className="jgis-status-bar-item jgis-status-bar-projection">
         {canChangeProjection ? (
           <ProjectionCombobox
@@ -132,6 +118,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
             title={
               'Maplibre only supports EPSG:3857. Switch to OpenLayers to use other projections.'
             }
+            className="w-[30ch]"
           >
             {projectionCode ?? 'EPSG:3857'}
           </span>
