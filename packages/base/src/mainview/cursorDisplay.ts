@@ -4,9 +4,8 @@ import {
   getProj4Definition,
   normalizeCrsCode,
 } from '@/src/features/metadata/utils/crs';
-import { wrapToInterval } from '@/src/tools';
-
 import { CursorCoordMode, ICursorDisplay, ICursorReadout } from './mapAdapter';
+import { wrapToInterval } from './utils/wrapToInterval';
 
 const CURSOR_COORD_MODE_STORAGE_KEY = 'jupytergis:cursor-coord-mode';
 

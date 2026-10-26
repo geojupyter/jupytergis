@@ -22,7 +22,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '@/src/shared/components/DropdownMenu';
-import { wrapToInterval } from '@/src/tools';
+import { wrapToInterval } from '@/src/mainview/utils/wrapToInterval';
 import { ProjectionCombobox } from './ProjectionCombobox';
 
 const CURSOR_COORD_MODES: { value: CursorCoordMode; label: string }[] = [
