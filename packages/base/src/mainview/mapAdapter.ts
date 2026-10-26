@@ -39,6 +39,16 @@ export interface ICursorReadout {
   unit: string;
 }
 
+export type CursorCoordMode = 'degrees' | 'meters' | 'projection';
+
+/**
+ * Built by MainView from `ICursorReadout` + `CursorCoordMode`.
+ */
+export type ICursorDisplay =
+  | { mode: 'degrees'; lon: number; lat: number }
+  | { mode: 'meters'; x: number; y: number }
+  | { mode: 'projection'; x: number; y: number; unit: string };
+
 export interface IMapLayerComparison {
   /** The compared layers: the first shows on the left, the second on the right. */
   layers: [string, string];

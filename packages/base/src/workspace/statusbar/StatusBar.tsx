@@ -8,10 +8,7 @@ import React, { useEffect, useState } from 'react';
 import { version } from '@/package.json';
 import { CommandIDs } from '@/src/constants';
 import { useMapFeatures } from '@/src/mainview/hooks/useMapFeatures';
-import {
-  DEFAULT_MAP_ADAPTER,
-  ICursorReadout,
-} from '@/src/mainview/mapAdapter';
+import { DEFAULT_MAP_ADAPTER, ICursorDisplay } from '@/src/mainview/mapAdapter';
 import { MAP_ADAPTER_FEATURES } from '@/src/mainview/mapAdapterFeatures';
 import { wrapToInterval } from '@/src/tools';
 import { ProjectionCombobox } from './ProjectionCombobox';
@@ -22,7 +19,7 @@ interface IStatusBarProps {
   loading?: boolean;
   projection?: { code: string; units: string };
   onProjectionChange?: (code: string) => void;
-  cursor: ICursorReadout | null;
+  cursor: ICursorDisplay | null;
 }
 const StatusBar: React.FC<IStatusBarProps> = ({
   jgisModel,
@@ -105,18 +102,36 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   );
 };
 
-function formatCursor(cursor: ICursorReadout | null): string {
+function formatCursor(cursor: ICursorDisplay | null): string {
   if (!cursor) {
     return '—';
   }
 
-  const isAngular = cursor.unit === 'degrees' || cursor.unit === 'deg';
-  const x = isAngular ? wrapToInterval(cursor.x, -180, 180) : cursor.x;
+  switch (cursor.mode) {
+    case 'degrees':
+      return (
+        `x: ${formatDegrees(cursor.lon)}  ` + `y: ${formatDegrees(cursor.lat)}`
+      );
+    case 'meters':
+      return `x: ${formatMeters(cursor.x)}  ` + `y: ${formatMeters(cursor.y)}`;
+    case 'projection': {
+      const isAngular = cursor.unit === 'degrees' || cursor.unit === 'deg';
+      const x = isAngular ? wrapToInterval(cursor.x, -180, 180) : cursor.x;
 
-  return (
-    `x: ${formatCoordinate(x, cursor.unit)}  ` +
-    `y: ${formatCoordinate(cursor.y, cursor.unit)}`
-  );
+      return (
+        `x: ${formatCoordinate(x, cursor.unit)}  ` +
+        `y: ${formatCoordinate(cursor.y, cursor.unit)}`
+      );
+    }
+  }
+}
+
+function formatDegrees(value: number): string {
+  return `${value.toFixed(5)}°`;
+}
+
+function formatMeters(value: number): string {
+  return `${Math.round(value).toLocaleString()} m`;
 }
 
 function formatCoordinate(value: number, unit: string): string {
