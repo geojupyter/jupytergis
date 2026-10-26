@@ -1544,7 +1544,7 @@ const Form: React.FC<IFormProps> = ({
                 <input
                   type="text"
                   className="jp-openeo-udp-id"
-                  placeholder="process id (letters, digits, _)"
+                  placeholder="Process name"
                   autoFocus
                   value={saveAsForm.id}
                   onChange={e =>
@@ -1560,7 +1560,7 @@ const Form: React.FC<IFormProps> = ({
                 <input
                   type="text"
                   className="jp-openeo-udp-summary"
-                  placeholder="summary (optional)"
+                  placeholder="Summary (optional)"
                   value={saveAsForm.summary}
                   onChange={e =>
                     setSaveAsForm({ ...saveAsForm, summary: e.target.value })
