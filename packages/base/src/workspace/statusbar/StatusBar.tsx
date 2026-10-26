@@ -8,10 +8,28 @@ import React, { useEffect, useState } from 'react';
 import { version } from '@/package.json';
 import { CommandIDs } from '@/src/constants';
 import { useMapFeatures } from '@/src/mainview/hooks/useMapFeatures';
-import { DEFAULT_MAP_ADAPTER, ICursorDisplay } from '@/src/mainview/mapAdapter';
+import {
+  CursorCoordMode,
+  DEFAULT_MAP_ADAPTER,
+  ICursorDisplay,
+} from '@/src/mainview/mapAdapter';
 import { MAP_ADAPTER_FEATURES } from '@/src/mainview/mapAdapterFeatures';
+import { Button } from '@/src/shared/components/Button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '@/src/shared/components/DropdownMenu';
 import { wrapToInterval } from '@/src/tools';
 import { ProjectionCombobox } from './ProjectionCombobox';
+
+const CURSOR_COORD_MODES: { value: CursorCoordMode; label: string }[] = [
+  { value: 'degrees', label: 'Degrees' },
+  { value: 'meters', label: 'Meters' },
+  { value: 'projection', label: 'Projection units' },
+];
 
 interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
@@ -20,6 +38,8 @@ interface IStatusBarProps {
   projection?: { code: string; units: string };
   onProjectionChange?: (code: string) => void;
   cursor: ICursorDisplay | null;
+  cursorCoordMode: CursorCoordMode;
+  onCursorCoordModeChange?: (mode: CursorCoordMode) => void;
 }
 const StatusBar: React.FC<IStatusBarProps> = ({
   jgisModel,
@@ -28,6 +48,8 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   projection,
   onProjectionChange,
   cursor,
+  cursorCoordMode,
+  onCursorCoordModeChange,
 }) => {
   const [projectionCode, setProjectionCode] = useState(projection?.code);
 
@@ -64,10 +86,41 @@ const StatusBar: React.FC<IStatusBarProps> = ({
       <div className="jgis-status-bar-item">
         <span>jgis: {version}</span>
       </div>
-      <div className="jgis-status-bar-item jgis-status-bar-coords">
-        <FontAwesomeIcon icon={faLocationDot} />
-        <span> {formatCursor(cursor)}</span>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          className="jgis-status-bar-item jgis-status-bar-coords jgis-status-bar-button h-4 min-h-0 justify-start border-0 bg-transparent px-1 text-inherit shadow-none"
+          title="Coordinate units"
+          aria-label={`Coordinates (${cursorCoordMode}). Click to change units.`}
+          render={<Button variant="ghost" size="xs" />}
+        >
+          <FontAwesomeIcon icon={faLocationDot} />
+          <span> {formatCursor(cursor)}</span>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          side="top"
+          align="start"
+          className="w-auto min-w-44"
+        >
+          <DropdownMenuRadioGroup
+            value={cursorCoordMode}
+            onValueChange={value => {
+              if (
+                value === 'degrees' ||
+                value === 'meters' ||
+                value === 'projection'
+              ) {
+                onCursorCoordModeChange?.(value);
+              }
+            }}
+          >
+            {CURSOR_COORD_MODES.map(option => (
+              <DropdownMenuRadioItem key={option.value} value={option.value}>
+                {option.label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <div className="jgis-status-bar-item jgis-status-bar-projection">
         {canChangeProjection ? (
           <ProjectionCombobox

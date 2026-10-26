@@ -1833,6 +1833,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       initialLayersReady,
       isSpectaPresentation,
       jgisSettings,
+      cursorCoordMode,
       cursorDisplay,
       loading,
       loadingLayer,
@@ -1938,6 +1939,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
                 this._model.projectionChangedSignal.emit(code)
               }
               cursor={cursorDisplay}
+              cursorCoordMode={cursorCoordMode}
+              onCursorCoordModeChange={mode => {
+                this.setState(old => ({
+                  ...old,
+                  cursorCoordMode: mode,
+                  cursorDisplay: toCursorDisplay(
+                    this._cursorReadout,
+                    mode,
+                    old.viewProjection.code,
+                  ),
+                }));
+              }}
             />
           ) : null}
         </div>
