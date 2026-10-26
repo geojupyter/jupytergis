@@ -818,6 +818,17 @@ export class OpenLayersAdapter implements IMapAdapter {
       ? { coordinates: { x: coordinates[0], y: coordinates[1] } }
       : undefined;
     this._model.syncPointer(pointer);
+
+    if (!coordinates) {
+      this._callbacks?.onCursorChange?.(null);
+      return;
+    }
+
+    this._callbacks?.onCursorChange?.({
+      x: coordinates[0],
+      y: coordinates[1],
+      unit: this._map.getView().getProjection().getUnits(),
+    });
   });
 
   /**
