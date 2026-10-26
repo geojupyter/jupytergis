@@ -15,6 +15,7 @@ import {
 } from '@/src/mainview/mapAdapter';
 import { MAP_ADAPTER_FEATURES } from '@/src/mainview/mapAdapterFeatures';
 import { wrapToInterval } from '@/src/mainview/utils/wrapToInterval';
+import { Button } from '@/src/shared/components/Button';
 import {
   Select,
   SelectContent,
@@ -61,6 +62,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
     if (!canChangeProjection) {
       return;
     }
+
     setProjectionCode(nextCode);
     onProjectionChange?.(nextCode);
   };
@@ -91,15 +93,15 @@ const StatusBar: React.FC<IStatusBarProps> = ({
         }}
       >
         <SelectTrigger
-          size="sm"
-          className="jgis-status-bar-item jgis-status-bar-coords jgis-status-bar-button h-4 min-h-0 justify-start gap-1 border-0 bg-transparent px-1 text-inherit shadow-none [&_svg]:size-3"
+          className="jgis-status-bar-item jgis-status-bar-coords justify-start gap-1 border-0 bg-transparent px-1 text-inherit shadow-none focus-visible:border-0 focus-visible:ring-0"
           title="Coordinate units"
           aria-label={`Coordinates (${cursorCoordMode}). Click to change units.`}
+          render={<Button variant="ghost" size="xs" />}
         >
           <FontAwesomeIcon icon={faLocationDot} />
-          <span>{formatCursor(cursor)}</span>
+          <span className="w-[32ch]">{formatCursor(cursor)}</span>
         </SelectTrigger>
-        <SelectContent side="top" align="start" className="w-auto min-w-44">
+        <SelectContent side="top" align="center" className="w-auto min-w-44">
           {CURSOR_COORD_MODES.map(option => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
@@ -118,7 +120,6 @@ const StatusBar: React.FC<IStatusBarProps> = ({
             title={
               'Maplibre only supports EPSG:3857. Switch to OpenLayers to use other projections.'
             }
-            className="w-[30ch]"
           >
             {projectionCode ?? 'EPSG:3857'}
           </span>
@@ -157,10 +158,16 @@ function formatCursor(cursor: ICursorDisplay | null): string {
       return `x: ${formatMeters(cursor.x)}  ` + `y: ${formatMeters(cursor.y)}`;
     case 'projection': {
       const isAngular = cursor.unit === 'degrees' || cursor.unit === 'deg';
-      const x = isAngular ? wrapToInterval(cursor.x, -180, 180) : cursor.x;
+      if (isAngular) {
+        const lon = wrapToInterval(cursor.x, -180, 180);
+        return (
+          `lon: ${formatCoordinate(lon, cursor.unit)}  ` +
+          `lat: ${formatCoordinate(cursor.y, cursor.unit)}`
+        );
+      }
 
       return (
-        `x: ${formatCoordinate(x, cursor.unit)}  ` +
+        `x: ${formatCoordinate(cursor.x, cursor.unit)}  ` +
         `y: ${formatCoordinate(cursor.y, cursor.unit)}`
       );
     }
