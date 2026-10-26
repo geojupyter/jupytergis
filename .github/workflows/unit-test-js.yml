@@ -36,6 +36,7 @@ jobs:
           environment-name: gis
           create-args: >-
             pip
+            python=3.14
 
       - name: Install Python build deps
         shell: bash -l {0}
