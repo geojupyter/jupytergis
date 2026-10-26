@@ -163,7 +163,8 @@ function formatCursor(cursor: ICursorDisplay | null): string {
   switch (cursor.mode) {
     case 'degrees':
       return (
-        `x: ${formatDegrees(cursor.lon)}  ` + `y: ${formatDegrees(cursor.lat)}`
+        `lon: ${formatDegrees(cursor.lon)}  ` +
+        `lat: ${formatDegrees(cursor.lat)}`
       );
     case 'meters':
       return `x: ${formatMeters(cursor.x)}  ` + `y: ${formatMeters(cursor.y)}`;
@@ -188,8 +189,7 @@ function formatMeters(value: number): string {
 }
 
 function formatCoordinate(value: number, unit: string): string {
-  const isAngular = unit === 'degrees' || unit === 'deg';
-  if (isAngular) {
+  if (unit === 'degrees' || unit === 'deg') {
     return `${value.toFixed(5)}°`;
   }
 

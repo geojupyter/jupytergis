@@ -105,7 +105,6 @@ interface IStates {
   clientPointers: IDict<ClientPointer>;
   viewProjection: { code: string; units: string };
   loadingLayer: boolean;
-  scale: number;
   cursorCoordMode: CursorCoordMode;
   cursorDisplay: ICursorDisplay | null;
   loadingErrors: Array<{ id: string; error: any; index: number }>;
@@ -242,7 +241,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       clientPointers: {},
       viewProjection: { code: '', units: '' },
       loadingLayer: false,
-      scale: 0,
       cursorCoordMode: loadCursorCoordMode(),
       cursorDisplay: null,
       loadingErrors: [],
@@ -483,12 +481,6 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             this._updateAnnotation();
           }
           this._updateFeatureFloaters();
-        },
-        onScaleChange: scale => {
-          this.setState(old => ({
-            ...old,
-            scale,
-          }));
         },
         onCursorChange: cursor => {
           this._cursorReadout = cursor;

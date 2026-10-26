@@ -33,10 +33,10 @@ export function saveCursorCoordMode(mode: CursorCoordMode): void {
 }
 
 /**
- * Convert a view-CRS cursor readout into the active status-bar mode.
+ * Convert a view-CRS cursor readout into the active status bar mode.
  *
- * Uses the proj4 to convert so both adapters can keep emitting view-CRS
- * only (MapLibre metres, OpenLayers whatever the view is)
+ * Uses proj4 to convert so both adapters can keep emitting view-CRS
+ * only
  */
 export function toCursorDisplay(
   readout: ICursorReadout | null,
