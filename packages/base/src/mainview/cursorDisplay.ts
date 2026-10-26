@@ -8,12 +8,36 @@ import { wrapToInterval } from '@/src/tools';
 
 import { CursorCoordMode, ICursorDisplay, ICursorReadout } from './mapAdapter';
 
+const CURSOR_COORD_MODE_STORAGE_KEY = 'jupytergis:cursor-coord-mode';
+
+const CURSOR_COORD_MODES: ReadonlySet<CursorCoordMode> = new Set([
+  'degrees',
+  'meters',
+  'projection',
+]);
+
+export function loadCursorCoordMode(): CursorCoordMode {
+  const stored = window.localStorage.getItem(CURSOR_COORD_MODE_STORAGE_KEY);
+  if (stored && CURSOR_COORD_MODES.has(stored as CursorCoordMode)) {
+    return stored as CursorCoordMode;
+  }
+
+  return 'projection';
+}
+
+export function saveCursorCoordMode(mode: CursorCoordMode): void {
+  try {
+    window.localStorage.setItem(CURSOR_COORD_MODE_STORAGE_KEY, mode);
+  } catch {
+    // No quota, no problem.
+  }
+}
+
 /**
  * Convert a view-CRS cursor readout into the active status-bar mode.
  *
  * Uses the proj4 to convert so both adapters can keep emitting view-CRS
  * only (MapLibre metres, OpenLayers whatever the view is)
- * without relying on each adapter's `toLonLat` input convention.
  */
 export function toCursorDisplay(
   readout: ICursorReadout | null,

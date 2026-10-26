@@ -60,7 +60,11 @@ import {
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
-import { toCursorDisplay } from './cursorDisplay';
+import {
+  loadCursorCoordMode,
+  saveCursorCoordMode,
+  toCursorDisplay,
+} from './cursorDisplay';
 import {
   createMapAdapter,
   CursorCoordMode,
@@ -239,7 +243,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       viewProjection: { code: '', units: '' },
       loadingLayer: false,
       scale: 0,
-      cursorCoordMode: 'projection',
+      cursorCoordMode: loadCursorCoordMode(),
       cursorDisplay: null,
       loadingErrors: [],
       displayTemporalController: false,
@@ -1941,6 +1945,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               cursor={cursorDisplay}
               cursorCoordMode={cursorCoordMode}
               onCursorCoordModeChange={mode => {
+                saveCursorCoordMode(mode);
                 this.setState(old => ({
                   ...old,
                   cursorCoordMode: mode,
