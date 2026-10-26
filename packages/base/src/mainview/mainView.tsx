@@ -56,15 +56,15 @@ import { MainViewStoryStage } from './components/MainViewStoryStage';
 import { PositionedFloater } from './components/PositionedFloater';
 import { SwipeDivider } from './components/SwipeDivider';
 import {
-  createGeoJSONFeaturePatcher,
-  type PatchGeoJSONFeatureAttributes,
-} from './geoJsonFeaturePatch';
-import { MainViewModel } from './mainviewmodel';
-import {
   loadCursorCoordMode,
   saveCursorCoordMode,
   toCursorDisplay,
 } from './cursorDisplay';
+import {
+  createGeoJSONFeaturePatcher,
+  type PatchGeoJSONFeatureAttributes,
+} from './geoJsonFeaturePatch';
+import { MainViewModel } from './mainviewmodel';
 import {
   createMapAdapter,
   CursorCoordMode,

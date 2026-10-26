@@ -14,13 +14,13 @@ import {
   ICursorDisplay,
 } from '@/src/mainview/mapAdapter';
 import { MAP_ADAPTER_FEATURES } from '@/src/mainview/mapAdapterFeatures';
+import { wrapToInterval } from '@/src/mainview/utils/wrapToInterval';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
 } from '@/src/shared/components/Select';
-import { wrapToInterval } from '@/src/mainview/utils/wrapToInterval';
 import { ProjectionCombobox } from './ProjectionCombobox';
 
 const CURSOR_COORD_MODES: { value: CursorCoordMode; label: string }[] = [
