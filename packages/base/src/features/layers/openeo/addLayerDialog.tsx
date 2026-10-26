@@ -1015,7 +1015,12 @@ const Form: React.FC<IFormProps> = ({
       node = buildProcessNode(payload.id, proc);
     }
     const key = mintNodeKey(procId, existing);
-    const nextGraph = { ...base, [key]: node };
+    // ModelBuilder can't load a graph that has no result node.
+    const hasResult = Object.values(base).some((n: any) => n?.result === true);
+    const nextGraph = {
+      ...base,
+      [key]: hasResult ? node : { ...node, result: true },
+    };
     setState(prev => {
       const next = { ...prev, editedGraph: nextGraph };
       onChange(next);
@@ -1636,6 +1641,7 @@ const Form: React.FC<IFormProps> = ({
               graph={effectiveGraph}
               editable={editMode}
               processes={catalog?.processes}
+              userProcesses={catalog?.userProcesses}
               collections={catalog?.collections}
               onEdit={next =>
                 setState(prev => {

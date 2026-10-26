@@ -464,7 +464,9 @@ export class OpenEOTileSource extends XYZSource {
     }
 
     // Inject `save_result` for graphs that omit it (e.g. ESA UDPs).
-    const graph = ensureSaveResult(options.processGraph);
+    const graph = (await this._resultIsSavingUserProcess(options.processGraph))
+      ? options.processGraph
+      : ensureSaveResult(options.processGraph);
 
     let service: Service | null = null;
 
@@ -483,6 +485,29 @@ export class OpenEOTileSource extends XYZSource {
     this._connected.resolve();
 
     this.refresh();
+  }
+
+  private async _resultIsSavingUserProcess(
+    graph: Record<string, any>,
+  ): Promise<boolean> {
+    const nodes = Object.values(graph);
+    const result = nodes.find((node: any) => node?.result === true);
+    if (
+      !this._connection ||
+      !result ||
+      result.process_id === 'save_result' ||
+      (result.namespace && result.namespace !== 'user')
+    ) {
+      return false;
+    }
+    try {
+      const udp = await this._connection.getUserProcess(result.process_id);
+      return Object.values(udp.processGraph ?? {}).some(
+        (node: any) => node?.process_id === 'save_result',
+      );
+    } catch {
+      return false;
+    }
   }
 
   private _url: string | null = null;
