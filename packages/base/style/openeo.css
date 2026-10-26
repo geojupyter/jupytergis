@@ -747,19 +747,6 @@
   font-size: var(--jp-ui-font-size1);
 }
 
-.jp-openeo-section-help {
-  margin: 4px 0 0;
-  color: var(--jp-ui-font-color2);
-  font-size: var(--jp-ui-font-size0);
-  line-height: 1.4;
-}
-
-.jp-openeo-template-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
 .jp-openeo-pill {
   background: var(--jp-layout-color1);
   border: 1px solid var(--jp-border-color2);
@@ -870,10 +857,6 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-}
-
-.jp-openeo-dot {
-  color: var(--jp-warn-color1);
 }
 
 .jp-openeo-status-ok {
@@ -1132,6 +1115,18 @@
 
 .jp-openeo-canvas-wrapper {
   position: relative;
+}
+
+.jp-openeo-empty-graph {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+  text-align: center;
+  pointer-events: none;
 }
 
 /* Native CSS resize replaces the custom splitter. */
