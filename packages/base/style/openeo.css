@@ -883,6 +883,71 @@
   font-style: italic;
 }
 
+.jp-openeo-udp-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 6px;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  background: var(--jp-layout-color2);
+}
+
+.jp-openeo-udp-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.jp-openeo-udp-bar-label {
+  font-size: var(--jp-ui-font-size0);
+  color: var(--jp-ui-font-color2);
+}
+
+.jp-openeo-udp-id,
+.jp-openeo-udp-summary {
+  font-size: var(--jp-ui-font-size0);
+  padding: 3px 6px;
+  border: 1px solid var(--jp-border-color2);
+  border-radius: 4px;
+  background: var(--jp-layout-color1);
+  color: var(--jp-ui-font-color1);
+}
+
+.jp-openeo-udp-id {
+  font-family: var(--jp-code-font-family);
+  flex: 0 1 220px;
+  min-width: 0;
+}
+
+.jp-openeo-udp-summary {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.jp-openeo-palette-row-open {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  color: var(--jp-ui-font-color2);
+  font-size: var(--jp-ui-font-size1);
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 80ms ease-out;
+}
+
+.jp-openeo-palette-row:hover .jp-openeo-palette-row-open,
+.jp-openeo-palette-row-open:focus-visible {
+  opacity: 1;
+}
+
+.jp-openeo-palette-row-open:hover {
+  color: var(--jp-brand-color1);
+}
+
 .jp-openeo-canvas-wrapper {
   flex: 1;
   min-height: 0;

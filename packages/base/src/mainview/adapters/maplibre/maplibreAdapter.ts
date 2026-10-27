@@ -47,6 +47,7 @@ import {
   MapGeoJSONFeature,
 } from 'maplibre-gl';
 import { FeatureLike } from 'ol/Feature';
+import proj4 from 'proj4';
 
 import { IDrawToolAdapter } from '@/src/features/draw-tool';
 import {
@@ -376,6 +377,19 @@ export class MapLibreAdapter implements IMapAdapter {
       ? { coordinates: { x: coordinates[0], y: coordinates[1] } }
       : undefined;
     this._model.syncPointer(pointer);
+
+    if (!coordinates) {
+      this._callbacks?.onCursorChange?.(null);
+      return;
+    }
+
+    // MapLibre pointer events are lng/lat, the status bar wants view CRS units.
+    const [x, y] = proj4('EPSG:4326', 'EPSG:3857', coordinates);
+    this._callbacks?.onCursorChange?.({
+      x,
+      y,
+      unit: 'm',
+    });
   });
 
   async addSource(id: string, source: IJGISSource): Promise<void> {
