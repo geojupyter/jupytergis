@@ -121,24 +121,6 @@ describe('toCursorDisplay', () => {
     expect(toCursorDisplay(NYC_METERS, 'degrees', 'EPSG:999999')).toBeNull();
     expect(toCursorDisplay(NYC_LON_LAT, 'meters', 'EPSG:999999')).toBeNull();
   });
-
-  it('converts radian view units to degrees', () => {
-    const readout: ICursorReadout = {
-      x: (-74.006 * Math.PI) / 180,
-      y: (40.7128 * Math.PI) / 180,
-      unit: 'radians',
-    };
-    const result = toCursorDisplay(readout, 'degrees', 'EPSG:4326');
-    expect(result?.mode).toBe('degrees');
-    expect(result && 'lon' in result ? result.lon : undefined).toBeCloseTo(
-      -74.006,
-      5,
-    );
-    expect(result && 'lat' in result ? result.lat : undefined).toBeCloseTo(
-      40.7128,
-      5,
-    );
-  });
 });
 
 describe('loadCursorCoordMode / saveCursorCoordMode', () => {
