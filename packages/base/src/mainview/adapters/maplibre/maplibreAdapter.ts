@@ -379,6 +379,7 @@ export class MapLibreAdapter implements IMapAdapter {
   });
 
   async addSource(id: string, source: IJGISSource): Promise<void> {
+    this._sourceErrors.delete(id);
     this._log('info', `Loading source "${source.name ?? id}" (${source.type})`);
 
     const pending = this._pendingSourceAdds.get(id);
@@ -504,16 +505,10 @@ export class MapLibreAdapter implements IMapAdapter {
 
         case 'GeoTiffSource': {
           const sourceParameters = source.parameters as IGeoTiffSource;
-          const [first, ...rest] = sourceParameters.urls ?? [];
+          const [first] = sourceParameters.urls ?? [];
 
           if (!first?.url) {
             throw new Error('GeoTIFF source has no URL.');
-          }
-          if (rest.length > 0) {
-            this._log(
-              'warning',
-              `MapLibreAdapter: the COG protocol reads a single GeoTIFF; only the first URL of source "${source.name ?? id}" is used.`,
-            );
           }
 
           const url = await this._resolveCogUrl(
@@ -552,7 +547,7 @@ export class MapLibreAdapter implements IMapAdapter {
             }
             this._revokeObjectUrls(id);
             this._forgetCogSource(id);
-            throw error;
+            throw this._describeCogError(error);
           }
           break;
         }
@@ -566,6 +561,7 @@ export class MapLibreAdapter implements IMapAdapter {
         }
       }
     } catch (error: any) {
+      this._sourceErrors.set(id, error?.message ?? String(error));
       this._log(
         'error',
         `MapLibreAdapter: failed to load source "${source.name ?? id}" (${source.type}): ${error?.message}`,
@@ -663,7 +659,8 @@ export class MapLibreAdapter implements IMapAdapter {
         this.removeLayer(layerId);
         this._callbacks?.onLayerError?.(
           layerId,
-          `Source "${source.name ?? id}" could not be reloaded.`,
+          this._sourceErrors.get(id) ??
+            `Source "${source.name ?? id}" could not be reloaded.`,
         );
       }
       return;
@@ -808,6 +805,23 @@ export class MapLibreAdapter implements IMapAdapter {
       this._map.on('sourcedata', onData);
       this._map.on('error', onError);
     });
+  }
+
+  /**
+   * The COG protocol only reads EPSG:3857 files and throws a user-facing
+   * message otherwise.
+   */
+  private _describeCogError(error: unknown): Error {
+    const message =
+      (error as { message?: string } | undefined)?.message ?? String(error);
+    const projectionMsg = message.match(/projection\s+(EPSG:\d+)/i)?.[1];
+
+    if (projectionMsg && projectionMsg.toUpperCase() !== 'EPSG:3857') {
+      return new Error(
+        `This GeoTIFF is in ${projectionMsg}, but the MapLibre map only supports EPSG:3857 (Web Mercator).`,
+      );
+    }
+    return error instanceof Error ? error : new Error(message);
   }
 
   private _forgetCogSource(sourceId: string): void {
@@ -1025,6 +1039,12 @@ export class MapLibreAdapter implements IMapAdapter {
       this._log(
         'error',
         `MapLibreAdapter: source "${sourceId}" could not be added.`,
+      );
+      // Show the reason on the layer in the UI, not just in the console.
+      this._callbacks?.onLayerError?.(
+        id,
+        this._sourceErrors.get(sourceId) ??
+          `Source "${source.name ?? sourceId}" could not be added.`,
       );
       return;
     }
@@ -1954,6 +1974,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _sourceToLayerMap = new Map<string, string>();
   private _sourceUpdates = new Map<string, Promise<void>>();
   private _sourceBounds = new Map<string, number[]>();
+  private _sourceErrors = new Map<string, string>();
   private _objectUrls = new Map<string, string[]>();
   private _cogSources = new Map<string, ICogSourceInfo>();
   private _geojsonData = new Map<string, GeoJSONFeature | FeatureCollection>();
