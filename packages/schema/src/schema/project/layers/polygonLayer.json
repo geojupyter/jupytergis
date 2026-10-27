@@ -52,6 +52,16 @@
       "description": "Outline width in pixels.",
       "default": 1,
       "minimum": 0
+    },
+    "getPolygon": {
+      "type": "string",
+      "description": "Arrow function of one record, d. Returns the polygon ring.",
+      "default": "d => d.polygon"
+    },
+    "getElevation": {
+      "type": "string",
+      "description": "Arrow function of one record, d. Returns the extrusion height in meters.",
+      "default": "d => d.height"
     }
   }
 }

@@ -20,9 +20,7 @@ export { IWmsTileSource } from './_interface/project/sources/wmsTileSource';
 export { IGeoZarrSource } from './_interface/project/sources/geoZarrSource';
 export { IOpenEOTileSource } from './_interface/project/sources/openeoTileSource';
 export { ITripsSource } from './_interface/project/sources/tripsSource';
-export { ITrip } from './_interface/project/sources/tripsSource';
 export { IPolygonSource } from './_interface/project/sources/polygonSource';
-export { IPolygonRecord } from './_interface/project/sources/polygonSource';
 
 // Layers
 export { IHillshadeLayer } from './_interface/project/layers/hillshadeLayer';

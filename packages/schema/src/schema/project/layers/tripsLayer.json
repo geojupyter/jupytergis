@@ -53,6 +53,16 @@
       "type": "boolean",
       "description": "Round the joints of the path.",
       "default": true
+    },
+    "getPath": {
+      "type": "string",
+      "description": "Arrow function of one record, d. Returns the path positions.",
+      "default": "d => d.path"
+    },
+    "getTimestamps": {
+      "type": "string",
+      "description": "Arrow function of one record, d. Returns one timestamp per path position.",
+      "default": "d => d.timestamps"
     }
   }
 }

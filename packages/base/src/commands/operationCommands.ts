@@ -356,6 +356,8 @@ export function addLayerCreationCommands(options: {
         widthMinPixels: { type: 'number', default: 4 },
         capRounded: { type: 'boolean', default: true },
         jointRounded: { type: 'boolean', default: true },
+        getPath: { type: 'string', default: 'd => d.path' },
+        getTimestamps: { type: 'string', default: 'd => d.timestamps' },
       },
       buildParameters: (p, id) => ({
         source: id,
@@ -366,6 +368,8 @@ export function addLayerCreationCommands(options: {
         widthMinPixels: p.widthMinPixels ?? 4,
         capRounded: p.capRounded ?? true,
         jointRounded: p.jointRounded ?? true,
+        getPath: p.getPath ?? 'd => d.path',
+        getTimestamps: p.getTimestamps ?? 'd => d.timestamps',
       }),
     },
     {
@@ -395,6 +399,8 @@ export function addLayerCreationCommands(options: {
           default: [80, 80, 80],
         },
         lineWidthMinPixels: { type: 'number', default: 1 },
+        getPolygon: { type: 'string', default: 'd => d.polygon' },
+        getElevation: { type: 'string', default: 'd => d.height' },
       },
       buildParameters: (p, id) => ({
         source: id,
@@ -404,6 +410,8 @@ export function addLayerCreationCommands(options: {
         fillColor: p.fillColor ?? [0, 128, 255, 160],
         lineColor: p.lineColor ?? [80, 80, 80],
         lineWidthMinPixels: p.lineWidthMinPixels ?? 1,
+        getPolygon: p.getPolygon ?? 'd => d.polygon',
+        getElevation: p.getElevation ?? 'd => d.height',
       }),
     },
   ];
