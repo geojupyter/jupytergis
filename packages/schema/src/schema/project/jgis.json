@@ -50,7 +50,8 @@
         "StacLayer",
         "StorySegmentLayer",
         "OpenEOTileLayer",
-        "TerrainLayer"
+        "TerrainLayer",
+        "TripsLayer"
       ]
     },
     "sourceType": {
@@ -70,7 +71,8 @@
         "GeoParquetSource",
         "FeatureStoreSource",
         "MarkerSource",
-        "OpenEOTileSource"
+        "OpenEOTileSource",
+        "TripsSource"
       ]
     },
     "jGISLayer": {

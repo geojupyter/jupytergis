@@ -7,7 +7,7 @@ import {
   type ViewStateChangeParameters,
   type Widget,
 } from '@deck.gl/core';
-import { TileLayer } from '@deck.gl/geo-layers';
+import { TileLayer, TripsLayer } from '@deck.gl/geo-layers';
 import { BitmapLayer, type BitmapLayerProps } from '@deck.gl/layers';
 import {
   CompassWidget,
@@ -17,6 +17,7 @@ import {
 } from '@deck.gl/widgets';
 import type {
   IDict,
+  IGeoJSONSource,
   IIdentifiedFeature,
   IJGISLayer,
   IJGISOptions,
@@ -25,13 +26,17 @@ import type {
   IJupyterGISModel,
   IRasterLayer,
   IRasterSource,
+  ITripsLayer,
+  ITripsSource,
+  IVectorLayer,
   JgisCoordinates,
 } from '@jupytergis/schema';
+import { PathExt } from '@jupyterlab/coreutils';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
 import type { IDrawToolAdapter } from '@/src/features/draw-tool';
-import { debounce, throttle } from '@/src/tools';
+import { debounce, fetchWithProxies, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
   IMapAdapter,
@@ -81,6 +86,11 @@ const INCHES_PER_METER = 1000 / MM_PER_INCH;
 const EARTH_CIRCUMFERENCE_M = 40075016.686;
 /** deck.gl MapView zoom uses the same 512px tile size as MapLibre. */
 const WEB_MERCATOR_TILE_SIZE = 512;
+const TRIP_COLOR: [number, number, number] = [253, 128, 93];
+const TRIP_TRAIL_LENGTH = 120;
+const TRIP_WIDTH_PIXELS = 4;
+/** One full play-through of every trip, in wall-clock milliseconds. */
+const TRIP_LOOP_MS = 30000;
 
 type LngLat = [longitude: number, latitude: number];
 
@@ -89,6 +99,30 @@ type RasterTileTemplate = {
   url: string;
   minZoom: number;
   maxZoom: number;
+};
+
+/** One line, timestamps shifted so the earliest point in the file is 0. */
+type TripPath = {
+  path: LngLat[];
+  timestamps: number[];
+};
+
+type TripSource = {
+  trips: TripPath[];
+  /** Largest shifted timestamp. The playhead loops over this span. */
+  duration: number;
+};
+
+type TripFeature = {
+  type?: string;
+  geometry?: {
+    type?: string;
+    coordinates?: number[][];
+  };
+  properties?: {
+    timestamps?: unknown;
+  };
+  features?: TripFeature[];
 };
 
 /**
@@ -226,8 +260,11 @@ export class DeckGlAdapter implements IMapAdapter {
   }
 
   destroy(): void {
+    this._stopTripAnimation();
+    this._layerIds = undefined;
     this._unbindCanvasEvents();
     this._rasterSources.clear();
+    this._tripSources.clear();
     this._deck?.finalize();
     this._deck = undefined;
   }
@@ -359,20 +396,40 @@ export class DeckGlAdapter implements IMapAdapter {
   async updateLayers(layerIds: string[]): Promise<void> {
     for (const id of layerIds) {
       const layer = this._model.getLayers()[id];
-      if (layer?.type !== 'RasterLayer') {
+      if (
+        layer?.type !== 'RasterLayer' &&
+        layer?.type !== 'VectorLayer' &&
+        layer?.type !== 'TripsLayer'
+      ) {
         continue;
       }
 
-      const sourceId = (layer.parameters as IRasterLayer | undefined)?.source;
-      if (sourceId && !this._rasterSources.has(sourceId)) {
-        const source = this._model.getSource(sourceId);
-        if (source) {
-          await this.addSource(sourceId, source);
-        }
+      const sourceId = (
+        layer.parameters as
+          | IRasterLayer
+          | IVectorLayer
+          | ITripsLayer
+          | undefined
+      )?.source;
+      if (!sourceId) {
+        continue;
+      }
+
+      const loaded =
+        layer.type === 'RasterLayer'
+          ? this._rasterSources.has(sourceId)
+          : this._tripSources.has(sourceId);
+      if (loaded) {
+        continue;
+      }
+
+      const source = this._model.getSource(sourceId);
+      if (source) {
+        await this.addSource(sourceId, source);
       }
     }
 
-    this._syncRasterLayers(layerIds);
+    this._syncLayers(layerIds);
   }
 
   clearHighlightIfNotIdentifying(): void {
@@ -380,32 +437,61 @@ export class DeckGlAdapter implements IMapAdapter {
   }
 
   async addSource(id: string, source: IJGISSource): Promise<void> {
-    if (source.type !== 'RasterSource') {
-      this._log(
-        'warning',
-        `DeckGlAdapter: source type "${source.type}" is not yet supported. Skipping source ${id}.`,
-      );
-      return;
-    }
+    switch (source.type) {
+      case 'RasterSource': {
+        const parameters = source.parameters as IRasterSource;
+        if (!parameters?.url) {
+          this._log(
+            'error',
+            `DeckGlAdapter: raster source "${source.name ?? id}" has no URL.`,
+          );
+          return;
+        }
 
-    const parameters = source.parameters as IRasterSource;
-    if (!parameters?.url) {
-      this._log(
-        'error',
-        `DeckGlAdapter: raster source "${source.name ?? id}" has no URL.`,
-      );
-      return;
-    }
+        this._rasterSources.set(id, {
+          url: this._resolveTileUrl(parameters),
+          minZoom: parameters.minZoom,
+          maxZoom: parameters.maxZoom,
+        });
+        return;
+      }
 
-    this._rasterSources.set(id, {
-      url: this._resolveTileUrl(parameters),
-      minZoom: parameters.minZoom,
-      maxZoom: parameters.maxZoom,
-    });
+      case 'GeoJSONSource': {
+        const data = await this._loadGeoJSON(id, source);
+        if (!data) {
+          return;
+        }
+        this._tripSources.set(
+          id,
+          this._tripsFromGeoJSON(data, source.name ?? id),
+        );
+        return;
+      }
+
+      case 'TripsSource': {
+        const data = await this._loadTrips(id, source);
+        if (!data) {
+          return;
+        }
+        this._tripSources.set(
+          id,
+          this._tripsFromRecords(data, source.name ?? id),
+        );
+        return;
+      }
+
+      default: {
+        this._log(
+          'warning',
+          `DeckGlAdapter: source type "${source.type}" is not yet supported. Skipping source ${id}.`,
+        );
+      }
+    }
   }
 
   removeSource(id: string): void {
     this._rasterSources.delete(id);
+    this._tripSources.delete(id);
   }
 
   async updateSource(_id: string, _source: IJGISSource): Promise<void> {
@@ -604,26 +690,105 @@ export class DeckGlAdapter implements IMapAdapter {
     }).getBounds();
   }
 
-  private _syncRasterLayers(layerIds: string[]): void {
+  private _syncLayers(layerIds: string[]): void {
     if (!this._deck) {
       return;
     }
 
+    this._layerIds = layerIds;
     const layers = [];
     for (const id of layerIds) {
       const layer = this._model.getLayers()[id];
-      if (layer?.type !== 'RasterLayer') {
-        continue;
-      }
-
-      const tileLayer = this._createRasterTileLayer(id, layer);
-      if (tileLayer) {
-        layers.push(tileLayer);
+      if (layer?.type === 'RasterLayer') {
+        const tileLayer = this._createRasterTileLayer(id, layer);
+        if (tileLayer) {
+          layers.push(tileLayer);
+        }
+      } else if (
+        layer?.type === 'VectorLayer' ||
+        layer?.type === 'TripsLayer'
+      ) {
+        const tripsLayer = this._createTripsLayer(id, layer);
+        if (tripsLayer) {
+          layers.push(tripsLayer);
+        }
       }
     }
 
     // Index 0 is underneath, matching OpenLayers insertAt.
     this._deck.setProps({ layers });
+
+    const hasTrips = layers.some(layer => layer instanceof TripsLayer);
+    if (hasTrips) {
+      this._startTripAnimation();
+    } else {
+      this._stopTripAnimation();
+    }
+  }
+
+  private _onTripFrame = (): void => {
+    this._tripFrame = undefined;
+    if (!this._deck || !this._layerIds) {
+      return;
+    }
+    this._syncLayers(this._layerIds);
+  };
+
+  private _startTripAnimation(): void {
+    if (this._tripFrame !== undefined) {
+      return;
+    }
+    this._tripFrame = requestAnimationFrame(this._onTripFrame);
+  }
+
+  private _stopTripAnimation(): void {
+    if (this._tripFrame === undefined) {
+      return;
+    }
+    cancelAnimationFrame(this._tripFrame);
+    this._tripFrame = undefined;
+  }
+
+  private _tripCurrentTime(duration: number): number {
+    if (duration <= 0) {
+      return 0;
+    }
+    return ((performance.now() % TRIP_LOOP_MS) / TRIP_LOOP_MS) * duration;
+  }
+
+  private _createTripsLayer(
+    id: string,
+    layer: IJGISLayer,
+  ): TripsLayer<TripPath> | undefined {
+    const parameters = layer.parameters as
+      | IVectorLayer
+      | ITripsLayer
+      | undefined;
+    const trips = parameters?.source
+      ? this._tripSources.get(parameters.source)
+      : undefined;
+    if (!trips || trips.trips.length === 0) {
+      return undefined;
+    }
+
+    const style =
+      layer.type === 'TripsLayer' ? (parameters as ITripsLayer) : undefined;
+
+    return new TripsLayer<TripPath>({
+      id,
+      data: trips.trips,
+      getPath: trip => trip.path,
+      getTimestamps: trip => trip.timestamps,
+      getColor: style?.color ?? TRIP_COLOR,
+      currentTime: this._tripCurrentTime(trips.duration),
+      trailLength: style?.trailLength ?? TRIP_TRAIL_LENGTH,
+      fadeTrail: style?.fadeTrail ?? true,
+      widthMinPixels: style?.widthMinPixels ?? TRIP_WIDTH_PIXELS,
+      capRounded: style?.capRounded ?? true,
+      jointRounded: style?.jointRounded ?? true,
+      opacity: parameters?.opacity ?? 1,
+      visible: layer.visible ?? true,
+    });
   }
 
   private _createRasterTileLayer(
@@ -691,6 +856,290 @@ export class DeckGlAdapter implements IMapAdapter {
     return url;
   }
 
+  private async _loadTrips(id: string, source: IJGISSource): Promise<unknown> {
+    const parameters = source.parameters as ITripsSource | undefined;
+    if (parameters?.data && parameters.data.length > 0) {
+      return parameters.data;
+    }
+
+    if (!parameters?.path) {
+      this._log(
+        'error',
+        `DeckGlAdapter: trips source "${source.name ?? id}" has no data or path.`,
+      );
+      return undefined;
+    }
+
+    const path = parameters.path;
+    let data: unknown;
+    try {
+      if (path.startsWith('http://') || path.startsWith('https://')) {
+        data = await fetchWithProxies(path, this._model, async response =>
+          response.json(),
+        );
+      } else {
+        data = await this._readLocalJson(path);
+      }
+
+      if (typeof data === 'string') {
+        data = JSON.parse(data) as unknown;
+      }
+    } catch (error) {
+      this._log(
+        'error',
+        `DeckGlAdapter: trips source "${source.name ?? id}" could not be loaded: ${error}`,
+      );
+      return undefined;
+    }
+
+    if (!data) {
+      this._log(
+        'error',
+        `DeckGlAdapter: trips source "${source.name ?? id}" could not be loaded.`,
+      );
+      return undefined;
+    }
+
+    return data;
+  }
+
+  private async _readLocalJson(path: string): Promise<unknown> {
+    if (!this._model.contentsManager || !this._model.filePath) {
+      throw new Error('ContentsManager or filePath is not initialized.');
+    }
+
+    const absolutePath = PathExt.resolve(
+      PathExt.dirname(this._model.filePath),
+      path,
+    );
+    const file = await this._model.contentsManager.get(absolutePath, {
+      content: true,
+    });
+    if (!file.content) {
+      throw new Error(`File at ${absolutePath} is empty or inaccessible.`);
+    }
+
+    switch (file.format) {
+      case 'json':
+        return file.content;
+      case 'text':
+        return JSON.parse(file.content) as unknown;
+      case 'base64':
+        return JSON.parse(atob(file.content)) as unknown;
+      default:
+        throw new Error(`Invalid trips file format: ${file.format}.`);
+    }
+  }
+
+  /**
+   * Keeps records whose `path` and `timestamps` are the same length.
+   * Timestamps are shifted by the earliest value in the file so they stay
+   * inside a 32-bit float.
+   */
+  private _tripsFromRecords(data: unknown, sourceName: string): TripSource {
+    const records = Array.isArray(data) ? data : [];
+    const raw: TripPath[] = [];
+    let origin: number | undefined;
+    let loggedMismatch = false;
+
+    for (const record of records) {
+      const parsed = this._tripPath(record);
+      if (!parsed) {
+        if (!loggedMismatch && record && typeof record === 'object') {
+          loggedMismatch = true;
+          this._log(
+            'warning',
+            `DeckGlAdapter: skipping trips in "${sourceName}" whose timestamps do not match the path.`,
+          );
+        }
+        continue;
+      }
+
+      raw.push(parsed);
+      for (const timestamp of parsed.timestamps) {
+        origin = origin === undefined ? timestamp : Math.min(origin, timestamp);
+      }
+    }
+
+    const base = origin ?? 0;
+    let duration = 0;
+    const trips = raw.map(trip => {
+      const shifted = trip.timestamps.map(timestamp => timestamp - base);
+      for (const timestamp of shifted) {
+        duration = Math.max(duration, timestamp);
+      }
+      return { path: trip.path, timestamps: shifted };
+    });
+
+    if (trips.length === 0) {
+      this._log(
+        'warning',
+        `DeckGlAdapter: trips source "${sourceName}" has no trips.`,
+      );
+    }
+
+    return { trips, duration };
+  }
+
+  private _tripPath(record: unknown): TripPath | undefined {
+    if (!record || typeof record !== 'object') {
+      return undefined;
+    }
+
+    const path = (record as { path?: unknown }).path;
+    const timestamps = (record as { timestamps?: unknown }).timestamps;
+    if (!Array.isArray(path) || !Array.isArray(timestamps)) {
+      return undefined;
+    }
+    if (path.length < 2 || timestamps.length !== path.length) {
+      return undefined;
+    }
+
+    const positions: LngLat[] = [];
+    for (const position of path) {
+      if (
+        !Array.isArray(position) ||
+        position.length < 2 ||
+        typeof position[0] !== 'number' ||
+        typeof position[1] !== 'number' ||
+        !Number.isFinite(position[0]) ||
+        !Number.isFinite(position[1])
+      ) {
+        return undefined;
+      }
+      positions.push([position[0], position[1]]);
+    }
+
+    if (
+      !timestamps.every(
+        value => typeof value === 'number' && Number.isFinite(value),
+      )
+    ) {
+      return undefined;
+    }
+
+    return { path: positions, timestamps };
+  }
+
+  private async _loadGeoJSON(
+    id: string,
+    source: IJGISSource,
+  ): Promise<unknown> {
+    const parameters = source.parameters as IGeoJSONSource | undefined;
+    let data: unknown = parameters?.data;
+
+    if (!data) {
+      if (!parameters?.path) {
+        this._log(
+          'error',
+          `DeckGlAdapter: GeoJSON source "${source.name ?? id}" has no data or path.`,
+        );
+        return undefined;
+      }
+
+      data = await loadFile({
+        filepath: parameters.path,
+        type: 'GeoJSONSource',
+        model: this._model,
+      });
+    }
+
+    if (typeof data === 'string') {
+      data = JSON.parse(data) as unknown;
+    }
+
+    if (!data) {
+      this._log(
+        'error',
+        `DeckGlAdapter: GeoJSON source "${source.name ?? id}" could not be loaded.`,
+      );
+      return undefined;
+    }
+
+    return data;
+  }
+
+  /**
+   * Keeps LineStrings whose `properties.timestamps` matches the vertex count.
+   * Timestamps are shifted by the earliest value in the file so they stay
+   * inside a 32-bit float.
+   */
+  private _tripsFromGeoJSON(data: unknown, sourceName: string): TripSource {
+    const features = this._lineFeatures(data);
+    const raw: TripPath[] = [];
+    let origin: number | undefined;
+    let loggedMismatch = false;
+
+    for (const feature of features) {
+      const coordinates = feature.geometry?.coordinates;
+      const timestamps = feature.properties?.timestamps;
+      if (!coordinates || !Array.isArray(timestamps)) {
+        continue;
+      }
+      if (
+        timestamps.length !== coordinates.length ||
+        !timestamps.every(
+          value => typeof value === 'number' && Number.isFinite(value),
+        )
+      ) {
+        if (!loggedMismatch) {
+          loggedMismatch = true;
+          this._log(
+            'warning',
+            `DeckGlAdapter: skipping trip features in "${sourceName}" whose timestamps do not match the line.`,
+          );
+        }
+        continue;
+      }
+
+      raw.push({
+        path: coordinates.map(position => [position[0], position[1]]),
+        timestamps,
+      });
+      for (const timestamp of timestamps) {
+        origin = origin === undefined ? timestamp : Math.min(origin, timestamp);
+      }
+    }
+
+    const base = origin ?? 0;
+    let duration = 0;
+    const trips = raw.map(trip => {
+      const shifted = trip.timestamps.map(timestamp => timestamp - base);
+      for (const timestamp of shifted) {
+        duration = Math.max(duration, timestamp);
+      }
+      return { path: trip.path, timestamps: shifted };
+    });
+
+    if (trips.length === 0) {
+      this._log(
+        'warning',
+        `DeckGlAdapter: GeoJSON source "${sourceName}" has no trip lines.`,
+      );
+    }
+
+    return { trips, duration };
+  }
+
+  private _lineFeatures(data: unknown): TripFeature[] {
+    if (!data || typeof data !== 'object') {
+      return [];
+    }
+
+    const record = data as TripFeature;
+    if (record.type === 'FeatureCollection' && Array.isArray(record.features)) {
+      return record.features.filter(
+        feature => feature.geometry?.type === 'LineString',
+      );
+    }
+
+    if (record.type === 'Feature' && record.geometry?.type === 'LineString') {
+      return [record];
+    }
+
+    return [];
+  }
+
   // this shouldnt be in each adapter
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
@@ -727,7 +1176,10 @@ export class DeckGlAdapter implements IMapAdapter {
   private _controlsTarget?: HTMLElement;
   private _lastPointerCoord: LngLat | null = null;
   private _emitBboxChanged: () => void;
+  private _layerIds?: string[];
+  private _tripFrame?: number;
   private _rasterSources = new Map<string, RasterTileTemplate>();
+  private _tripSources = new Map<string, TripSource>();
   private _syncViewportThrottled: () => void;
   private _syncPointer = throttle((coordinates: LngLat | null) => {
     const pointer = coordinates

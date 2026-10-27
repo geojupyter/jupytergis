@@ -42,6 +42,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     WmsTileSource: false,
     OpenEOTileSource: false,
     FeatureStoreSource: false,
+    TripsSource: false,
   },
   layers: {
     RasterLayer: true,
@@ -55,6 +56,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     GeoZarrLayer: false,
     OpenEOTileLayer: false,
     StacLayer: false,
+    TripsLayer: false,
   },
   addMarker: false,
   identify: false,
@@ -86,6 +88,7 @@ const DECKGL_FEATURES: IMapAdapterFeatures = {
     WmsTileSource: false,
     OpenEOTileSource: false,
     FeatureStoreSource: false,
+    TripsSource: true,
   },
   layers: {
     RasterLayer: true,
@@ -99,6 +102,7 @@ const DECKGL_FEATURES: IMapAdapterFeatures = {
     GeoZarrLayer: false,
     OpenEOTileLayer: false,
     StacLayer: false,
+    TripsLayer: true,
   },
   addMarker: false,
   identify: false,
@@ -130,6 +134,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     WmsTileSource: true,
     OpenEOTileSource: true,
     FeatureStoreSource: true,
+    TripsSource: false,
   },
   layers: {
     RasterLayer: true,
@@ -143,6 +148,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     GeoZarrLayer: true,
     OpenEOTileLayer: true,
     StacLayer: true,
+    TripsLayer: false,
   },
   addMarker: true,
   identify: true,
@@ -234,6 +240,7 @@ const LAYER_ENTRIES: ILayerEntry[] = [
     layer: 'VectorLayer',
     source: 'FeatureStoreSource',
   },
+  { label: 'Trips', layer: 'TripsLayer', source: 'TripsSource' },
 ];
 
 type ToolKey =

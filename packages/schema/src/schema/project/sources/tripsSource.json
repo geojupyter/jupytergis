@@ -1,0 +1,62 @@
+{
+  "type": "object",
+  "description": "TripsSource",
+  "title": "ITripsSource",
+  "required": [],
+  "additionalProperties": false,
+  "properties": {
+    "path": {
+      "type": ["string", "null"],
+      "description": "Local path or URL of a JSON array of trips. Each trip has path and timestamps."
+    },
+    "data": {
+      "type": "array",
+      "description": "Inline trips. Used when path is empty.",
+      "items": {
+        "$ref": "#/definitions/trip"
+      }
+    },
+    "useProxy": {
+      "type": "boolean",
+      "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
+      "default": false
+    },
+    "httpHeaders": {
+      "type": "string",
+      "description": "HTTP headers forwarded to the upstream server when useProxy is true.",
+      "default": ""
+    }
+  },
+  "definitions": {
+    "trip": {
+      "type": "object",
+      "title": "ITrip",
+      "description": "One animated path. path and timestamps are the same length, in visit order.",
+      "required": ["path", "timestamps"],
+      "additionalProperties": true,
+      "properties": {
+        "path": {
+          "type": "array",
+          "description": "Positions as [longitude, latitude] or [longitude, latitude, altitude], in visit order.",
+          "minItems": 2,
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 3
+          }
+        },
+        "timestamps": {
+          "type": "array",
+          "description": "Time each path position is visited. Same units as TripsLayer trailLength. Not a unix timestamp; float32 cannot hold raw unix milliseconds.",
+          "minItems": 2,
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}

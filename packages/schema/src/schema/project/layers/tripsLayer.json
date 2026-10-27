@@ -1,0 +1,58 @@
+{
+  "type": "object",
+  "description": "TripsLayer",
+  "title": "ITripsLayer",
+  "required": ["source"],
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "The id of the source"
+    },
+    "opacity": {
+      "type": "number",
+      "description": "The opacity of the layer",
+      "default": 1,
+      "multipleOf": 0.1,
+      "minimum": 0,
+      "maximum": 1
+    },
+    "color": {
+      "type": "array",
+      "description": "Trail color as RGB or RGBA, channels 0-255. Matches TripsLayer getColor.",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 4,
+      "default": [253, 128, 93]
+    },
+    "trailLength": {
+      "type": "number",
+      "description": "How long a path takes to fade out, in the same units as the trip timestamps.",
+      "default": 120,
+      "minimum": 0
+    },
+    "fadeTrail": {
+      "type": "boolean",
+      "description": "Fade the path out behind the playhead. When false, trailLength has no effect.",
+      "default": true
+    },
+    "widthMinPixels": {
+      "type": "number",
+      "description": "Path width in pixels.",
+      "default": 4,
+      "minimum": 0
+    },
+    "capRounded": {
+      "type": "boolean",
+      "description": "Round the ends of the path.",
+      "default": true
+    },
+    "jointRounded": {
+      "type": "boolean",
+      "description": "Round the joints of the path.",
+      "default": true
+    }
+  }
+}

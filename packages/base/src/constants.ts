@@ -58,6 +58,7 @@ const iconObject = {
   [CommandIDs.openNewWmsDialog]: { iconClass: 'fa fa-server' },
   [CommandIDs.openNewVectorTileDialog]: { icon: vectorSquareIcon },
   [CommandIDs.openNewGeoJSONDialog]: { icon: geoJSONIcon },
+  [CommandIDs.openNewTripsDialog]: { iconClass: 'fa fa-route' },
   [CommandIDs.openNewHillshadeDialog]: { icon: moundIcon },
   [CommandIDs.openNewTerrainDialog]: { icon: moundIcon },
   [CommandIDs.openNewImageDialog]: { iconClass: 'fa fa-image' },

@@ -15,6 +15,7 @@ export namespace LayerCreationCommandIDs {
   export const newGeoTiffWithParams = 'jupytergis:newGeoTiffWithParams';
   export const newGeoZarrWithParams = 'jupytergis:newGeoZarrWithParams';
   export const newShapefileWithParams = 'jupytergis:newShapefileWithParams';
+  export const newTripsWithParams = 'jupytergis:newTripsWithParams';
 }
 
 type LayerCreationSpec = {
@@ -328,6 +329,42 @@ export function addLayerCreationCommands(options: {
         color: p.color ?? {},
         opacity: p.opacity ?? 1,
         symbologyState: p.symbologyState ?? { layers: [] },
+      }),
+    },
+    {
+      id: LayerCreationCommandIDs.newTripsWithParams,
+      label: 'New Trips Layer From Parameters',
+      caption:
+        'Add a new trips layer (by file path or URL) and add it to the given JupyterGIS file',
+      sourceType: 'TripsSource',
+      layerType: 'TripsLayer',
+      sourceSchema: {
+        type: 'object',
+        required: ['path'],
+        properties: { path: { type: 'string' } },
+      },
+      layerParamsSchema: {
+        opacity: { type: 'number', default: 1 },
+        color: {
+          type: 'array',
+          items: { type: 'number' },
+          default: [253, 128, 93],
+        },
+        trailLength: { type: 'number', default: 120 },
+        fadeTrail: { type: 'boolean', default: true },
+        widthMinPixels: { type: 'number', default: 4 },
+        capRounded: { type: 'boolean', default: true },
+        jointRounded: { type: 'boolean', default: true },
+      },
+      buildParameters: (p, id) => ({
+        source: id,
+        opacity: p.opacity ?? 1,
+        color: p.color ?? [253, 128, 93],
+        trailLength: p.trailLength ?? 120,
+        fadeTrail: p.fadeTrail ?? true,
+        widthMinPixels: p.widthMinPixels ?? 4,
+        capRounded: p.capRounded ?? true,
+        jointRounded: p.jointRounded ?? true,
       }),
     },
   ];
