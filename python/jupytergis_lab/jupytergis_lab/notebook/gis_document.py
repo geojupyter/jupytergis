@@ -1696,7 +1696,10 @@ class JGISObject(BaseModel):
                 **{**parameters.model_dump(), name: value},
             )
 
-        self._write_parameter(name, value)
+        store = self._store()
+        if store is not None and self._id is not None:
+            stored = store[self._id].get("parameters") or {}
+            self._write("parameters", {**stored, name: _as_stored(value)})
 
     def _store(self) -> Map | None:
         return None
@@ -1747,35 +1750,9 @@ class JGISObject(BaseModel):
         return sorted({*super().__dir__(), *self._parameter_names()})
 
     def _write(self, name: str, value: Any) -> None:
-        store, stored = self._stored()
-        if store is None:
-            return
-
-        store[self._id] = {**stored, name: _as_stored(value)}
-
-    def _write_parameter(self, name: str, value: Any) -> None:
-        """Write one parameter, keeping the parameters the document holds now.
-
-        Writing back the whole mapping this object was read with would revert
-        every parameter changed since, by the frontend or by a collaborator.
-        """
-        store, stored = self._stored()
-        if store is None:
-            return
-
-        parameters = {**(stored.get("parameters") or {}), name: _as_stored(value)}
-        store[self._id] = {**stored, "parameters": parameters}
-
-    def _stored(self) -> tuple[Map | None, dict]:
         store = self._store()
-        if store is None or self._id is None:
-            return None, {}
-
-        stored = store.get(self._id)
-        if stored is None:
-            raise KeyError(f"{self._id!r} is no longer in the document")
-
-        return store, stored
+        if store is not None and self._id is not None:
+            store[self._id] = {**store[self._id], name: _as_stored(value)}
 
     def __repr__(self) -> str:
         """Identify the object without printing all of its parameters."""
