@@ -7,6 +7,8 @@ import {
   type ViewStateChangeParameters,
   type Widget,
 } from '@deck.gl/core';
+import { TileLayer } from '@deck.gl/geo-layers';
+import { BitmapLayer, type BitmapLayerProps } from '@deck.gl/layers';
 import {
   CompassWidget,
   FullscreenWidget,
@@ -21,6 +23,8 @@ import type {
   IJGISSource,
   IJGISUIState,
   IJupyterGISModel,
+  IRasterLayer,
+  IRasterSource,
   JgisCoordinates,
 } from '@jupytergis/schema';
 import type { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -79,6 +83,13 @@ const EARTH_CIRCUMFERENCE_M = 40075016.686;
 const WEB_MERCATOR_TILE_SIZE = 512;
 
 type LngLat = [longitude: number, latitude: number];
+
+/** Resolved XYZ template. `{z}`, `{x}`, `{y}`, and `{-y}` are left for TileLayer. */
+type RasterTileTemplate = {
+  url: string;
+  minZoom: number;
+  maxZoom: number;
+};
 
 /**
  * deck.gl implementation of {@link IMapAdapter}.
@@ -216,6 +227,7 @@ export class DeckGlAdapter implements IMapAdapter {
 
   destroy(): void {
     this._unbindCanvasEvents();
+    this._rasterSources.clear();
     this._deck?.finalize();
     this._deck = undefined;
   }
@@ -344,20 +356,56 @@ export class DeckGlAdapter implements IMapAdapter {
     noop();
   }
 
-  async updateLayers(_layerIds: string[]): Promise<void> {
-    noop();
+  async updateLayers(layerIds: string[]): Promise<void> {
+    for (const id of layerIds) {
+      const layer = this._model.getLayers()[id];
+      if (layer?.type !== 'RasterLayer') {
+        continue;
+      }
+
+      const sourceId = (layer.parameters as IRasterLayer | undefined)?.source;
+      if (sourceId && !this._rasterSources.has(sourceId)) {
+        const source = this._model.getSource(sourceId);
+        if (source) {
+          await this.addSource(sourceId, source);
+        }
+      }
+    }
+
+    this._syncRasterLayers(layerIds);
   }
 
   clearHighlightIfNotIdentifying(): void {
     noop();
   }
 
-  async addSource(_id: string, _source: IJGISSource): Promise<void> {
-    noop();
+  async addSource(id: string, source: IJGISSource): Promise<void> {
+    if (source.type !== 'RasterSource') {
+      this._log(
+        'warning',
+        `DeckGlAdapter: source type "${source.type}" is not yet supported. Skipping source ${id}.`,
+      );
+      return;
+    }
+
+    const parameters = source.parameters as IRasterSource;
+    if (!parameters?.url) {
+      this._log(
+        'error',
+        `DeckGlAdapter: raster source "${source.name ?? id}" has no URL.`,
+      );
+      return;
+    }
+
+    this._rasterSources.set(id, {
+      url: this._resolveTileUrl(parameters),
+      minZoom: parameters.minZoom,
+      maxZoom: parameters.maxZoom,
+    });
   }
 
-  removeSource(_id: string): void {
-    noop();
+  removeSource(id: string): void {
+    this._rasterSources.delete(id);
   }
 
   async updateSource(_id: string, _source: IJGISSource): Promise<void> {
@@ -556,6 +604,93 @@ export class DeckGlAdapter implements IMapAdapter {
     }).getBounds();
   }
 
+  private _syncRasterLayers(layerIds: string[]): void {
+    if (!this._deck) {
+      return;
+    }
+
+    const layers = [];
+    for (const id of layerIds) {
+      const layer = this._model.getLayers()[id];
+      if (layer?.type !== 'RasterLayer') {
+        continue;
+      }
+
+      const tileLayer = this._createRasterTileLayer(id, layer);
+      if (tileLayer) {
+        layers.push(tileLayer);
+      }
+    }
+
+    // Index 0 is underneath, matching OpenLayers insertAt.
+    this._deck.setProps({ layers });
+  }
+
+  private _createRasterTileLayer(
+    id: string,
+    layer: IJGISLayer,
+  ): TileLayer<unknown> | undefined {
+    const parameters = layer.parameters as IRasterLayer | undefined;
+    const template = parameters?.source
+      ? this._rasterSources.get(parameters.source)
+      : undefined;
+    if (!template) {
+      return undefined;
+    }
+
+    return new TileLayer({
+      id,
+      data: template.url,
+      minZoom: template.minZoom,
+      maxZoom: template.maxZoom,
+      tileSize: 256,
+      opacity: parameters?.opacity ?? 1,
+      visible: layer.visible ?? true,
+      onTileError: error => {
+        this._log(
+          'error',
+          `DeckGlAdapter: tile failed for layer "${layer.name ?? id}": ${error?.message ?? error}`,
+        );
+      },
+      renderSubLayers: props => {
+        const { boundingBox } = props.tile;
+
+        return new BitmapLayer({
+          id: props.id,
+          image: props.data as BitmapLayerProps['image'],
+          bounds: [
+            boundingBox[0][0],
+            boundingBox[0][1],
+            boundingBox[1][0],
+            boundingBox[1][1],
+          ],
+          opacity: props.opacity,
+          visible: props.visible,
+          pickable: true,
+        });
+      },
+    });
+  }
+
+  // todo: make pure and resuse
+  private _resolveTileUrl(parameters: IRasterSource): string {
+    const urlParameters = parameters.urlParameters || {};
+    let url = parameters.url;
+
+    for (const parameterName of Object.keys(urlParameters)) {
+      url = url.replace(`{${parameterName}}`, urlParameters[parameterName]);
+    }
+
+    if (url.includes('{max_zoom}')) {
+      url = url.replace('{max_zoom}', parameters.maxZoom.toString());
+    }
+    if (url.includes('{min_zoom}')) {
+      url = url.replace('{min_zoom}', parameters.minZoom.toString());
+    }
+
+    return url;
+  }
+
   // this shouldnt be in each adapter
   private _log(
     level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
@@ -592,6 +727,7 @@ export class DeckGlAdapter implements IMapAdapter {
   private _controlsTarget?: HTMLElement;
   private _lastPointerCoord: LngLat | null = null;
   private _emitBboxChanged: () => void;
+  private _rasterSources = new Map<string, RasterTileTemplate>();
   private _syncViewportThrottled: () => void;
   private _syncPointer = throttle((coordinates: LngLat | null) => {
     const pointer = coordinates
