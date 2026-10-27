@@ -30,6 +30,25 @@ export interface IMapProjection {
   units: string;
 }
 
+/**
+ * Cursor position in the view projection for the status bar.
+ */
+export interface ICursorReadout {
+  x: number;
+  y: number;
+  unit: string;
+}
+
+export type CursorCoordMode = 'degrees' | 'meters' | 'projection';
+
+/**
+ * Built by MainView from `ICursorReadout` + `CursorCoordMode`.
+ */
+export type ICursorDisplay =
+  | { mode: 'degrees'; lon: number; lat: number }
+  | { mode: 'meters'; x: number; y: number }
+  | { mode: 'projection'; x: number; y: number; unit: string };
+
 export interface IMapLayerComparison {
   /** The compared layers: the first shows on the left, the second on the right. */
   layers: [string, string];
@@ -149,6 +168,7 @@ export interface IMapAdapterOptions {
 export interface IMapAdapterCallbacks {
   onPostRender?: () => void;
   onScaleChange?: (scale: number) => void;
+  onCursorChange?: (cursor: ICursorReadout | null) => void;
   onContextMenu?: (
     event: MouseEvent,
     lastPointerCoord: number[] | null,

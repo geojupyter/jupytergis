@@ -56,12 +56,20 @@ import { MainViewStoryStage } from './components/MainViewStoryStage';
 import { PositionedFloater } from './components/PositionedFloater';
 import { SwipeDivider } from './components/SwipeDivider';
 import {
+  loadCursorCoordMode,
+  saveCursorCoordMode,
+  toCursorDisplay,
+} from './cursorDisplay';
+import {
   createGeoJSONFeaturePatcher,
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
 import { MainViewModel } from './mainviewmodel';
 import {
   createMapAdapter,
+  CursorCoordMode,
+  ICursorDisplay,
+  ICursorReadout,
   IMapAdapter,
   IMapLayerComparison,
   DEFAULT_MAP_ADAPTER,
@@ -97,7 +105,8 @@ interface IStates {
   clientPointers: IDict<ClientPointer>;
   viewProjection: { code: string; units: string };
   loadingLayer: boolean;
-  scale: number;
+  cursorCoordMode: CursorCoordMode;
+  cursorDisplay: ICursorDisplay | null;
   loadingErrors: Array<{ id: string; error: any; index: number }>;
   displayTemporalController: boolean;
   filterStates: IDict<IJGISFilterItem | undefined>;
@@ -232,7 +241,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       clientPointers: {},
       viewProjection: { code: '', units: '' },
       loadingLayer: false,
-      scale: 0,
+      cursorCoordMode: loadCursorCoordMode(),
+      cursorDisplay: null,
       loadingErrors: [],
       displayTemporalController: false,
       filterStates: {},
@@ -472,10 +482,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           }
           this._updateFeatureFloaters();
         },
-        onScaleChange: scale => {
+        onCursorChange: cursor => {
+          this._cursorReadout = cursor;
           this.setState(old => ({
             ...old,
-            scale,
+            cursorDisplay: toCursorDisplay(
+              cursor,
+              old.cursorCoordMode,
+              old.viewProjection.code,
+            ),
           }));
         },
         onContextMenu: (event, lastPointerCoordinate) => {
@@ -555,6 +570,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ...old,
       loading: false,
       viewProjection: viewProjection,
+      cursorDisplay: toCursorDisplay(
+        this._cursorReadout,
+        old.cursorCoordMode,
+        viewProjection.code,
+      ),
     }));
   }
 
@@ -763,6 +783,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.setState(old => ({
         ...old,
         viewProjection: projectionInfo,
+        cursorDisplay: toCursorDisplay(
+          this._cursorReadout,
+          old.cursorCoordMode,
+          projectionInfo.code,
+        ),
       }));
     }
   };
@@ -1127,6 +1152,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this.setState(old => ({
         ...old,
         viewProjection: projectionInfo,
+        cursorDisplay: toCursorDisplay(
+          this._cursorReadout,
+          old.cursorCoordMode,
+          projectionInfo.code,
+        ),
       }));
     }
   }
@@ -1799,10 +1829,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       initialLayersReady,
       isSpectaPresentation,
       jgisSettings,
+      cursorCoordMode,
+      cursorDisplay,
       loading,
       loadingLayer,
       remoteUser,
-      scale,
       segmentTransition,
       viewProjection,
     } = this.state;
@@ -1903,7 +1934,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               onProjectionChange={code =>
                 this._model.projectionChangedSignal.emit(code)
               }
-              scale={scale}
+              cursor={cursorDisplay}
+              cursorCoordMode={cursorCoordMode}
+              onCursorCoordModeChange={mode => {
+                saveCursorCoordMode(mode);
+                this.setState(old => ({
+                  ...old,
+                  cursorCoordMode: mode,
+                  cursorDisplay: toCursorDisplay(
+                    this._cursorReadout,
+                    mode,
+                    old.viewProjection.code,
+                  ),
+                }));
+              }}
             />
           ) : null}
         </div>
@@ -1914,6 +1958,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _clickCoords: number[];
   private _commands: CommandRegistry;
   private _isPositionInitialized = false;
+  private _cursorReadout: ICursorReadout | null = null;
   private divRef = React.createRef<HTMLDivElement>(); // Reference of render div
   private mainViewRef = React.createRef<HTMLDivElement>();
   private controlsToolbarRef = React.createRef<HTMLDivElement>();
