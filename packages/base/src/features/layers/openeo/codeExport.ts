@@ -4,10 +4,10 @@
  *
  * This mirrors the "Export as code" feature of the openeo-web-editor, but is a
  * standalone, typed implementation over the flat-graph shape JupyterGIS
- * already works with — see `templates.ts` for representative graphs.
+ * already works with — see `__tests__/fixtures/processGraphs.ts` for
+ * representative graphs.
  *
- * Scope: the graphs produced by our templates and by hand-editing in the
- * dialog — linear datacube chains plus callback sub-graphs (reducers,
+ * Scope: the graphs imported or hand-edited in the dialog — linear datacube chains plus callback sub-graphs (reducers,
  * `apply` processes). Callback-bearing processes are emitted as native client
  * methods (e.g. `reduce_dimension`, `apply`, `save_result`), so a callback on
  * a process with no native method is not supported; such a node falls back to

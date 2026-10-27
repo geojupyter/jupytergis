@@ -18,12 +18,7 @@ import { CodeExportPanel } from './codeExportPanel';
 import { JsonEditor } from './jsonEditor';
 import { ProcessGraphView } from './processGraphView';
 import { OpenEOSignin } from './signin';
-import {
-  IOpenEOTemplate,
-  IOpenEOTemplateParams,
-  OPENEO_TEMPLATES,
-  normalizeSpatialExtent,
-} from './templates';
+import { normalizeSpatialExtent } from './templates';
 import {
   IUserProcess,
   canSaveUserProcesses,
@@ -45,10 +40,6 @@ export interface IOpenEODialogResult {
 
 interface IBodyState {
   layerName: string;
-  templateId: string;
-  params: IOpenEOTemplateParams;
-  // When non-null, the user has hand-edited the graph and we use this
-  // instead of recomputing from the template.
   editedGraph: Record<string, any> | null;
 }
 
@@ -85,6 +76,8 @@ type ValidationStatus =
 
 const DRAG_MIME = 'application/x-openeo-node';
 
+const DEFAULT_LAYER_NAME = 'OpenEO Layer';
+
 type DragPayload =
   | { kind: 'collection'; id: string }
   | { kind: 'process'; id: string }
@@ -120,18 +113,15 @@ function defaultArgsFromProcess(
   return args;
 }
 
-function buildCollectionNode(
-  id: string,
-  params: IOpenEOTemplateParams,
-): Record<string, any> {
+function buildCollectionNode(id: string): Record<string, any> {
   return {
     process_id: 'load_collection',
     arguments: {
       id,
       bands: [],
       properties: {},
-      spatial_extent: params.bbox,
-      temporal_extent: params.temporalExtent,
+      spatial_extent: null,
+      temporal_extent: null,
     },
   };
 }
@@ -472,11 +462,7 @@ const Form: React.FC<IFormProps> = ({
     onChange(next);
   };
 
-  const template =
-    OPENEO_TEMPLATES.find(t => t.id === state.templateId) ??
-    OPENEO_TEMPLATES[0];
-
-  // Prompt before discarding user edits when changing template/params.
+  // Prompt before discarding user edits when loading another graph.
   const guardReseed = (apply: () => void) => {
     if (state.editedGraph) {
       const ok = window.confirm(
@@ -487,16 +473,6 @@ const Form: React.FC<IFormProps> = ({
       }
     }
     apply();
-  };
-
-  const onTemplate = (t: IOpenEOTemplate) => {
-    guardReseed(() =>
-      update({
-        templateId: t.id,
-        params: { ...t.defaults },
-        editedGraph: null,
-      }),
-    );
   };
 
   // Step 1: user picks/enters a URL and clicks Connect. If the URL is
@@ -572,16 +548,17 @@ const Form: React.FC<IFormProps> = ({
   // actually change. Otherwise every render produces a new object,
   // re-firing validation and reassigning ModelBuilder.value mid-edit.
   const effectiveGraph = React.useMemo(() => {
-    const graph = state.editedGraph ?? template.buildGraph(state.params);
+    const graph = state.editedGraph ?? {};
     // An empty `spatial_extent: {}` (e.g. from a graph authored before we
     // sent a real extent) is invalid per the openEO schema; normalize it to
     // `null` so validation doesn't block an otherwise-valid graph.
     return normalizeSpatialExtent(graph);
-  }, [state.editedGraph, state.templateId, state.params]);
+  }, [state.editedGraph]);
   const effectiveGraphJson = React.useMemo(
     () => JSON.stringify(effectiveGraph, null, 2),
     [effectiveGraph],
   );
+  const isEmptyGraph = Object.keys(effectiveGraph).length === 0;
   const [viewMode, setViewMode] = React.useState<'graph' | 'json' | 'code'>(
     'graph',
   );
@@ -600,7 +577,7 @@ const Form: React.FC<IFormProps> = ({
   } | null>(null);
   // Local JSON buffer so the user can type freely; on valid parse, push
   // back to state.editedGraph. Reseeded whenever effectiveGraph changes
-  // from outside (template/param change, reset).
+  // from outside (e.g. an import).
   const initialJsonText = effectiveGraphJson;
   const [jsonText, setJsonText] = React.useState(initialJsonText);
   const [jsonError, setJsonError] = React.useState<string | null>(null);
@@ -626,10 +603,6 @@ const Form: React.FC<IFormProps> = ({
     } catch (e: any) {
       setJsonError(e?.message ?? String(e));
     }
-  };
-
-  const resetToTemplate = () => {
-    update({ editedGraph: null });
   };
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -739,6 +712,14 @@ const Form: React.FC<IFormProps> = ({
         lastResultVersionRef.current = myVersion;
         setIsChecking(false);
       }
+      return;
+    }
+
+    // Nothing to validate until the user imports or builds a graph.
+    if (Object.keys(parsed).length === 0) {
+      setValidation({ state: 'idle' });
+      lastResultVersionRef.current = myVersion;
+      setIsChecking(false);
       return;
     }
 
@@ -1008,13 +989,13 @@ const Form: React.FC<IFormProps> = ({
   const dragDepthRef = React.useRef(0);
 
   const insertNode = (payload: DragPayload) => {
-    const base = state.editedGraph ?? template.buildGraph(state.params);
+    const base = state.editedGraph ?? {};
     const existing = new Set(Object.keys(base));
     let node: Record<string, any>;
     let procId: string;
     if (payload.kind === 'collection') {
       procId = 'load_collection';
-      node = buildCollectionNode(payload.id, state.params);
+      node = buildCollectionNode(payload.id);
     } else if (payload.kind === 'format') {
       procId = 'save_result';
       node = buildSaveResultNode(payload.id);
@@ -1248,85 +1229,6 @@ const Form: React.FC<IFormProps> = ({
                 )}
               </div>
             </section>
-
-            <section className="jp-openeo-section">
-              <h4>Template</h4>
-              <div className="jp-openeo-template-pills">
-                {OPENEO_TEMPLATES.map(t => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={
-                      'jp-openeo-pill' +
-                      (t.id === state.templateId ? ' jp-mod-selected' : '')
-                    }
-                    onClick={() => onTemplate(t)}
-                    title={t.description}
-                  >
-                    {t.name}
-                  </button>
-                ))}
-              </div>
-              <p className="jp-openeo-section-help">{template.description}</p>
-            </section>
-
-            <section className="jp-openeo-section">
-              <h4>Collection &amp; time</h4>
-              <label className="jp-openeo-field">
-                <span>Collection</span>
-                <input
-                  type="text"
-                  value={state.params.collectionId}
-                  onChange={e => {
-                    const v = e.target.value;
-                    guardReseed(() =>
-                      update({
-                        params: { ...state.params, collectionId: v },
-                        editedGraph: null,
-                      }),
-                    );
-                  }}
-                />
-              </label>
-              <label className="jp-openeo-field">
-                <span>Start date</span>
-                <input
-                  type="date"
-                  value={(state.params.temporalExtent[0] ?? '').slice(0, 10)}
-                  onChange={e => {
-                    const v = e.target.value;
-                    guardReseed(() =>
-                      update({
-                        params: {
-                          ...state.params,
-                          temporalExtent: [v, state.params.temporalExtent[1]],
-                        },
-                        editedGraph: null,
-                      }),
-                    );
-                  }}
-                />
-              </label>
-              <label className="jp-openeo-field">
-                <span>End date</span>
-                <input
-                  type="date"
-                  value={(state.params.temporalExtent[1] ?? '').slice(0, 10)}
-                  onChange={e => {
-                    const v = e.target.value;
-                    guardReseed(() =>
-                      update({
-                        params: {
-                          ...state.params,
-                          temporalExtent: [state.params.temporalExtent[0], v],
-                        },
-                        editedGraph: null,
-                      }),
-                    );
-                  }}
-                />
-              </label>
-            </section>
           </>
         )}
       </div>
@@ -1392,17 +1294,6 @@ const Form: React.FC<IFormProps> = ({
               </button>
             </>
           )}
-          {state.editedGraph && (
-            <button
-              type="button"
-              className="jp-openeo-toolbar-btn jp-openeo-icon-btn"
-              onClick={resetToTemplate}
-              title="Reset: discard edits and rebuild from the selected template"
-              aria-label="Reset to template"
-            >
-              ↺
-            </button>
-          )}
           <button
             type="button"
             className="jp-openeo-toolbar-btn jp-openeo-icon-btn"
@@ -1457,7 +1348,6 @@ const Form: React.FC<IFormProps> = ({
               validation.state === 'error' ? validation.message : undefined
             }
           >
-            {state.editedGraph && <span className="jp-openeo-dot">●</span>}
             {isChecking && (
               <span className="jp-openeo-spinner" aria-label="Re-checking">
                 ⟳
@@ -1476,7 +1366,7 @@ const Form: React.FC<IFormProps> = ({
         {editMode && (
           <p className="jp-openeo-edit-hint-inline">
             Editing is advanced. Click an edge or block then press Backspace (or
-            fn+Delete) to remove it. Use Reset to restore the template.
+            fn+Delete) to remove it.
           </p>
         )}
         {(editingUdp || saveAsForm || udpBusy || udpError) && (
@@ -1618,6 +1508,13 @@ const Form: React.FC<IFormProps> = ({
               Drop to add node to graph
             </div>
           )}
+          {isEmptyGraph && !isDragOver && viewMode === 'graph' && (
+            <div className="jp-openeo-empty-graph">
+              {editMode
+                ? 'Drag a collection or process from the catalog onto the canvas.'
+                : 'No process graph yet. Import a JSON file, or click ✎ to build one from the server catalog.'}
+            </div>
+          )}
           {viewMode === 'code' ? (
             <CodeExportPanel
               graph={effectiveGraph}
@@ -1703,17 +1600,13 @@ class AddLayerBody extends ReactWidget {
   }
 
   getValue(): IOpenEODialogResult | null {
-    const template = OPENEO_TEMPLATES.find(
-      t => t.id === this._state.templateId,
-    );
-    if (!template || !this._activeConnection?.url) {
+    if (!this._state.editedGraph || !this._activeConnection?.url) {
       return null;
     }
     return {
-      layerName: this._state.layerName || template.name,
+      layerName: this._state.layerName || DEFAULT_LAYER_NAME,
       serverUrl: this._activeConnection.url,
-      processGraph:
-        this._state.editedGraph ?? template.buildGraph(this._state.params),
+      processGraph: this._state.editedGraph,
     };
   }
 
@@ -1733,7 +1626,7 @@ export interface IOpenEODialogOptions {
    * authenticated this session, or used by existing layers in the doc).
    */
   knownServers?: string[];
-  /** Pre-fill graph as a user edit (skips template fields' effect). */
+  /** Pre-fill graph. */
   initialGraph?: Record<string, any>;
   /** Pre-fill layer name. */
   layerName?: string;
@@ -1752,11 +1645,8 @@ export interface IOpenEODialogOptions {
 export async function showAddOpenEOLayerDialog(
   options: IOpenEODialogOptions,
 ): Promise<IOpenEODialogResult | null> {
-  const firstTemplate = OPENEO_TEMPLATES[0];
   const initial: IBodyState = {
-    layerName: options.layerName ?? firstTemplate.name,
-    templateId: firstTemplate.id,
-    params: { ...firstTemplate.defaults },
+    layerName: options.layerName ?? DEFAULT_LAYER_NAME,
     editedGraph: options.initialGraph ?? null,
   };
 
