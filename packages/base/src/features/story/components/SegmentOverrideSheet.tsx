@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
-import React, { type RefObject, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import {
   SymbologyDialog,
@@ -23,14 +23,12 @@ export interface ISegmentOverrideSheetProps {
   model: IJupyterGISModel;
   segmentId: string;
   layerId: string;
-  portalContainerRef: RefObject<HTMLElement | null>;
 }
 
 export function SegmentOverrideSheet({
   model,
   segmentId,
   layerId,
-  portalContainerRef,
 }: ISegmentOverrideSheetProps): JSX.Element {
   const [open, setOpen] = useState(false);
 
@@ -48,13 +46,14 @@ export function SegmentOverrideSheet({
 
   return (
     <Sheet open={open} onOpenChange={setOpen} modal={false}>
-      <SheetTrigger asChild>
-        <Button variant="outline">Edit</Button>
-      </SheetTrigger>
-      <SheetContent
-        container={portalContainerRef.current}
-        showCloseButton={false}
-      >
+      <SheetTrigger
+        render={
+          <Button size={'xs'} variant="outline">
+            Edit
+          </Button>
+        }
+      />
+      <SheetContent showCloseButton={false}>
         <SheetHeader>
           <SheetTitle>Layer Symbology Override</SheetTitle>
           <SheetDescription>
@@ -72,16 +71,10 @@ export function SegmentOverrideSheet({
           />
         </div>
         <SheetFooter className="jgis-story-editor-sheet-footer">
-          <Button
-            type="button"
-            className="jp-mod-accept jp-mod-styled"
-            onClick={handleSave}
-          >
+          <Button type="button" onClick={handleSave}>
             Save changes
           </Button>
-          <SheetClose asChild>
-            <Button variant="outline">Close</Button>
-          </SheetClose>
+          <SheetClose render={<Button variant="outline">Close</Button>} />
         </SheetFooter>
       </SheetContent>
     </Sheet>

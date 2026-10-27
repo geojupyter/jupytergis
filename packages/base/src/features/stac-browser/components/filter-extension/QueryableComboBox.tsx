@@ -14,9 +14,21 @@ import {
   Operator,
   UpdateSelectedQueryables,
 } from '@/src/features/stac-browser/types/types';
-import { Combobox } from '@/src/shared/components/Combobox';
+import { Button } from '@/src/shared/components/Button';
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+} from '@/src/shared/components/Combobox';
 import { Input } from '@/src/shared/components/Input';
-import { Select } from '@/src/shared/components/Select';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 import { debounce } from '@/src/tools';
 import SingleDatePicker from '../../../../shared/components/SingleDatePicker';
 
@@ -29,6 +41,12 @@ interface IQueryableComboProps {
 interface IOperatorOption {
   value: Operator;
   label: string;
+}
+
+interface IQueryableOption {
+  value: string;
+  label: string;
+  schema: IStacQueryableSchema;
 }
 
 export function QueryableComboBox({
@@ -172,24 +190,21 @@ export function QueryableComboBox({
     switch (val.type) {
       case 'string':
         if (val.enum) {
-          const selectedOption = val.enum.find(
-            opt => String(opt) === String(currentValue),
-          );
-          const buttonText = selectedOption
-            ? String(selectedOption)
-            : 'Select option...';
-
           return (
-            <Select
-              items={val.enum.map(option => ({
-                value: String(option),
-                label: String(option),
-                onSelect: () => onChange(String(option)),
-              }))}
-              buttonText={buttonText}
-              emptyText="No option found."
-              buttonClassName="jgis-queryable-combo-input"
-            />
+            <NativeSelect
+              className="w-full"
+              value={String(currentValue ?? '')}
+              onChange={event => onChange(String(event.target.value))}
+            >
+              <NativeSelectOption value="" disabled>
+                Select option...
+              </NativeSelectOption>
+              {val.enum.map(option => (
+                <NativeSelectOption key={String(option)} value={String(option)}>
+                  {String(option)}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           );
         }
         if (val.format === 'date-time') {
@@ -223,7 +238,7 @@ export function QueryableComboBox({
               dateFormat="P"
               showIcon={true}
               placeholder="Select date"
-              className="jgis-queryable-combo-input jgis-queryable-combo-input-date-picker"
+              className="jgis-queryable-combo-input-date-picker"
             />
           );
         }
@@ -237,30 +252,26 @@ export function QueryableComboBox({
       case 'number':
       case 'integer':
         if (val.enum) {
-          const selectedOption = val.enum.find(
-            opt => Number(opt) === Number(currentValue),
-          );
-          const buttonText = selectedOption
-            ? String(selectedOption)
-            : 'Select option...';
-
           return (
-            <Select
-              items={val.enum.map(option => ({
-                value: String(option),
-                label: String(option),
-                onSelect: () => onChange(Number(option)),
-              }))}
-              buttonText={buttonText}
-              emptyText="No option found."
-              buttonClassName="jgis-queryable-combo-input"
-            />
+            <NativeSelect
+              className="w-full"
+              value={String(currentValue ?? '')}
+              onChange={event => onChange(Number(event.target.value))}
+            >
+              <NativeSelectOption value="" disabled>
+                Select option...
+              </NativeSelectOption>
+              {val.enum.map(option => (
+                <NativeSelectOption key={String(option)} value={String(option)}>
+                  {String(option)}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           );
         }
         return (
           <Input
             type="number"
-            className="jgis-queryable-combo-input"
             min={val.minimum !== undefined ? val.minimum : undefined}
             max={val.maximum !== undefined ? val.maximum : undefined}
             value={(currentValue as number) || ''}
@@ -271,7 +282,6 @@ export function QueryableComboBox({
         return (
           <Input
             type="text"
-            className="jgis-queryable-combo-input"
             value={(currentValue as string) || ''}
             onChange={e => onChange(e.target.value)}
           />
@@ -289,27 +299,71 @@ export function QueryableComboBox({
     return `${selectedItems.length} selected`;
   };
 
-  const isSelected = (key: string) => {
-    return key in selectedQueryables;
-  };
+  const queryableOptions = useMemo<IQueryableOption[]>(
+    () =>
+      queryables.map(([key, schema]) => ({
+        value: key,
+        label: schema.title || key,
+        schema,
+      })),
+    [queryables],
+  );
 
-  const items = queryables.map(([key, val]) => ({
-    value: key,
-    label: val.title || key,
-    selected: isSelected(key),
-    showCheckIcon: true,
-    onSelect: () => handleSelect(key, val),
-  }));
+  const selectedOptions = useMemo(
+    () => queryableOptions.filter(option => option.value in selectedQueryables),
+    [queryableOptions, selectedQueryables],
+  );
+
+  const handleComboboxValueChange = (newSelected: IQueryableOption[]) => {
+    const newKeys = new Set(newSelected.map(option => option.value));
+    const currentKeys = Object.keys(selectedQueryables);
+
+    for (const key of currentKeys) {
+      if (!newKeys.has(key)) {
+        const entry = queryables.find(([k]) => k === key);
+        if (entry) {
+          handleSelect(key, entry[1]);
+        }
+      }
+    }
+
+    for (const option of newSelected) {
+      if (!(option.value in selectedQueryables)) {
+        handleSelect(option.value, option.schema);
+      }
+    }
+  };
 
   return (
     <div className="jgis-queryable-combo-container">
       <Combobox
-        items={items}
-        buttonText={getButtonText()}
-        searchPlaceholder="Search queryable..."
-        emptyText="No queryable found."
-        buttonClassName="jgis-queryable-combo-button jgis-combobox-button--full-width"
-      />
+        items={queryableOptions}
+        multiple
+        value={selectedOptions}
+        onValueChange={handleComboboxValueChange}
+        isItemEqualToValue={(a, b) => a.value === b.value}
+      >
+        <ComboboxTrigger
+          className={'border-input'}
+          render={<Button variant="outline" className="justify-between" />}
+        >
+          <span className="truncate">{getButtonText()}</span>
+        </ComboboxTrigger>
+        <ComboboxContent className="min-w-(--anchor-width)!">
+          <ComboboxInput
+            placeholder="Search queryable..."
+            showTrigger={false}
+          />
+          <ComboboxEmpty>No queryable found.</ComboboxEmpty>
+          <ComboboxList>
+            {(option: IQueryableOption) => (
+              <ComboboxItem key={option.value} value={option}>
+                {option.label}
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
       <div className="jgis-queryable-rows-container">
         {selectedItems.map(([key, val]) => {
           const operators = getOperatorsForType(val.type, val.format);

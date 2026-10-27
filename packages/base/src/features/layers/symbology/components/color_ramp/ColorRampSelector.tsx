@@ -38,6 +38,10 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   colorMaps: propColorMaps,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  // A ref rather than a DOM id: several selectors can be mounted at once (one
+  // per mapping card), and a shared id meant they all drew onto the first
+  // selector's canvas.
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [colorMaps, setColorMaps] = useState<IColorMap[]>([]);
   const canvasWidth = 512;
@@ -78,7 +82,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
 
   const updateCanvas = (rampName: string) => {
     // update canvas for displayed color map
-    const canvas = document.getElementById('cv') as HTMLCanvasElement;
+    const canvas = canvasRef.current;
     if (!canvas) {
       return;
     }
@@ -118,7 +122,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
         <div className="jp-gis-color-ramp-entry jp-gis-selected-entry">
           <span className="jp-gis-color-label">{selectedRamp}</span>
           <canvas
-            id="cv"
+            ref={canvasRef}
             className="jp-gis-color-canvas-display"
             width={canvasWidth}
             height={canvasHeight}
@@ -128,9 +132,9 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
       <div
         className={`jp-gis-color-ramp-dropdown ${isOpen ? 'jp-gis-open' : ''}`}
       >
-        {colorMaps.map((item, index) => (
+        {colorMaps.map(item => (
           <ColorRampSelectorEntry
-            index={index}
+            key={item.name}
             colorMap={item}
             onClick={selectItem}
           />

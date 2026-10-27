@@ -10,6 +10,7 @@ export * from './model';
 export * from './token';
 export type * from './types';
 export * from './doc';
+export * from './featureStores';
 export { SCHEMA_VERSION } from './_interface/version';
 export {
   ProcessingMerge,

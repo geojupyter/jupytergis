@@ -1,47 +1,43 @@
+import type { IJupyterGISModel } from '@jupytergis/schema';
 import React from 'react';
 
-const DRAW_GEOMETRIES = ['Point', 'LineString', 'Polygon'] as const;
+import { DrawCustomAttributesFollowMirror } from '@/src/features/labels/components/DrawCustomAttributesFollowMirror';
+import { FollowableDrawControls } from '@/src/features/labels/components/FollowableDrawControls';
 
 export interface IMainViewOverlayLayerProps {
   annotationFloaters: React.ReactNode;
   featureFloaters: React.ReactNode;
-  editingVectorLayer: boolean;
+  isDrawing: boolean;
   drawGeometryLabel: string | undefined;
-  onDrawGeometryTypeChange: (
-    event: React.ChangeEvent<HTMLSelectElement>,
-  ) => void;
+  onDrawGeometryTypeChange: (geometryType: string) => void;
+  onToggleDeleteMode: () => void;
+  model: IJupyterGISModel;
+  drawLayerId?: string;
 }
 
 export function MainViewOverlayLayer({
   annotationFloaters,
   featureFloaters,
-  editingVectorLayer,
+  isDrawing,
   drawGeometryLabel,
   onDrawGeometryTypeChange,
+  onToggleDeleteMode,
+  model,
+  drawLayerId,
 }: IMainViewOverlayLayerProps): JSX.Element {
   return (
     <>
       {annotationFloaters}
       {featureFloaters}
-      {editingVectorLayer ? (
-        <div className="jgis-geometry-type-selector-overlay">
-          <select
-            className="geometry-type-selector"
-            id="geometry-type-selector"
-            value={drawGeometryLabel ?? ''}
-            onChange={onDrawGeometryTypeChange}
-          >
-            <option value="" disabled hidden>
-              Geometry type
-            </option>
-            {DRAW_GEOMETRIES.map(geometryType => (
-              <option key={geometryType} value={geometryType}>
-                {geometryType}
-              </option>
-            ))}
-          </select>
-        </div>
-      ) : null}
+      <FollowableDrawControls
+        model={model}
+        isDrawing={isDrawing}
+        drawGeometryLabel={drawGeometryLabel}
+        drawLayerId={drawLayerId}
+        onDrawGeometryTypeChange={onDrawGeometryTypeChange}
+        onToggleDeleteMode={onToggleDeleteMode}
+      />
+      <DrawCustomAttributesFollowMirror model={model} />
     </>
   );
 }

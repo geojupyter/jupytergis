@@ -1,0 +1,342 @@
+/**
+ * Grammar → OL layer compiler.
+ *
+ * grammarToOLLayer compiles an IGrammarSymbologyState into a single OL layer:
+ *
+ *   • one non-KDE grammar layer  → VectorImageLayer
+ *   • one KDE grammar layer      → HeatmapLayer
+ *   • multiple grammar layers    → LayerGroup containing the above
+ *
+ * All multi-layer and transform decisions are encapsulated here; callers
+ * treat the result as an opaque OL Layer.
+ */
+
+import {
+  IEncodingRule,
+  IGrammarLayer,
+  IGrammarSymbologyState,
+  IJGISLayer,
+  IKDETransform,
+} from '@jupytergis/schema';
+import {
+  Heatmap as HeatmapLayer,
+  Layer,
+  VectorImage as VectorImageLayer,
+  WebGLTile as WebGLTileLayer,
+} from 'ol/layer';
+import LayerGroup from 'ol/layer/Group';
+import { Vector as VectorSource } from 'ol/source';
+import { Rule } from 'ol/style/flat';
+
+import { getColorMap } from '@/src/features/layers/symbology/colorRampUtils';
+import { DEFAULT_FLAT_STYLE } from '@/src/features/layers/symbology/styleBuilder';
+import { grammarToOLStyle } from './grammarToOLStyle';
+
+// Default OL heatmap gradient (cool → warm).
+const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/**
+ * Compile a Grammar symbology state into a single OL layer.
+ *
+ * Raster layers (GeoTiff/GeoZarr): each grammar layer → WebGLTile (pixel-color
+ *   encoding → color style), band_N fields → ['band', N] expressions.
+ * Any other layer: non-KDE → VectorImageLayer, KDE → HeatmapLayer.
+ *
+ * When the state contains multiple grammar layers a LayerGroup is returned;
+ * otherwise the appropriate single layer type is returned directly.
+ *
+ * `layerId` is the OL declutter group every compiled sub-layer joins when the
+ * layer has declutter on. OL reads any truthy value as a group *name*, hence
+ * the layer id rather than `true`, which would pool every decluttered layer in
+ * the map into one group and make them hide each other's symbols.
+ */
+export function grammarToOLLayer({
+  layer,
+  layerId,
+  source,
+  featureValues = [],
+  className,
+}: {
+  layer: IJGISLayer;
+  layerId: string;
+  source: VectorSource | any;
+  featureValues?: unknown[];
+  className?: string;
+}): Layer | LayerGroup {
+  const parameters = layer.parameters ?? {};
+  const state = (parameters.symbologyState ?? {}) as IGrammarSymbologyState;
+  const opacity = parameters.opacity ?? 1;
+  const visible = layer.visible ?? true;
+  const isRaster =
+    layer.type === 'GeoTiffLayer' || layer.type === 'GeoZarrLayer';
+  const declutter = parameters.declutter ? layerId : false;
+  const grammarLayers = state.layers ?? [];
+
+  if (isRaster) {
+    const subLayers = grammarLayers.map(grammarLayer =>
+      compileRasterLayer(
+        grammarLayer,
+        source,
+        opacity,
+        visible,
+        featureValues,
+        className,
+      ),
+    );
+    if (subLayers.length === 1) {
+      return subLayers[0];
+    }
+    // Empty or multi-layer: wrap in a group (empty group renders nothing).
+    // OL renders the last array entry on top, but the UI lists grammar
+    // layers top-to-bottom with "top of the list" meaning "on top of the
+    // map" (matching the regular layer panel), so reverse before grouping.
+    return new LayerGroup({
+      opacity,
+      visible,
+      layers: [...subLayers].reverse(),
+    });
+  }
+
+  if (grammarLayers.length === 0) {
+    // No grammar layers defined yet — return an empty vector layer so the map
+    // has a valid layer object to call setVisible/setOpacity on.
+    return new VectorImageLayer({ opacity, visible, source, className });
+  }
+
+  const subLayers = grammarLayers.map(grammarLayer =>
+    compileGrammarLayer(
+      grammarLayer,
+      source,
+      opacity,
+      visible,
+      featureValues,
+      className,
+      declutter,
+    ),
+  );
+
+  if (subLayers.length === 1) {
+    return subLayers[0];
+  }
+
+  // OL renders the last array entry on top, but the UI lists grammar layers
+  // top-to-bottom with "top of the list" meaning "on top of the map"
+  // (matching the regular layer panel), so reverse before grouping.
+  return new LayerGroup({ opacity, visible, layers: [...subLayers].reverse() });
+}
+
+// ---------------------------------------------------------------------------
+// Per grammar-layer compilation
+// ---------------------------------------------------------------------------
+
+function compileGrammarLayer(
+  grammarLayer: IGrammarLayer,
+  source: VectorSource,
+  opacity: number,
+  visible: boolean,
+  featureValues: unknown[],
+  className: string | undefined,
+  declutter: string | false,
+): VectorImageLayer | HeatmapLayer {
+  const kdeTransform = grammarLayer.preprocess?.find(
+    (t): t is IKDETransform => t.type === 'kde',
+  );
+
+  if (kdeTransform) {
+    return compileKDELayer(
+      grammarLayer,
+      kdeTransform,
+      source,
+      opacity,
+      visible,
+      className,
+    );
+  }
+
+  return compileVectorLayer(
+    grammarLayer,
+    source,
+    opacity,
+    visible,
+    featureValues,
+    className,
+    declutter,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Raster → WebGLTileLayer
+// ---------------------------------------------------------------------------
+
+/**
+ * Compile a single Grammar layer to an OL WebGLTile layer.
+ * The pixel-color encoding of the compiled style becomes the WebGL tile
+ * `color` expression. band_N fields compile to ['band', N] in the style
+ * compiler; normalized GeoTIFF bands cover [0, 1] so featureValues [0, 1]
+ * produces sensible colorRamp stops by default.
+ */
+function compileRasterLayer(
+  grammarLayer: IGrammarLayer,
+  source: any,
+  opacity: number,
+  visible: boolean,
+  featureValues: unknown[],
+  className?: string,
+): WebGLTileLayer {
+  const singleLayerState: IGrammarSymbologyState = {
+    layers: [grammarLayer],
+  };
+  // Use [0, 1] as fallback values so colorRamp stops span the normalized
+  // band range when no explicit featureValues are provided.
+  const values = featureValues.length > 0 ? featureValues : [0, 1];
+  const flatStyle = grammarToOLStyle(singleLayerState, values);
+  const colorExpr = flatStyle['pixel-color'];
+  const bandCount = source.bandCount;
+
+  if (!Array.isArray(colorExpr)) {
+    // No symbology → return raw raster layer (no style)
+    return new WebGLTileLayer({
+      opacity,
+      visible,
+      source,
+      className,
+    });
+  }
+
+  // Apply alpha masking to the raster
+  const finalExpr = [
+    'case',
+    ['==', ['band', bandCount], 0],
+    ['color', 0, 0, 0, 0],
+    colorExpr,
+  ];
+
+  return new WebGLTileLayer({
+    opacity,
+    visible,
+    source,
+    style: { color: finalExpr },
+    className,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// KDE → HeatmapLayer
+// ---------------------------------------------------------------------------
+
+function compileKDELayer(
+  grammarLayer: IGrammarLayer,
+  kdeTransform: IKDETransform,
+  source: VectorSource,
+  opacity: number,
+  visible: boolean,
+  className?: string,
+): HeatmapLayer {
+  const gradient = extractGradient(grammarLayer.rules) ?? DEFAULT_GRADIENT;
+  const { weightField } = kdeTransform;
+
+  return new HeatmapLayer({
+    opacity,
+    visible,
+    source,
+    className,
+    blur: kdeTransform.blur ?? 15,
+    radius: kdeTransform.radius ?? 10,
+    gradient,
+    ...(weightField
+      ? {
+          weight: (feature: any) => {
+            const val = feature.get(weightField);
+            return typeof val === 'number' && isFinite(val) ? val : 1;
+          },
+        }
+      : {}),
+  });
+}
+
+/**
+ * Look for a pixel-color colorRamp mapping in the rules and convert it to an
+ * OL HeatmapLayer gradient string array.  Returns undefined when absent.
+ */
+function extractGradient(rules: IEncodingRule[]): string[] | undefined {
+  for (const rule of rules) {
+    for (const mapping of rule.mappings) {
+      const isPixelEncoding = (mapping.encodings as string[]).some(
+        ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
+      );
+      if (!isPixelEncoding || mapping.scale.scheme !== 'colorMap') {
+        continue;
+      }
+
+      // Prefer explicit colorStops when present (e.g. a heatmap round-tripped
+      // through QGIS, which stores the gradient as stops rather than a named
+      // ramp). Without this the unknown name falls through to DEFAULT_GRADIENT
+      // (a blue→red ramp), so a viridis heatmap would render with a red core.
+      const colorStops = (mapping.scale.params as any).colorStops as
+        | { stop: number; color: [number, number, number, number] }[]
+        | undefined;
+      if (Array.isArray(colorStops) && colorStops.length > 0) {
+        const stops = [...colorStops].sort((a, b) => a.stop - b.stop);
+        const gradient = stops.map(({ color: [r, g, b, a = 1] }) => {
+          return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`;
+        });
+        return mapping.scale.params.reverse
+          ? [...gradient].reverse()
+          : gradient;
+      }
+
+      const colorMap = getColorMap(mapping.scale.params.name as any);
+      if (!colorMap || colorMap.colors.length === 0) {
+        continue;
+      }
+
+      // Sample 5 evenly spaced stops from the 255-entry color array.
+      const n = 5;
+      const colors = colorMap.colors;
+      const step = (colors.length - 1) / (n - 1);
+      const gradient = Array.from(
+        { length: n },
+        (_, i) => colors[Math.round(i * step)],
+      );
+      return mapping.scale.params.reverse ? [...gradient].reverse() : gradient;
+    }
+  }
+  return undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Non-KDE → VectorImageLayer
+// ---------------------------------------------------------------------------
+
+function compileVectorLayer(
+  grammarLayer: IGrammarLayer,
+  source: VectorSource,
+  opacity: number,
+  visible: boolean,
+  featureValues: unknown[],
+  className: string | undefined,
+  declutter: string | false,
+): VectorImageLayer {
+  const singleLayerState: IGrammarSymbologyState = {
+    layers: [grammarLayer],
+  };
+  const flatStyle = grammarToOLStyle(singleLayerState, featureValues);
+  // If no rules produced output (e.g. empty rules list or all expressions dropped),
+  // fall back to the default style so the layer is visible rather than invisible.
+  const style =
+    Object.keys(flatStyle).length === 0 ? DEFAULT_FLAT_STYLE : flatStyle;
+  const rule: Rule = { style };
+
+  return new VectorImageLayer({
+    opacity,
+    visible,
+    source,
+    style: [rule],
+    declutter,
+    className,
+  });
+}

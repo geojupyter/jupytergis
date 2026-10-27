@@ -6,7 +6,7 @@
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "default": "0.6.0"
+      "default": "0.7.0"
     },
     "layers": {
       "$ref": "#/definitions/jGISLayers"
@@ -29,6 +29,9 @@
     "annotations": {
       "$ref": "#/definitions/jGISAnnotations"
     },
+    "presets": {
+      "$ref": "#/definitions/jGISDrawCustomAttributePresets"
+    },
     "metadata": {
       "$ref": "#/definitions/jGISMetadata"
     }
@@ -46,7 +49,8 @@
         "ImageLayer",
         "StacLayer",
         "StorySegmentLayer",
-        "OpenEOTileLayer"
+        "OpenEOTileLayer",
+        "TerrainLayer"
       ]
     },
     "sourceType": {
@@ -64,6 +68,7 @@
         "GeoPackageVectorSource",
         "GeoPackageRasterSource",
         "GeoParquetSource",
+        "FeatureStoreSource",
         "MarkerSource",
         "OpenEOTileSource"
       ]
@@ -158,7 +163,7 @@
         "storyType": {
           "type": "string",
           "title": "Story Type",
-          "enum": ["guided", "unguided", "Vertical Scroll"],
+          "enum": ["guided", "Vertical Scroll"],
           "description": "The type of story map"
         },
         "storySegments": {
@@ -175,15 +180,33 @@
           "description": "Toggle the gradient background in presentation mode.",
           "default": true
         },
-        "presentationBgColor": {
-          "type": "string",
-          "title": "Presentation Background Color",
-          "description": "The background color of the story map"
+        "markdownSegmentGap": {
+          "type": "boolean",
+          "title": "Gap between markdown segments",
+          "description": "Inserts a full-stage gap between consecutive markdown segments in vertical scroll stories.",
+          "default": false
         },
-        "presentationTextColor": {
+        "markdownSegmentOpacity": {
+          "type": "number",
+          "title": "Markdown segment opacity",
+          "description": "Opacity of markdown segment backgrounds in vertical scroll stories.",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
+        "storyPanelOpacity": {
+          "type": "number",
+          "title": "Story panel opacity",
+          "description": "Opacity of story panel backgrounds over the map (0–1). Text stays fully opaque.",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 1
+        },
+        "overlayContentWidth": {
           "type": "string",
-          "title": "Presentation Text Color",
-          "description": "The text color of the story map"
+          "title": "Overlay content width",
+          "description": "CSS width for vertical-scroll markdown overlay content.",
+          "default": "100%"
         }
       }
     },
@@ -240,6 +263,12 @@
       "required": [],
       "additionalProperties": false,
       "properties": {
+        "mapAdapter": {
+          "type": "string",
+          "title": "IMapAdapterType",
+          "description": "The map adapter to use rendering the map.",
+          "enum": ["openlayers", "maplibre"]
+        },
         "latitude": {
           "type": "number",
           "default": 0
@@ -274,6 +303,31 @@
         "useExtent": {
           "type": "boolean",
           "default": false
+        },
+        "comparison": {
+          "$ref": "#/definitions/jGISComparison"
+        }
+      }
+    },
+    "jGISComparison": {
+      "title": "IJGISComparison",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "layers"],
+      "description": "Two layers compared in the map view instead of being stacked",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["swipe"]
+        },
+        "layers": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "The compared layer ids; the second one is revealed on the right of the divider",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -383,16 +437,39 @@
         "$ref": "#/definitions/jGISAnnotation"
       }
     },
+    "jGISDrawCustomAttribute": {
+      "title": "IDrawCustomAttribute",
+      "type": "object",
+      "required": ["key", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      }
+    },
+    "jGISDrawCustomAttributePreset": {
+      "title": "IDrawCustomAttributePreset",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/jGISDrawCustomAttribute"
+      }
+    },
+    "jGISDrawCustomAttributePresets": {
+      "title": "IDrawCustomAttributePresets",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/jGISDrawCustomAttributePreset"
+      }
+    },
     "jGISMetadata": {
       "title": "IJGISMetadata",
       "type": "object",
       "default": {},
-      "additionalProperties": false,
-      "patternProperties": {
-        "^.*$": {
-          "type": "string"
-        }
-      }
+      "additionalProperties": { "type": "string" }
     }
   }
 }

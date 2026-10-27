@@ -8,7 +8,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
-import type { PatchGeoJSONFeatureProperties } from '@/src/mainview/geoJsonFeaturePatch';
+import type { PatchGeoJSONFeatureAttributes } from '@/src/mainview/geoJsonFeaturePatch';
 import { LeftPanel, MergedPanel, RightPanel } from '@/src/workspace/panels';
 
 export interface IMainViewSidePanelsProps {
@@ -19,7 +19,7 @@ export interface IMainViewSidePanelsProps {
   state?: IStateDB;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
   annotationModel?: IAnnotationModel;
-  patchGeoJSONFeatureProperties: PatchGeoJSONFeatureProperties;
+  patchGeoJSONFeatureAttributes: PatchGeoJSONFeatureAttributes;
 }
 
 export function MainViewSidePanels({
@@ -30,7 +30,7 @@ export function MainViewSidePanels({
   state,
   formSchemaRegistry,
   annotationModel,
-  patchGeoJSONFeatureProperties,
+  patchGeoJSONFeatureAttributes,
 }: IMainViewSidePanelsProps): JSX.Element {
   if (showMergedMobilePanel) {
     return (
@@ -62,7 +62,7 @@ export function MainViewSidePanels({
           formSchemaRegistry={formSchemaRegistry}
           annotationModel={annotationModel}
           settings={settings}
-          patchGeoJSONFeatureProperties={patchGeoJSONFeatureProperties}
+          patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}
         />
       ) : null}
     </>

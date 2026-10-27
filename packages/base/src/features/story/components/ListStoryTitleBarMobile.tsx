@@ -1,6 +1,7 @@
 import { Menu } from 'lucide-react';
 import React, { useRef, useState } from 'react';
 
+import { ListStoryTitleBarSegmentButton } from '@/src/features/story/components/ListStoryTitleBarSegmentButton';
 import type {
   IListStoryTitleBarContentProps,
   IStorySegmentViewItem,
@@ -47,6 +48,7 @@ export function ListStoryTitleBarMobile({
   const activeSegment =
     currentPosition >= 0 ? segmentItems[currentPosition] : undefined;
 
+  const navRef = useRef<HTMLElement>(null);
   const prevSegmentIdRef = useRef<string | undefined>(undefined);
   const slideDirectionRef = useRef<SlideDirection | undefined>(undefined);
   const activeSegmentId = activeSegment?.id;
@@ -67,38 +69,40 @@ export function ListStoryTitleBarMobile({
 
   return (
     <nav
+      ref={navRef}
       className="jgis-story-title-bar jgis-story-title-bar--mobile"
       aria-label="Story segments"
     >
       <Popover open={menuOpen} onOpenChange={setMenuOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            className="jgis-story-title-bar-menu-btn"
-            aria-label="Open story menu"
-          >
-            <Menu />
-          </Button>
-        </PopoverTrigger>
+        <PopoverTrigger
+          render={
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="jgis-story-title-bar-menu-btn"
+              aria-label="Open story menu"
+            >
+              <Menu />
+            </Button>
+          }
+        />
         <PopoverContent
+          anchor={navRef}
           align="center"
           side="bottom"
-          className="jgis-story-title-bar-segment-menu"
+          className="max-h-64 w-[calc(100vw-1rem)] max-w-sm items-center gap-1 overflow-y-auto"
         >
           {segmentItems.map(item => {
             const isActive = item.index === currentIndex;
             return (
-              <button
+              <ListStoryTitleBarSegmentButton
                 key={item.id}
-                type="button"
-                className="jgis-underline-indicator jgis-story-title-bar-label jgis-story-title-bar-segment-menu-item"
-                data-state={isActive ? 'active' : 'inactive'}
-                aria-current={isActive ? 'true' : undefined}
+                label={item.layerName}
+                isActive={isActive}
+                // className="jgis-story-title-bar-segment-menu-item"
                 onClick={() => handleMenuSegmentClick(item.index)}
-              >
-                {item.layerName}
-              </button>
+              />
             );
           })}
         </PopoverContent>
@@ -106,7 +110,7 @@ export function ListStoryTitleBarMobile({
       <span
         key={activeSegment?.id}
         className="jgis-underline-indicator jgis-story-title-bar-active-segment"
-        data-state="active"
+        data-active
         data-slide-direction={slideDirectionRef.current}
       >
         {activeSegment?.layerName ?? ''}

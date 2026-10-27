@@ -1,34 +1,15 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 
 import {
-  connect as openEOConnect,
+  openEOConnect,
   IOpenEOConnectionInfo,
   listOpenEOConnections,
 } from './OpenEOTileLayer';
 import { showAddOpenEOLayerDialog } from './addLayerDialog';
 
 /**
- * Find the id of the OpenEO layer that references the given source.
- */
-export function findOpenEOLayerIdForSource(
-  model: IJupyterGISModel,
-  sourceId: string,
-): string | undefined {
-  const layers = model.sharedModel.layers ?? {};
-  for (const [id, layer] of Object.entries(layers)) {
-    if (
-      layer?.type === 'OpenEOTileLayer' &&
-      (layer.parameters?.source as string | undefined) === sourceId
-    ) {
-      return id;
-    }
-  }
-  return undefined;
-}
-
-/**
  * Open the process-graph editor for an existing OpenEO layer and persist
- * the result. Shared by the command and the Source Properties button.
+ * the result.
  *
  * @param model - the active document model
  * @param layerId - the OpenEO layer to edit
@@ -48,7 +29,6 @@ export async function editOpenEOLayer(
   const source = model.getSource(sourceId);
   const sourceParams = (source?.parameters ?? {}) as {
     serverUrl?: string;
-    authBearer?: string;
     processGraph?: Record<string, any>;
   };
   // Reconnect to the layer's server before editing. `connect` reuses the
@@ -57,13 +37,13 @@ export async function editOpenEOLayer(
   // of prompting the user again.
   const connectionInfo: IOpenEOConnectionInfo = {
     url: sourceParams.serverUrl,
-    authBearer: sourceParams.authBearer,
   };
   try {
     await openEOConnect(connectionInfo);
   } catch {
     return;
   }
+  const viewOptions = model.getOptions();
   const result = await showAddOpenEOLayerDialog({
     title: 'Edit OpenEO Layer',
     okLabel: 'Save',
@@ -71,17 +51,21 @@ export async function editOpenEOLayer(
     knownServers: listOpenEOConnections(),
     initialGraph: sourceParams.processGraph,
     layerName: layer.name,
+    mapView: {
+      latitude: viewOptions.latitude,
+      longitude: viewOptions.longitude,
+      zoom: viewOptions.zoom,
+    },
   });
   if (!result) {
     return;
   }
   if (source) {
+    // Dropping the tileServiceURL, which needs to be recomputed
     model.sharedModel.updateSource(sourceId, {
       ...source,
       parameters: {
-        ...source.parameters,
         serverUrl: result.serverUrl,
-        authBearer: result.authBearer,
         processGraph: result.processGraph,
       },
     });

@@ -10,12 +10,18 @@ export const symbology = 'jupytergis:symbology';
 export const identify = 'jupytergis:identify';
 export const temporalController = 'jupytergis:temporalController';
 export const addMarker = 'jupytergis:addMarker';
+export const foldFeatureStore = 'jupytergis:foldFeatureStore';
+export const openNewFeatureStoreDialog = 'jupytergis:openNewFeatureStoreDialog';
 
 // geolocation
 export const getGeolocation = 'jupytergis:getGeolocation';
+export const toggleLocationIndicator = 'jupytergis:toggleLocationIndicator';
 
 // Layers and sources creation commands
 export const openLayerBrowser = 'jupytergis:openLayerBrowser';
+
+// Map renderer
+export const openMapRendererDialog = 'jupytergis:openMapRendererDialog';
 
 // Layer and source
 export const openNewRasterDialog = 'jupytergis:openNewRasterDialog';
@@ -24,6 +30,7 @@ export const openNewVectorTileDialog = 'jupytergis:openNewVectorTileDialog';
 export const openNewShapefileDialog = 'jupytergis:openNewShapefileDialog';
 export const openNewGeoJSONDialog = 'jupytergis:openNewGeoJSONDialog';
 export const openNewHillshadeDialog = 'jupytergis:openNewHillshadeDialog';
+export const openNewTerrainDialog = 'jupytergis:openNewTerrainDialog';
 export const openNewImageDialog = 'jupytergis:openNewImageDialog';
 export const openNewGeoTiffDialog = 'jupytergis:openNewGeoTiffDialog';
 export const openNewGeoZarrDialog = 'jupytergis:openNewGeoZarrDialog';
@@ -31,15 +38,24 @@ export const openNewGeoParquetDialog = 'jupytergis:openNewGeoParquetDialog';
 export const newGeoPackageRasterEntry = 'jupytergis:newGeoPackageRasterEntry';
 export const newGeoPackageVectorEntry = 'jupytergis:newGeoPackageVectorEntry';
 export const openNewOpenEODialog = 'jupytergis:openNewOpenEODialog';
-export const toggleDrawFeatures = 'jupytergis:toggleDrawFeatures';
+export const drawFeaturesOnSelectedLayer =
+  'jupytergis:drawFeaturesOnSelectedLayer';
+export const drawFeaturesOnNewLayer = 'jupytergis:drawFeaturesOnNewLayer';
+export const deleteSelectedFeatures = 'jupytergis:deleteSelectedFeatures';
+export const deleteSelection = 'jupytergis:deleteSelection';
+export const editSelectedFeature = 'jupytergis:editSelectedFeature';
 
 // Layer and group actions
+export const showLayerPropertiesDialog = 'jupytergis:showLayerPropertiesDialog';
+export const showLayerMetadata = 'jupytergis:showLayerMetadata';
 export const renameSelected = 'jupytergis:renameSelected';
 export const removeSelected = 'jupytergis:removeSelected';
 export const editOpenEOLayer = 'jupytergis:editOpenEOLayer';
 export const duplicateSelected = 'jupytergis:duplicateSelected';
 export const moveSelectedToGroup = 'jupytergis:moveSelectedToGroup';
 export const moveSelectedToNewGroup = 'jupytergis:moveSelectedToNewGroup';
+export const compareLayers = 'jupytergis:compareLayers';
+export const stopComparing = 'jupytergis:stopComparing';
 
 // Console commands
 export const toggleConsole = 'jupytergis:toggleConsole';
@@ -48,10 +64,13 @@ export const removeConsole = 'jupytergis:removeConsole';
 export const executeConsole = 'jupytergis:executeConsole';
 export const selectCompleter = 'jupytergis:selectConsoleCompleter';
 
+// Tour command
+export const launchFeatureTour = 'jupytergis:launchFeatureTour';
+
 // Map Commands
 export const addAnnotation = 'jupytergis:addAnnotation';
 export const zoomToLayer = 'jupytergis:zoomToLayer';
-export const downloadGeoJSON = 'jupytergis:downloadGeoJSON';
+export const exportGeoJSON = 'jupytergis:exportGeoJSON';
 
 // Panel toggles
 export const toggleLeftPanel = 'jupytergis:toggleLeftPanel';
@@ -63,12 +82,15 @@ export const showLayersTab = 'jupytergis:showLayersTab';
 export const showStacBrowserTab = 'jupytergis:showStacBrowserTab';
 
 // Right panel tabs
-export const showObjectPropertiesTab = 'jupytergis:showObjectPropertiesTab';
 export const showAnnotationsTab = 'jupytergis:showAnnotationsTab';
 export const showIdentifyPanelTab = 'jupytergis:showIdentifyPanelTab';
 
 // Story maps
 export const addStorySegment = 'jupytergis:addStorySegment';
 export const openStoryEditor = 'jupytergis:openStoryEditor';
+export const copyStorySegment = 'jupytergis:copyStorySegment';
+export const pasteStorySegment = 'jupytergis:pasteStorySegment';
+export const duplicateStorySegment = 'jupytergis:duplicateStorySegment';
+export const removeStorySegment = 'jupytergis:removeStorySegment';
 export const storyPrev = 'jupytergis:storyPrev';
 export const storyNext = 'jupytergis:storyNext';

@@ -12,6 +12,7 @@ from jupyter_server.base.handlers import APIHandler
 from jupyter_server.utils import url_path_join
 from tornado.httpclient import AsyncHTTPClient, HTTPRequest, HTTPResponse
 
+from .postgis import get_postgis_url
 from .processing import (
     ALLOWED_OPERATIONS,
     gdal_available,
@@ -31,7 +32,7 @@ class ProxyConfig:
     rate_limit_requests: int
     rate_limit_window: int
     cors_origin: str
-    exempt_domains: set[str]
+    exempt_domains: str | set[str]
 
 
 def load_config() -> ProxyConfig:
@@ -76,7 +77,7 @@ class ProxyHandler(APIHandler):
     def initialize(self) -> None:
         """Initialize the handler with configuration and HTTP client."""
         self.proxy_config = load_config()
-        self._request_timestamps = []
+        self._request_timestamps: list[float] = []
         self.http_client = AsyncHTTPClient(
             defaults={
                 "connect_timeout": self.proxy_config.default_timeout,
@@ -115,6 +116,11 @@ class ProxyHandler(APIHandler):
     async def post(self) -> None:
         """Process POST requests with validation and error handling."""
         await self._handle_request("POST")
+
+    @tornado.web.authenticated
+    async def put(self) -> None:
+        """Process PUT requests with validation and error handling."""
+        await self._handle_request("PUT")
 
     def _parse_headers(self) -> dict[str, str]:
         """Parse and validate optional forwarded headers from the request.
@@ -173,6 +179,7 @@ class ProxyHandler(APIHandler):
             response = await self._make_request(url, method, body, extra_headers)
 
             # Forward response
+            self.set_status(response.code)
             self._set_response_headers(response)
             self.finish(response.body)
 
@@ -244,6 +251,12 @@ class ProxyHandler(APIHandler):
 
         """
         if method == "POST":
+            content_type = self.request.headers.get("Content-Type", "")
+            if content_type.startswith("application/x-www-form-urlencoded"):
+                if len(self.request.body) > self.proxy_config.max_body_size:
+                    raise ValidationError("Request body too large")
+                return self.request.body.decode("utf-8")
+
             try:
                 body = self.get_json_body()
                 if not body or not isinstance(body, dict):
@@ -292,22 +305,28 @@ class ProxyHandler(APIHandler):
             logger.info("validate_cert: %s", validate_cert)
 
             headers: dict[str, str] = {}
-            if body:
-                headers["Content-Type"] = "application/json"
-            if extra_headers:
-                headers.update(extra_headers)
+            for header in (
+                "Authorization",
+                "Cookie",
+                "Content-Type",
+                "Range",
+            ):
+                value = self.request.headers.get(header)
+                if value is not None:
+                    headers[header] = value
 
             request = HTTPRequest(
                 url=url,
                 method=method,
-                body=body,
+                body=None if self.request.method == "GET" else self.request.body,
                 headers=headers or None,
                 validate_cert=validate_cert,
                 allow_nonstandard_methods=False,
                 decompress_response=True,
+                follow_redirects=False,
             )
 
-            return await self.http_client.fetch(request)
+            return await self.http_client.fetch(request, raise_error=False)
 
         except tornado.httpclient.HTTPClientError as e:
             logger.error("Upstream error: %d %s", e.code, e.message)
@@ -335,6 +354,12 @@ class ProxyHandler(APIHandler):
             "Content-Type",
             response.headers.get("Content-Type", "application/json"),
         )
+        # openEO returns the id of a created job or service in a header, not
+        # in the body, and the client reads it from there.
+        for header in ("OpenEO-Identifier", "Location"):
+            value = response.headers.get(header)
+            if value is not None:
+                self.set_header(header, value)
 
     def _handle_error_response(self, error: Exception) -> None:
         """Standardized error response handling.
@@ -527,6 +552,144 @@ class ProcessingHandler(APIHandler):
         self.finish(json.dumps({"result": result_content, "format": result_format}))
 
 
+def get_tipg_url() -> str | None:
+    """Return tipg base URL from env (if set), without trailing slash."""
+    url = os.environ.get("JGIS_TIPG_URL")
+    if url is None:
+        return None
+    url = url.strip().rstrip("/")
+    return url or None
+
+
+async def refresh_tipg_catalog() -> bool:
+    """Ask tipg to re-scan PostGIS for collections (new jgis_store_* tables).
+
+    Requires tipg started with TIPG_DEBUG=true so ``GET /refresh`` exists.
+    Returns True on success; False if tipg is unset, unreachable, or refresh
+    is disabled (fold still succeeds — catalog may catch up via TTL).
+    """
+    tipg_base = get_tipg_url()
+    if not tipg_base:
+        return False
+
+    client = AsyncHTTPClient()
+    try:
+        response = await client.fetch(
+            HTTPRequest(
+                url=f"{tipg_base}/refresh",
+                method="GET",
+                request_timeout=60,
+            ),
+            raise_error=False,
+        )
+    except Exception:
+        logger.exception("tipg catalog refresh request failed")
+        return False
+
+    if response.code >= 400:
+        logger.warning(
+            "tipg catalog refresh returned %s (enable TIPG_DEBUG=true for /refresh)",
+            response.code,
+        )
+        return False
+
+    return True
+
+
+class TipgTilesHandler(APIHandler):
+    """Authenticated reverse proxy to tipg for collaborative baseline tiles.
+
+    Maps ``/jupytergis_core/tipg-featurestore-tiles/<path>`` -> ``$JGIS_TIPG_URL/<path>``.
+    """
+
+    _FORWARD_RESPONSE_HEADERS = (
+        "content-type",
+        "cache-control",
+        "etag",
+        "last-modified",
+    )
+
+    def initialize(self) -> None:
+        self.http_client = AsyncHTTPClient(
+            defaults={
+                "connect_timeout": 30,
+                "request_timeout": 60,
+                "max_body_size": 50 * 1024 * 1024,
+            },
+        )
+
+    @tornado.web.authenticated
+    async def get(self, path: str = "") -> None:
+        await self._proxy(path)
+
+    @tornado.web.authenticated
+    async def head(self, path: str = "") -> None:
+        await self._proxy(path, method="HEAD")
+
+    async def _proxy(self, path: str, method: str = "GET") -> None:
+        tipg_base = get_tipg_url()
+        if not tipg_base:
+            self.set_status(503)
+            self.set_header("Content-Type", "application/json")
+            self.finish(
+                json.dumps(
+                    {
+                        "error": "tipg is not configured on this server",
+                        "hint": "Set JGIS_TIPG_URL in server environment",
+                    },
+                ),
+            )
+            return
+
+        # Reject path traversal; tipg paths are collection/tile URLs only.
+        if ".." in path.split("/"):
+            self.set_status(400)
+            self.set_header("Content-Type", "application/json")
+            self.finish(json.dumps({"error": "Invalid path"}))
+            return
+
+        target = f"{tipg_base}/{path.lstrip('/')}"
+        if self.request.query:
+            target = f"{target}?{self.request.query}"
+
+        try:
+            response = await self.http_client.fetch(
+                HTTPRequest(
+                    url=target,
+                    method=method,
+                    headers={"Accept": self.request.headers.get("Accept", "*/*")},
+                    follow_redirects=False,
+                    decompress_response=True,
+                ),
+                raise_error=False,
+            )
+        except Exception:
+            logger.exception("tipg proxy request failed: %s", target)
+            self.set_status(502)
+            self.set_header("Content-Type", "application/json")
+            self.finish(json.dumps({"error": "Failed to reach tipg"}))
+            return
+
+        self.set_status(response.code)
+        for name in self._FORWARD_RESPONSE_HEADERS:
+            value = response.headers.get(name)
+            if value:
+                self.set_header(name, value)
+        if method == "HEAD":
+            self.finish()
+        else:
+            self.finish(response.body)
+
+
+class FeatureStoreCheckHandler(APIHandler):
+    """Return whether PostGIS and tipg are configured for feature stores."""
+
+    @tornado.web.authenticated
+    def post(self):
+        available = bool(get_postgis_url() and get_tipg_url())
+        self.finish(json.dumps({"available": available}))
+
+
 def setup_handlers(web_app: Any) -> None:
     """Register handlers with configuration validation.
 
@@ -542,17 +705,35 @@ def setup_handlers(web_app: Any) -> None:
 
     # Configure processing route
     processing_route = url_path_join(base_url, "jupytergis_core", "processing")
+    tiles_route = url_path_join(
+        base_url,
+        "jupytergis_core",
+        "tipg-featurestore-tiles",
+        r"(.*)",
+    )
+    feature_store_check_route = url_path_join(
+        base_url,
+        "jupytergis_core",
+        "feature-store-check",
+    )
 
     handlers = [
         (proxy_route, ProxyHandler),
         (processing_route, ProcessingHandler),
+        (tiles_route, TipgTilesHandler),
+        (feature_store_check_route, FeatureStoreCheckHandler),
     ]
 
     # Add feature flags
+    web_app.settings.setdefault("page_config_data", {})
     if os.environ.get("JGIS_EXPOSE_MAPS", False):
-        web_app.settings.setdefault("page_config_data", {})
         web_app.settings["page_config_data"]["jgis_expose_maps"] = True
 
     web_app.add_handlers(host_pattern, handlers)
     logger.info("JupyterGIS proxy endpoint initialized at: %s", proxy_route)
     logger.info("JupyterGIS processing endpoint initialized at: %s", processing_route)
+    logger.info("JupyterGIS tipg tiles proxy initialized at: %s", tiles_route)
+    logger.info(
+        "JupyterGIS feature store check initialized at: %s",
+        feature_store_check_route,
+    )

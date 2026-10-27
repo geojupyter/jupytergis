@@ -1,47 +1,42 @@
-import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
-import React, { createContext, useContext } from 'react';
+import type { IJupyterGISModel } from '@jupytergis/schema';
+import React, { memo } from 'react';
 
 import { RenderedStoryMarkdown } from '@/src/features/story/components/RenderedStoryMarkdown';
 
-const StoryRenderMimeContext = createContext<IRenderMimeRegistry | null>(null);
-
-interface IStoryRenderMimeProviderProps {
-  rendermime: IRenderMimeRegistry | null | undefined;
-  children: React.ReactNode;
-}
-
-export function StoryRenderMimeProvider({
-  rendermime,
-  children,
-}: IStoryRenderMimeProviderProps): JSX.Element {
-  return (
-    <StoryRenderMimeContext.Provider value={rendermime ?? null}>
-      {children}
-    </StoryRenderMimeContext.Provider>
-  );
-}
-
-function useStoryRenderMime(): IRenderMimeRegistry | null {
-  return useContext(StoryRenderMimeContext);
-}
-
 interface IListStoryOverlayMarkdownProps {
+  model: IJupyterGISModel;
+  segmentId: string;
   source: string;
   onRendered?: () => void;
 }
 
-/** Markdown body for a list-story stage overlay segment. */
-export function ListStoryOverlayMarkdown({
-  source,
-  onRendered,
-}: IListStoryOverlayMarkdownProps): JSX.Element | null {
-  const rendermime = useStoryRenderMime();
-
+function listStoryOverlayMarkdownPropsAreEqual(
+  prev: IListStoryOverlayMarkdownProps,
+  next: IListStoryOverlayMarkdownProps,
+): boolean {
   return (
-    <RenderedStoryMarkdown
-      rendermime={rendermime}
-      source={source}
-      onRendered={onRendered}
-    />
+    prev.model === next.model &&
+    prev.segmentId === next.segmentId &&
+    prev.source === next.source
   );
 }
+
+/** Markdown body for a list-story stage overlay segment. */
+export const ListStoryOverlayMarkdown = memo(
+  ({
+    model,
+    segmentId,
+    source,
+    onRendered,
+  }: IListStoryOverlayMarkdownProps): JSX.Element | null => {
+    return (
+      <RenderedStoryMarkdown
+        model={model}
+        segmentId={segmentId}
+        source={source}
+        onRendered={onRendered}
+      />
+    );
+  },
+  listStoryOverlayMarkdownPropsAreEqual,
+);

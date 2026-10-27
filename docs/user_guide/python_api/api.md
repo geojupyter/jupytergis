@@ -26,9 +26,6 @@
 .. autoclass:: VisualEncoding
     :members:
 
-.. autoclass:: VisualEncodings
-    :members:
-
 .. autoclass:: WhenBuilder
     :members:
 

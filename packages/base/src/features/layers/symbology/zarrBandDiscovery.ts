@@ -15,6 +15,10 @@ export interface IZarrStoreMetadata {
   resolutionLevels: string[];
   defaultResolution: string;
   hasGeospatialInfo: boolean;
+  /** Bounding box declared by the store, as `[minX, minY, maxX, maxY]`. */
+  bbox?: number[];
+  /** CRS the store declares its coordinates in, e.g. `EPSG:32631`. */
+  crsCode?: string;
 }
 
 /**
@@ -38,11 +42,15 @@ export async function analyzeZarrStore(
     defaultResolution = resolutionLevels[0] || 'r10m';
   }
 
+  const bbox = attrs['spatial:bbox'];
+
   return {
     isMultiscale,
     resolutionLevels,
     defaultResolution,
     hasGeospatialInfo: !!attrs['spatial:bbox'] || !!attrs['proj:code'],
+    bbox: Array.isArray(bbox) && bbox.length >= 4 ? bbox : undefined,
+    crsCode: attrs['proj:code'] || undefined,
   };
 }
 

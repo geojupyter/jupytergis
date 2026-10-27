@@ -1,3 +1,4 @@
+import { MenuSvg } from '@jupyterlab/ui-components';
 import { CommandRegistry } from '@lumino/commands';
 import { Menu } from '@lumino/widgets';
 
@@ -33,6 +34,11 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
+    command: CommandIDs.openNewFeatureStoreDialog,
+  });
+
+  subMenu.addItem({
+    type: 'command',
     command: CommandIDs.newGeoPackageVectorEntry,
   });
 
@@ -63,6 +69,11 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
+    command: CommandIDs.openNewTerrainDialog,
+  });
+
+  subMenu.addItem({
+    type: 'command',
     command: CommandIDs.openNewImageDialog,
   });
 
@@ -87,4 +98,20 @@ export const rasterSubMenu = (commands: CommandRegistry) => {
   });
 
   return subMenu;
+};
+
+export const drawFeaturesMenu = (commands: CommandRegistry) => {
+  const menu = new MenuSvg({ commands });
+
+  menu.addItem({
+    type: 'command',
+    command: CommandIDs.drawFeaturesOnSelectedLayer,
+  });
+
+  menu.addItem({
+    type: 'command',
+    command: CommandIDs.drawFeaturesOnNewLayer,
+  });
+
+  return menu;
 };

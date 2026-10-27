@@ -1,6 +1,7 @@
 import type { IJupyterGISModel, IStorySegmentLayer } from '@jupytergis/schema';
 
 import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
+import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 
 export function applySegmentLayerOverrides(
   model: IJupyterGISModel,
@@ -8,9 +9,15 @@ export function applySegmentLayerOverrides(
   entries: IOverrideLayerEntry[],
 ): void {
   const segment = model.getLayer(segmentId);
-  const layerOverrides = (
-    segment?.parameters as IStorySegmentLayer['parameters'] | undefined
-  )?.layerOverride;
+  const parameters = segment?.parameters as
+    | IStorySegmentLayer['parameters']
+    | undefined;
+
+  if (getSegmentDisplayMode(parameters) === 'markdown') {
+    return;
+  }
+
+  const layerOverrides = parameters?.layerOverride;
 
   if (!Array.isArray(layerOverrides)) {
     return;

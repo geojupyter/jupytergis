@@ -1,9 +1,11 @@
+import type { IJupyterGISModel } from '@jupytergis/schema';
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
 
 import { ListStoryOverlayMarkdown } from '@/src/features/story/components/ListStoryOverlayMarkdown';
 import { whenImagesSettled } from '@/src/features/story/utils/whenImagesSettled';
 
 interface IListStoryMarkdownMeasurePaneProps {
+  model: IJupyterGISModel;
   segmentId: string;
   markdown: string;
   onHeight: (segmentId: string, height: number) => void;
@@ -14,6 +16,7 @@ interface IListStoryMarkdownMeasurePaneProps {
  * Single off-screen pane matching overlay markdown layout for height measurement.
  */
 export function ListStoryMarkdownMeasurePane({
+  model,
   segmentId,
   markdown,
   onHeight,
@@ -102,6 +105,8 @@ export function ListStoryMarkdownMeasurePane({
       <div ref={contentRef}>
         {markdown ? (
           <ListStoryOverlayMarkdown
+            model={model}
+            segmentId={segmentId}
             source={markdown}
             onRendered={handleRendered}
           />

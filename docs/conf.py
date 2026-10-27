@@ -63,7 +63,7 @@ bibtex_bibfiles = [
 ]
 
 jupyterlite_contents = [
-    "../examples",
+    "../examples/*",
 ]
 jupyterlite_ignore_contents = [
     r"\.\./examples/tiler-.*",

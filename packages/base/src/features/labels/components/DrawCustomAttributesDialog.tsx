@@ -1,0 +1,423 @@
+import type { IJupyterGISModel } from '@jupytergis/schema';
+import {
+  Ban,
+  BookmarkPlus,
+  CirclePlus,
+  Pencil,
+  Save,
+  SlidersHorizontal,
+  Trash2,
+} from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+
+import { useDialogView } from '@/src/features/follow/useDialogView';
+import { DrawCustomAttributesPresetsMenu } from '@/src/features/labels/components/DrawCustomAttributesPresetsMenu';
+import { validatePresetName } from '@/src/features/labels/drawCustomAttributes';
+import { useDrawCustomAttributes } from '@/src/features/labels/hooks/useDrawCustomAttributes';
+import { Button } from '@/src/shared/components/Button';
+import {
+  CollapsibleContentAnimated,
+  Collapsible,
+} from '@/src/shared/components/Collapsible';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/src/shared/components/Dialog';
+import { Input } from '@/src/shared/components/Input';
+import { PropertyKeyValueFields } from '@/src/shared/components/PropertyKeyValueFields';
+
+interface IDrawCustomAttributeDraftRowProps {
+  draftKey: string;
+  draftValue: string;
+  onDraftKeyChange: (value: string) => void;
+  onDraftValueChange: (value: string) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  canSave: boolean;
+  readOnly?: boolean;
+}
+
+function DrawCustomAttributeDraftRow({
+  draftKey,
+  draftValue,
+  onDraftKeyChange,
+  onDraftValueChange,
+  onSave,
+  onCancel,
+  canSave,
+  readOnly = false,
+}: IDrawCustomAttributeDraftRowProps): JSX.Element {
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ): void => {
+    if (event.key !== 'Enter') {
+      return;
+    }
+
+    event.preventDefault();
+    event.currentTarget.blur();
+    if (canSave) {
+      onSave();
+    }
+  };
+
+  return (
+    <div className="jgis-attribute-row jgis-attribute-row-editor">
+      <PropertyKeyValueFields
+        propertyKey={draftKey}
+        propertyValue={draftValue}
+        onPropertyKeyChange={onDraftKeyChange}
+        onPropertyValueChange={onDraftValueChange}
+        onKeyDown={handleKeyDown}
+        disabled={readOnly}
+      />
+      <div className="inline-flex gap-0">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          title="Save"
+          onClick={onSave}
+          disabled={!canSave || readOnly}
+        >
+          <Save />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          title="Cancel"
+          onClick={onCancel}
+          disabled={readOnly}
+          className="text-destructive"
+        >
+          <Ban />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+interface IDrawCustomAttributesDialogProps {
+  model: IJupyterGISModel;
+  drawLayerId: string;
+  disabled?: boolean;
+}
+
+export const DRAW_CUSTOM_ATTRIBUTES_DIALOG_KIND = 'drawCustomAttributes';
+
+export function DrawCustomAttributesDialog({
+  model,
+  drawLayerId,
+  disabled = false,
+}: IDrawCustomAttributesDialogProps): JSX.Element {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const emitter = model.getClientId().toString();
+    model.syncOpenDialog(
+      {
+        kind: DRAW_CUSTOM_ATTRIBUTES_DIALOG_KIND,
+        params: { layerId: drawLayerId },
+      },
+      emitter,
+    );
+
+    return () => {
+      // Only drop the descriptor if it is still ours, so closing this dialog
+      // never hides one that opened after it.
+      if (
+        model.localState?.openDialog?.value?.kind ===
+        DRAW_CUSTOM_ATTRIBUTES_DIALOG_KIND
+      ) {
+        model.syncOpenDialog(null, emitter);
+      }
+    };
+  }, [model, drawLayerId, open]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={
+          <Button
+            variant={'outline'}
+            size={'sm'}
+            className={'rounded-[0.5rem]'}
+            disabled={disabled}
+          >
+            <SlidersHorizontal data-icon="inline-start" />
+            Edit
+          </Button>
+        }
+      />
+      <DialogContent>
+        <DrawCustomAttributesDialogContent
+          model={model}
+          layerId={drawLayerId}
+        />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface IDrawCustomAttributesDialogContentProps {
+  model: IJupyterGISModel;
+  layerId: string;
+  readOnly?: boolean;
+}
+
+export function DrawCustomAttributesDialogContent({
+  model,
+  layerId,
+  readOnly = false,
+}: IDrawCustomAttributesDialogContentProps): JSX.Element {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const {
+    attributes,
+    presets,
+    presetNames,
+    draftMode,
+    editingIndex,
+    draftKey,
+    draftValue,
+    draftError,
+    setDraftKey,
+    setDraftValue,
+    startAdd,
+    startEdit,
+    saveDraft,
+    cancelDraft,
+    removeAttribute,
+    loadPreset,
+    savePreset,
+    canAdd,
+    canSaveDraft,
+    canSavePreset,
+  } = useDrawCustomAttributes(model, layerId);
+
+  useDialogView(model, contentRef, DRAW_CUSTOM_ATTRIBUTES_DIALOG_KIND);
+
+  const [savingPreset, setSavingPreset] = useState(false);
+  const [presetName, setPresetName] = useState('');
+  const [presetNameError, setPresetNameError] = useState<string | null>(null);
+
+  const controlsDisabled = readOnly || draftMode !== null || savingPreset;
+  const isPresetNameValid = validatePresetName(presetName).valid;
+
+  const resetPresetDraft = (): void => {
+    setSavingPreset(false);
+    setPresetName('');
+    setPresetNameError(null);
+  };
+
+  const handlePresetNameChange = (value: string): void => {
+    setPresetName(value);
+    const validation = validatePresetName(value);
+    setPresetNameError(validation.valid ? null : (validation.error ?? null));
+  };
+
+  const handleSavePreset = (name: string = presetName): void => {
+    const trimmedName = name.trim();
+    if (!validatePresetName(trimmedName).valid) {
+      return;
+    }
+
+    if (trimmedName in presets) {
+      const confirmed = window.confirm(
+        `Preset "${trimmedName}" already exists. Overwrite it?`,
+      );
+
+      if (!confirmed) {
+        return;
+      }
+    }
+
+    savePreset(trimmedName);
+    resetPresetDraft();
+  };
+
+  return (
+    <>
+      <DialogHeader className="jgis-draw-custom-attributes-header">
+        <DialogTitle className="jgis-draw-custom-attributes-header-main">
+          Set up custom attributes
+        </DialogTitle>
+        <DialogDescription className="sr-only">
+          Configure custom attributes applied to newly drawn features.
+        </DialogDescription>
+      </DialogHeader>
+
+      <div className="jgis-draw-custom-attributes-dialog" ref={contentRef}>
+        <div className="jgis-attribute-rows jgis-draw-custom-attributes-list">
+          {attributes.length === 0 && draftMode === null ? (
+            <p className="jgis-draw-custom-attributes-empty">
+              No custom attributes yet.
+            </p>
+          ) : null}
+          {attributes.map((attribute, index) => {
+            if (draftMode === 'edit' && editingIndex === index) {
+              return (
+                <DrawCustomAttributeDraftRow
+                  key={`edit-${attribute.key}`}
+                  draftKey={draftKey}
+                  draftValue={draftValue}
+                  onDraftKeyChange={setDraftKey}
+                  onDraftValueChange={setDraftValue}
+                  onSave={saveDraft}
+                  onCancel={cancelDraft}
+                  canSave={canSaveDraft}
+                  readOnly={readOnly}
+                />
+              );
+            }
+
+            return (
+              <div
+                key={attribute.key}
+                className="jgis-attribute-row jgis-draw-custom-attributes-saved-row"
+              >
+                <span className="jgis-attribute-col-key">{attribute.key}</span>
+                <span className="jgis-attribute-col-value">
+                  {attribute.value}
+                </span>
+                <div className="inline-flex gap-0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Edit"
+                    onClick={() => startEdit(index)}
+                    disabled={controlsDisabled}
+                  >
+                    <Pencil />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    title="Remove"
+                    onClick={() => removeAttribute(index)}
+                    disabled={controlsDisabled}
+                    className="text-destructive"
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+
+          {draftMode === 'add' ? (
+            <DrawCustomAttributeDraftRow
+              draftKey={draftKey}
+              draftValue={draftValue}
+              onDraftKeyChange={setDraftKey}
+              onDraftValueChange={setDraftValue}
+              onSave={saveDraft}
+              onCancel={cancelDraft}
+              canSave={canSaveDraft}
+              readOnly={readOnly}
+            />
+          ) : null}
+        </div>
+
+        {draftError ? (
+          <p className="jgis-draw-custom-attributes-error">{draftError}</p>
+        ) : null}
+
+        <Collapsible open={savingPreset}>
+          <CollapsibleContentAnimated>
+            {presetNameError ? (
+              <p className="jgis-draw-custom-attributes-error">
+                {presetNameError}
+              </p>
+            ) : null}
+
+            <div className="jgis-attribute-row jgis-attribute-row-editor jgis-draw-custom-attributes-preset-save-row">
+              <Input
+                className="jgis-draw-custom-attributes-preset-name-input"
+                type="text"
+                placeholder="Preset name"
+                value={presetName}
+                onChange={event => handlePresetNameChange(event.target.value)}
+                onKeyDown={event => {
+                  if (event.key !== 'Enter') {
+                    return;
+                  }
+
+                  event.preventDefault();
+                  event.currentTarget.blur();
+                  if (validatePresetName(event.currentTarget.value).valid) {
+                    handleSavePreset(event.currentTarget.value);
+                  }
+                }}
+              />
+              <div className="inline-flex gap-0">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Save preset"
+                  onClick={() => handleSavePreset()}
+                  disabled={!isPresetNameValid}
+                >
+                  <Save />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  title="Cancel"
+                  className="text-destructive"
+                  onClick={resetPresetDraft}
+                >
+                  <Ban />
+                </Button>
+              </div>
+            </div>
+          </CollapsibleContentAnimated>
+        </Collapsible>
+        <div className="jgis-draw-custom-attributes-row">
+          <div className="jgis-draw-custom-attributes-actions">
+            <Button
+              className="jgis-attribute-add-button"
+              type="button"
+              variant="outline"
+              size={'sm'}
+              onClick={startAdd}
+              disabled={controlsDisabled || !canAdd}
+            >
+              <CirclePlus data-icon="inline-start" />
+              Add Attribute
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size={'sm'}
+              onClick={() => setSavingPreset(true)}
+              disabled={controlsDisabled || !canSavePreset}
+            >
+              <BookmarkPlus data-icon="inline-start" />
+              Save as preset
+            </Button>
+          </div>
+          <DrawCustomAttributesPresetsMenu
+            presets={presets}
+            presetNames={presetNames}
+            onLoadPreset={loadPreset}
+            portalContainerRef={contentRef}
+            disabled={controlsDisabled}
+          />
+        </div>
+      </div>
+    </>
+  );
+}

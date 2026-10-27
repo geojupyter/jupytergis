@@ -1,13 +1,13 @@
 /**
- * A single grammar mapping row: field → scale → channels (fan-out tree).
- * The scale preview spans all channel rows. Additional channels branch below.
+ * A single grammar mapping row: field → scale → encodings (fan-out tree).
+ * The scale preview spans all encoding rows. Additional encodings branch below.
  * "when" predicates are shown as chips below the grid.
  */
 
 import { faPlus, faTrash, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  IColorRampScale,
+  IColorMapScale,
   ICompareOp,
   IConstantNumScale,
   IConstantRGBAScale,
@@ -31,85 +31,85 @@ import {
 } from '@/src/shared/components/NativeSelect';
 import {
   CategoricalEditor,
-  ColorRampEditor,
+  ColorMapEditor,
   ConstantEditor,
   ScalarEditor,
   ExpressionEditor,
 } from './ScaleEditor';
 
 // ---------------------------------------------------------------------------
-// Channel taxonomy
+// Encoding taxonomy
 // ---------------------------------------------------------------------------
 
-const RGBA_CHANNELS: Encoding[] = [
+const RGBA_ENCODINGS: Encoding[] = [
   'fill-color',
   'stroke-color',
   'circle-fill-color',
   'circle-stroke-color',
 ];
-const POSFLOAT_CHANNELS: Encoding[] = [
+const POSFLOAT_ENCODINGS: Encoding[] = [
   'stroke-width',
   'circle-stroke-width',
   'circle-radius',
 ];
-const ALL_CHANNELS = [...RGBA_CHANNELS, ...POSFLOAT_CHANNELS];
+const ALL_ENCODINGS = [...RGBA_ENCODINGS, ...POSFLOAT_ENCODINGS];
 
-// Channels relevant for raster/KDE layers.
+// Encodings relevant for raster/KDE layers.
 // pixel-color: full RGBA including alpha (label: "pixel-rgba").
-// pixel-rgb:   virtual channel — RGB only; pair with pixel-alpha for separate alpha.
-// pixel-alpha: alpha sub-channel (0-1 scalar).
-const PIXEL_RGBA_CHANNELS: Encoding[] = [
+// pixel-rgb:   virtual encoding — RGB only; pair with pixel-alpha for separate alpha.
+// pixel-alpha: alpha sub-encoding (0-1 scalar).
+const PIXEL_RGBA_ENCODINGS: Encoding[] = [
   'pixel-color',
   'pixel-rgb',
   'pixel-red',
   'pixel-green',
   'pixel-blue',
 ];
-const PIXEL_FLOAT_CHANNELS: Encoding[] = [
+const PIXEL_FLOAT_ENCODINGS: Encoding[] = [
   'pixel-red',
   'pixel-green',
   'pixel-blue',
   'pixel-alpha',
 ];
-const ALL_PIXEL_CHANNELS = Array.from(
-  new Set([...PIXEL_RGBA_CHANNELS, ...PIXEL_FLOAT_CHANNELS]),
+const ALL_PIXEL_ENCODINGS = Array.from(
+  new Set([...PIXEL_RGBA_ENCODINGS, ...PIXEL_FLOAT_ENCODINGS]),
 );
 
-/** Display labels for channels that need a friendlier name. */
-const CHANNEL_LABELS: Partial<Record<Encoding, string>> = {
+/** Display labels for encodings that need a friendlier name. */
+const ENCODING_LABELS: Partial<Record<Encoding, string>> = {
   'pixel-color': 'pixel-rgba',
 };
 
-function compatibleChannels(scale: IScale, isRaster = false): Encoding[] {
+function compatibleEncodings(scale: IScale, isRaster = false): Encoding[] {
   if (isRaster) {
     switch (scale.scheme) {
-      case 'colorRamp':
+      case 'colorMap':
       case 'categorical':
       case 'constant_rgba':
-        return PIXEL_RGBA_CHANNELS;
+        return PIXEL_RGBA_ENCODINGS;
       case 'scalar':
       case 'constant_num':
-        return PIXEL_FLOAT_CHANNELS;
+        return PIXEL_FLOAT_ENCODINGS;
       default:
-        return ALL_PIXEL_CHANNELS;
+        return ALL_PIXEL_ENCODINGS;
     }
   }
   switch (scale.scheme) {
-    case 'colorRamp':
+    case 'colorMap':
     case 'categorical':
     case 'constant_rgba':
-      return RGBA_CHANNELS;
+      return RGBA_ENCODINGS;
     case 'scalar':
     case 'constant_num':
-      return POSFLOAT_CHANNELS;
+      return POSFLOAT_ENCODINGS;
     default:
-      return ALL_CHANNELS;
+      return ALL_ENCODINGS;
   }
 }
 
 function defaultScaleForScheme(
   scheme: IScale['scheme'],
-  _currentChannels: Encoding[],
+  _currentEncodings: Encoding[],
 ): IScale {
   switch (scheme) {
     case 'constant_rgba':
@@ -122,17 +122,18 @@ function defaultScaleForScheme(
         scheme: 'constant_num',
         params: { value: 1 },
       } as IConstantNumScale;
-    case 'colorRamp':
+    case 'colorMap':
       return {
-        scheme: 'colorRamp',
+        scheme: 'colorMap',
         params: {
           name: 'viridis',
           nShades: 9,
           mode: 'equal interval',
           reverse: false,
           fallback: [0, 0, 0, 0] as RGBA,
+          domain: [0, 1],
         },
-      } as IColorRampScale;
+      } as IColorMapScale;
     case 'categorical':
       return {
         scheme: 'categorical',
@@ -182,7 +183,7 @@ const SCHEME_OPTIONS: {
 }[] = [
   { value: 'constant_rgba', label: 'const (color)' },
   { value: 'constant_num', label: 'const (num)' },
-  { value: 'colorRamp', label: 'color map' },
+  { value: 'colorMap', label: 'color map' },
   { value: 'categorical', label: 'categorical' },
   { value: 'scalar', label: 'scalar' },
   { value: 'identity', label: 'identity' },
@@ -198,7 +199,7 @@ const ColorRampPreview: React.FC<{ name: string; reverse: boolean }> = ({
   reverse,
 }) => {
   const ref = useRef<HTMLCanvasElement>(null);
-  React.useEffect(() => {
+  useEffect(() => {
     const canvas = ref.current;
     if (!canvas) {
       return;
@@ -249,7 +250,7 @@ const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
           <span className="jp-gis-scale-meta">= {scale.params.value}</span>
         </span>
       );
-    case 'colorRamp': {
+    case 'colorMap': {
       const { name, reverse, domain } = scale.params;
       return (
         <span className="jp-gis-scale-preview">
@@ -605,9 +606,9 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
 
       <Button
         type="button"
-        variant="icon"
-        size="icon-md"
-        className="jp-gis-grammar-when-form-cancel"
+        variant="ghost"
+        size="icon-xs"
+        className="text-destructive"
         onClick={onDelete}
         title="Remove condition"
       >
@@ -696,7 +697,9 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
           {f}
           <Button
             type="button"
-            className="jp-gis-grammar-when-cancel"
+            variant="ghost"
+            size="icon-xs"
+            className="text-muted-foreground"
             onClick={() => onFieldChange(i, '')}
             title="Remove field"
           >
@@ -736,7 +739,7 @@ export interface IGrammarRow {
   /** Selected input field(s). Length is governed by fieldCountForScale(scale). */
   fields?: string[];
   scale: IScale;
-  channels: Encoding[];
+  encodings: Encoding[];
   when?: IPredicate[];
   whenOp?: 'all' | 'any';
 }
@@ -745,7 +748,7 @@ export interface IGrammarRow {
  * How many input fields a scale accepts.
  *   0    — constants (no field selector shown)
  *   1    — all single-field scales
- *  'any' — multi-field (expression scale, sub-channel assembly)
+ *  'any' — multi-field (expression scale, sub-encoding assembly)
  */
 export function fieldCountForScale(scheme: IScale['scheme']): 0 | 1 | 'any' {
   switch (scheme) {
@@ -765,8 +768,18 @@ interface IMappingRowProps {
   featureValues: Record<string, Set<any>>;
   isRaster?: boolean;
   disabledSchemes?: IScale['scheme'][];
+  bandStats?: Record<number, { min: number; max: number }>;
+  normalize?: boolean;
   onChange: (row: IGrammarRow) => void;
   onDelete: () => void;
+}
+
+function getBandFromField(field?: string): number | null {
+  if (!field) {
+    return null;
+  }
+  const match = field.match(/^band_(\d+)/);
+  return match ? Number(match[1]) : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -779,6 +792,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   featureValues,
   isRaster = false,
   disabledSchemes = [],
+  bandStats,
+  normalize = true,
   onChange,
   onDelete,
 }) => {
@@ -807,11 +822,84 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
+  const bandNumber = getBandFromField(row.fields?.[0]);
+  const stats = bandNumber ? bandStats?.[bandNumber] : undefined;
+  const prevBandRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!bandStats) {
+      return;
+    }
+
+    const scale = row.scale;
+    const currentBand = bandNumber;
+
+    if (!currentBand || !stats) {
+      return;
+    }
+
+    if (scale.scheme !== 'colorMap' && scale.scheme !== 'scalar') {
+      return;
+    }
+
+    const prevBand = prevBandRef.current;
+    const domain = scale.params.domain;
+
+    const isDefaultDomain =
+      scale.scheme === 'colorMap'
+        ? domain?.[0] === 0 && domain?.[1] === 1
+        : scale.scheme === 'scalar'
+          ? domain?.[0] === 0 && domain?.[1] === 100
+          : false;
+
+    const bandChange = () => {
+      // The domain must match the space the band values arrive in: when the
+      // source normalizes, OL delivers band values in [0, 1], so the domain
+      // has to be [0, 1] (a raw [min, max] domain would sit above every value
+      // and wash the raster out). Only raw (non-normalized) bands use [min, max].
+      const domain: [number, number] = normalize
+        ? [0, 1]
+        : [stats.min, stats.max];
+
+      onChange({
+        ...row,
+        scale: {
+          ...scale,
+          params: { ...scale.params, domain },
+        } as typeof scale,
+      });
+    };
+
+    if (prevBand === null) {
+      if (!scale.params.domain || isDefaultDomain) {
+        bandChange();
+      }
+    } else if (prevBand !== currentBand) {
+      bandChange();
+    }
+
+    prevBandRef.current = currentBand;
+  }, [bandNumber, stats, bandStats, normalize]);
+
   const handleSchemeChange = useCallback(
     (scheme: IScale['scheme']) => {
-      const newScale = defaultScaleForScheme(scheme, row.channels);
-      const compat = compatibleChannels(newScale, isRaster);
-      const filtered = row.channels.filter(ch => compat.includes(ch));
+      let newScale = defaultScaleForScheme(scheme, row.encodings);
+
+      if (
+        stats &&
+        (newScale.scheme === 'colorMap' || newScale.scheme === 'scalar')
+      ) {
+        newScale = {
+          ...newScale,
+          params: {
+            ...newScale.params,
+            domain: normalize ? [0, 1] : [stats.min, stats.max],
+          },
+        } as typeof newScale;
+      }
+
+      const compat = compatibleEncodings(newScale, isRaster);
+      const filtered = row.encodings.filter(ch => compat.includes(ch));
       const newFieldCount = fieldCountForScale(scheme);
       // Trim fields list to match new count constraint
       const trimmedFields =
@@ -823,11 +911,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       onChange({
         ...row,
         scale: newScale,
-        channels: filtered.length > 0 ? filtered : [compat[0]],
+        encodings: filtered.length > 0 ? filtered : [compat[0]],
         fields: trimmedFields,
       });
     },
-    [row, onChange],
+    [row, onChange, bandStats, isRaster, normalize],
   );
 
   const handleScaleChange = useCallback(
@@ -835,20 +923,20 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
-  const handleChannelChange = useCallback(
+  const handleEncodingChange = useCallback(
     (index: number, ch: Encoding) => {
-      const next = [...row.channels];
+      const next = [...row.encodings];
       next[index] = ch;
-      onChange({ ...row, channels: next });
+      onChange({ ...row, encodings: next });
     },
     [row, onChange],
   );
 
-  const removeChannel = useCallback(
+  const removeEncoding = useCallback(
     (ch: Encoding) => {
-      const next = row.channels.filter(c => c !== ch);
+      const next = row.encodings.filter(c => c !== ch);
       if (next.length > 0) {
-        onChange({ ...row, channels: next });
+        onChange({ ...row, encodings: next });
       } else {
         onDelete();
       }
@@ -856,9 +944,9 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange, onDelete],
   );
 
-  const addChannel = useCallback(
+  const addEncoding = useCallback(
     (ch: Encoding) => {
-      onChange({ ...row, channels: [...row.channels, ch] });
+      onChange({ ...row, encodings: [...row.encodings, ch] });
     },
     [row, onChange],
   );
@@ -884,8 +972,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
     [row, onChange],
   );
 
-  const compat = compatibleChannels(row.scale, isRaster);
-  const availableToAdd = compat.filter(ch => !row.channels.includes(ch));
+  const compat = compatibleEncodings(row.scale, isRaster);
+  const availableToAdd = compat.filter(ch => !row.encodings.includes(ch));
 
   return (
     <div className="jp-gis-grammar-rule">
@@ -944,18 +1032,18 @@ const MappingRow: React.FC<IMappingRowProps> = ({
 
         {/* --- Output section --- */}
         <div className="jp-gis-grammar-section jp-gis-grammar-output-section">
-          {row.channels.map((ch, i) => (
-            <div key={`${ch}-${i}`} className="jp-gis-grammar-channel-row">
-              <div className="jp-gis-grammar-channel-select">
+          {row.encodings.map((ch, i) => (
+            <div key={`${ch}-${i}`} className="jp-gis-grammar-encoding-row">
+              <div className="jp-gis-grammar-encoding-select">
                 <NativeSelect
                   value={ch}
                   onChange={e =>
-                    handleChannelChange(i, e.target.value as Encoding)
+                    handleEncodingChange(i, e.target.value as Encoding)
                   }
                 >
                   {compat.map(c => (
                     <NativeSelectOption key={c} value={c}>
-                      {CHANNEL_LABELS[c] ?? c}
+                      {ENCODING_LABELS[c] ?? c}
                     </NativeSelectOption>
                   ))}
                 </NativeSelect>
@@ -963,13 +1051,12 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               <Button
                 type="button"
                 variant="ghost"
-                size="icon-md"
-                className="jp-mod-styled"
-                onClick={() => removeChannel(ch)}
+                size="icon-xs"
+                onClick={() => removeEncoding(ch)}
                 title={
-                  row.channels.length === 1
+                  row.encodings.length === 1
                     ? 'Remove mapping'
-                    : 'Remove channel'
+                    : 'Remove encoding'
                 }
               >
                 <FontAwesomeIcon icon={faTrash} />
@@ -977,24 +1064,24 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             </div>
           ))}
 
-          {/* Add channel row */}
+          {/* Add encoding row */}
           {availableToAdd.length > 0 && (
-            <div className="jp-gis-grammar-channel-row">
-              <div className="jp-gis-grammar-channel-select">
+            <div className="jp-gis-grammar-encoding-row">
+              <div className="jp-gis-grammar-encoding-select">
                 <NativeSelect
                   value=""
                   onChange={e => {
                     if (e.target.value) {
-                      addChannel(e.target.value as Encoding);
+                      addEncoding(e.target.value as Encoding);
                     }
                   }}
                 >
                   <NativeSelectOption value="">
-                    (add channel)
+                    (add encoding)
                   </NativeSelectOption>
                   {availableToAdd.map(ch => (
                     <NativeSelectOption key={ch} value={ch}>
-                      {CHANNEL_LABELS[ch] ?? ch}
+                      {ENCODING_LABELS[ch] ?? ch}
                     </NativeSelectOption>
                   ))}
                 </NativeSelect>
@@ -1010,6 +1097,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         {(row.when?.length ?? 0) > 1 && (
           <Button
             type="button"
+            variant="ghost"
+            size="xs"
             className="jp-gis-grammar-when-op"
             onClick={() =>
               onChange({
@@ -1032,7 +1121,9 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         ))}
         <Button
           type="button"
-          className="jp-gis-grammar-when-add-btn"
+          variant="outline"
+          size="icon-xs"
+          className="rounded-[10px] border-dashed hover:border-primary hover:text-primary"
           onClick={addPredicate}
           title="Add condition"
         >
@@ -1047,8 +1138,8 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             row.scale.scheme === 'constant_num') && (
             <ConstantEditor scale={row.scale} onChange={handleScaleChange} />
           )}
-          {row.scale.scheme === 'colorRamp' && (
-            <ColorRampEditor
+          {row.scale.scheme === 'colorMap' && (
+            <ColorMapEditor
               scale={row.scale}
               field={row.fields?.[0]}
               featureValues={featureValues}
@@ -1083,7 +1174,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             </p>
           )}
           {row.scale.scheme === 'expression' && (
-            <ExpressionEditor scale={row.scale} onChange={handleScaleChange} />
+            <ExpressionEditor
+              scale={row.scale}
+              onChange={handleScaleChange}
+              fields={availableFields.map(f => f.value)}
+            />
           )}
         </div>
       )}

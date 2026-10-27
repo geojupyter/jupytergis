@@ -2,16 +2,16 @@ import { IIdentifiedFeature } from '@jupytergis/schema';
 import React from 'react';
 
 import {
+  CollapsibleContentAnimated,
   Collapsible,
-  CollapsibleContent,
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
+import { AddAttributeEditor } from './AttributeEditors';
+import { FeatureAttributeList } from './FeatureAttributeList';
 import { FeatureCardHeader } from './FeatureCardHeader';
-import { FeaturePropertyList } from './FeaturePropertyList';
-import { AddPropertyEditor } from './PropertyEditors';
 import {
-  IPropertyEditorActions,
-  IPropertyEditorState,
+  IAttributeEditorActions,
+  IAttributeEditorState,
 } from '../types/editorTypes';
 
 interface IFeatureCardProps {
@@ -20,8 +20,8 @@ interface IFeatureCardProps {
   featureTitle: string;
   isVisible: boolean;
   isFloaterOpen: boolean;
-  editorState: IPropertyEditorState;
-  editorActions: IPropertyEditorActions;
+  editorState: IAttributeEditorState;
+  editorActions: IAttributeEditorActions;
   onToggleVisibility: (rowIndex: number, isOpen: boolean) => void;
   onToggleFloater: () => void;
   onHighlightFeature: (feature: any) => void;
@@ -39,54 +39,51 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
   onToggleFloater,
   onHighlightFeature,
 }) => {
-  const cardEditorState: IPropertyEditorState =
+  const cardEditorState: IAttributeEditorState =
     editorState.editingFeatureIndex === rowIndex
       ? editorState
       : {
           editingFeatureIndex: null,
           editorMode: null,
-          editingPropertyKey: null,
-          newPropertyKey: '',
-          newPropertyValue: '',
-          isSavingProperty: false,
+          editingAttributeKey: null,
+          newAttributeKey: '',
+          newAttributeValue: '',
+          isSavingAttribute: false,
         };
 
   return (
-    <div className="jgis-identify-card">
-      <Collapsible
-        open={isVisible}
-        onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
-      >
-        <CollapsibleTrigger asChild>
-          <div className="jgis-symbology-override-collapsible-trigger">
-            <FeatureCardHeader
-              feature={feature}
-              isFloaterOpen={isFloaterOpen}
-              featureTitle={featureTitle}
-              onToggleFloater={onToggleFloater}
-              onHighlightFeature={onHighlightFeature}
-            />
-          </div>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="jgis-identify-content">
-            <FeaturePropertyList
-              feature={feature}
-              rowIndex={rowIndex}
-              editorState={cardEditorState}
-              editorActions={editorActions}
-            />
-            {feature._fromDrawTool === true && (
-              <AddPropertyEditor
-                feature={feature}
-                rowIndex={rowIndex}
-                editorState={cardEditorState}
-                editorActions={editorActions}
-              />
-            )}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </div>
+    <Collapsible
+      open={isVisible}
+      onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
+    >
+      <CollapsibleTrigger
+        nativeButton={false}
+        render={
+          <FeatureCardHeader
+            feature={feature}
+            isFloaterOpen={isFloaterOpen}
+            featureTitle={featureTitle}
+            onToggleFloater={onToggleFloater}
+            onHighlightFeature={onHighlightFeature}
+          />
+        }
+      />
+      <CollapsibleContentAnimated className="jgis-identify-content">
+        <FeatureAttributeList
+          feature={feature}
+          rowIndex={rowIndex}
+          editorState={cardEditorState}
+          editorActions={editorActions}
+        />
+        {feature._fromDrawTool === true && (
+          <AddAttributeEditor
+            feature={feature}
+            rowIndex={rowIndex}
+            editorState={cardEditorState}
+            editorActions={editorActions}
+          />
+        )}
+      </CollapsibleContentAnimated>
+    </Collapsible>
   );
 };

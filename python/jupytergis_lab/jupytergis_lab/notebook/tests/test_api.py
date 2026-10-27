@@ -1,4 +1,5 @@
 import pytest
+from pycrdt import Map
 
 from jupytergis_lab import GISDocument
 from jupytergis_lab.notebook.gis_document import QGIS_UNSUPPORTED_TYPES
@@ -110,7 +111,7 @@ class TestGrammarSymbologyBuilders:
         )
         assert (
             state["layers"][0]["rules"][1]["mappings"][0]["scale"]["scheme"]
-            == "colorRamp"
+            == "colorMap"
         )
 
     def test_chain_when_and_when_op(self):
@@ -150,7 +151,7 @@ class TestGrammarSymbologyBuilders:
             ],
         )
         scale = state["layers"][0]["rules"][0]["mappings"][0]["scale"]
-        assert scale["scheme"] == "colorRamp"
+        assert scale["scheme"] == "colorMap"
 
     def test_categorical_accepts_colormap_attribute(self):
         state = to_symbology_state(
@@ -309,6 +310,37 @@ class TestQgisUnsupportedFeatures(TestDocument):
             symbology=[[vega_expr("datum.mag * 2").encoding("radius")]],
         )
         assert self.doc.layers[layer_id]
+
+
+def _feature_stores(doc: GISDocument) -> dict:
+    return doc._featureStores.to_py() or {}
+
+
+class TestFeatureStores(TestDocument):
+    def test_feature_stores_empty_by_default(self):
+        assert _feature_stores(self.doc) == {}
+
+    def test_feature_stores_reads_overlay(self):
+        store = Map()
+        self.doc._featureStores["store-1"] = store
+        store["meta"] = {
+            "softLimit": 1,
+            "hardLimit": 2,
+            "compacting": False,
+        }
+        features = Map()
+        store["features"] = features
+        features["f1"] = {
+            "id": "f1",
+            "geometry": {"type": "Point", "coordinates": [0, 0]},
+            "props": {},
+            "updatedAt": "t",
+            "updatedBy": "u",
+        }
+
+        stores = _feature_stores(self.doc)
+        assert stores["store-1"]["features"]["f1"]["id"] == "f1"
+        assert stores["store-1"]["meta"]["compacting"] is False
 
 
 class TestLayerManipulation(TestDocument):

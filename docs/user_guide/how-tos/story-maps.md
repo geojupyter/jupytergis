@@ -46,11 +46,11 @@ The Story Editor does not list or reorder segments directly; segment order follo
 - **From the Story Editor**: Click **Add Story Segment** in the right panel. Position the map as desired before clicking; the new segment will use the current view.
 - **From the Add Layer menu**: Add **Story Segment** as when creating the first segment. The new segment is added to the current story and uses the current map view.
 
-After adding a segment, select it in the **Segments** tab to edit its properties in the **Object Properties** panel.
+After adding a segment, select it in the **Segments** tab and open its **Layer Properties** dialog (right-click the segment layer → **Layer Properties**) to edit it.
 
 ## Editing segment properties
 
-Select a Story Segment layer in the left panel (under the **Segments** tab). The **Object Properties** panel shows that segment’s form:
+Right-click a Story Segment layer in the left panel (under the **Segments** tab) and choose **Layer Properties**. The dialog shows that segment’s form:
 
 - **Extent**: Use **Set Story Segment Extent** to snap the segment’s view to the current map extent and zoom. Helpful after panning/zooming to the area you want for that slide.
 - **Segment Content**: Title, optional image URL, and markdown text for the narrative shown when that segment is active.
@@ -88,7 +88,7 @@ You can share a story map (or a whole JupyterGIS project) as a small, browser-on
    ```yaml
    name: xeus-kernel
    channels:
-     - https://repo.prefix.dev/emscripten-forge-dev
+     - https://repo.prefix.dev/emscripten-forge-4x
      - https://repo.prefix.dev/conda-forge
    dependencies:
      - xeus-python
@@ -124,7 +124,7 @@ dependencies:
   - python
   - pip
   - jupyter_server
-  - jupyterlite-core >=0.7
+  - jupyterlite-core >=0.8
   - jupyterlite-xeus >=4.3
   - notebook >=7.5
   - specta

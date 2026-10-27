@@ -2,15 +2,23 @@
  * Inline scale editor for one IMapping.
  * Renders a different UI for each scale scheme.
  */
-
+import {
+  autocompletion,
+  acceptCompletion,
+  completionKeymap,
+  Completion,
+  CompletionContext,
+  CompletionResult,
+} from '@codemirror/autocomplete';
+import { indentWithTab } from '@codemirror/commands';
 import { javascript } from '@codemirror/lang-javascript';
 import { python } from '@codemirror/lang-python';
-import { Compartment, EditorState } from '@codemirror/state';
-import { EditorView, placeholder } from '@codemirror/view';
+import { Compartment, EditorState, Prec } from '@codemirror/state';
+import { EditorView, placeholder, keymap } from '@codemirror/view';
 import {
   ClassificationMode,
   ICategoricalScale,
-  IColorRampScale,
+  IColorMapScale,
   IConstantNumScale,
   IConstantRGBAScale,
   IExpressionScale,
@@ -22,9 +30,12 @@ import { jupyterTheme } from '@jupyterlab/codemirror';
 import { UUID } from '@lumino/coreutils';
 import { py2vega } from 'py2vega-ts';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { vega2ol } from 'vega2ol';
+import { vega2ol, FUNCTION_MAPPING, CONSTANTS_MAPPING } from 'vega2ol';
 
-import { ColorRampName } from '@/src/features/layers/symbology/colorRampUtils';
+import {
+  COLOR_RAMP_DEFAULTS,
+  ColorRampName,
+} from '@/src/features/layers/symbology/colorRampUtils';
 import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
 import ColorRampSelector from '@/src/features/layers/symbology/components/color_ramp/ColorRampSelector';
 import RgbaColorPicker, {
@@ -37,6 +48,7 @@ import {
   IComputedStop,
 } from '@/src/features/layers/symbology/styleBuilder';
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
+import { ErrorTip } from '@/src/shared/components/ErrorTip';
 import { InfoTip } from '@/src/shared/components/InfoTip';
 
 function stopsToRows(
@@ -107,17 +119,17 @@ export const ConstantEditor: React.FC<IConstantEditorProps> = ({
 };
 
 // ---------------------------------------------------------------------------
-// ColorRamp editor
+// ColorMap editor
 // ---------------------------------------------------------------------------
 
-interface IColorRampEditorProps {
-  scale: IColorRampScale;
+interface IColorMapEditorProps {
+  scale: IColorMapScale;
   field: string | undefined;
   featureValues: Record<string, Set<any>>;
   onChange: (scale: IScale) => void;
 }
 
-export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
+export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
   scale,
   field,
   featureValues,
@@ -129,8 +141,8 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
   );
 
   const update = useCallback(
-    (patch: Partial<IColorRampScale['params']>) =>
-      onChange({ scheme: 'colorRamp', params: { ...params, ...patch } }),
+    (patch: Partial<IColorMapScale['params']>) =>
+      onChange({ scheme: 'colorMap', params: { ...params, ...patch } }),
     [params, onChange],
   );
 
@@ -159,10 +171,16 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
     const values = Array.from(featureValues[field] ?? []).filter(
       (v): v is number => Number.isFinite(v),
     );
+
+    const minRequired = COLOR_RAMP_DEFAULTS[params.name as ColorRampName];
+    const nClasses = minRequired
+      ? Math.max(params.nShades ?? minRequired, minRequired)
+      : params.nShades;
+
     const computed: IComputedStop[] = computeGraduatedColorStops(
       {
         renderType: 'Graduated',
-        nClasses: params.nShades,
+        nClasses,
         mode: params.mode as any,
         colorRamp: params.name,
         reverseRamp: params.reverse,
@@ -201,7 +219,13 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
         <label>Color map</label>
         <ColorRampSelector
           selectedRamp={params.name as ColorRampName}
-          setSelected={name => update({ name })}
+          setSelected={name => {
+            const min = COLOR_RAMP_DEFAULTS[name];
+            update({
+              name,
+              nShades: Math.max(params.nShades ?? 9, min ?? 0),
+            });
+          }}
           reverse={params.reverse}
           setReverse={v =>
             update({ reverse: typeof v === 'function' ? v(params.reverse) : v })
@@ -259,7 +283,8 @@ export const ColorRampEditor: React.FC<IColorRampEditorProps> = ({
         />
       </div>
       <button
-        className="jp-gis-grammar-action-btn"
+        type="button"
+        className="inline-flex w-fit cursor-pointer items-center rounded-md border border-border bg-transparent px-3 py-1 text-sm text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         disabled={!field}
         onClick={classify}
       >
@@ -361,7 +386,8 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
         />
       </div>
       <button
-        className="jp-gis-grammar-action-btn"
+        type="button"
+        className="inline-flex w-fit cursor-pointer items-center rounded-md border border-border bg-transparent px-3 py-1 text-sm text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
         disabled={!field}
         onClick={classify}
       >
@@ -384,11 +410,55 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
 
 interface IExpressionEditorProps {
   scale: IExpressionScale;
+  fields: string[];
   onChange: (scale: IScale) => void;
 }
 
+function vegaExprCompletion(fieldsRef: React.MutableRefObject<string[]>) {
+  // 'indexof' is excluded: it's handled as a special-case pattern
+  const functionNames = Object.keys(FUNCTION_MAPPING).filter(
+    name => name !== 'indexof',
+  );
+
+  const constantNames = Object.keys(CONSTANTS_MAPPING);
+
+  return (context: CompletionContext): CompletionResult | null => {
+    const datumMatch = context.matchBefore(/datum\.\w*/);
+    if (datumMatch) {
+      return {
+        from: datumMatch.from + 6,
+        options: fieldsRef.current.map(
+          (f): Completion => ({ label: f, type: 'property' }),
+        ),
+        validFor: /^\w*$/,
+      };
+    }
+
+    const word = context.matchBefore(/\w+/);
+    if (!word || (word.from === word.to && !context.explicit)) {
+      return null;
+    }
+
+    const options: Completion[] = [
+      {
+        label: 'datum',
+        type: 'variable',
+        detail: 'current data object',
+      },
+      ...functionNames.map(
+        (name): Completion => ({ label: name, type: 'function' }),
+      ),
+      ...constantNames.map(
+        (name): Completion => ({ label: name, type: 'constant' }),
+      ),
+    ];
+
+    return { from: word.from, options, validFor: /^\w*$/ };
+  };
+}
 export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
   scale,
+  fields,
   onChange,
 }) => {
   const { params } = scale;
@@ -401,6 +471,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
   );
 
   const paramsRef = useRef(params);
+  const fielsdRef = useRef(fields);
   const editorRef = useRef<HTMLDivElement | null>(null);
   const viewRef = useRef<EditorView | null>(null);
   const languageComp = useRef(new Compartment()).current;
@@ -428,7 +499,8 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
 
   useEffect(() => {
     paramsRef.current = params;
-  }, [params]);
+    fielsdRef.current = fields;
+  }, [params, fields]);
 
   useEffect(() => {
     if (!editorRef.current || viewRef.current) {
@@ -446,6 +518,14 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
         ),
         jupyterTheme,
         EditorView.lineWrapping,
+        autocompletion({
+          override: [vegaExprCompletion(fielsdRef)],
+          activateOnTyping: true,
+        }),
+        Prec.highest(
+          keymap.of([{ key: 'Tab', run: acceptCompletion }, indentWithTab]),
+        ),
+        keymap.of(completionKeymap),
         EditorView.updateListener.of(updateView => {
           if (updateView.docChanged) {
             const value = updateView.state.doc.toString();
@@ -608,7 +688,12 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
           </InfoTip>
         </label>
         <div
-          style={{ display: 'flex', flexDirection: 'column', flex: '1 1 auto' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 4,
+            flex: '1 1 auto',
+          }}
         >
           <div
             ref={editorRef}
@@ -625,16 +710,15 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
             }}
           />
           {validationError && (
-            <div
-              role="alert"
-              style={{
-                color: 'var(--jp-error-color1)',
-                fontSize: 'var(--jp-ui-font-size0)',
-                marginTop: 4,
-              }}
-            >
-              {validationError}
-            </div>
+            <ErrorTip text={validationError}>
+              <a
+                href="https://vega.github.io/vega/docs/expressions/"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Expression syntax reference
+              </a>
+            </ErrorTip>
           )}
         </div>
       </div>
@@ -765,7 +849,11 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
           onChange={v => update({ fallback: v })}
         />
       </div>
-      <button className="jp-gis-grammar-action-btn" onClick={classify}>
+      <button
+        type="button"
+        className="inline-flex w-fit cursor-pointer items-center rounded-md border border-border bg-transparent px-3 py-1 text-sm text-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+        onClick={classify}
+      >
         Set stops
       </button>
       {stopRows.length > 0 && (

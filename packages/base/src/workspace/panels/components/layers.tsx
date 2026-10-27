@@ -6,6 +6,7 @@ import {
   IJGISLayerTree,
   IJupyterGISModel,
   ISelection,
+  JupyterGISModel,
   ProcessingMerge,
   SelectionType,
 } from '@jupytergis/schema';
@@ -30,7 +31,9 @@ import React, {
 
 import { CommandIDs, icons } from '@/src/constants';
 import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
+import { Slider } from '@/src/shared/components/Slider';
 import {
+  columns2Icon,
   nonVisibilityIcon,
   targetWithCenterIcon,
   visibilityIcon,
@@ -48,6 +51,7 @@ const LAYER_TITLE_CLASS = 'jp-gis-layerTitle';
 const LAYER_ICON_CLASS = 'jp-gis-layerIcon';
 const LAYER_TEXT_CLASS = 'jp-gis-layerText data-jgis-keybinding';
 const LAYER_SLIDE_NUMBER_CLASS = 'jp-gis-layerSlideNumber';
+const LAYER_OPACITY_SLIDER_CLASS = 'jp-gis-layerOpacitySlider';
 
 interface IBodyProps {
   model: IJupyterGISModel;
@@ -68,6 +72,12 @@ function createContextMenu(
   const gisContextMenu = new ContextMenuSvg({ commands });
 
   // LAYERS and LAYER GROUPS context menu
+  gisContextMenu.addItem({
+    command: CommandIDs.showLayerPropertiesDialog,
+    selector: GIS_LAYER_ITEM,
+    rank: 0,
+  });
+
   gisContextMenu.addItem({
     command: CommandIDs.symbology,
     selector: GIS_LAYER_ITEM,
@@ -109,10 +119,35 @@ function createContextMenu(
     rank: 5,
   });
 
+  const compareSubmenu = new Menu({ commands });
+  compareSubmenu.title.label = translator.load('jupyterlab').__('Compare With');
+  compareSubmenu.id = 'jp-gis-contextmenu-compare';
+
+  gisContextMenu.addItem({
+    type: 'submenu',
+    selector: GIS_LAYER_ITEM,
+    rank: 5.1,
+    submenu: compareSubmenu,
+  });
+
+  gisContextMenu.addItem({
+    command: CommandIDs.stopComparing,
+    selector: GIS_LAYER_ITEM,
+    rank: 5.2,
+  });
+
+  gisContextMenu.opened.connect(() => buildCompareMenu(gisContextMenu, model));
+
   gisContextMenu.addItem({
     command: CommandIDs.zoomToLayer,
     selector: GIS_LAYER_ITEM,
     rank: 6,
+  });
+
+  gisContextMenu.addItem({
+    command: CommandIDs.showLayerMetadata,
+    selector: GIS_LAYER_ITEM,
+    rank: 6.5,
   });
 
   const moveSelectedSubmenu = new Menu({ commands });
@@ -131,7 +166,7 @@ function createContextMenu(
   gisContextMenu.opened.connect(() => buildGroupsMenu(gisContextMenu, model));
 
   gisContextMenu.addItem({
-    command: CommandIDs.toggleDrawFeatures,
+    command: CommandIDs.drawFeaturesOnSelectedLayer,
     selector: GIS_LAYER_ITEM,
     rank: 8,
   });
@@ -143,21 +178,10 @@ function createContextMenu(
     rank: 8.5,
   });
 
-  // Create the Download submenu
-  const downloadSubmenu = new Menu({ commands: commands });
-  downloadSubmenu.title.label = translator.load('jupyterlab').__('Download');
-  downloadSubmenu.id = 'jp-gis-contextmenu-download';
-
-  downloadSubmenu.addItem({
-    command: CommandIDs.downloadGeoJSON,
-  });
-
-  // Add the Download submenu to the context menu
   gisContextMenu.addItem({
-    type: 'submenu',
+    command: CommandIDs.exportGeoJSON,
     selector: GIS_LAYER_ITEM,
     rank: 9,
-    submenu: downloadSubmenu,
   });
 
   // Create the Processing submenu
@@ -222,6 +246,52 @@ function createContextMenu(
   });
 
   return gisContextMenu;
+}
+
+/**
+ * Populate the "Compare With" submenu with every other layer in the document.
+ */
+function buildCompareMenu(contextMenu: ContextMenu, model: IJupyterGISModel) {
+  const submenu =
+    contextMenu.menu.items.find(
+      item =>
+        item.type === 'submenu' &&
+        item.submenu?.id === 'jp-gis-contextmenu-compare',
+    )?.submenu ?? null;
+
+  if (!submenu) {
+    return;
+  }
+
+  submenu.clearItems();
+
+  const selected = model.localState?.selected?.value ?? {};
+  const selectedIds = Object.keys(selected);
+  const layerId =
+    selectedIds.length === 1 && selected[selectedIds[0]].type === 'layer'
+      ? selectedIds[0]
+      : undefined;
+
+  if (!layerId) {
+    return;
+  }
+
+  for (const otherLayerId of JupyterGISModel.getOrderedLayerIds(model)) {
+    const layer = model.getLayer(otherLayerId);
+
+    if (!layer || otherLayerId === layerId) {
+      continue;
+    }
+
+    submenu.addItem({
+      command: CommandIDs.compareLayers,
+      args: {
+        layerIdLeft: layerId,
+        layerIdRight: otherLayerId,
+        label: layer.name,
+      },
+    });
+  }
 }
 
 /**
@@ -300,7 +370,6 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     // Notify commands that need updating
     commands.notifyCommandChanged(CommandIDs.identify);
     commands.notifyCommandChanged(CommandIDs.temporalController);
-    commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
   };
 
   const _onContextMenu = (e: React.MouseEvent) => {
@@ -708,6 +777,27 @@ interface ILayerProps {
   onClick: ({ type, item }: ILeftPanelClickHandlerParams) => void;
 }
 
+type ComparedSide = 'left' | 'right' | null;
+
+function getComparedSide(
+  layerId: string,
+  model: IJupyterGISModel | undefined,
+): ComparedSide {
+  const layers = model?.getComparison()?.layers;
+
+  if (!layers) {
+    return null;
+  }
+
+  if (layers[0] === layerId) {
+    return 'left';
+  } else if (layers[1] === layerId) {
+    return 'right';
+  } else {
+    return null;
+  }
+}
+
 function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
   return (
     (model?.localState?.selected?.value &&
@@ -731,9 +821,18 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     // TODO Support multi-selection as `model?.jGISModel?.localState?.selected.value` does
     isSelected(layerId, gisModel),
   );
+  const [comparedSide, setComparedSide] = useState<ComparedSide>(
+    getComparedSide(layerId, gisModel),
+  );
   const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
+  const [opacity, setOpacity] = useState<number>(
+    layer.parameters?.opacity ?? 1,
+  );
+  // Disabled while the opacity slider is being dragged, otherwise the native
+  // HTML drag of the row hijacks the slider interaction.
+  const [isDraggable, setIsDraggable] = useState(true);
 
   const { symbology } = useGetSymbology({
     layerId,
@@ -743,6 +842,16 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   const hasSupportedSymbology = symbology?.symbologyState !== undefined;
 
   const isStorySegmentLayer = layer.type === 'StorySegmentLayer';
+
+  // Every layer type applies opacity on the map except story segments, which
+  // have no associated OpenLayers layer.
+  const supportsOpacity = !isStorySegmentLayer;
+
+  const sourceId = layer.parameters?.source as string | undefined;
+  const sourceType = sourceId ? gisModel?.getSource(sourceId)?.type : undefined;
+  // Feature store layers are VectorLayers; use the source icon so they don't
+  // look like ordinary vector layers in the tree.
+  const iconKey = sourceType === 'FeatureStoreSource' ? sourceType : layer.type;
 
   const name = layer.name;
 
@@ -763,6 +872,21 @@ const LayerComponent: React.FC<ILayerProps> = props => {
 
     return () => {
       gisModel?.selectedChanged.disconnect(handleSelectedChanged);
+    };
+  }, [gisModel, layerId]);
+
+  /**
+   * Listen to the layers being compared in the map view.
+   */
+  useEffect(() => {
+    const handleComparisonChanged = () => {
+      setComparedSide(getComparedSide(layerId, gisModel));
+    };
+    gisModel?.sharedOptionsChanged.connect(handleComparisonChanged);
+    handleComparisonChanged();
+
+    return () => {
+      gisModel?.sharedOptionsChanged.disconnect(handleComparisonChanged);
     };
   }, [gisModel, layerId]);
 
@@ -802,6 +926,24 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   const toggleVisibility = () => {
     layer.visible = !layer.visible;
     gisModel?.sharedModel?.updateLayer(layerId, layer);
+  };
+
+  /**
+   * Keep the local opacity in sync when the layer parameters change elsewhere
+   * (e.g. a collaborator, or a round-trip through the model).
+   */
+  useEffect(() => {
+    setOpacity(layer.parameters?.opacity ?? 1);
+  }, [layer.parameters?.opacity]);
+
+  /**
+   * Update the layer opacity from the inline slider.
+   *
+   * @param value - the new opacity, in the 0–1 range.
+   */
+  const handleOpacityChange = (value: number) => {
+    setOpacity(value);
+    gisModel?.sharedModel.updateObjectParameters(layerId, { opacity: value });
   };
 
   const setSelection = (event: ReactMouseEvent<HTMLElement>) => {
@@ -887,7 +1029,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
     <div
       className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}
                   ${selected ? ' jp-mod-selected' : ''}`}
-      draggable={true}
+      draggable={isDraggable}
       onDragStart={Private.onDragStart}
       onDragOver={Private.onDragOver}
       onDragEnd={Private.onDragEnd}
@@ -945,10 +1087,23 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           </Button>
         )}
 
-        {icons.has(layer.type) && (
+        {icons.has(iconKey) && (
           <LabIcon.resolveReact
-            {...icons.get(layer.type)}
+            {...icons.get(iconKey)}
             className={LAYER_ICON_CLASS}
+          />
+        )}
+
+        {comparedSide && (
+          <LabIcon.resolveReact
+            icon={columns2Icon}
+            className={LAYER_ICON_CLASS}
+            tag="span"
+            title={
+              comparedSide === 'left'
+                ? 'Comparing, shown left of the swipe divider'
+                : 'Comparing, shown right of the swipe divider'
+            }
           />
         )}
 
@@ -979,6 +1134,35 @@ const LayerComponent: React.FC<ILayerProps> = props => {
             title="Double-click to zoom to layer"
           >
             {name}
+          </span>
+        )}
+
+        {supportsOpacity && (
+          <span
+            className={LAYER_OPACITY_SLIDER_CLASS}
+            title={`Opacity: ${Math.round(opacity * 100)}%`}
+            onClick={e => e.stopPropagation()}
+            onDoubleClick={e => e.stopPropagation()}
+            // Disable the row drag while adjusting the slider.
+            onPointerDown={e => {
+              e.stopPropagation();
+              setIsDraggable(false);
+            }}
+            onPointerUp={() => setIsDraggable(true)}
+            onPointerCancel={() => setIsDraggable(true)}
+            onBlur={() => setIsDraggable(true)}
+          >
+            <Slider
+              min={0}
+              max={100}
+              step={1}
+              value={[Math.round(opacity * 100)]}
+              aria-label="Layer opacity"
+              onValueChange={value => {
+                const next = Array.isArray(value) ? value[0] : value;
+                handleOpacityChange(next / 100);
+              }}
+            />
           </span>
         )}
 

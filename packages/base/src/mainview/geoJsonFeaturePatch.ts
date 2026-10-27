@@ -15,10 +15,10 @@ export interface IPatchGeoJSONFeatureContext {
   ) => Promise<void>;
 }
 
-export type PatchGeoJSONFeatureProperties = (
+export type PatchGeoJSONFeatureAttributes = (
   sourceId: string,
   target: { featureId: string },
-  propertyUpdates: IDict<any>,
+  attributeUpdates: IDict<any>,
 ) => Promise<boolean>;
 
 interface IGeoJSONFeatureLike {
@@ -34,11 +34,11 @@ interface IGeoJSONFeatureLike {
 /**
  * Only concerned with features added via draw tool for now
  */
-async function patchGeoJSONFeatureProperties(
+async function patchGeoJSONFeatureAttributes(
   context: IPatchGeoJSONFeatureContext,
   sourceId: string,
   target: { featureId: string },
-  propertyUpdates: IDict<any>,
+  attributeUpdates: IDict<any>,
 ): Promise<boolean> {
   if (!context.model.sharedModel.editable) {
     return false;
@@ -74,18 +74,18 @@ async function patchGeoJSONFeatureProperties(
     features: IGeoJSONFeatureLike[];
   };
   const updatedFeature = updatedData.features[index];
-  const nextProperties: IDict<any> = { ...(updatedFeature.properties ?? {}) };
+  const nextAttributes: IDict<any> = { ...(updatedFeature.properties ?? {}) };
 
-  Object.entries(propertyUpdates).forEach(([key, value]) => {
+  Object.entries(attributeUpdates).forEach(([key, value]) => {
     if (value === undefined) {
-      delete nextProperties[key];
+      delete nextAttributes[key];
       return;
     }
 
-    nextProperties[key] = value;
+    nextAttributes[key] = value;
   });
 
-  updatedFeature.properties = nextProperties;
+  updatedFeature.properties = nextAttributes;
 
   await context.persistAndRefreshSource(sourceId, updatedSource);
 
@@ -94,11 +94,11 @@ async function patchGeoJSONFeatureProperties(
 
 export function createGeoJSONFeaturePatcher(
   context: IPatchGeoJSONFeatureContext,
-): PatchGeoJSONFeatureProperties {
+): PatchGeoJSONFeatureAttributes {
   return (
     sourceId: string,
     target: { featureId: string },
-    propertyUpdates: IDict<any>,
+    attributeUpdates: IDict<any>,
   ) =>
-    patchGeoJSONFeatureProperties(context, sourceId, target, propertyUpdates);
+    patchGeoJSONFeatureAttributes(context, sourceId, target, attributeUpdates);
 }

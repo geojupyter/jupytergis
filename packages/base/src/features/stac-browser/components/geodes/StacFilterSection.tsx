@@ -1,6 +1,4 @@
-import { faXmark } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, X } from 'lucide-react';
 import React, { useMemo } from 'react';
 
 import {
@@ -8,7 +6,7 @@ import {
   PlatformsType,
   ProductsType,
 } from '@/src/features/stac-browser/constants';
-import Badge from '@/src/shared/components/Badge';
+import { Badge } from '@/src/shared/components/Badge';
 import { Button } from '@/src/shared/components/Button';
 import {
   DropdownMenu,
@@ -148,13 +146,13 @@ const StacFilterSection = ({
 
   return (
     <div className="jgis-stac-filter-section-container">
-      <DropdownMenu modal={false}>
+      <DropdownMenu>
         <DropdownMenuTrigger
           className="jgis-stac-filter-trigger"
           disabled={isTriggerDisabled}
         >
           {section}
-          <ChevronRight className="DropdownMenuIcon" />
+          <ChevronRight className="ml-auto h-4 w-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent side="right">{items}</DropdownMenuContent>
       </DropdownMenu>
@@ -163,14 +161,16 @@ const StacFilterSection = ({
           <Badge key={data} className="jgis-stac-badge">
             <span>{data}</span>
             <Button
-              variant="icon"
-              size="icon-sm"
-              className="jgis-stac-badge-icon"
+              variant="ghost"
+              size="icon-xs"
+              className={
+                'size-4 rounded-full bg-background p-px text-foreground'
+              }
               onClick={() => {
                 handleCheckedChange(data, '');
               }}
             >
-              <FontAwesomeIcon icon={faXmark} />
+              <X />
             </Button>
           </Badge>
         ))}

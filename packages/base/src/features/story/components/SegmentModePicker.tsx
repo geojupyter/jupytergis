@@ -1,4 +1,4 @@
-import { faMap } from '@fortawesome/free-solid-svg-icons';
+import { faBookOpen, faMap } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import React from 'react';
 
@@ -23,6 +23,7 @@ export function SegmentModePicker({
       <div className="jgis-story-editor-segment-mode-picker">
         <Button
           type="button"
+          variant="outline"
           className={`jgis-story-editor-segment-mode-card${
             selectedValue === 'map'
               ? ' jgis-story-editor-segment-mode-card--selected'
@@ -33,12 +34,13 @@ export function SegmentModePicker({
         >
           <div className="jgis-story-editor-row">
             <FontAwesomeIcon icon={faMap} />
-            <strong>Map segment</strong>
+            <strong>Map</strong>
           </div>
           <span>Saved map view with optional title and caption</span>
         </Button>
         <Button
           type="button"
+          variant="outline"
           className={`jgis-story-editor-segment-mode-card${
             selectedValue === 'markdown'
               ? ' jgis-story-editor-segment-mode-card--selected'
@@ -47,7 +49,10 @@ export function SegmentModePicker({
           aria-pressed={selectedValue === 'markdown'}
           onClick={() => onChange('markdown')}
         >
-          <strong>Text segment</strong>
+          <div className="jgis-story-editor-row">
+            <FontAwesomeIcon icon={faBookOpen} />
+            <strong>Text</strong>
+          </div>
           <span>Full-screen markdown chapter</span>
         </Button>
       </div>

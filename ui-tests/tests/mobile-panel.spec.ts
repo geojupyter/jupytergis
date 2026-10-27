@@ -66,7 +66,7 @@ test.describe('#mobilePanel', () => {
     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
 
     const panel = page.locator('.jgis-merged-panel-container');
-    const triggers = panel.locator('.jgis-tabs-trigger');
+    const triggers = panel.locator('[data-slot="tabs-trigger"]');
 
     // Click the second enabled tab
     const secondTab = triggers.nth(1);
@@ -74,12 +74,12 @@ test.describe('#mobilePanel', () => {
     await secondTab.click();
 
     // That tab should now be active
-    await expect(secondTab).toHaveAttribute('data-state', 'active');
+    await expect(secondTab).toHaveAttribute('data-active', '');
 
     // Click back to the first tab
     await triggers.nth(0).click();
-    await expect(triggers.nth(0)).toHaveAttribute('data-state', 'active');
-    await expect(secondTab).toHaveAttribute('data-state', 'inactive');
+    await expect(triggers.nth(0)).toHaveAttribute('data-active', '');
+    await expect(secondTab).not.toHaveAttribute('data-active');
 
     console.log(`Tab switching verified for: ${secondTabName}`);
   });
@@ -90,7 +90,7 @@ test.describe('#mobilePanel', () => {
     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
 
     const panel = page.locator('.jgis-merged-panel-container');
-    const tabList = panel.locator('.jgis-tabs-list');
+    const tabList = panel.locator('[data-slot="tabs-list"]');
 
     const initialBox = await panel.boundingBox();
     expect(initialBox).not.toBeNull();

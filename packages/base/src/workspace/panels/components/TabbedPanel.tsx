@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import {
-  TabsRoot,
+  Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
@@ -36,7 +36,7 @@ export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
 
   React.useEffect(() => {
     const list = tabsListRef.current;
-    const active = list?.querySelector<HTMLElement>('[data-state="active"]');
+    const active = list?.querySelector<HTMLElement>('[data-active]');
     if (list && active) {
       const listCenter = list.offsetWidth / 2;
       const triggerCenter = active.offsetLeft + active.offsetWidth / 2;
@@ -45,17 +45,18 @@ export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
   }, [curTab]);
 
   return (
-    <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
+    <Tabs className="jgis-panel-tabs" value={curTab || null}>
       <TabsList
         ref={tabsListRef}
+        variant="underline"
         onMouseDown={onTabListMouseDown}
         onTouchStart={onTabListTouchStart}
       >
         {enabledTabs.map(tab => (
           <TabsTrigger
-            className="jGIS-layer-browser-category"
             key={tab.name}
             value={tab.name}
+            className="jgis-underline-indicator"
             onClick={() => onTabClick(tab.name)}
           >
             {tab.title}
@@ -71,6 +72,6 @@ export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
           {tab.content}
         </TabsContent>
       ))}
-    </TabsRoot>
+    </Tabs>
   );
 };

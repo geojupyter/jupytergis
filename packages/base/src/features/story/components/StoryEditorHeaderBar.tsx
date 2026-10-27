@@ -1,18 +1,22 @@
 import { faGear } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IJGISStoryMap, IJupyterGISModel } from '@jupytergis/schema';
-import React, { useState, type RefObject } from 'react';
+import { Play } from 'lucide-react';
+import React, { useState } from 'react';
 
-import { TitleInput } from '@/src/features/story/components/TitleInput';
-import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
-import { resolveStoryPresentationColorForInput } from '@/src/features/story/utils/spectaPresentation';
+import { SegmentWidthSelector } from '@/src/features/story/components/SegmentWidthSelector';
+import { StoryEditorInput } from '@/src/features/story/components/StoryEditorInput';
 import {
-  formatGradientLabel,
-  formatStoryTypeLabel,
-} from '@/src/features/story/utils/storyEditorLabels';
-import Badge from '@/src/shared/components/Badge';
+  getStoryPresentationMode,
+  isColumnPresentation,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
+import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
+import { CSS_WIDTH_PRESETS } from '@/src/features/story/utils/cssWidth';
+import { resolveStoryOpacity } from '@/src/features/story/utils/spectaPresentation';
+import { formatStoryTypeLabel } from '@/src/features/story/utils/storyEditorLabels';
+import { Badge } from '@/src/shared/components/Badge';
 import { Button } from '@/src/shared/components/Button';
-import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
   NativeSelectOption,
@@ -24,6 +28,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from '@/src/shared/components/Popover';
+import { Slider } from '@/src/shared/components/Slider';
 import { Switch } from '@/src/shared/components/Switch';
 import { STORY_TYPE } from '@/src/types';
 
@@ -31,37 +36,60 @@ export interface IStoryEditorHeaderBarProps {
   model: IJupyterGISModel;
   story: IJGISStoryMap | null;
   segmentCount: number;
+  isMobile: boolean;
   onUpdateStory: (patch: Partial<IJGISStoryMap>) => void;
-  portalContainerRef: RefObject<HTMLElement | null>;
+}
+
+function StoryOpacityField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number | undefined;
+  onChange: (opacity: number) => void;
+}): JSX.Element {
+  const opacityPercent = Math.round(resolveStoryOpacity(value) * 100);
+
+  return (
+    <div className="jgis-story-editor-field">
+      <span>{label}</span>
+      <Slider
+        orientation="horizontal"
+        min={0}
+        max={100}
+        step={1}
+        value={[opacityPercent]}
+        aria-label={label}
+        onValueChange={value => {
+          const next = Array.isArray(value) ? value[0] : value;
+          onChange(next / 100);
+        }}
+      />
+      <span className="jgis-story-editor-opacity-value">{opacityPercent}%</span>
+    </div>
+  );
 }
 
 function StorySettingsPopover({
   story,
   onUpdateStory,
-  portalContainerRef,
 }: {
   story: IJGISStoryMap;
   onUpdateStory: (patch: Partial<IJGISStoryMap>) => void;
-  portalContainerRef: RefObject<HTMLElement | null>;
 }): JSX.Element {
   const [open, setOpen] = useState(false);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          title="Story settings"
-          style={{ marginBottom: 1 }}
-        >
-          <FontAwesomeIcon icon={faGear} style={{ marginBottom: 3 }} />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        side="bottom"
-        portalContainer={portalContainerRef.current}
-      >
+      <PopoverTrigger
+        render={
+          <Button size={'icon-sm'} variant="ghost" title="Story settings">
+            <FontAwesomeIcon icon={faGear} />
+          </Button>
+        }
+      />
+      <PopoverContent className={'w-fit'} align="end" side="bottom">
         <PopoverHeader>
           <PopoverTitle>Story settings</PopoverTitle>
         </PopoverHeader>
@@ -69,7 +97,7 @@ function StorySettingsPopover({
           <label className="jgis-story-editor-field">
             <span>Story type</span>
             <NativeSelect
-              className="jgis-story-editor-story-type-native-select"
+              className="w-full"
               value={story.storyType ?? STORY_TYPE.guided}
               onChange={event => {
                 onUpdateStory({
@@ -86,41 +114,56 @@ function StorySettingsPopover({
           </label>
           <div className="jgis-story-editor-settings-section">
             <div className="jgis-story-editor-eyebrow">Presentation</div>
-            <label className="jgis-story-editor-toggle-row">
-              <span>Use gradient background</span>
-              <Switch
-                checked={story.showGradient !== false}
-                onCheckedChange={checked => {
-                  onUpdateStory({ showGradient: checked });
-                }}
-              />
-            </label>
-            <label className="jgis-story-editor-field">
-              <span>Background color</span>
-              <Input
-                type="color"
-                value={resolveStoryPresentationColorForInput(
-                  story.presentationBgColor,
-                  'bg',
-                )}
-                onChange={event => {
-                  onUpdateStory({ presentationBgColor: event.target.value });
-                }}
-              />
-            </label>
-            <label className="jgis-story-editor-field">
-              <span>Text color</span>
-              <Input
-                type="color"
-                value={resolveStoryPresentationColorForInput(
-                  story.presentationTextColor,
-                  'text',
-                )}
-                onChange={event => {
-                  onUpdateStory({ presentationTextColor: event.target.value });
-                }}
-              />
-            </label>
+            {isColumnPresentation(getStoryPresentationMode(story.storyType)) ? (
+              <label className="jgis-story-editor-toggle-row">
+                <span>Use gradient background</span>
+                <Switch
+                  checked={story.showGradient !== false}
+                  onCheckedChange={checked => {
+                    onUpdateStory({ showGradient: checked });
+                  }}
+                />
+              </label>
+            ) : null}
+            {isVerticalScrollPresentation(
+              getStoryPresentationMode(story.storyType),
+            ) ? (
+              <>
+                <label className="jgis-story-editor-toggle-row">
+                  <span>Gap between markdown segments</span>
+                  <Switch
+                    checked={story.markdownSegmentGap === true}
+                    onCheckedChange={checked => {
+                      onUpdateStory({ markdownSegmentGap: checked });
+                    }}
+                  />
+                </label>
+                <SegmentWidthSelector
+                  label="Overlay content width"
+                  value={story.overlayContentWidth}
+                  onChange={overlayContentWidth => {
+                    onUpdateStory({ overlayContentWidth });
+                  }}
+                  presets={CSS_WIDTH_PRESETS}
+                  presetGroupAriaLabel="Overlay content width presets"
+                  size="xs"
+                />
+                <StoryOpacityField
+                  label="Markdown segment opacity"
+                  value={story.markdownSegmentOpacity}
+                  onChange={markdownSegmentOpacity => {
+                    onUpdateStory({ markdownSegmentOpacity });
+                  }}
+                />
+              </>
+            ) : null}
+            <StoryOpacityField
+              label="Story panel opacity"
+              value={story.storyPanelOpacity}
+              onChange={storyPanelOpacity => {
+                onUpdateStory({ storyPanelOpacity });
+              }}
+            />
           </div>
         </div>
       </PopoverContent>
@@ -132,50 +175,49 @@ export function StoryEditorHeaderBar({
   model,
   story,
   segmentCount,
+  isMobile,
   onUpdateStory,
-  portalContainerRef,
 }: IStoryEditorHeaderBarProps): JSX.Element {
   const canPreview = model.canUseStoryPreview();
 
   return (
     <div className="jgis-story-editor-context-bar">
-      <TitleInput
+      <StoryEditorInput
         value={story?.title ?? ''}
+        placeholder="Enter Story Title..."
+        aria-label="Story title"
         disabled={!story}
         onChange={title => {
           onUpdateStory({ title });
         }}
       />
       <div className="jgis-story-editor-context-meta-group">
-        <Badge variant="secondary">
-          {story ? formatStoryTypeLabel(story.storyType) : 'No story'}
-        </Badge>
-        <span className="jgis-story-editor-context-meta">
-          {segmentCount} segment{segmentCount === 1 ? '' : 's'}
-        </span>
-        {story ? (
-          <span className="jgis-story-editor-context-meta">
-            {formatGradientLabel(story.showGradient)}
-          </span>
+        {!isMobile ? (
+          <>
+            <Badge>
+              {story ? formatStoryTypeLabel(story.storyType) : 'No story'}
+            </Badge>
+            <span className="jgis-story-editor-context-meta">
+              {segmentCount} segment{segmentCount === 1 ? '' : 's'}
+            </span>
+          </>
         ) : null}
         {story && canPreview ? (
           <Button
             type="button"
-            variant="outline"
-            size="sm"
+            variant={isMobile ? 'ghost' : 'outline'}
+            size={isMobile ? 'icon-sm' : 'sm'}
+            aria-label="Preview story"
+            title="Preview story"
             onClick={() => {
               StoryEditorSession.getInstance().enterStoryPreviewMode();
             }}
           >
-            Preview story
+            {isMobile ? <Play /> : 'Preview story'}
           </Button>
         ) : null}
         {story && (
-          <StorySettingsPopover
-            story={story}
-            onUpdateStory={onUpdateStory}
-            portalContainerRef={portalContainerRef}
-          />
+          <StorySettingsPopover story={story} onUpdateStory={onUpdateStory} />
         )}
       </div>
     </div>

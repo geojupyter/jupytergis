@@ -24,7 +24,7 @@ def isURL(path: str) -> bool:
     return path.startswith("http://") or path.startswith("https://")
 
 
-def download_file(url: str, ext: str) -> str:
+def download_file(url: str, ext: str) -> Path:
     filename = Path(f"downloaded_{uuid.uuid4().hex[:8]}.{ext}")
 
     req = Request(url, headers={"User-Agent": "python-urllib"})
@@ -34,9 +34,12 @@ def download_file(url: str, ext: str) -> str:
     return filename
 
 
-def get_gpkg_layers(gpkg_path: str, data_type: str) -> list[str]:
-    if isURL(gpkg_path):
-        gpkg_path = download_file(gpkg_path, "gpkg")
+def get_gpkg_layers(gpkg_path: str | Path, data_type: str) -> list[str]:
+    if isinstance(gpkg_path, str):
+        if isURL(gpkg_path):
+            gpkg_path = download_file(gpkg_path, "gpkg")
+        else:
+            gpkg_path = Path(gpkg_path)
 
     conn = sqlite3.connect(gpkg_path)
     cursor = conn.cursor()

@@ -1,0 +1,108 @@
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+@import 'tw-animate-css';
+@import './shadcn.in.css';
+
+@source '../src/**/*.{ts,tsx}';
+
+@layer base {
+  /* Scope to GIS UI + shadcn/data-slot trees; do not reset the JupyterLab shell. */
+  :where([class^='jgis-'], [class*=' jgis-'], [data-slot]) {
+    &,
+    *,
+    &::before,
+    &::after,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      border-color: var(--color-border);
+    }
+
+    /* shadcn uses full Tailwind preflight, we only import some.
+       Scope form-control resets so UA chrome doesn't fight
+       shadcn styles. See tailwind preflight form block:
+       https://github.com/tailwindlabs/tailwindcss/blob/main/packages/tailwindcss/preflight.css */
+    & button,
+    & input,
+    & select,
+    & textarea,
+    & optgroup,
+    &:is(button, input, select, textarea) {
+      font: inherit;
+      color: inherit;
+      border-radius: 0;
+      background-color: transparent;
+      background-image: none;
+    }
+
+    & button,
+    &:is(button) {
+      appearance: none;
+    }
+
+    & ::placeholder {
+      opacity: 1;
+    }
+
+    @supports (not (-webkit-appearance: -apple-pay-button)) or
+      (contain-intrinsic-size: 1px) {
+      & ::placeholder {
+        color: color-mix(in oklab, currentcolor 50%, transparent);
+      }
+    }
+
+    & textarea {
+      resize: vertical;
+    }
+
+    & ::-webkit-search-decoration {
+      -webkit-appearance: none;
+    }
+
+    & :is(ol, ul, menu),
+    &:is(ol, ul, menu) {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    button:not(:disabled),
+    [role='button']:not(:disabled) {
+      cursor: pointer;
+    }
+  }
+}
+
+/* Map shadcn/Tailwind semantic tokens to JupyterLab theme vars */
+@theme {
+  --color-background: var(--jp-layout-color0);
+  --color-foreground: var(--jp-ui-font-color0);
+  --color-popover: var(--jp-layout-color0);
+  --color-popover-foreground: var(--jp-ui-font-color0);
+  --color-primary: var(--jp-brand-color1);
+  --color-primary-foreground: var(--jp-ui-inverse-font-color1);
+  --color-secondary: var(--jp-layout-color2);
+  --color-secondary-foreground: var(--jp-ui-font-color0);
+  --color-muted: var(--jp-layout-color2);
+  --color-muted-foreground: var(--jp-ui-font-color2);
+  --color-accent: var(--jp-brand-color0);
+  --color-accent-foreground: var(--jp-ui-font-color0);
+  --color-destructive: var(--jp-error-color0);
+  --color-border: var(--jp-border-color1);
+  --color-input: var(--jp-input-border-color, var(--jp-border-color1));
+  --color-ring: var(--jp-brand-color2);
+  --radius: var(--jp-border-radius, 0.625rem);
+  --text-base: var(--jp-ui-font-size1);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}

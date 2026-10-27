@@ -77,6 +77,273 @@ describe('awareness field signals', () => {
     });
   });
 
+  it('emits openDialogChanged when a dialog opens', () => {
+    const events: any[] = [];
+    model.openDialogChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.syncOpenDialog(
+      { kind: 'symbology', params: { layerId: 'layer-a' } },
+      'test',
+    );
+
+    expect(events).toHaveLength(1);
+    expect(events[0].field).toBe('openDialog');
+    expect(events[0].isLocalClient).toBe(true);
+    expect(events[0].currentValue?.value).toEqual({
+      kind: 'symbology',
+      params: { layerId: 'layer-a' },
+    });
+  });
+
+  it('emits openDialogChanged with a null value when the dialog closes', () => {
+    const events: any[] = [];
+    model.openDialogChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.syncOpenDialog({ kind: 'layerBrowser' }, 'test');
+    model.syncOpenDialog(null, 'test');
+
+    expect(events).toHaveLength(2);
+    expect(events[1].currentValue?.value).toBeNull();
+  });
+
+  it('emits dialogStateChanged when the open dialog contents change', () => {
+    const events: any[] = [];
+    model.dialogStateChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.setDialogStateKey('symbology:layers', [{ id: 'a' }], 'test');
+
+    expect(events).toHaveLength(1);
+    expect(events[0].field).toBe('dialogState');
+    expect(events[0].currentValue?.value).toEqual({
+      'symbology:layers': [{ id: 'a' }],
+    });
+  });
+
+  it('merges dialog state keys instead of replacing them', () => {
+    model.setDialogStateKey('symbology:layers', [{ id: 'a' }], 'test');
+    model.setDialogStateKey('form:IRasterLayer', { opacity: 0.5 }, 'test');
+
+    expect(model.localState?.dialogState?.value).toEqual({
+      'symbology:layers': [{ id: 'a' }],
+      'form:IRasterLayer': { opacity: 0.5 },
+    });
+  });
+
+  it('emits dialogViewChanged when the pointer moves over a dialog', () => {
+    const events: any[] = [];
+    model.dialogViewChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.syncDialogView({ kind: 'symbology' }, 'test');
+    model.updateDialogView({ pointer: { x: 0.5, y: 0.25 } }, 'test');
+
+    expect(events).toHaveLength(2);
+    expect(events[0].field).toBe('dialogView');
+    expect(events[1].currentValue?.value).toEqual({
+      kind: 'symbology',
+      pointer: { x: 0.5, y: 0.25 },
+    });
+  });
+
+  it('keeps the pointer and the scroll offsets on the same dialog view', () => {
+    model.syncDialogView({ kind: 'layerBrowser' }, 'test');
+    model.updateDialogView({ pointer: { x: 0.1, y: 0.2 } }, 'test');
+    model.updateDialogView({ scroll: { '0.1': 0.75 } }, 'test');
+
+    expect(model.localState?.dialogView?.value).toEqual({
+      kind: 'layerBrowser',
+      pointer: { x: 0.1, y: 0.2 },
+      scroll: { '0.1': 0.75 },
+    });
+  });
+
+  it('ignores a dialog view update when no dialog is open', () => {
+    model.updateDialogView({ pointer: { x: 0.1, y: 0.2 } }, 'test');
+
+    expect(model.localState?.dialogView?.value).toBeUndefined();
+  });
+
+  it('emits drawCustomAttributesChanged when draw custom attributes change', () => {
+    const events: any[] = [];
+    model.drawCustomAttributesChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.setDrawCustomAttributesForLayer(
+      'layer-a',
+      [{ key: 'species', value: 'oak' }],
+      'test',
+    );
+
+    expect(events).toHaveLength(1);
+    expect(events[0].field).toBe('drawCustomAttributes');
+    expect(events[0].isLocalClient).toBe(true);
+    expect(events[0].currentValue?.value['layer-a']).toMatchObject({
+      attributes: [{ key: 'species', value: 'oak' }],
+    });
+    expect(events[0].currentValue?.value['layer-a'].updatedAt).toEqual(
+      expect.any(Number),
+    );
+  });
+
+  it('emits drawCustomAttributesChanged on subsequent updates', () => {
+    let now = 1_000;
+    const dateNowSpy = jest.spyOn(Date, 'now').mockImplementation(() => now);
+
+    const events: any[] = [];
+    model.drawCustomAttributesChanged.connect((_, args) => {
+      events.push(args);
+    });
+
+    model.setDrawCustomAttributesForLayer(
+      'layer-a',
+      [{ key: 'species', value: 'oak' }],
+      'test',
+    );
+    now = 2_000;
+    model.setDrawCustomAttributesForLayer(
+      'layer-a',
+      [
+        { key: 'species', value: 'oak' },
+        { key: 'status', value: 'draft' },
+      ],
+      'test',
+    );
+
+    expect(events).toHaveLength(2);
+    expect(events[1].currentValue?.value['layer-a']).toEqual({
+      updatedAt: 2_000,
+      attributes: [
+        { key: 'species', value: 'oak' },
+        { key: 'status', value: 'draft' },
+      ],
+    });
+
+    dateNowSpy.mockRestore();
+  });
+
+  it('clears draw custom attributes for a removed layer', () => {
+    model.setDrawCustomAttributesForLayer(
+      'layer-a',
+      [{ key: 'species', value: 'oak' }],
+      'test',
+    );
+    model.setDrawCustomAttributesForLayer(
+      'layer-b',
+      [{ key: 'status', value: 'draft' }],
+      'test',
+    );
+
+    model.clearDrawCustomAttributesForLayer('layer-a', 'test');
+
+    expect(model.getDrawCustomAttributes('layer-a')).toEqual([]);
+    expect(model.getDrawCustomAttributes('layer-b')).toEqual([
+      { key: 'status', value: 'draft' },
+    ]);
+  });
+
+  it('uses the most recently updated draw custom attributes across awareness clients', () => {
+    model.syncDrawCustomAttributes({
+      'layer-a': {
+        updatedAt: 100,
+        attributes: [{ key: 'species', value: 'oak' }],
+      },
+    });
+
+    const remoteClientId = 4242;
+    const clients = model.sharedModel.awareness.getStates();
+    clients.set(remoteClientId, {
+      ...(clients.get(model.getClientId()) as object),
+      drawCustomAttributes: {
+        value: {
+          'layer-a': {
+            updatedAt: 200,
+            attributes: [{ key: 'status', value: 'draft' }],
+          },
+        },
+      },
+    } as any);
+
+    expect(model.getDrawCustomAttributes('layer-a')).toEqual([
+      { key: 'status', value: 'draft' },
+    ]);
+  });
+
+  it('prefers the higher client id when draw custom attributes share the same updatedAt', () => {
+    model.syncDrawCustomAttributes({
+      'layer-a': {
+        updatedAt: 100,
+        attributes: [{ key: 'species', value: 'oak' }],
+      },
+    });
+
+    const localClientId = model.getClientId();
+    const remoteClientId = localClientId + 1;
+    const clients = model.sharedModel.awareness.getStates();
+    clients.set(remoteClientId, {
+      ...(clients.get(localClientId) as object),
+      drawCustomAttributes: {
+        value: {
+          'layer-a': {
+            updatedAt: 100,
+            attributes: [{ key: 'status', value: 'draft' }],
+          },
+        },
+      },
+    } as any);
+
+    expect(model.getDrawCustomAttributes('layer-a')).toEqual([
+      { key: 'status', value: 'draft' },
+    ]);
+  });
+
+  it('applies removals from the latest update', () => {
+    model.syncDrawCustomAttributes({
+      'layer-a': {
+        updatedAt: 100,
+        attributes: [
+          { key: 'species', value: 'oak' },
+          { key: 'status', value: 'draft' },
+        ],
+      },
+    });
+
+    const remoteClientId = 4242;
+    const clients = model.sharedModel.awareness.getStates();
+    clients.set(remoteClientId, {
+      ...(clients.get(model.getClientId()) as object),
+      drawCustomAttributes: {
+        value: {
+          'layer-a': {
+            updatedAt: 100,
+            attributes: [
+              { key: 'species', value: 'oak' },
+              { key: 'status', value: 'draft' },
+            ],
+          },
+        },
+      },
+    } as any);
+
+    model.syncDrawCustomAttributes({
+      'layer-a': {
+        updatedAt: 200,
+        attributes: [{ key: 'species', value: 'oak' }],
+      },
+    });
+
+    expect(model.getDrawCustomAttributes('layer-a')).toEqual([
+      { key: 'species', value: 'oak' },
+    ]);
+  });
+
   it('emits identifiedFeaturesChanged when identified features change', () => {
     const events: any[] = [];
     model.identifiedFeaturesChanged.connect((_, args) => {
@@ -94,6 +361,28 @@ describe('awareness field signals', () => {
     expect(events[0].currentValue?.value).toEqual([
       { feature: { name: 'Feature 1' }, floaterOpen: false },
     ]);
+  });
+
+  it('does not emit unrelated awareness field signals on updates', () => {
+    model.syncIdentifiedFeatures(
+      [{ feature: { name: 'Feature 1' }, floaterOpen: false }],
+      'test',
+    );
+
+    const identifiedEvents: any[] = [];
+    const drawCustomEvents: any[] = [];
+    model.identifiedFeaturesChanged.connect((_, args) => {
+      identifiedEvents.push(args);
+    });
+    model.drawCustomAttributesChanged.connect((_, args) => {
+      drawCustomEvents.push(args);
+    });
+
+    model.syncPointer({ coordinates: { x: 1, y: 2 } }, 'test');
+    model.syncPointer({ coordinates: { x: 3, y: 4 } }, 'test');
+
+    expect(identifiedEvents).toHaveLength(0);
+    expect(drawCustomEvents).toHaveLength(0);
   });
 
   it('emits remoteUserChanged when follow target changes', () => {

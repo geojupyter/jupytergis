@@ -13,9 +13,8 @@ import { useRightPanelOptions } from './hooks/useRightPanelOptions';
 import { useUIState } from './hooks/useUIState';
 import { AnnotationsPanel } from '../../features/annotations';
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
-import { ObjectPropertiesReact } from '../../features/objectproperties';
 import {
-  TabsRoot,
+  Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
@@ -27,20 +26,17 @@ interface IRightPanelProps {
   model: IJupyterGISModel;
   commands: CommandRegistry;
   settings: IJupyterGISSettings;
-  patchGeoJSONFeatureProperties?: (
+  patchGeoJSONFeatureAttributes?: (
     sourceId: string,
     target: { featureId: string },
-    propertyUpdates: IDict<any>,
+    attributeUpdates: IDict<any>,
   ) => Promise<boolean>;
 }
 
 const RightPanelComponent: React.FC<IRightPanelProps> = props => {
-  const { patchGeoJSONFeatureProperties } = props;
+  const { patchGeoJSONFeatureAttributes } = props;
 
   const [curTab, setCurTab] = React.useState<string>(() => {
-    if (!props.settings.objectPropertiesDisabled) {
-      return 'objectProperties';
-    }
     if (!props.settings.annotationsDisabled) {
       return 'annotations';
     }
@@ -54,13 +50,7 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
     onIdentifyFeatures: () => setCurTab('identifyPanel'),
   });
 
-  const [selectedObjectProperties, setSelectedObjectProperties] =
-    React.useState(undefined);
-
   const tabInfo = [
-    !props.settings.objectPropertiesDisabled
-      ? { name: 'objectProperties', title: 'Object Properties' }
-      : false,
     !props.settings.annotationsDisabled
       ? { name: 'annotations', title: 'Annotations' }
       : false,
@@ -70,9 +60,7 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
   ].filter(Boolean) as { name: string; title: string }[];
 
   const allRightTabsDisabled =
-    props.settings.objectPropertiesDisabled &&
-    props.settings.annotationsDisabled &&
-    props.settings.identifyDisabled;
+    props.settings.annotationsDisabled && props.settings.identifyDisabled;
 
   const [rightPanelOpen] = useUIState('rightPanelOpen', props.model);
 
@@ -83,21 +71,21 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
 
   return (
     <Draggable
-      handle=".jgis-tabs-list"
-      cancel=".jgis-tabs-trigger"
+      handle="[data-slot='tabs-list']"
+      cancel="[data-slot='tabs-trigger']"
       bounds=".jGIS-Mainview-Container"
     >
       <div
         className="jgis-right-panel-container"
         style={{ display: rightPanelVisible ? 'block' : 'none' }}
       >
-        <TabsRoot className="jgis-panel-tabs" curTab={curTab}>
-          <TabsList>
+        <Tabs className="jgis-panel-tabs" value={curTab || null}>
+          <TabsList variant="underline">
             {tabInfo.map(tab => (
               <TabsTrigger
-                className="jGIS-layer-browser-category"
                 key={`${tab.name}-${tab.title}`}
                 value={tab.name}
+                className="jgis-underline-indicator"
                 onClick={() => {
                   if (curTab !== tab.name) {
                     setCurTab(tab.name);
@@ -111,20 +99,6 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
             ))}
           </TabsList>
 
-          {!props.settings.objectPropertiesDisabled && (
-            <TabsContent
-              value="objectProperties"
-              className="jgis-panel-tab-content"
-            >
-              <ObjectPropertiesReact
-                setSelectedObject={setSelectedObjectProperties}
-                selectedObject={selectedObjectProperties}
-                formSchemaRegistry={props.formSchemaRegistry}
-                model={props.model}
-              />
-            </TabsContent>
-          )}
-
           {!props.settings.annotationsDisabled && (
             <TabsContent value="annotations" className="jgis-panel-tab-content">
               <AnnotationsPanel
@@ -137,15 +111,15 @@ const RightPanelComponent: React.FC<IRightPanelProps> = props => {
           {!props.settings.identifyDisabled && (
             <TabsContent
               value="identifyPanel"
-              className="jgis-panel-tab-content"
+              className="jgis-panel-tab-content border-t pt-0"
             >
               <IdentifyPanelComponent
                 model={props.model}
-                patchGeoJSONFeatureProperties={patchGeoJSONFeatureProperties}
+                patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}
               ></IdentifyPanelComponent>
             </TabsContent>
           )}
-        </TabsRoot>
+        </Tabs>
       </div>
     </Draggable>
   );

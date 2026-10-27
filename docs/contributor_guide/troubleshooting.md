@@ -1,6 +1,6 @@
 # Troubleshooting
 
-## Setup of development environment hangs indefinitely when running the `dev-install.py` step, specifically on the Yarn linking step.
+## Setup of development environment hangs indefinitely when running the `dev-install.py` step, specifically during the dependency install step.
 
 This may be caused by having a `.gitignore` file in your home directory.
 This is a [known issue with Nx](https://github.com/nrwl/nx/issues/27494).
@@ -30,11 +30,3 @@ micromamba create #... see the dev setup guide
 This could be caused by having a JupyterLab instance already running at port `:8888`.
 Please ensure that there is nothing running at <http://localhost:8888/lab> before
 running tests.
-
-## Build fails in CI with error about `.yarn-state.yml`
-
-```
-Error: ENOENT: no such file or directory, unlink '/home/runner/work/jupytergis/jupytergis/node_modules/.yarn-state.yml'
-```
-
-Re-running the job can get you past this error.

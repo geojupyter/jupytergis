@@ -8,7 +8,8 @@ import {
 import { Dialog, WidgetTracker } from '@jupyterlab/apputils';
 import { Signal } from '@lumino/signaling';
 import { RJSFSchema } from '@rjsf/utils';
-import { Map } from 'ol';
+import type { Map as MlMap } from 'maplibre-gl';
+import type { Map as OlMap } from 'ol';
 
 export { IDict };
 export type ValueOf<T> = T[keyof T];
@@ -40,7 +41,7 @@ declare global {
     /**
      * Access JupyterGIS map
      */
-    jupytergisMaps: { [name: string]: Map };
+    jupytergisMaps: { [name: string]: OlMap | MlMap };
   }
 }
 
@@ -64,7 +65,6 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
 
 export const STORY_TYPE = {
   guided: 'guided',
-  unguided: 'unguided',
   verticalScroll: 'Vertical Scroll',
 } as const satisfies Record<string, StoryType>;
 
@@ -79,6 +79,7 @@ export interface IJupyterGISFormContext<TFormData = IDict | undefined> {
   formData: TFormData;
   wmsAvailableLayers?: IWmsLayerInfo[];
   setWmsAvailableLayers?: (layers: IWmsLayerInfo[]) => void;
+  disconnectWms?: () => Promise<void>;
   formSchemaRegistry?: IJGISFormSchemaRegistry;
 }
 

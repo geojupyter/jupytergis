@@ -106,6 +106,31 @@ test.describe('#layerPanel', () => {
       await expect(showLayerButton).toHaveCount(0);
     });
 
+    test('should have an inline opacity slider', async ({ page }) => {
+      const layerTree = await openLayerTree(page);
+
+      // The top-level raster layer exposes an opacity slider.
+      const opacitySlider = layerTree.locator('.jp-gis-layerOpacitySlider');
+      await expect(opacitySlider).toHaveCount(1);
+
+      // Base UI exposes aria values on the thumb's input, not the thumb node.
+      const thumbInput = opacitySlider.locator(
+        '[data-slot="slider-thumb"] input',
+      );
+
+      // Defaults to fully opaque (100%).
+      await expect(thumbInput).toHaveAttribute('aria-valuenow', '100');
+
+      // Adjusting the slider updates its value without changing selection.
+      await thumbInput.focus();
+      await thumbInput.press('Home');
+      await expect(thumbInput).toHaveAttribute('aria-valuenow', '0');
+
+      // Restore.
+      await thumbInput.press('End');
+      await expect(thumbInput).toHaveAttribute('aria-valuenow', '100');
+    });
+
     test('should hide the last layer', async ({ page }) => {
       const layerTree = await openLayerTree(page);
 

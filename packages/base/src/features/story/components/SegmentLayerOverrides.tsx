@@ -1,7 +1,7 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { IStateDB } from '@jupyterlab/statedb';
 import { CheckIcon, RotateCcw } from 'lucide-react';
-import React, { type RefObject } from 'react';
+import React from 'react';
 
 import { SegmentOverrideSheet } from '@/src/features/story/components/SegmentOverrideSheet';
 import {
@@ -19,14 +19,14 @@ export interface ISegmentLayerOverridesProps {
   model: IJupyterGISModel;
   state: IStateDB;
   segmentId: string;
-  portalContainerRef: RefObject<HTMLElement | null>;
+  isMobile?: boolean;
 }
 
 export function SegmentLayerOverrides({
   model,
   state,
   segmentId,
-  portalContainerRef,
+  isMobile = false,
 }: ISegmentLayerOverridesProps): JSX.Element {
   const rows = buildSegmentLayerRows(model, segmentId);
 
@@ -37,18 +37,24 @@ export function SegmentLayerOverrides({
   }
 
   return (
-    <div className="jgis-story-editor-segment-layer-grid">
-      <div
-        className="jgis-story-editor-segment-layer-header"
-        aria-hidden="true"
-      >
-        <span>Layer Name</span>
-        <span>Visibility</span>
-        <span>Opacity</span>
-        <span>Symbology</span>
-        <span>Override</span>
-        <span>Reset</span>
-      </div>
+    <div
+      className={`jgis-story-editor-segment-layer-grid${
+        isMobile ? ' jgis-story-editor-segment-layer-grid--mobile' : ''
+      }`}
+    >
+      {!isMobile ? (
+        <div
+          className="jgis-story-editor-segment-layer-header"
+          aria-hidden="true"
+        >
+          <span>Layer Name</span>
+          <span>Visibility</span>
+          <span>Opacity</span>
+          <span>Symbology</span>
+          <span>Override</span>
+          <span>Reset</span>
+        </div>
+      ) : null}
       <ul className="jgis-story-editor-segment-layer-list">
         {rows.map(row => {
           const layer = model.getLayer(row.layerId);
@@ -88,7 +94,8 @@ export function SegmentLayerOverrides({
                   step={1}
                   value={[Math.round(row.effectiveOpacity * 100)]}
                   aria-label={`Opacity for ${row.layerName}`}
-                  onValueChange={([opacity]) => {
+                  onValueChange={value => {
+                    const opacity = Array.isArray(value) ? value[0] : value;
                     setSegmentLayerOpacity(
                       model,
                       segmentId,
@@ -107,23 +114,21 @@ export function SegmentLayerOverrides({
                     model={model}
                     segmentId={segmentId}
                     layerId={row.layerId}
-                    portalContainerRef={portalContainerRef}
                   />
                 ) : null}
               </span>
               <span className="jgis-story-editor-segment-layer-override">
-                {row.isChanged ? (
-                  <CheckIcon
-                    className="jgis-story-editor-segment-layer-override-icon"
-                    aria-label="Override applied"
-                  />
-                ) : null}
+                <CheckIcon
+                  className="jgis-story-editor-segment-layer-override-icon"
+                  aria-label={row.isChanged ? 'Override applied' : undefined}
+                  aria-hidden={row.isChanged ? undefined : true}
+                  style={{ visibility: row.isChanged ? 'visible' : 'hidden' }}
+                />
               </span>
               <span className="jgis-story-editor-segment-layer-reset">
                 <Button
                   type="button"
-                  variant="icon"
-                  size="icon-sm"
+                  variant="ghost"
                   disabled={!row.isChanged}
                   aria-label={`Reset overrides for ${row.layerName}`}
                   onClick={() => {

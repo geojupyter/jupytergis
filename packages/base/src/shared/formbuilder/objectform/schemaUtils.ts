@@ -55,6 +55,9 @@ export function removeNestedFormEntry(
 /**
  * Apply base processSchema: array options, opacity field, readOnly handling.
  * Mutates schema, uiSchema, and optionally data (for readOnly removal in update).
+ *
+ * `opacity` gets the slider field in both the Layers panel and the properties
+ * form.
  */
 export function processBaseSchema(
   data: IDict | undefined,

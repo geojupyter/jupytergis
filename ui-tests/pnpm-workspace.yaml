@@ -1,0 +1,5 @@
+packages: []
+nodeLinker: hoisted
+
+allowBuilds:
+  '@fortawesome/fontawesome-free': false

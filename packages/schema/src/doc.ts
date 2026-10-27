@@ -18,6 +18,11 @@ import {
 } from './_interface/project/jgis';
 import { SCHEMA_VERSION } from './_interface/version';
 import {
+  defaultFeatureStoreMeta,
+  getOverlayAddBlockReason,
+  FeatureStoreAddBlockReason,
+} from './featureStores';
+import {
   IDict,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
@@ -27,10 +32,25 @@ import {
   IJupyterGISDoc,
   IJupyterGISDocChange,
   IAnnotation,
+  IDrawCustomAttribute,
+  IDrawCustomAttributePresets,
 } from './interfaces';
 import { migrateDocument } from './migrations';
+import type {
+  IFeatureStoreFeature,
+  IFeatureStore,
+  IFeatureStoreMeta,
+  IFeatureStoreSource,
+  IJGISFeatureStores,
+} from './types';
 
 export const DEFAULT_PROJECTION = 'EPSG:3857';
+
+/** Whole-world extent in EPSG:3857 (Default projection). */
+export const DEFAULT_WORLD_EXTENT_3857: [number, number, number, number] = [
+  -20037508.342789244, -20037508.342789244, 20037508.342789244,
+  20037508.342789244,
+];
 
 /** Default JSON content for a new JupyterGIS document. */
 export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
@@ -39,9 +59,10 @@ export const DEFAULT_JGIS_DOCUMENT_CONTENT = `{
 	"sources": {},
   "stories": {},
   "viewState": {},
-	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}"},
+	"options": {"latitude": 0, "longitude": 0, "zoom": 0, "bearing": 0, "pitch": 0, "projection": "${DEFAULT_PROJECTION}", "extent": [${DEFAULT_WORLD_EXTENT_3857.join(', ')}]},
 	"layerTree": [],
 	"annotations": {},
+	"presets": {},
 	"metadata": {}
 }`;
 
@@ -59,12 +80,15 @@ export class JupyterGISDoc
     this._stories = this.ydoc.getMap<Y.Map<any>>('stories');
     this._viewState = this.ydoc.getMap<Y.Map<any>>('viewState');
     this._annotations = this.ydoc.getMap('annotations');
+    this._presets = this.ydoc.getMap('presets');
+    this._featureStores = this.ydoc.getMap('featureStores');
     this._metadata = this.ydoc.getMap('metadata');
 
     this.undoManager.addToScope(this._layers);
     this.undoManager.addToScope(this._sources);
     this.undoManager.addToScope(this._stories);
     this.undoManager.addToScope(this._layerTree);
+    this.undoManager.addToScope(this._featureStores);
 
     this._initialSyncReadyPromise = new Promise<void>(resolve => {
       this._initialSyncReadyResolve = resolve;
@@ -77,6 +101,8 @@ export class JupyterGISDoc
     this._viewState.observe(this._viewStateObserver.bind(this));
     this._options.observe(this._optionsObserver.bind(this));
     this._annotations.observe(this._annotationsObserver);
+    this._presets.observe(this._presetsObserver);
+    this._featureStores.observeDeep(this._featureStoresObserver);
     this._metadata.observe(this._metaObserver.bind(this));
   }
 
@@ -100,6 +126,7 @@ export class JupyterGISDoc
     const stories = this._stories.toJSON();
     const viewState = this._viewState.toJSON();
     const annotations = this._annotations.toJSON();
+    const presets = this._presets.toJSON();
     const metadata = this._metadata.toJSON();
 
     return JSON.stringify(
@@ -111,6 +138,7 @@ export class JupyterGISDoc
         viewState,
         options,
         annotations,
+        presets,
         metadata,
       },
       null,
@@ -150,6 +178,7 @@ export class JupyterGISDoc
       Object.entries(sources).forEach(([key, val]) =>
         this._sources.set(key, val),
       );
+      this._createFeatureStoresForSources(sources as unknown as IJGISSources);
 
       const stories = value['stories'] ?? {};
       Object.entries(stories).forEach(([key, val]) =>
@@ -161,9 +190,20 @@ export class JupyterGISDoc
         this._viewState.set(key, val),
       );
 
-      this.annotations = (value['annotations'] ??
-        {}) as unknown as IJGISAnnotations;
-      this.metadata = (value['metadata'] ?? {}) as IJGISMetadata;
+      const annotations = value['annotations'] ?? {};
+      Object.entries(annotations).forEach(([key, val]) =>
+        this._annotations.set(key, val),
+      );
+
+      const presets = value['presets'] ?? {};
+      Object.entries(presets).forEach(([key, val]) =>
+        this._presets.set(key, val),
+      );
+
+      const metadata = value['metadata'] ?? {};
+      Object.entries(metadata).forEach(([key, val]) =>
+        this._metadata.set(key, val),
+      );
     });
   }
 
@@ -192,6 +232,7 @@ export class JupyterGISDoc
       for (const [key, value] of Object.entries(sources)) {
         this._sources.set(key, value);
       }
+      this._createFeatureStoresForSources(sources);
     });
   }
 
@@ -388,19 +429,26 @@ export class JupyterGISDoc
       return;
     }
 
+    const removed = this.getLayerSource(id);
+
     this.transact(() => {
       this._sources.delete(id);
+      this._maybeRemoveFeatureStoreForSource(removed);
     });
   }
 
   addSource(id: string, value: IJGISSource): void {
     this.transact(() => {
       this._sources.set(id, value);
+      this._createFeatureStoreForSource(value);
     });
   }
 
   updateSource(id: string, value: any): void {
-    this.transact(() => this._sources.set(id, value));
+    this.transact(() => {
+      this._sources.set(id, value);
+      this._createFeatureStoreForSource(value);
+    });
   }
 
   removeStoryMap(id: string): void {
@@ -436,6 +484,10 @@ export class JupyterGISDoc
 
   setOption(key: keyof IJGISOptions, value: IDict): void {
     this.transact(() => void this._options.set(key, value));
+  }
+
+  removeOption(key: keyof IJGISOptions): void {
+    this.transact(() => void this._options.delete(key));
   }
 
   getAnnotation(id: string): IAnnotation | undefined {
@@ -481,6 +533,192 @@ export class JupyterGISDoc
     });
   }
 
+  getPreset(name: string): IDrawCustomAttribute[] | undefined {
+    if (!this._presets.has(name)) {
+      return;
+    }
+
+    return JSONExt.deepCopy(this._presets.get(name)) as IDrawCustomAttribute[];
+  }
+
+  setPreset(name: string, attributes: IDrawCustomAttribute[]): void {
+    this.transact(() => void this._presets.set(name, attributes));
+  }
+
+  removePreset(name: string): void {
+    this.transact(() => {
+      if (this._presets.has(name)) {
+        this._presets.delete(name);
+      }
+    });
+  }
+
+  getPresets(): IDrawCustomAttributePresets {
+    return JSONExt.deepCopy(
+      this._presets.toJSON(),
+    ) as IDrawCustomAttributePresets;
+  }
+
+  get presets(): IDrawCustomAttributePresets {
+    return this.getPresets();
+  }
+
+  set presets(presets: IDrawCustomAttributePresets) {
+    this.transact(() => {
+      this._presets.clear();
+      for (const [name, value] of Object.entries(presets)) {
+        this._presets.set(name, value);
+      }
+    });
+  }
+
+  get featureStores(): IJGISFeatureStores {
+    const result: IJGISFeatureStores = {};
+    this._featureStores.forEach((storeMap: any, storeId: string) => {
+      result[storeId] = this._storeMapToPlain(storeMap);
+    });
+
+    return result;
+  }
+
+  set featureStores(stores: IJGISFeatureStores) {
+    this.transact(() => {
+      this._hydrateFeatureStores(stores ?? {});
+    });
+  }
+
+  getFeatureStore(storeId: string): IFeatureStore | undefined {
+    const storeMap = this._featureStores.get(storeId);
+    if (!storeMap) {
+      return undefined;
+    }
+
+    return this._storeMapToPlain(storeMap);
+  }
+
+  getFeatureStoreFeatures(
+    storeId: string,
+  ): Record<string, IFeatureStoreFeature> {
+    return this.getFeatureStore(storeId)?.features ?? {};
+  }
+
+  /**
+   * Insert or replace an overlay feature. Store must already exist.
+   * Returns a block reason when the add is refused.
+   */
+  setFeatureStoreFeature(
+    storeId: string,
+    feature: IFeatureStoreFeature,
+  ): { ok: true } | { ok: false; reason: FeatureStoreAddBlockReason } {
+    let result:
+      | { ok: true }
+      | { ok: false; reason: FeatureStoreAddBlockReason } = { ok: true };
+
+    this.transact(() => {
+      const storeMap = this._featureStores.get(storeId) as
+        | Y.Map<any>
+        | undefined;
+
+      if (!storeMap) {
+        result = { ok: false, reason: 'missingStore' };
+        return;
+      }
+
+      const plain = this._storeMapToPlain(storeMap);
+      const isNew =
+        !plain.features[feature.id] || plain.features[feature.id].deleted;
+
+      if (isNew && !feature.deleted) {
+        const block = getOverlayAddBlockReason(plain);
+        if (block) {
+          result = { ok: false, reason: block };
+          return;
+        }
+      }
+
+      const featuresMap = storeMap.get('features') as Y.Map<any>;
+      featuresMap.set(feature.id, JSONExt.deepCopy(feature as any));
+    });
+
+    return result;
+  }
+
+  /**
+   * Remove a feature from the overlay.
+   *
+   * If tombstone is true, we keep an overlay record with
+   * deleted: true so fold can propagate the delete to PostGIS.
+   */
+  removeFeatureStoreFeature(
+    storeId: string,
+    featureId: string,
+    options: { tombstone?: boolean; updatedBy: string },
+  ): void {
+    this.transact(() => {
+      const storeMap = this._featureStores.get(storeId) as
+        | Y.Map<any>
+        | undefined;
+
+      if (!storeMap) {
+        return;
+      }
+
+      const featuresMap = storeMap.get('features') as Y.Map<any>;
+
+      if (options.tombstone) {
+        const existing = featuresMap.get(featureId) as
+          | IFeatureStoreFeature
+          | undefined;
+
+        featuresMap.set(featureId, {
+          id: featureId,
+          geometry: existing?.geometry ?? null,
+          props: existing?.props ?? {},
+          updatedAt: new Date().toISOString(),
+          updatedBy: options.updatedBy,
+          deleted: true,
+        } satisfies IFeatureStoreFeature);
+
+        return;
+      }
+
+      featuresMap.delete(featureId);
+    });
+  }
+
+  clearFeatureStoreOverlay(storeId: string): void {
+    this.transact(() => {
+      const storeMap = this._featureStores.get(storeId) as
+        | Y.Map<any>
+        | undefined;
+      if (!storeMap) {
+        return;
+      }
+
+      const featuresMap = storeMap.get('features') as Y.Map<any>;
+      featuresMap.clear();
+    });
+  }
+
+  updateFeatureStoreMeta(
+    storeId: string,
+    meta: Partial<IFeatureStoreMeta>,
+  ): void {
+    this.transact(() => {
+      const storeMap = this._featureStores.get(storeId) as
+        | Y.Map<any>
+        | undefined;
+
+      if (!storeMap) {
+        return;
+      }
+
+      const current = (storeMap.get('meta') ??
+        defaultFeatureStoreMeta()) as IFeatureStoreMeta;
+      storeMap.set('meta', { ...current, ...meta });
+    });
+  }
+
   get metadata(): IJGISMetadata {
     return JSONExt.deepCopy(this._metadata.toJSON()) as IJGISMetadata;
   }
@@ -500,6 +738,14 @@ export class JupyterGISDoc
 
   get annotationsChanged(): ISignal<IJupyterGISDoc, MapChange> {
     return this._annotationsChanged;
+  }
+
+  get presetsChanged(): ISignal<IJupyterGISDoc, MapChange> {
+    return this._presetsChanged;
+  }
+
+  get featureStoresChanged(): ISignal<IJupyterGISDoc, MapChange> {
+    return this._featureStoresChanged;
   }
 
   static create(): IJupyterGISDoc {
@@ -647,6 +893,124 @@ export class JupyterGISDoc
     this._annotationsChanged.emit(changes);
   };
 
+  private _presetsObserver = (event: Y.YMapEvent<any>): void => {
+    const changes = new Map();
+    event.changes.keys.forEach((change, key) => {
+      changes.set(key, {
+        action: change.action,
+        oldValue: change.oldValue,
+        newValue: this._presets.get(key),
+      });
+    });
+    this._presetsChanged.emit(changes);
+  };
+
+  private _featureStoresObserver = (_events: Y.YEvent<any>[]): void => {
+    // Deep observer: emit a coarse change so consumers reload store state.
+    const changes = new Map();
+    changes.set('*', {
+      action: 'update',
+      oldValue: undefined,
+      newValue: this.featureStores,
+    });
+    this._featureStoresChanged.emit(changes);
+  };
+
+  private _hydrateFeatureStores(stores: IJGISFeatureStores): void {
+    this._featureStores.clear();
+
+    for (const [storeId, store] of Object.entries(stores ?? {})) {
+      const storeMap = new Y.Map();
+      const featuresMap = new Y.Map();
+      storeMap.set('meta', defaultFeatureStoreMeta(store.meta ?? {}));
+      for (const [featureId, feature] of Object.entries(store.features ?? {})) {
+        featuresMap.set(featureId, feature);
+      }
+      storeMap.set('features', featuresMap);
+      this._featureStores.set(storeId, storeMap);
+    }
+  }
+
+  private _featureStoreIdFromSource(
+    source: IJGISSource | undefined,
+  ): string | undefined {
+    if (!source || source.type !== 'FeatureStoreSource') {
+      return undefined;
+    }
+
+    const storeId = (source.parameters as IFeatureStoreSource | undefined)
+      ?.storeId;
+    return storeId || undefined;
+  }
+
+  /** Create empty overlay store if missing. Caller must be in a transaction. */
+  private _createFeatureStoreMap(
+    storeId: string,
+    meta?: Partial<IFeatureStoreMeta>,
+  ): Y.Map<any> {
+    let storeMap = this._featureStores.get(storeId) as Y.Map<any> | undefined;
+
+    if (!storeMap) {
+      storeMap = new Y.Map();
+      storeMap.set('meta', defaultFeatureStoreMeta(meta));
+      storeMap.set('features', new Y.Map());
+      this._featureStores.set(storeId, storeMap);
+    } else if (meta) {
+      const current = (storeMap.get('meta') ??
+        defaultFeatureStoreMeta()) as IFeatureStoreMeta;
+      storeMap.set('meta', { ...current, ...meta });
+    }
+
+    return storeMap;
+  }
+
+  private _createFeatureStoreForSource(source: IJGISSource | undefined): void {
+    const storeId = this._featureStoreIdFromSource(source);
+    if (storeId) {
+      this._createFeatureStoreMap(storeId);
+    }
+  }
+
+  private _createFeatureStoresForSources(sources: IJGISSources): void {
+    for (const source of Object.values(sources ?? {})) {
+      this._createFeatureStoreForSource(source);
+    }
+  }
+
+  private _maybeRemoveFeatureStoreForSource(
+    source: IJGISSource | undefined,
+  ): void {
+    const storeId = this._featureStoreIdFromSource(source);
+    if (!storeId) {
+      return;
+    }
+
+    for (const other of Object.values(this.sources)) {
+      if (this._featureStoreIdFromSource(other) === storeId) {
+        return;
+      }
+    }
+
+    this._featureStores.delete(storeId);
+  }
+
+  private _storeMapToPlain(storeMap: any): IFeatureStore {
+    if (!(storeMap instanceof Y.Map)) {
+      return JSONExt.deepCopy(storeMap) as IFeatureStore;
+    }
+
+    const featuresMap = storeMap.get('features');
+    const features =
+      featuresMap instanceof Y.Map
+        ? (featuresMap.toJSON() as Record<string, IFeatureStoreFeature>)
+        : ((featuresMap as Record<string, IFeatureStoreFeature>) ?? {});
+
+    return {
+      meta: storeMap.get('meta'),
+      features: JSONExt.deepCopy(features as any),
+    };
+  }
+
   private _layers: Y.Map<any>;
   private _layerTree: Y.Array<IJGISLayerItem>;
   private _sources: Y.Map<any>;
@@ -655,6 +1019,8 @@ export class JupyterGISDoc
   private _options: Y.Map<any>;
   private _metadata: Y.Map<any>;
   private _annotations: Y.Map<any>;
+  private _presets: Y.Map<any>;
+  private _featureStores: Y.Map<any>;
 
   private _optionsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _layersChanged = new Signal<IJupyterGISDoc, IJGISLayerDocChange>(
@@ -674,6 +1040,8 @@ export class JupyterGISDoc
   private _viewStateChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _metadataChanged = new Signal<IJupyterGISDoc, MapChange>(this);
   private _annotationsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
+  private _presetsChanged = new Signal<IJupyterGISDoc, MapChange>(this);
+  private _featureStoresChanged = new Signal<IJupyterGISDoc, MapChange>(this);
 
   private _initialSyncReadyPromise: Promise<void>;
   private _initialSyncReadyResolve: () => void;

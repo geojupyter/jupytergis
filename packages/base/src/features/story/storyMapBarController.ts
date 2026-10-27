@@ -2,7 +2,11 @@ import type { IJupyterGISModel } from '@jupytergis/schema';
 import { Widget } from '@lumino/widgets';
 import React from 'react';
 
-import { STORY_TYPE, type JupyterGISTracker } from '@/src/types';
+import {
+  getStoryPresentationMode,
+  isColumnPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
+import type { JupyterGISTracker } from '@/src/types';
 import { JupyterGISPanel } from '@/src/workspace/widget';
 import {
   MapPreviewBarActions,
@@ -181,7 +185,7 @@ export class StoryMapBarController {
     model: IJupyterGISModel,
   ): StoryMapInteractionBarPlacement {
     const storyType = model.getSelectedStory().story?.storyType;
-    if (storyType === STORY_TYPE.guided) {
+    if (isColumnPresentation(getStoryPresentationMode(storyType))) {
       return 'main-top-left';
     }
 

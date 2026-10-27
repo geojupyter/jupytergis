@@ -14,6 +14,10 @@ import { PromiseDelegate, UUID } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 
+import {
+  FollowMirrorContext,
+  useFollowedState,
+} from '@/src/features/follow/useFollowedState';
 import { CreationFormWrapper } from '@/src/features/layers/layerCreationFormDialog';
 import CUSTOM_RASTER_IMAGE from '../../../custom_raster.png';
 
@@ -42,6 +46,15 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
 
   const [galleryWithCategory, setGalleryWithCategory] =
     useState<ILayerGalleryEntry[]>(registry);
+
+  useFollowedState(model, 'layerBrowser:search', searchTerm, setSearchTerm);
+  useFollowedState(model, 'layerBrowser:active', activeLayers, setActiveLayers);
+  useFollowedState(
+    model,
+    'layerBrowser:customRaster',
+    creatingCustomRaster,
+    setCreatingCustomRaster,
+  );
 
   const providers = [...new Set(registry.map(item => item.provider))];
 
@@ -246,6 +259,10 @@ export interface ILayerBrowserOptions {
   model: IJupyterGISModel;
   registry: ILayerGalleryEntry[];
   formSchemaRegistry: IJGISFormSchemaRegistry;
+  /**
+   * Render as a read-only mirror of the collaborator we are following.
+   */
+  followMirror?: boolean;
 }
 
 export class LayerBrowserWidget extends Dialog<boolean> {
@@ -264,14 +281,16 @@ export class LayerBrowserWidget extends Dialog<boolean> {
     >();
 
     const body = (
-      <LayerBrowserComponent
-        model={options.model}
-        registry={options.registry}
-        formSchemaRegistry={options.formSchemaRegistry}
-        okSignalPromise={okSignalPromise}
-        cancel={cancelCallback}
-        registerConfirmHandler={registerConfirmHandler}
-      />
+      <FollowMirrorContext.Provider value={!!options.followMirror}>
+        <LayerBrowserComponent
+          model={options.model}
+          registry={options.registry}
+          formSchemaRegistry={options.formSchemaRegistry}
+          okSignalPromise={okSignalPromise}
+          cancel={cancelCallback}
+          registerConfirmHandler={registerConfirmHandler}
+        />
+      </FollowMirrorContext.Provider>
     );
 
     super({ body, buttons: [Dialog.cancelButton(), Dialog.okButton()] });

@@ -1,0 +1,69 @@
+{
+  "layerTree": [
+    "3d9d3f4c-2f2a-4a3f-9b18-6f8b3b1b0a01",
+    "8c1c9d2e-1b3a-4f8e-9c21-7a5d2e6f0b02"
+  ],
+  "layers": {
+    "3d9d3f4c-2f2a-4a3f-9b18-6f8b3b1b0a01": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "source": "5fe556bc-9938-4217-8de6-fe25aef088c2"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "8c1c9d2e-1b3a-4f8e-9c21-7a5d2e6f0b02": {
+      "filters": {
+        "appliedFilters": [],
+        "logicalOp": "all"
+      },
+      "name": "France Regions",
+      "parameters": {
+        "color": {},
+        "opacity": 1.0,
+        "source": "d07cc573-51fb-4ae8-965b-a0082ace7f2b",
+        "type": "line"
+      },
+      "type": "VectorLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -1500000.0,
+      5000000.0,
+      1500000.0,
+      6800000.0
+    ],
+    "latitude": 46.5,
+    "longitude": 2.5,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 5.0
+  },
+  "schemaVersion": "0.5.0",
+  "sources": {
+    "5fe556bc-9938-4217-8de6-fe25aef088c2": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    },
+    "d07cc573-51fb-4ae8-965b-a0082ace7f2b": {
+      "name": "France Regions Source",
+      "parameters": {
+        "path": "france_regions.geojson"
+      },
+      "type": "GeoJSONSource"
+    }
+  },
+  "stories": {}
+}

@@ -1,25 +1,30 @@
-import {
-  Dialog,
-  Notification,
-  ReactWidget,
-  showDialog,
-} from '@jupyterlab/apputils';
+import { Dialog, Notification, ReactWidget } from '@jupyterlab/apputils';
+import { AuthProvider } from '@openeo/js-client';
 import * as React from 'react';
 
-import { fetchBackendCatalog, IBackendCatalog } from '@/src/tools';
+import { EditorAwareDialog } from '@/src/shared/editorAwareDialog';
 import {
-  connect as openEOConnect,
+  describeConnectionError,
+  fetchBackendCatalog,
+  IBackendCatalog,
+} from '@/src/tools';
+import {
+  openEOConnect,
   IOpenEOConnectionInfo,
   listOpenEOConnections,
+  OpenEOSigninCancelled,
 } from './OpenEOTileLayer';
+import { CodeExportPanel } from './codeExportPanel';
 import { JsonEditor } from './jsonEditor';
 import { ProcessGraphView } from './processGraphView';
+import { OpenEOSignin } from './signin';
+import { normalizeSpatialExtent } from './templates';
 import {
-  IOpenEOTemplate,
-  IOpenEOTemplateParams,
-  OPENEO_TEMPLATES,
-  normalizeSpatialExtent,
-} from './templates';
+  IUserProcess,
+  canSaveUserProcesses,
+  fetchUserProcess,
+  saveUserProcess,
+} from './userProcesses';
 import {
   IValidationError,
   mergeValidationErrors,
@@ -30,17 +35,18 @@ import {
 export interface IOpenEODialogResult {
   layerName: string;
   serverUrl: string;
-  authBearer?: string;
   processGraph: Record<string, any>;
 }
 
 interface IBodyState {
   layerName: string;
-  templateId: string;
-  params: IOpenEOTemplateParams;
-  // When non-null, the user has hand-edited the graph and we use this
-  // instead of recomputing from the template.
   editedGraph: Record<string, any> | null;
+}
+
+interface IMapView {
+  latitude?: number;
+  longitude?: number;
+  zoom?: number;
 }
 
 interface IFormProps {
@@ -53,6 +59,8 @@ interface IFormProps {
   initialConnection: IOpenEOConnectionInfo | null;
   /** Servers the user already authenticated against — populates the combobox. */
   knownServers: string[];
+  /** Live map view to reproduce in the Code tab's JupyterGIS snippet. */
+  mapView?: IMapView;
   onChange: (next: IBodyState) => void;
   onActiveServerChange: (info: IOpenEOConnectionInfo | null) => void;
   onValidationChange: (valid: boolean) => void;
@@ -63,13 +71,17 @@ type ValidationStatus =
   | { state: 'pending' }
   | { state: 'valid' }
   | { state: 'invalid'; errors: IValidationError[] }
+  | { state: 'advisory'; errors: IValidationError[] }
   | { state: 'error'; message: string };
 
 const DRAG_MIME = 'application/x-openeo-node';
 
+const DEFAULT_LAYER_NAME = 'OpenEO Layer';
+
 type DragPayload =
   | { kind: 'collection'; id: string }
   | { kind: 'process'; id: string }
+  | { kind: 'udp'; id: string }
   | { kind: 'format'; id: string };
 
 function mintNodeKey(procId: string, existing: Set<string>): string {
@@ -101,18 +113,15 @@ function defaultArgsFromProcess(
   return args;
 }
 
-function buildCollectionNode(
-  id: string,
-  params: IOpenEOTemplateParams,
-): Record<string, any> {
+function buildCollectionNode(id: string): Record<string, any> {
   return {
     process_id: 'load_collection',
     arguments: {
       id,
       bands: [],
       properties: {},
-      spatial_extent: params.bbox,
-      temporal_extent: params.temporalExtent,
+      spatial_extent: null,
+      temporal_extent: null,
     },
   };
 }
@@ -138,21 +147,27 @@ function buildSaveResultNode(formatId: string): Record<string, any> {
 interface ICatalogPaletteProps {
   collections: any[] | undefined;
   processes: any[] | undefined;
+  userProcesses: any[] | undefined;
   outputFormats: any[] | undefined;
   loading: boolean;
   onBack: () => void;
+  /** Load a stored user-defined process into the editor. */
+  onOpenUserProcess: (id: string) => void;
 }
 
 const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
   collections,
   processes,
+  userProcesses,
   outputFormats,
   loading,
   onBack,
+  onOpenUserProcess,
 }) => {
   const [filter, setFilter] = React.useState('');
   const [openCollections, setOpenCollections] = React.useState(true);
   const [openProcesses, setOpenProcesses] = React.useState(false);
+  const [openUserProcesses, setOpenUserProcesses] = React.useState(false);
   const [openFormats, setOpenFormats] = React.useState(false);
 
   const q = filter.trim().toLowerCase();
@@ -179,6 +194,18 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
         (p.summary ?? '').toLowerCase().includes(q),
     );
   }, [processes, q]);
+
+  const filteredUserProcesses = React.useMemo(() => {
+    const list = userProcesses ?? [];
+    if (!q) {
+      return list;
+    }
+    return list.filter(
+      p =>
+        (p.id ?? '').toLowerCase().includes(q) ||
+        (p.summary ?? '').toLowerCase().includes(q),
+    );
+  }, [userProcesses, q]);
 
   const filteredFormats = React.useMemo(() => {
     const list = outputFormats ?? [];
@@ -253,6 +280,25 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
               />
             ))}
           </PaletteSection>
+          {(userProcesses?.length ?? 0) > 0 && (
+            <PaletteSection
+              title="User-Defined Processes"
+              count={filteredUserProcesses.length}
+              open={openUserProcesses}
+              onToggle={() => setOpenUserProcesses(o => !o)}
+            >
+              {filteredUserProcesses.map((p: any) => (
+                <PaletteRow
+                  key={p.id}
+                  id={p.id}
+                  subtitle={p.summary ?? p.description}
+                  onDragStart={e => onDragStart(e, { kind: 'udp', id: p.id })}
+                  onOpen={() => onOpenUserProcess(p.id)}
+                  openTitle={`Open ${p.id} in the editor`}
+                />
+              ))}
+            </PaletteSection>
+          )}
           <PaletteSection
             title="Output Formats"
             count={filteredFormats.length}
@@ -313,7 +359,9 @@ const PaletteRow: React.FC<{
   id: string;
   subtitle?: string;
   onDragStart: (e: React.DragEvent) => void;
-}> = ({ id, subtitle, onDragStart }) => {
+  onOpen?: () => void;
+  openTitle?: string;
+}> = ({ id, subtitle, onDragStart, onOpen, openTitle }) => {
   return (
     <div
       className="jp-openeo-palette-row"
@@ -328,6 +376,17 @@ const PaletteRow: React.FC<{
         <span className="jp-openeo-id">{id}</span>
         {subtitle && <span className="jp-openeo-secondary">{subtitle}</span>}
       </span>
+      {onOpen && (
+        <button
+          type="button"
+          className="jp-openeo-palette-row-open"
+          onClick={onOpen}
+          title={openTitle ?? `Open ${id}`}
+          aria-label={openTitle ?? `Open ${id}`}
+        >
+          ✎
+        </button>
+      )}
     </div>
   );
 };
@@ -336,6 +395,7 @@ const Form: React.FC<IFormProps> = ({
   initial,
   initialConnection,
   knownServers,
+  mapView,
   onChange,
   onActiveServerChange,
   onValidationChange,
@@ -374,23 +434,22 @@ const Form: React.FC<IFormProps> = ({
   );
   const [serverBusy, setServerBusy] = React.useState(false);
   const [serverError, setServerError] = React.useState<string | null>(null);
-  const [serverUsername, setServerUsername] = React.useState('');
-  const [serverPassword, setServerPassword] = React.useState('');
-  // Server section has three explicit modes: pick/enter a URL, enter
-  // credentials, or already connected. Credentials inputs are only
-  // visible in 'signin' so they don't clutter the dialog when not
-  // needed.
+  const [authProviders, setAuthProviders] = React.useState<
+    AuthProvider[] | null
+  >(null);
+  const [serverTitle, setServerTitle] = React.useState('');
+  const [anonymous, setAnonymous] = React.useState(false);
+  // Resolver of the promise openEOConnect() is waiting on while the
+  // sign-in form is up.
+  const signinDone = React.useRef<((ok: boolean) => void) | null>(null);
+  // Server section has three explicit modes: pick/enter a URL, sign in,
+  // or already connected. The sign-in form is only visible in 'signin' so
+  // it doesn't clutter the dialog when not needed.
   type ServerMode = 'select' | 'signin' | 'connected';
   const [serverMode, setServerMode] = React.useState<ServerMode>(() =>
     connectionInfo?.url ? 'connected' : 'select',
   );
-  const usernameRef = React.useRef<HTMLInputElement | null>(null);
-  React.useEffect(() => {
-    if (serverMode === 'signin') {
-      // Defer to next tick so the input is mounted before we focus.
-      window.setTimeout(() => usernameRef.current?.focus(), 0);
-    }
-  }, [serverMode]);
+  React.useEffect(() => () => signinDone.current?.(false), []);
 
   const setConnectionInfo = (next: IOpenEOConnectionInfo | null) => {
     setConnectionInfoState(next);
@@ -403,11 +462,7 @@ const Form: React.FC<IFormProps> = ({
     onChange(next);
   };
 
-  const template =
-    OPENEO_TEMPLATES.find(t => t.id === state.templateId) ??
-    OPENEO_TEMPLATES[0];
-
-  // Prompt before discarding user edits when changing template/params.
+  // Prompt before discarding user edits when loading another graph.
   const guardReseed = (apply: () => void) => {
     if (state.editedGraph) {
       const ok = window.confirm(
@@ -418,16 +473,6 @@ const Form: React.FC<IFormProps> = ({
       }
     }
     apply();
-  };
-
-  const onTemplate = (t: IOpenEOTemplate) => {
-    guardReseed(() =>
-      update({
-        templateId: t.id,
-        params: { ...t.defaults },
-        editedGraph: null,
-      }),
-    );
   };
 
   // Step 1: user picks/enters a URL and clicks Connect. If the URL is
@@ -446,52 +491,54 @@ const Form: React.FC<IFormProps> = ({
       setServerMode('connected');
       return;
     }
-    // Reuse cached creds if user retries the same URL.
-    setServerMode('signin');
+    void signInToServer(raw);
   };
 
-  // Step 2: user submits credentials. Calls connect() with the inline
-  // signIn payload so it doesn't try to open a nested sign-in dialog
-  // (JupyterLab queues those behind the currently-open dialog).
-  const onLogin = async () => {
-    const raw = serverInput.trim();
-    if (!raw) {
-      setServerError('Enter an OpenEO server URL.');
-      return;
-    }
-    if (!serverUsername || !serverPassword) {
-      setServerError('Enter username and password.');
-      return;
-    }
+  // Step 2: connect and let the user sign in with any method the server
+  // offers. The form renders inline through the `authenticate` hook,
+  // because JupyterLab queues nested dialogs behind this one.
+  const signInToServer = async (raw: string) => {
     setServerBusy(true);
-    setServerError(null);
+    setAuthProviders(null);
+    setServerTitle('');
+    setAnonymous(false);
+    setServerMode('signin');
     const next: IOpenEOConnectionInfo = {
       url: raw,
-      signIn: {
-        serverUrl: raw,
-        username: serverUsername,
-        password: serverPassword,
+      authenticate: (providers, connection) => {
+        setAuthProviders(providers);
+        setServerTitle(connection.capabilities().title());
+        setServerBusy(false);
+        return new Promise<boolean>(resolve => {
+          signinDone.current = resolve;
+        });
       },
     };
     try {
       await openEOConnect(next);
-    } catch (err: any) {
-      setServerError(err?.message ?? String(err));
+    } catch (err) {
+      signinDone.current = null;
       setServerBusy(false);
+      setServerMode('select');
+      if (!(err instanceof OpenEOSigninCancelled)) {
+        setServerError(describeConnectionError(err, next.url ?? raw));
+      }
       return;
     }
+    signinDone.current = null;
     // connect() may normalize the url (e.g. add https://) — reflect
     // that back so downstream references match.
     const resolved = next.url ?? raw;
     setServerInput(resolved);
     setServers(prev => (prev.includes(resolved) ? prev : [...prev, resolved]));
     setConnectionInfo(next);
-    setServerPassword('');
     setServerBusy(false);
     setServerMode('connected');
   };
 
   const onChangeServer = () => {
+    signinDone.current?.(false);
+    signinDone.current = null;
     setServerError(null);
     setServerBusy(false);
     setServerMode('select');
@@ -501,21 +548,36 @@ const Form: React.FC<IFormProps> = ({
   // actually change. Otherwise every render produces a new object,
   // re-firing validation and reassigning ModelBuilder.value mid-edit.
   const effectiveGraph = React.useMemo(() => {
-    const graph = state.editedGraph ?? template.buildGraph(state.params);
+    const graph = state.editedGraph ?? {};
     // An empty `spatial_extent: {}` (e.g. from a graph authored before we
     // sent a real extent) is invalid per the openEO schema; normalize it to
     // `null` so validation doesn't block an otherwise-valid graph.
     return normalizeSpatialExtent(graph);
-  }, [state.editedGraph, state.templateId, state.params]);
+  }, [state.editedGraph]);
   const effectiveGraphJson = React.useMemo(
     () => JSON.stringify(effectiveGraph, null, 2),
     [effectiveGraph],
   );
-  const [viewMode, setViewMode] = React.useState<'graph' | 'json'>('graph');
+  const isEmptyGraph = Object.keys(effectiveGraph).length === 0;
+  const [viewMode, setViewMode] = React.useState<'graph' | 'json' | 'code'>(
+    'graph',
+  );
   const [editMode, setEditMode] = React.useState(false);
+  // The stored user-defined process the editor is currently working on, if
+  // any. Holds the UDP's metadata (parameters, summary…) so saving back
+  // round-trips everything the graph editor doesn't touch.
+  const [editingUdp, setEditingUdp] = React.useState<IUserProcess | null>(null);
+  const [udpBusy, setUdpBusy] = React.useState(false);
+  const [udpError, setUdpError] = React.useState<string | null>(null);
+  const [canSaveUdp, setCanSaveUdp] = React.useState(false);
+  // Non-null while the "save as a new process" form is open.
+  const [saveAsForm, setSaveAsForm] = React.useState<{
+    id: string;
+    summary: string;
+  } | null>(null);
   // Local JSON buffer so the user can type freely; on valid parse, push
   // back to state.editedGraph. Reseeded whenever effectiveGraph changes
-  // from outside (template/param change, reset).
+  // from outside (e.g. an import).
   const initialJsonText = effectiveGraphJson;
   const [jsonText, setJsonText] = React.useState(initialJsonText);
   const [jsonError, setJsonError] = React.useState<string | null>(null);
@@ -541,10 +603,6 @@ const Form: React.FC<IFormProps> = ({
     } catch (e: any) {
       setJsonError(e?.message ?? String(e));
     }
-  };
-
-  const resetToTemplate = () => {
-    update({ editedGraph: null });
   };
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -612,6 +670,8 @@ const Form: React.FC<IFormProps> = ({
   // Backend catalog (processes + collections + output formats).
   const [catalog, setCatalog] = React.useState<IBackendCatalog | null>(null);
   const [catalogLoading, setCatalogLoading] = React.useState(false);
+  // Bumped after storing a UDP so the palette picks up the new/changed entry.
+  const [catalogVersion, setCatalogVersion] = React.useState(0);
 
   // Two validation passes, both race-guarded by a version counter:
   //   - Local (synchronous-ish, via @openeo/js-processgraphs): catches
@@ -655,21 +715,36 @@ const Form: React.FC<IFormProps> = ({
       return;
     }
 
+    // Nothing to validate until the user imports or builds a graph.
+    if (Object.keys(parsed).length === 0) {
+      setValidation({ state: 'idle' });
+      lastResultVersionRef.current = myVersion;
+      setIsChecking(false);
+      return;
+    }
+
     // Local pass — runs immediately so the user sees structural errors
     // (missing required args, wrong argument types, etc) without waiting
     // for the network. Stored in a ref so the backend pass can merge.
     localErrorsRef.current = [];
-    validateProcessGraphLocally(parsed, catalog?.processes).then(local => {
+    validateProcessGraphLocally(
+      parsed,
+      catalog?.processes,
+      catalog?.userProcesses,
+      editingUdp?.parameters,
+    ).then(local => {
       if (versionRef.current !== myVersion) {
         return;
       }
       localErrorsRef.current = local;
-      // Optimistic apply: show local results right away. The backend
-      // pass will overwrite with the merged set when it lands.
+      // Optimistic apply: show local results right away. Advisory, not
+      // invalid — at this point every finding is one only the local pass
+      // has made, and the backend has not had its say. The backend pass
+      // overwrites with the merged verdict when it lands.
       setValidation(
         local.length === 0
           ? { state: 'valid' }
-          : { state: 'invalid', errors: local },
+          : { state: 'advisory', errors: local },
       );
       lastResultVersionRef.current = myVersion;
     });
@@ -687,7 +762,11 @@ const Form: React.FC<IFormProps> = ({
       let backendErrors: IValidationError[] = [];
       let networkErrorMessage: string | null = null;
       try {
-        backendErrors = await validateProcessGraph(connectionInfo, parsed);
+        backendErrors = await validateProcessGraph(
+          connectionInfo,
+          parsed,
+          editingUdp?.parameters,
+        );
       } catch (err: any) {
         networkErrorMessage = err?.message ?? String(err);
       }
@@ -700,7 +779,15 @@ const Form: React.FC<IFormProps> = ({
       );
       let result: ValidationStatus;
       if (merged.length > 0) {
-        result = { state: 'invalid', errors: merged };
+        // The backend is the authority on its own processes. When it ran and
+        // accepted the graph, a finding only our stricter local pass makes
+        // (a backend process whose spec omits an argument the openEO client
+        // always sends, say `context` on a reducer) is reported but does not
+        // block the layer.
+        const localOnly = backendErrors.length === 0 && !networkErrorMessage;
+        result = localOnly
+          ? { state: 'advisory', errors: merged }
+          : { state: 'invalid', errors: merged };
       } else if (networkErrorMessage) {
         result = { state: 'error', message: networkErrorMessage };
       } else {
@@ -714,19 +801,27 @@ const Form: React.FC<IFormProps> = ({
     return () => {
       window.clearTimeout(handle);
     };
-  }, [effectiveGraphJson, connectionInfo, catalog?.processes]);
+  }, [
+    effectiveGraphJson,
+    connectionInfo,
+    catalog?.processes,
+    catalog?.userProcesses,
+    editingUdp,
+  ]);
 
   React.useEffect(() => {
     const fresh = lastResultVersionRef.current === versionRef.current;
-    // Adding a layer also requires a live connection: the source needs a
-    // serverUrl to resolve its in-memory connection at tile-load time.
+    // Adding a layer also requires a live, authenticated connection: the
+    // source needs a serverUrl, and creating the XYZ service needs a
+    // session.
     onValidationChange(
       Boolean(connectionInfo?.url) &&
-        validation.state === 'valid' &&
+        !anonymous &&
+        (validation.state === 'valid' || validation.state === 'advisory') &&
         !isChecking &&
         fresh,
     );
-  }, [validation, isChecking, connectionInfo, onValidationChange]);
+  }, [validation, isChecking, connectionInfo, anonymous, onValidationChange]);
 
   // Fetch backend catalog (processes + collections) so ModelBuilder can
   // label ports with types. Cached, so this is free if the Discovery
@@ -762,7 +857,118 @@ const Form: React.FC<IFormProps> = ({
     return () => {
       cancelled = true;
     };
+  }, [connectionInfo, catalogVersion]);
+
+  // Does this backend let the signed-in user store process graphs? Backends
+  // without PUT /process_graphs hide the save UI.
+  React.useEffect(() => {
+    let cancelled = false;
+    if (!connectionInfo) {
+      setCanSaveUdp(false);
+      return;
+    }
+    canSaveUserProcesses(connectionInfo).then(ok => {
+      if (!cancelled) {
+        setCanSaveUdp(ok);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [connectionInfo]);
+
+  // Pull a stored UDP's full definition (the list endpoint only returns
+  // summaries) and load its graph into the editor.
+  const onOpenUserProcess = (id: string) => {
+    if (!connectionInfo) {
+      return;
+    }
+    guardReseed(() => {
+      setUdpBusy(true);
+      setUdpError(null);
+      fetchUserProcess(connectionInfo, id)
+        .then(udp => {
+          setEditingUdp(udp);
+          setState(prev => {
+            const next = { ...prev, editedGraph: udp.processGraph };
+            onChange(next);
+            return next;
+          });
+          setSaveAsForm(null);
+          setViewMode('graph');
+        })
+        .catch(err => {
+          setUdpError(`Couldn't load '${id}': ${err?.message ?? String(err)}`);
+        })
+        .finally(() => setUdpBusy(false));
+    });
+  };
+
+  const storeUserProcess = (udp: IUserProcess, label: string) => {
+    if (!connectionInfo) {
+      return;
+    }
+    setUdpBusy(true);
+    setUdpError(null);
+    saveUserProcess(connectionInfo, udp)
+      .then(() => {
+        setEditingUdp(udp);
+        setSaveAsForm(null);
+        setCatalogVersion(v => v + 1);
+        Notification.success(label, { autoClose: 2500 });
+      })
+      .catch(err => {
+        setUdpError(
+          `Couldn't save '${udp.id}': ${err?.message ?? String(err)}`,
+        );
+      })
+      .finally(() => setUdpBusy(false));
+  };
+
+  const onSaveUserProcess = () => {
+    if (!editingUdp) {
+      return;
+    }
+    storeUserProcess(
+      { ...editingUdp, processGraph: effectiveGraph },
+      `Saved changes to user-defined process "${editingUdp.id}".`,
+    );
+  };
+
+  const onSaveUserProcessAs = () => {
+    const form = saveAsForm;
+    if (!form) {
+      return;
+    }
+    const id = form.id.trim();
+    if (!/^\w+$/.test(id)) {
+      setUdpError(
+        'A process id may only contain letters, digits and underscores.',
+      );
+      return;
+    }
+    const summary = form.summary.trim();
+    storeUserProcess(
+      {
+        id,
+        processGraph: effectiveGraph,
+        // A graph saved from the layer editor has no declared parameters
+        // unless it came from a UDP that did.
+        parameters: editingUdp?.parameters ?? [],
+        metadata: {
+          ...(editingUdp?.metadata ?? {}),
+          ...(summary ? { summary } : {}),
+        },
+      },
+      `Stored process graph as user-defined process "${id}".`,
+    );
+  };
+
+  const onStopEditingUserProcess = () => {
+    setEditingUdp(null);
+    setUdpError(null);
+    setSaveAsForm(null);
+  };
 
   // Invoke a method on the embedded openeo-model-builder Vue instance
   // (e.g. undo/redo). Resolves the instance from the live DOM rather
@@ -783,16 +989,22 @@ const Form: React.FC<IFormProps> = ({
   const dragDepthRef = React.useRef(0);
 
   const insertNode = (payload: DragPayload) => {
-    const base = state.editedGraph ?? template.buildGraph(state.params);
+    const base = state.editedGraph ?? {};
     const existing = new Set(Object.keys(base));
     let node: Record<string, any>;
     let procId: string;
     if (payload.kind === 'collection') {
       procId = 'load_collection';
-      node = buildCollectionNode(payload.id, state.params);
+      node = buildCollectionNode(payload.id);
     } else if (payload.kind === 'format') {
       procId = 'save_result';
       node = buildSaveResultNode(payload.id);
+    } else if (payload.kind === 'udp') {
+      procId = payload.id;
+      const udp = (catalog?.userProcesses ?? []).find(
+        (p: any) => p?.id === payload.id,
+      );
+      node = buildProcessNode(payload.id, udp);
     } else {
       procId = payload.id;
       const proc = (catalog?.processes ?? []).find(
@@ -801,7 +1013,12 @@ const Form: React.FC<IFormProps> = ({
       node = buildProcessNode(payload.id, proc);
     }
     const key = mintNodeKey(procId, existing);
-    const nextGraph = { ...base, [key]: node };
+    // ModelBuilder can't load a graph that has no result node.
+    const hasResult = Object.values(base).some((n: any) => n?.result === true);
+    const nextGraph = {
+      ...base,
+      [key]: hasResult ? node : { ...node, result: true },
+    };
     setState(prev => {
       const next = { ...prev, editedGraph: nextGraph };
       onChange(next);
@@ -856,6 +1073,7 @@ const Form: React.FC<IFormProps> = ({
         payload &&
         (payload.kind === 'collection' ||
           payload.kind === 'process' ||
+          payload.kind === 'udp' ||
           payload.kind === 'format')
       ) {
         insertNode(payload);
@@ -865,6 +1083,97 @@ const Form: React.FC<IFormProps> = ({
     }
   };
 
+  // Stage 1 and 2: pick a server, then sign in. The editor itself stays
+  // hidden until there is a session, like editor.openeo.org.
+  if (serverMode !== 'connected') {
+    return (
+      <div className="jp-openeo-dialog jp-mod-connect">
+        <div className="jp-openeo-connect-panel">
+          {serverMode === 'select' ? (
+            <>
+              <h3 className="jp-openeo-signin-title">
+                Connect to an openEO server
+              </h3>
+              <label className="jp-openeo-field">
+                <span>Server URL</span>
+                <div className="jp-openeo-server-picker">
+                  <input
+                    type="text"
+                    list="jp-openeo-known-servers"
+                    placeholder="https://openeo.example.org"
+                    autoFocus
+                    value={serverInput}
+                    onChange={e => {
+                      setServerInput(e.target.value);
+                      if (serverError) {
+                        setServerError(null);
+                      }
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        onPickServer();
+                      }
+                    }}
+                  />
+                  <datalist id="jp-openeo-known-servers">
+                    {servers.map(s => (
+                      <option key={s} value={s} />
+                    ))}
+                  </datalist>
+                  <button
+                    type="button"
+                    className="jp-openeo-server-connect"
+                    onClick={onPickServer}
+                    disabled={!serverInput.trim()}
+                  >
+                    Connect
+                  </button>
+                </div>
+              </label>
+              {servers.length > 0 && (
+                <div className="jp-openeo-server-suggest">
+                  {servers.map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      className="jp-openeo-server-chip"
+                      onClick={() => setServerInput(s)}
+                      title={`Use ${s}`}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {serverError && (
+                <div className="jp-openeo-server-alert jp-mod-error">
+                  {serverError}
+                </div>
+              )}
+            </>
+          ) : serverBusy || !authProviders ? (
+            <div className="jp-openeo-connect-status">
+              {authProviders ? 'Finishing sign-in…' : 'Connecting…'}
+            </div>
+          ) : (
+            <OpenEOSignin
+              providers={authProviders}
+              serverTitle={serverTitle || serverInput.trim()}
+              allowAnonymous
+              onSwitchServer={onChangeServer}
+              onSignedIn={isAnonymous => {
+                setAnonymous(isAnonymous);
+                setServerBusy(true);
+                signinDone.current?.(true);
+              }}
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="jp-openeo-dialog">
       <div className="jp-openeo-dialog-left">
@@ -872,9 +1181,11 @@ const Form: React.FC<IFormProps> = ({
           <CatalogPalette
             collections={catalog?.collections}
             processes={catalog?.processes}
+            userProcesses={catalog?.userProcesses}
             outputFormats={catalog?.outputFormats}
             loading={catalogLoading}
             onBack={() => setEditMode(false)}
+            onOpenUserProcess={onOpenUserProcess}
           />
         ) : (
           <>
@@ -889,226 +1200,34 @@ const Form: React.FC<IFormProps> = ({
                 />
               </label>
               <div className="jp-openeo-server-section">
-                {serverMode === 'connected' && (
-                  <div className="jp-openeo-server-connected">
-                    <span className="jp-openeo-server-ok">✓</span>
-                    <code>{connectionInfo?.url}</code>
-                    <button
-                      type="button"
-                      className="jp-openeo-link-btn"
-                      onClick={onChangeServer}
-                    >
-                      Change server
-                    </button>
+                <div className="jp-openeo-server-connected">
+                  <span
+                    className={
+                      anonymous
+                        ? 'jp-openeo-server-anon'
+                        : 'jp-openeo-server-ok'
+                    }
+                  >
+                    {anonymous ? '!' : '✓'}
+                  </span>
+                  <code title={connectionInfo?.url}>
+                    {serverTitle || connectionInfo?.url}
+                  </code>
+                  <button
+                    type="button"
+                    className="jp-openeo-link-btn"
+                    onClick={onChangeServer}
+                  >
+                    Switch server
+                  </button>
+                </div>
+                {anonymous && (
+                  <div className="jp-openeo-server-alert jp-mod-warn">
+                    Not signed in. Browse the server freely; log in before
+                    adding the layer.
                   </div>
                 )}
-
-                {serverMode === 'select' && (
-                  <>
-                    <label className="jp-openeo-field">
-                      <span>Server URL</span>
-                      <div className="jp-openeo-server-picker">
-                        <input
-                          type="text"
-                          list="jp-openeo-known-servers"
-                          placeholder="https://openeo.example.org"
-                          value={serverInput}
-                          onChange={e => {
-                            setServerInput(e.target.value);
-                            if (serverError) {
-                              setServerError(null);
-                            }
-                          }}
-                          onKeyDown={e => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              onPickServer();
-                            }
-                          }}
-                        />
-                        <datalist id="jp-openeo-known-servers">
-                          {servers.map(s => (
-                            <option key={s} value={s} />
-                          ))}
-                        </datalist>
-                        <button
-                          type="button"
-                          className="jp-openeo-server-connect"
-                          onClick={onPickServer}
-                          disabled={!serverInput.trim()}
-                        >
-                          Connect
-                        </button>
-                      </div>
-                    </label>
-                    {servers.length > 0 && (
-                      <div className="jp-openeo-server-suggest">
-                        {servers.map(s => (
-                          <button
-                            key={s}
-                            type="button"
-                            className="jp-openeo-server-chip"
-                            onClick={() => setServerInput(s)}
-                            title={`Use ${s}`}
-                          >
-                            {s}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {serverError && (
-                      <div className="jp-openeo-server-alert jp-mod-error">
-                        {serverError}
-                      </div>
-                    )}
-                  </>
-                )}
-
-                {serverMode === 'signin' && (
-                  <>
-                    <div className="jp-openeo-signin-header">
-                      Sign in to <code>{serverInput.trim()}</code>
-                      <button
-                        type="button"
-                        className="jp-openeo-link-btn"
-                        onClick={onChangeServer}
-                        disabled={serverBusy}
-                      >
-                        Change server
-                      </button>
-                    </div>
-                    {serverError && (
-                      <div className="jp-openeo-server-alert jp-mod-error">
-                        {serverError}
-                      </div>
-                    )}
-                    <label className="jp-openeo-field">
-                      <span>Username</span>
-                      <input
-                        ref={usernameRef}
-                        type="text"
-                        autoComplete="username"
-                        value={serverUsername}
-                        onChange={e => setServerUsername(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            void onLogin();
-                          }
-                        }}
-                        disabled={serverBusy}
-                      />
-                    </label>
-                    <label className="jp-openeo-field">
-                      <span>Password</span>
-                      <input
-                        type="password"
-                        autoComplete="current-password"
-                        value={serverPassword}
-                        onChange={e => setServerPassword(e.target.value)}
-                        onKeyDown={e => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            void onLogin();
-                          }
-                        }}
-                        disabled={serverBusy}
-                      />
-                    </label>
-                    <div className="jp-openeo-signin-actions">
-                      <button
-                        type="button"
-                        className="jp-openeo-server-connect"
-                        onClick={onLogin}
-                        disabled={
-                          serverBusy || !serverUsername || !serverPassword
-                        }
-                      >
-                        {serverBusy ? 'Signing in…' : 'Log in'}
-                      </button>
-                    </div>
-                  </>
-                )}
               </div>
-            </section>
-
-            <section className="jp-openeo-section">
-              <h4>Template</h4>
-              <div className="jp-openeo-template-pills">
-                {OPENEO_TEMPLATES.map(t => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={
-                      'jp-openeo-pill' +
-                      (t.id === state.templateId ? ' jp-mod-selected' : '')
-                    }
-                    onClick={() => onTemplate(t)}
-                    title={t.description}
-                  >
-                    {t.name}
-                  </button>
-                ))}
-              </div>
-              <p className="jp-openeo-section-help">{template.description}</p>
-            </section>
-
-            <section className="jp-openeo-section">
-              <h4>Collection &amp; time</h4>
-              <label className="jp-openeo-field">
-                <span>Collection</span>
-                <input
-                  type="text"
-                  value={state.params.collectionId}
-                  onChange={e => {
-                    const v = e.target.value;
-                    guardReseed(() =>
-                      update({
-                        params: { ...state.params, collectionId: v },
-                        editedGraph: null,
-                      }),
-                    );
-                  }}
-                />
-              </label>
-              <label className="jp-openeo-field">
-                <span>Start date</span>
-                <input
-                  type="date"
-                  value={(state.params.temporalExtent[0] ?? '').slice(0, 10)}
-                  onChange={e => {
-                    const v = e.target.value;
-                    guardReseed(() =>
-                      update({
-                        params: {
-                          ...state.params,
-                          temporalExtent: [v, state.params.temporalExtent[1]],
-                        },
-                        editedGraph: null,
-                      }),
-                    );
-                  }}
-                />
-              </label>
-              <label className="jp-openeo-field">
-                <span>End date</span>
-                <input
-                  type="date"
-                  value={(state.params.temporalExtent[1] ?? '').slice(0, 10)}
-                  onChange={e => {
-                    const v = e.target.value;
-                    guardReseed(() =>
-                      update({
-                        params: {
-                          ...state.params,
-                          temporalExtent: [state.params.temporalExtent[0], v],
-                        },
-                        editedGraph: null,
-                      }),
-                    );
-                  }}
-                />
-              </label>
             </section>
           </>
         )}
@@ -1131,19 +1250,28 @@ const Form: React.FC<IFormProps> = ({
             >
               JSON
             </button>
+            <button
+              type="button"
+              className={viewMode === 'code' ? 'jp-mod-selected' : ''}
+              onClick={() => setViewMode('code')}
+            >
+              Code
+            </button>
           </div>
-          <button
-            type="button"
-            className={
-              'jp-openeo-toolbar-toggle jp-openeo-icon-btn' +
-              (editMode ? ' jp-mod-selected' : '')
-            }
-            onClick={() => setEditMode(v => !v)}
-            title={editMode ? 'Exit edit mode' : 'Edit graph or JSON'}
-            aria-label="Toggle edit mode"
-          >
-            ✎
-          </button>
+          {viewMode !== 'code' && (
+            <button
+              type="button"
+              className={
+                'jp-openeo-toolbar-toggle jp-openeo-icon-btn' +
+                (editMode ? ' jp-mod-selected' : '')
+              }
+              onClick={() => setEditMode(v => !v)}
+              title={editMode ? 'Exit edit mode' : 'Edit graph or JSON'}
+              aria-label="Toggle edit mode"
+            >
+              ✎
+            </button>
+          )}
           {editMode && viewMode === 'graph' && (
             <>
               <button
@@ -1165,17 +1293,6 @@ const Form: React.FC<IFormProps> = ({
                 ↷
               </button>
             </>
-          )}
-          {state.editedGraph && (
-            <button
-              type="button"
-              className="jp-openeo-toolbar-btn jp-openeo-icon-btn"
-              onClick={resetToTemplate}
-              title="Reset: discard edits and rebuild from the selected template"
-              aria-label="Reset to template"
-            >
-              ↺
-            </button>
           )}
           <button
             type="button"
@@ -1202,6 +1319,19 @@ const Form: React.FC<IFormProps> = ({
           >
             ⤒
           </button>
+          {canSaveUdp && !saveAsForm && !editingUdp && (
+            <button
+              type="button"
+              className="jp-openeo-toolbar-btn"
+              onClick={() => {
+                setUdpError(null);
+                setSaveAsForm({ id: '', summary: '' });
+              }}
+              title="Store the current process graph on the server as a user-defined process"
+            >
+              Save as UDP
+            </button>
+          )}
           <div className="jp-openeo-toolbar-spacer" />
           <span
             className={
@@ -1210,13 +1340,14 @@ const Form: React.FC<IFormProps> = ({
                 ? 'jp-openeo-status-ok'
                 : validation.state === 'invalid' || validation.state === 'error'
                   ? 'jp-openeo-status-bad'
-                  : 'jp-openeo-status-pending')
+                  : validation.state === 'advisory'
+                    ? 'jp-openeo-status-warn'
+                    : 'jp-openeo-status-pending')
             }
             title={
               validation.state === 'error' ? validation.message : undefined
             }
           >
-            {state.editedGraph && <span className="jp-openeo-dot">●</span>}
             {isChecking && (
               <span className="jp-openeo-spinner" aria-label="Re-checking">
                 ⟳
@@ -1226,6 +1357,8 @@ const Form: React.FC<IFormProps> = ({
             {validation.state === 'valid' && 'schema OK'}
             {validation.state === 'invalid' &&
               `${validation.errors.length} schema issue${validation.errors.length === 1 ? '' : 's'}`}
+            {validation.state === 'advisory' &&
+              `${validation.errors.length} advisory issue${validation.errors.length === 1 ? '' : 's'}${isChecking ? '' : ' (server accepted)'}`}
             {validation.state === 'error' && "couldn't reach validator"}
             {validation.state === 'idle' && ' '}
           </span>
@@ -1233,8 +1366,132 @@ const Form: React.FC<IFormProps> = ({
         {editMode && (
           <p className="jp-openeo-edit-hint-inline">
             Editing is advanced. Click an edge or block then press Backspace (or
-            fn+Delete) to remove it. Use Reset to restore the template.
+            fn+Delete) to remove it.
           </p>
+        )}
+        {(editingUdp || saveAsForm || udpBusy || udpError) && (
+          <div className="jp-openeo-udp-bar">
+            {udpBusy && !editingUdp && (
+              <div className="jp-openeo-udp-bar-row">
+                <span className="jp-openeo-spinner" aria-label="Working">
+                  ⟳
+                </span>
+                <span className="jp-openeo-udp-bar-label">
+                  Talking to the server…
+                </span>
+              </div>
+            )}
+            {editingUdp && (
+              <div className="jp-openeo-udp-bar-row">
+                <span className="jp-openeo-udp-bar-label">
+                  Editing user-defined process
+                </span>
+                <code>{editingUdp.id}</code>
+                <div className="jp-openeo-toolbar-spacer" />
+                {udpBusy && (
+                  <span className="jp-openeo-spinner" aria-label="Working">
+                    ⟳
+                  </span>
+                )}
+                {canSaveUdp && (
+                  <>
+                    <button
+                      type="button"
+                      className="jp-openeo-toolbar-btn"
+                      onClick={onSaveUserProcess}
+                      disabled={udpBusy}
+                      title={`Save the current graph back to '${editingUdp.id}' on the server`}
+                    >
+                      Save
+                    </button>
+                    <button
+                      type="button"
+                      className="jp-openeo-toolbar-btn"
+                      onClick={() => {
+                        setUdpError(null);
+                        setSaveAsForm({ id: '', summary: '' });
+                      }}
+                      disabled={udpBusy || Boolean(saveAsForm)}
+                      title="Store the current graph under a new id"
+                    >
+                      Save as…
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  className="jp-openeo-link-btn"
+                  onClick={onStopEditingUserProcess}
+                  disabled={udpBusy}
+                  title="Keep the graph in the editor but stop tracking the stored process"
+                >
+                  Stop editing
+                </button>
+              </div>
+            )}
+            {saveAsForm && (
+              <div className="jp-openeo-udp-bar-row">
+                <input
+                  type="text"
+                  className="jp-openeo-udp-id"
+                  placeholder="Process name"
+                  autoFocus
+                  value={saveAsForm.id}
+                  onChange={e =>
+                    setSaveAsForm({ ...saveAsForm, id: e.target.value })
+                  }
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      onSaveUserProcessAs();
+                    }
+                  }}
+                />
+                <input
+                  type="text"
+                  className="jp-openeo-udp-summary"
+                  placeholder="Summary (optional)"
+                  value={saveAsForm.summary}
+                  onChange={e =>
+                    setSaveAsForm({ ...saveAsForm, summary: e.target.value })
+                  }
+                />
+                <button
+                  type="button"
+                  className="jp-openeo-toolbar-btn"
+                  onClick={onSaveUserProcessAs}
+                  disabled={udpBusy || !saveAsForm.id.trim()}
+                >
+                  Save
+                </button>
+                <button
+                  type="button"
+                  className="jp-openeo-link-btn"
+                  onClick={() => {
+                    setSaveAsForm(null);
+                    setUdpError(null);
+                  }}
+                  disabled={udpBusy}
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+            {saveAsForm &&
+              (catalog?.userProcesses ?? []).some(
+                (up: any) => up?.id === saveAsForm.id.trim(),
+              ) && (
+                <div className="jp-openeo-server-alert jp-mod-warn">
+                  A user-defined process with this id already exists and will be
+                  replaced.
+                </div>
+              )}
+            {udpError && (
+              <div className="jp-openeo-server-alert jp-mod-error">
+                {udpError}
+              </div>
+            )}
+          </div>
         )}
         <div
           className={
@@ -1251,7 +1508,21 @@ const Form: React.FC<IFormProps> = ({
               Drop to add node to graph
             </div>
           )}
-          {viewMode === 'json' ? (
+          {isEmptyGraph && !isDragOver && viewMode === 'graph' && (
+            <div className="jp-openeo-empty-graph">
+              {editMode
+                ? 'Drag a collection or process from the catalog onto the canvas.'
+                : 'No process graph yet. Import a JSON file, or click ✎ to build one from the server catalog.'}
+            </div>
+          )}
+          {viewMode === 'code' ? (
+            <CodeExportPanel
+              graph={effectiveGraph}
+              serverUrl={connectionInfo?.url}
+              layerName={state.layerName}
+              mapView={mapView}
+            />
+          ) : viewMode === 'json' ? (
             editMode ? (
               <JsonEditor
                 value={jsonText}
@@ -1266,6 +1537,7 @@ const Form: React.FC<IFormProps> = ({
               graph={effectiveGraph}
               editable={editMode}
               processes={catalog?.processes}
+              userProcesses={catalog?.userProcesses}
               collections={catalog?.collections}
               onEdit={next =>
                 setState(prev => {
@@ -1277,7 +1549,8 @@ const Form: React.FC<IFormProps> = ({
             />
           )}
         </div>
-        {validation.state === 'invalid' && (
+        {(validation.state === 'invalid' ||
+          validation.state === 'advisory') && (
           <ul className="jp-openeo-validation-errors">
             {validation.errors.slice(0, 10).map((e, i) => (
               <li key={i}>
@@ -1300,6 +1573,7 @@ class AddLayerBody extends ReactWidget {
     initialConnection: IOpenEOConnectionInfo | null,
     private _knownServers: string[],
     private _onValidationChange: (valid: boolean) => void,
+    private _mapView?: IMapView,
   ) {
     super();
     this._state = initial;
@@ -1313,6 +1587,7 @@ class AddLayerBody extends ReactWidget {
         initial={this._state}
         initialConnection={this._activeConnection}
         knownServers={this._knownServers}
+        mapView={this._mapView}
         onChange={next => {
           this._state = next;
         }}
@@ -1325,18 +1600,13 @@ class AddLayerBody extends ReactWidget {
   }
 
   getValue(): IOpenEODialogResult | null {
-    const template = OPENEO_TEMPLATES.find(
-      t => t.id === this._state.templateId,
-    );
-    if (!template || !this._activeConnection?.url) {
+    if (!this._state.editedGraph || !this._activeConnection?.url) {
       return null;
     }
     return {
-      layerName: this._state.layerName || template.name,
+      layerName: this._state.layerName || DEFAULT_LAYER_NAME,
       serverUrl: this._activeConnection.url,
-      authBearer: this._activeConnection.authBearer,
-      processGraph:
-        this._state.editedGraph ?? template.buildGraph(this._state.params),
+      processGraph: this._state.editedGraph,
     };
   }
 
@@ -1356,7 +1626,7 @@ export interface IOpenEODialogOptions {
    * authenticated this session, or used by existing layers in the doc).
    */
   knownServers?: string[];
-  /** Pre-fill graph as a user edit (skips template fields' effect). */
+  /** Pre-fill graph. */
   initialGraph?: Record<string, any>;
   /** Pre-fill layer name. */
   layerName?: string;
@@ -1364,16 +1634,19 @@ export interface IOpenEODialogOptions {
   title?: string;
   /** OK button label. */
   okLabel?: string;
+  /**
+   * The document's current map view (center + zoom, EPSG:4326). Baked into
+   * the Code tab's JupyterGIS snippet so exported code opens on the same
+   * viewport the user is looking at.
+   */
+  mapView?: IMapView;
 }
 
 export async function showAddOpenEOLayerDialog(
   options: IOpenEODialogOptions,
 ): Promise<IOpenEODialogResult | null> {
-  const firstTemplate = OPENEO_TEMPLATES[0];
   const initial: IBodyState = {
-    layerName: options.layerName ?? firstTemplate.name,
-    templateId: firstTemplate.id,
-    params: { ...firstTemplate.defaults },
+    layerName: options.layerName ?? DEFAULT_LAYER_NAME,
     editedGraph: options.initialGraph ?? null,
   };
 
@@ -1401,18 +1674,22 @@ export async function showAddOpenEOLayerDialog(
       lastValid = valid;
       applyOk();
     },
+    options.mapView,
   );
 
-  const resultPromise = showDialog<IOpenEODialogResult | null>({
+  const resultPromise = new EditorAwareDialog<IOpenEODialogResult | null>({
     title: options.title ?? 'Add OpenEO Layer',
     body,
     buttons: [
       Dialog.cancelButton(),
       Dialog.okButton({ label: options.okLabel ?? 'Add Layer' }),
     ],
-  });
-  // Apply the initial disabled state once the dialog mounts.
+  }).launch();
+  // Apply the initial disabled state once the dialog mounts. JupyterLab's
+  // Dialog re-enables the accept button from a document-level capture
+  // listener on every input event, so re-assert ours after it bubbles.
   window.setTimeout(applyOk, 0);
+  body.node.addEventListener('input', applyOk);
   const result = await resultPromise;
 
   if (!result.button.accept) {

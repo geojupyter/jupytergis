@@ -39,7 +39,7 @@ test.describe('#filters', () => {
     // Click the "+" button in the layer-level "when" row. This commits a
     // default predicate live and shows it as an inline, always-editable form.
     const whenRow = dialog.locator('.jp-gis-grammar-when-row').first();
-    await whenRow.locator('.jp-gis-grammar-when-add-btn').click();
+    await whenRow.getByTitle('Add condition').click();
 
     // The inline "when" form should appear with a type selector defaulting to
     // "geometry type" (predicate is already committed — there is no confirm step).

@@ -6,6 +6,7 @@ import {
   bookOpenIcon,
   clockIcon,
   columns2Icon,
+  dbIcon,
   geoJSONIcon,
   geoPackageIcon,
   infoIcon,
@@ -14,6 +15,7 @@ import {
   vectorSquareIcon,
   markerIcon,
   pencilSolidIcon,
+  scrollIcon,
 } from './shared/icons';
 
 /**
@@ -34,6 +36,7 @@ const iconObject = {
   RasterDemSource: { icon: moundIcon },
   VectorTileSource: { iconClass: 'fa fa-vector-square' },
   GeoJSONSource: { icon: geoJSONIcon },
+  FeatureStoreSource: { iconClass: 'fa fa-store' },
   ImageSource: { iconClass: 'fa fa-image' },
   ShapefileSource: { iconClass: 'fa fa-file' },
 
@@ -42,6 +45,7 @@ const iconObject = {
   VectorLayer: { iconClass: 'fa fa-vector-square' },
   VectorTileLayer: { iconClass: 'fa fa-vector-square' },
   HillshadeLayer: { icon: moundIcon },
+  TerrainLayer: { icon: moundIcon },
   GeoTiffLayer: { iconClass: 'fa fa-image' },
   StacLayer: { icon: rasterIcon },
   ImageLayer: { iconClass: 'fa fa-image' },
@@ -55,6 +59,7 @@ const iconObject = {
   [CommandIDs.openNewVectorTileDialog]: { icon: vectorSquareIcon },
   [CommandIDs.openNewGeoJSONDialog]: { icon: geoJSONIcon },
   [CommandIDs.openNewHillshadeDialog]: { icon: moundIcon },
+  [CommandIDs.openNewTerrainDialog]: { icon: moundIcon },
   [CommandIDs.openNewImageDialog]: { iconClass: 'fa fa-image' },
   [CommandIDs.newGeoPackageVectorEntry]: { icon: geoPackageIcon },
   [CommandIDs.newGeoPackageRasterEntry]: { icon: geoPackageIcon },
@@ -67,9 +72,21 @@ const iconObject = {
   [CommandIDs.identify]: { icon: infoIcon },
   [CommandIDs.temporalController]: { icon: clockIcon },
   [CommandIDs.addMarker]: { icon: markerIcon },
-  [CommandIDs.toggleDrawFeatures]: { icon: pencilSolidIcon },
+  [CommandIDs.foldFeatureStore]: { icon: dbIcon },
+  [CommandIDs.openNewFeatureStoreDialog]: { iconClass: 'fa fa-store' },
+  [CommandIDs.drawFeaturesOnSelectedLayer]: { icon: pencilSolidIcon },
+  [CommandIDs.drawFeaturesOnNewLayer]: { icon: pencilSolidIcon },
   [CommandIDs.addStorySegment]: { iconClass: 'fa fa-link' },
-  [CommandIDs.openStoryEditor]: { iconClass: 'fa fa-scroll jgis-icon-adjust' },
+  [CommandIDs.openStoryEditor]: {
+    // iconClass is ignored when `icon` is a LabIcon, bind className instead.
+    icon: scrollIcon.bindprops({ className: 'jgis-icon-adjust' }),
+  },
+  [CommandIDs.copyStorySegment]: { iconClass: 'fa fa-copy' },
+  [CommandIDs.pasteStorySegment]: { iconClass: 'fa fa-paste' },
+  [CommandIDs.duplicateStorySegment]: { iconClass: 'fa fa-clone' },
+  [CommandIDs.removeStorySegment]: { iconClass: 'fa fa-trash' },
+  [CommandIDs.showLayerPropertiesDialog]: { iconClass: 'fa fa-sliders' },
+  [CommandIDs.showLayerMetadata]: { iconClass: 'fa fa-circle-info' },
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
   [CommandIDs.togglePanel]: { icon: columns2Icon },

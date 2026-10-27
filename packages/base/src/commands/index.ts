@@ -1,18 +1,27 @@
 import {
   IDict,
   IJGISFormSchemaRegistry,
+  IJGISLayer,
   IJGISLayerBrowserRegistry,
   IJGISLayerGroup,
   IJGISLayerItem,
+  IJGISSource,
   IJupyterGISModel,
   JgisCoordinates,
   LayerType,
   SourceType,
+  IFeatureStoreSource,
+  buildFeatureStoreTileUrlTemplate,
 } from '@jupytergis/schema';
 import { JupyterFrontEnd } from '@jupyterlab/application';
+import { Notification } from '@jupyterlab/apputils';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
 import { ICompletionProviderManager } from '@jupyterlab/completer';
-import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
+import { PathExt } from '@jupyterlab/coreutils';
+import type {
+  IRenderMimeRegistry,
+  IUrlResolverFactory,
+} from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator } from '@jupyterlab/translation';
 import { CommandRegistry } from '@lumino/commands';
@@ -20,9 +29,18 @@ import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
-import { targetWithCenterIcon } from '@/src/shared/icons';
-import { addLayerCreationCommands } from './operationCommands';
+import {
+  getMapFeatures,
+  mapFeaturesChanged,
+} from '@/src/mainview/mapFeaturesRegistry';
+import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
+import {
+  addLayerCreationCommands,
+  LayerCreationCommandIDs,
+} from './operationCommands';
 import { CommandIDs, icons } from '../constants';
+import { isFeatureStoreAvailable } from '../features/feature-store/availability';
+import { launchFollowable, registerFollowDialogs } from '../features/follow';
 import { LayerBrowserWidget } from '../features/layer-browser';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
 import {
@@ -34,12 +52,18 @@ import {
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
+import { showMapRendererDialog } from '../features/map-renderer/mapRendererDialog';
+import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
   selectedLayerIsOfType,
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '../features/story/presentation/getStoryPresentationMode';
 import {
   StoryEditorMode,
   StoryEditorSession,
@@ -48,16 +72,125 @@ import {
   modelHasHiddenPanel,
   toggleModelPanels,
 } from '../features/story/utils/modelPanelState';
-import keybindings from '../keybindings.json';
-import { getGeoJSONDataFromLayerSource, downloadFile } from '../tools';
 import {
-  JupyterGISTracker,
-  STORY_TYPE,
-  SYMBOLOGY_VALID_LAYER_TYPES,
-} from '../types';
+  copyStorySegment,
+  duplicateStorySegment,
+  getStorySegmentClipboard,
+  pasteStorySegment,
+  removeStorySegment,
+} from '../features/story/utils/storySegmentClipboard';
+import keybindings from '../keybindings.json';
+import { getGeoJSONDataFromLayerSource, getUniqueFilePath } from '../tools';
+import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
+
+const INTERACTION_MODE_COMMANDS = [
+  CommandIDs.identify,
+  CommandIDs.addMarker,
+  CommandIDs.drawFeaturesOnSelectedLayer,
+  CommandIDs.drawFeaturesOnNewLayer,
+] as const;
+
+function notifyInteractionModeCommands(commands: CommandRegistry): void {
+  for (const id of INTERACTION_MODE_COMMANDS) {
+    commands.notifyCommandChanged(id);
+  }
+}
+
+function getDrawingContext(
+  tracker: JupyterGISTracker,
+): { widget: JupyterGISDocumentWidget; model: IJupyterGISModel } | undefined {
+  const widget = tracker.currentWidget;
+  if (!(widget instanceof JupyterGISDocumentWidget)) {
+    return undefined;
+  }
+
+  return { widget, model: widget.model };
+}
+
+function isDocumentEditable(tracker: JupyterGISTracker): boolean {
+  const context = getDrawingContext(tracker);
+  if (!context) {
+    return false;
+  }
+
+  return context.model.sharedModel.editable;
+}
+
+function isDrawing(tracker: JupyterGISTracker): boolean {
+  const context = getDrawingContext(tracker);
+  if (!context) {
+    return false;
+  }
+
+  return context.model.currentMode === 'drawing';
+}
+
+/**
+ * True when the document is editable and the selection is a draw layer.
+ * Stays true while drawing so the command can turn drawing off.
+ */
+function canDrawOnSelectedLayer(tracker: JupyterGISTracker): boolean {
+  if (!isDocumentEditable(tracker)) {
+    return false;
+  }
+
+  if (isDrawing(tracker)) {
+    return true;
+  }
+
+  const context = getDrawingContext(tracker);
+  if (!context) {
+    return false;
+  }
+
+  return Private.selectedDrawLayerId(context.model, tracker) !== undefined;
+}
+
+function toggleDrawing(
+  widget: JupyterGISDocumentWidget,
+  model: IJupyterGISModel,
+  commands: CommandRegistry,
+): void {
+  model.toggleMode('drawing');
+  syncInteractionModeUi(widget, commands);
+}
+
+function selectedFeatureStoreId(model: IJupyterGISModel): string | undefined {
+  const selectedLayer =
+    model.sharedModel.awareness.getLocalState()?.selected?.value;
+  if (!selectedLayer) {
+    return undefined;
+  }
+
+  const layerId = Object.keys(selectedLayer)[0];
+  const jgisLayer = model.getLayer(layerId);
+  const sourceId = jgisLayer?.parameters?.source;
+  const jgisSource = sourceId ? model.getSource(sourceId) : undefined;
+  if (jgisSource?.type !== 'FeatureStoreSource') {
+    return undefined;
+  }
+
+  return (jgisSource.parameters as IFeatureStoreSource).storeId;
+}
+
+/**
+ * Keep the point-selection cursor class and toolbar toggles in sync with
+ * the exclusive map interaction mode.
+ */
+function syncInteractionModeUi(
+  widget: { model: IJupyterGISModel; node: HTMLElement },
+  commands: CommandRegistry,
+): void {
+  const mode = widget.model.currentMode;
+  widget.node.classList.toggle(
+    POINT_SELECTION_TOOL_CLASS,
+    mode === 'identifying' || mode === 'marking',
+  );
+  notifyInteractionModeCommands(commands);
+}
 
 /**
  * Commands for JupyterGIS-only features that cannot be round-tripped through
@@ -70,12 +203,144 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.editOpenEOLayer,
   // GeoZarr layers
   CommandIDs.openNewGeoZarrDialog,
+  // 3D terrain layers
+  CommandIDs.openNewTerrainDialog,
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
+  CommandIDs.copyStorySegment,
+  CommandIDs.pasteStorySegment,
+  CommandIDs.duplicateStorySegment,
+  CommandIDs.removeStorySegment,
   CommandIDs.storyPrev,
   CommandIDs.storyNext,
 ]);
+
+type AdapterFlag =
+  | 'identify'
+  | 'drawTool'
+  | 'storyMaps'
+  | 'layerComparison'
+  | 'geolocation';
+
+interface IAdapterRequirement {
+  source?: SourceType;
+  layer?: LayerType;
+  flag?: AdapterFlag;
+}
+
+const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
+  // Layer creation dialogs
+  [CommandIDs.openNewRasterDialog]: {
+    source: 'RasterSource',
+    layer: 'RasterLayer',
+  },
+  [CommandIDs.openNewWmsDialog]: {
+    source: 'WmsTileSource',
+    layer: 'RasterLayer',
+  },
+  [CommandIDs.openNewVectorTileDialog]: {
+    source: 'VectorTileSource',
+    layer: 'VectorTileLayer',
+  },
+  [CommandIDs.openNewGeoJSONDialog]: {
+    source: 'GeoJSONSource',
+    layer: 'VectorLayer',
+  },
+  [CommandIDs.openNewShapefileDialog]: {
+    source: 'ShapefileSource',
+    layer: 'VectorLayer',
+  },
+  [CommandIDs.openNewGeoParquetDialog]: {
+    source: 'GeoParquetSource',
+    layer: 'VectorLayer',
+  },
+  [CommandIDs.openNewHillshadeDialog]: {
+    source: 'RasterDemSource',
+    layer: 'HillshadeLayer',
+  },
+  [CommandIDs.openNewTerrainDialog]: {
+    source: 'RasterDemSource',
+    layer: 'TerrainLayer',
+  },
+  [CommandIDs.openNewImageDialog]: {
+    source: 'ImageSource',
+    layer: 'ImageLayer',
+  },
+  [CommandIDs.openNewGeoTiffDialog]: {
+    source: 'GeoTiffSource',
+    layer: 'GeoTiffLayer',
+  },
+  [CommandIDs.openNewGeoZarrDialog]: {
+    source: 'GeoZarrSource',
+    layer: 'GeoZarrLayer',
+  },
+  [CommandIDs.openNewOpenEODialog]: {
+    source: 'OpenEOTileSource',
+    layer: 'OpenEOTileLayer',
+  },
+  [CommandIDs.openNewFeatureStoreDialog]: {
+    source: 'FeatureStoreSource',
+    layer: 'VectorLayer',
+  },
+  [CommandIDs.newGeoPackageVectorEntry]: {
+    source: 'GeoPackageVectorSource',
+    layer: 'VectorLayer',
+  },
+  [CommandIDs.newGeoPackageRasterEntry]: {
+    source: 'GeoPackageRasterSource',
+    layer: 'RasterLayer',
+  },
+
+  // Programmatic creation commands
+  [LayerCreationCommandIDs.newGeoJSONWithParams]: {
+    source: 'GeoJSONSource',
+    layer: 'VectorLayer',
+  },
+  [LayerCreationCommandIDs.newRasterWithParams]: {
+    source: 'RasterSource',
+    layer: 'RasterLayer',
+  },
+  [LayerCreationCommandIDs.newVectorTileWithParams]: {
+    source: 'VectorTileSource',
+    layer: 'VectorTileLayer',
+  },
+  [LayerCreationCommandIDs.newGeoParquetWithParams]: {
+    source: 'GeoParquetSource',
+    layer: 'VectorLayer',
+  },
+  [LayerCreationCommandIDs.newHillshadeWithParams]: {
+    source: 'RasterDemSource',
+    layer: 'HillshadeLayer',
+  },
+  [LayerCreationCommandIDs.newImageWithParams]: {
+    source: 'ImageSource',
+    layer: 'ImageLayer',
+  },
+  [LayerCreationCommandIDs.newGeoTiffWithParams]: {
+    source: 'GeoTiffSource',
+    layer: 'GeoTiffLayer',
+  },
+  [LayerCreationCommandIDs.newGeoZarrWithParams]: {
+    source: 'GeoZarrSource',
+    layer: 'GeoZarrLayer',
+  },
+  [LayerCreationCommandIDs.newShapefileWithParams]: {
+    source: 'ShapefileSource',
+    layer: 'VectorLayer',
+  },
+
+  // Interaction features
+  [CommandIDs.addMarker]: { source: 'MarkerSource' },
+  [CommandIDs.identify]: { flag: 'identify' },
+  [CommandIDs.drawFeaturesOnSelectedLayer]: { flag: 'drawTool' },
+  [CommandIDs.drawFeaturesOnNewLayer]: { flag: 'drawTool' },
+  [CommandIDs.addStorySegment]: { flag: 'storyMaps' },
+  [CommandIDs.openStoryEditor]: { flag: 'storyMaps' },
+  [CommandIDs.compareLayers]: { flag: 'layerComparison' },
+  [CommandIDs.getGeolocation]: { flag: 'geolocation' },
+  [CommandIDs.toggleLocationIndicator]: { flag: 'geolocation' },
+};
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -111,12 +376,22 @@ export function addCommands(
   state: IStateDB,
   editorServices: IEditorServices,
   rendermime: IRenderMimeRegistry,
-  completionProviderManager: ICompletionProviderManager | undefined,
+  urlResolverFactory?: IUrlResolverFactory,
+  completionProviderManager?: ICompletionProviderManager,
 ): void {
   const trans = translator.load('jupyterlab');
   const { commands } = app;
 
-  addLayerCreationCommands({ tracker, commands, trans });
+  registerFollowDialogs({
+    formSchemaRegistry,
+    layerBrowserRegistry,
+    state,
+    commands,
+    editorServices,
+    rendermime,
+    urlResolverFactory,
+  });
+
   /**
    * Wraps a command definition to automatically disable it when the active
    * document does not support it: in Specta mode, or for JupyterGIS-only
@@ -136,6 +411,19 @@ export function addCommands(
       return (
         !!currentModel?.isQgisDocument && QGIS_UNSUPPORTED_COMMANDS.has(id)
       );
+    };
+
+    const unsupportedBy = (): string | undefined => {
+      const req = ADAPTER_REQUIREMENTS[id];
+      const features = getMapFeatures(tracker.currentWidget?.model);
+      if (!req || !features) {
+        return undefined;
+      }
+      const supported =
+        (!req.source || features.sources[req.source]) &&
+        (!req.layer || features.layers[req.layer]) &&
+        (!req.flag || features[req.flag]);
+      return supported ? undefined : features.name;
     };
 
     const resolveLabel = (args?: ReadonlyPartialJSONObject): string =>
@@ -162,6 +450,10 @@ export function addCommands(
         if (isQgisRestricted()) {
           return false;
         }
+        // Disable features the active map renderer cannot provide.
+        if (unsupportedBy()) {
+          return false;
+        }
         // Then check the original isEnabled if it exists
         if (originalIsEnabled) {
           return originalIsEnabled(args ?? {});
@@ -173,6 +465,10 @@ export function addCommands(
         // Hint the user how to regain access to the disabled feature.
         if (isQgisRestricted()) {
           return trans.__('(convert to .jGIS to enable)');
+        }
+        const by = unsupportedBy();
+        if (by) {
+          return trans.__('Not supported by the %1 renderer', by);
         }
         return typeof originalCaption === 'function'
           ? originalCaption(args ?? {})
@@ -189,6 +485,45 @@ export function addCommands(
   ) => {
     return originalAddCommand(id, createRestrictedCommand(id, options));
   };
+
+  const refreshAdapterCommands = () => {
+    Object.keys(ADAPTER_REQUIREMENTS).forEach(commandId => {
+      if (commands.hasCommand(commandId)) {
+        commands.notifyCommandChanged(commandId);
+      }
+    });
+  };
+  mapFeaturesChanged.connect(refreshAdapterCommands);
+  tracker.currentChanged.connect(refreshAdapterCommands);
+
+  addLayerCreationCommands({ tracker, commands, trans });
+
+  const resolveRendererWidget = (args?: ReadonlyPartialJSONObject) => {
+    const filePath =
+      typeof args?.filePath === 'string' ? args.filePath : undefined;
+    return filePath
+      ? tracker.find(w => w.model.filePath === filePath)
+      : tracker.currentWidget;
+  };
+
+  commands.addCommand(CommandIDs.openMapRendererDialog, {
+    label: trans.__('Map Renderer…'),
+    caption: trans.__(
+      'Choose the map renderer for this document and compare what each supports.',
+    ),
+    describedBy: { args: { type: 'object', properties: {} } },
+    isEnabled: args => {
+      const widget = resolveRendererWidget(args);
+      return widget ? widget.model.sharedModel.editable : false;
+    },
+
+    execute: args => {
+      const model = resolveRendererWidget(args)?.model;
+      if (model) {
+        void showMapRendererDialog(model);
+      }
+    },
+  });
 
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
@@ -233,6 +568,129 @@ export function addCommands(
     execute: Private.createSymbologyDialog(tracker, state),
 
     ...icons.get(CommandIDs.symbology),
+  });
+
+  commands.addCommand(CommandIDs.showLayerPropertiesDialog, {
+    label: trans.__('Layer Properties'),
+    caption: 'Show the properties of the currently selected layer.',
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+
+      if (!model || !selected) {
+        return false;
+      }
+
+      const selectedIds = Object.keys(selected);
+
+      // Only a single object can be edited at a time.
+      if (selectedIds.length !== 1) {
+        return false;
+      }
+
+      const id = selectedIds[0];
+      return Boolean(model.getLayer(id) || model.getSource(id));
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+
+      if (!current) {
+        console.error(
+          'Cannot show layer properties: no active JupyterGIS document.',
+        );
+        return;
+      }
+
+      const model = current.model;
+
+      // Each layer type declares how it is edited (see `getLayerEditHandler`).
+      // Most types open the Layer Properties dialog, but some (e.g. OpenEO)
+      // open a dedicated editor instead.
+      const selected = model.localState?.selected?.value ?? {};
+      const selectedId = Object.keys(selected)[0];
+      const layer = selectedId ? model.getLayer(selectedId) : undefined;
+
+      const editHandler = getLayerEditHandler(layer?.type);
+      await editHandler({ model, selectedId, formSchemaRegistry });
+    },
+    ...icons.get(CommandIDs.showLayerPropertiesDialog),
+  });
+
+  commands.addCommand(CommandIDs.showLayerMetadata, {
+    label: trans.__('Layer Metadata'),
+    caption:
+      'Show the projection, extent, bands and tile pyramid of the selected layer.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          layerId: { type: 'string' },
+        },
+      },
+    },
+
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+
+      if (!model || !selected) {
+        return false;
+      }
+
+      const selectedIds = Object.keys(selected);
+
+      // Only a single object can be described at a time.
+      if (selectedIds.length !== 1) {
+        return false;
+      }
+
+      const id = selectedIds[0];
+      return Boolean(model.getLayer(id) || model.getSource(id));
+    },
+
+    execute: async (args?: { filePath?: string; layerId?: string }) => {
+      const { filePath, layerId } = args ?? {};
+
+      const current = filePath
+        ? tracker.find(w => w.model.filePath === filePath)
+        : tracker.currentWidget;
+
+      if (!current) {
+        console.error(
+          'Cannot show layer information: no active JupyterGIS document.',
+        );
+        return;
+      }
+
+      const model = current.model;
+
+      if (layerId) {
+        model.syncSelected(
+          { [layerId]: { type: 'layer' } },
+          model.getClientId().toString(),
+        );
+      }
+
+      // Unlike editing, describing a layer is the same for every layer type, so
+      // this deliberately bypasses `getLayerEditHandler`: types with their own
+      // editor (e.g. OpenEO) still get a Metadata tab.
+      const objectId = Object.keys(model.localState?.selected?.value ?? {})[0];
+      const dialog = new ObjectPropertiesWidget({
+        model,
+        formSchemaRegistry,
+        initialTab: 'metadata',
+      });
+      await launchFollowable(
+        model,
+        {
+          kind: 'layerProperties',
+          params: { objectId, initialTab: 'metadata' },
+        },
+        dialog,
+      );
+    },
+    ...icons.get(CommandIDs.showLayerMetadata),
   });
 
   commands.addCommand(CommandIDs.redo, {
@@ -387,16 +845,13 @@ export function addCommands(
         const keysPressed = luminoEvent.keys as string[] | undefined;
         if (keysPressed?.includes('Escape')) {
           current.model.currentMode = 'panning';
-          current.node.classList.remove(POINT_SELECTION_TOOL_CLASS);
-          commands.notifyCommandChanged(CommandIDs.identify);
+          syncInteractionModeUi(current, commands);
           return;
         }
       }
 
-      current.node.classList.toggle(POINT_SELECTION_TOOL_CLASS);
       current.model.toggleMode('identifying');
-
-      commands.notifyCommandChanged(CommandIDs.identify);
+      syncInteractionModeUi(current, commands);
     },
     ...icons.get(CommandIDs.identify),
   });
@@ -668,6 +1123,34 @@ export function addCommands(
     ...icons.get(CommandIDs.openNewHillshadeDialog),
   });
 
+  commands.addCommand(CommandIDs.openNewTerrainDialog, {
+    label: trans.__('3D Terrain'),
+    caption:
+      'Open a dialog to create a new 3D terrain layer and DEM source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create 3D Terrain Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom 3D Terrain Layer' },
+      sourceType: 'RasterDemSource',
+      layerType: 'TerrainLayer',
+    }),
+    ...icons.get(CommandIDs.openNewTerrainDialog),
+  });
+
   commands.addCommand(CommandIDs.openNewOpenEODialog, {
     label: trans.__('OpenEO Layer'),
     caption:
@@ -693,9 +1176,18 @@ export function addCommands(
       // used server and offer the rest in the picker. The user
       // picks/connects inside the dialog itself, so we don't
       // pre-authenticate here.
+      // Capture the current map viewport so the Code tab's exported
+      // snippet opens on exactly what the user is looking at, rather than
+      // the graph's (often arbitrary) spatial_extent.
+      const viewOptions = current.model.getOptions();
       const result = await showAddOpenEOLayerDialog({
         connectionInfo: getLatestOpenEOConnection(),
         knownServers: listOpenEOConnections(),
+        mapView: {
+          latitude: viewOptions.latitude,
+          longitude: viewOptions.longitude,
+          zoom: viewOptions.zoom,
+        },
       });
       if (!result) {
         return;
@@ -711,7 +1203,6 @@ export function addCommands(
         type: 'OpenEOTileSource',
         parameters: {
           serverUrl: result.serverUrl,
-          authBearer: result.authBearer,
           processGraph: result.processGraph,
         },
       });
@@ -969,6 +1460,32 @@ export function addCommands(
     ...icons.get(CommandIDs.removeSelected),
   });
 
+  commands.addCommand(CommandIDs.deleteSelection, {
+    label: trans.__('Delete'),
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+      return !!selected && Object.keys(selected).length > 0;
+    },
+    execute: async () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return;
+      }
+
+      if (model.currentMode === 'drawing') {
+        const result = { deleted: false };
+        model.deleteDrawSelection.emit(result);
+
+        if (result.deleted) {
+          return;
+        }
+      }
+
+      Private.removeSelectedItems(model);
+    },
+  });
+
   commands.addCommand(CommandIDs.duplicateSelected, {
     label: trans.__('Duplicate'),
 
@@ -1170,6 +1687,74 @@ export function addCommands(
     },
   });
 
+  commands.addCommand(CommandIDs.compareLayers, {
+    label: args =>
+      args['label'] ? (args['label'] as string) : trans.__('Compare With'),
+    caption: 'Swipe to compare two layers in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          layerIdLeft: { type: 'string' },
+          layerIdRight: { type: 'string' },
+          label: { type: 'string' },
+        },
+      },
+    },
+    execute: (args?: {
+      filePath?: string;
+      layerIdLeft?: string;
+      layerIdRight?: string;
+    }) => {
+      const { filePath, layerIdRight } = args ?? {};
+
+      const model = filePath
+        ? tracker.find(w => w.model.filePath === filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model || !model.sharedModel.editable || !layerIdRight) {
+        return;
+      }
+
+      const layerIdLeft =
+        args?.layerIdLeft ?? Private.getSelectedLayerId(model);
+      if (!layerIdLeft || layerIdLeft === layerIdRight) {
+        return;
+      }
+
+      model.setComparison({
+        mode: 'swipe',
+        layers: [layerIdLeft, layerIdRight],
+      });
+      commands.notifyCommandChanged(CommandIDs.stopComparing);
+    },
+  });
+
+  commands.addCommand(CommandIDs.stopComparing, {
+    label: trans.__('Stop Comparing'),
+    caption: 'Stop comparing layers.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: { filePath: { type: 'string' } },
+      },
+    },
+    isVisible: () => Private.isSelectedLayerCompared(tracker),
+    execute: (args?: { filePath?: string }) => {
+      const model = args?.filePath
+        ? tracker.find(w => w.model.filePath === args.filePath)?.model
+        : tracker.currentWidget?.model;
+
+      if (!model) {
+        return;
+      }
+
+      model.setComparison(undefined);
+      commands.notifyCommandChanged(CommandIDs.stopComparing);
+    },
+  });
+
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
@@ -1331,10 +1916,10 @@ export function addCommands(
     },
   });
 
-  commands.addCommand(CommandIDs.downloadGeoJSON, {
-    label: trans.__('Download as GeoJSON'),
+  commands.addCommand(CommandIDs.exportGeoJSON, {
+    label: trans.__('Export as GeoJSON'),
     caption:
-      'Download the selected layer as a GeoJSON file in the current JupyterGIS document.',
+      'Export the selected layer as a GeoJSON file next to the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -1383,11 +1968,19 @@ export function addCommands(
           return;
         }
 
-        downloadFile(
-          geojsonString,
+        const path = await getUniqueFilePath(
+          app.serviceManager.contents,
+          PathExt.dirname(model.filePath),
           `${exportFileName}.geojson`,
-          'application/geo+json',
         );
+        await app.serviceManager.contents.save(path, {
+          type: 'file',
+          format: 'text',
+          content: geojsonString,
+        });
+        Notification.success(trans.__('Exported to %1', path), {
+          autoClose: 5000,
+        });
       };
 
       const { filePath, layerId, exportFileName } = args ?? {};
@@ -1424,7 +2017,7 @@ export function addCommands(
 
       const formValues = await new Promise<IDict>(resolve => {
         const dialog = new ProcessingFormDialog({
-          title: 'Download GeoJSON',
+          title: 'Export GeoJSON',
           schema: exportSchema,
           model,
           sourceData: { exportFormat: 'GeoJSON' },
@@ -1436,7 +2029,20 @@ export function addCommands(
           },
         });
 
-        dialog.launch();
+        void launchFollowable(
+          model,
+          {
+            kind: 'processing',
+            params: {
+              title: 'Export GeoJSON',
+              schemaId: 'ExportGeoJSONSchema',
+              sourceData: { exportFormat: 'GeoJSON' },
+              formContext: 'create',
+              processingType: 'Export',
+            },
+          },
+          dialog,
+        ).catch(() => undefined);
       });
 
       if (!formValues || !selectedLayer.parameters) {
@@ -1498,9 +2104,30 @@ export function addCommands(
         console.warn(`Geolocation error (${err.code}): ${err.message}`);
       };
 
-      navigator.geolocation.getCurrentPosition(success, error, options);
+      window.navigator.geolocation.getCurrentPosition(success, error, options);
     },
-    icon: targetWithCenterIcon,
+  });
+
+  commands.addCommand(CommandIDs.toggleLocationIndicator, {
+    label: trans.__('Toggle Location Indicator'),
+    caption: 'Display a live location indicator based on your GPS position.',
+    isToggled: () =>
+      Boolean(
+        tracker.currentWidget?.model.getUIState().locationIndicatorActive,
+      ),
+    isEnabled: () => Boolean(tracker.currentWidget),
+    execute: () => {
+      const viewModel = tracker.currentWidget?.model;
+      if (!viewModel) {
+        return;
+      }
+
+      viewModel.setUIState({
+        locationIndicatorActive:
+          !viewModel.getUIState().locationIndicatorActive,
+      });
+      commands.notifyCommandChanged(CommandIDs.toggleLocationIndicator);
+    },
   });
 
   // Panel visibility commands
@@ -1655,36 +2282,6 @@ export function addCommands(
   });
 
   // Right panel tabs
-  commands.addCommand(CommandIDs.showObjectPropertiesTab, {
-    label: trans.__('Show Object Properties Tab'),
-    caption:
-      'Show the object properties tab in the current JupyterGIS document.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isEnabled: () => Boolean(tracker.currentWidget),
-    isToggled: () =>
-      tracker.currentWidget
-        ? !tracker.currentWidget.model.jgisSettings.objectPropertiesDisabled
-        : false,
-    execute: async () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-      const settings = await current.model.getSettings();
-      const currentValue =
-        settings?.composite?.objectPropertiesDisabled ??
-        current.model.jgisSettings.objectPropertiesDisabled ??
-        false;
-      await settings?.set('objectPropertiesDisabled', !currentValue);
-      commands.notifyCommandChanged(CommandIDs.showObjectPropertiesTab);
-    },
-  });
-
   commands.addCommand(CommandIDs.showAnnotationsTab, {
     label: trans.__('Show Annotations Tab'),
     caption: 'Show the annotations tab in the current JupyterGIS document.',
@@ -1763,87 +2360,140 @@ export function addCommands(
         return;
       }
 
-      current.node.classList.toggle(POINT_SELECTION_TOOL_CLASS);
       current.model.toggleMode('marking');
-
-      commands.notifyCommandChanged(CommandIDs.addMarker);
+      syncInteractionModeUi(current, commands);
     },
     ...icons.get(CommandIDs.addMarker),
   });
 
-  commands.addCommand(CommandIDs.toggleDrawFeatures, {
-    label: trans.__('Edit Features'),
-    caption: 'Toggle feature editing for the selected draw-compatible layer.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isToggled: () => {
-      if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
-        return false;
+  commands.addCommand(CommandIDs.foldFeatureStore, {
+    label: trans.__('Fold to Feature Store'),
+    caption: () => {
+      if (!isFeatureStoreAvailable()) {
+        return trans.__(
+          'Feature store requires JGIS_POSTGIS_URL and JGIS_TIPG_URL env vars to be set.',
+        );
       }
 
-      const model = tracker.currentWidget?.content?.currentViewModel
-        ?.jGISModel as IJupyterGISModel | undefined;
-
-      if (!model) {
-        return false;
-      }
-
-      const selectedLayer = getSingleSelectedLayer(tracker);
-
-      if (!selectedLayer) {
-        return false;
-      }
-
-      if (!model.checkIfIsADrawVectorLayer(selectedLayer)) {
-        return false;
-      }
-
-      return model.editingVectorLayer;
+      return trans.__('Fold overlay features into the feature store baseline.');
     },
     isEnabled: () => {
-      if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
+      if (!isFeatureStoreAvailable()) {
         return false;
       }
 
-      const model = tracker.currentWidget?.content?.currentViewModel
-        ?.jGISModel as IJupyterGISModel | undefined;
-
-      if (!model) {
+      const current = tracker.currentWidget;
+      if (!current?.model.sharedModel.editable) {
         return false;
       }
 
-      const selectedLayer = getSingleSelectedLayer(tracker);
-      if (!selectedLayer) {
-        return false;
+      const storeId = selectedFeatureStoreId(current.model);
+      if (!storeId) {
+        return true;
       }
 
-      return model.checkIfIsADrawVectorLayer(selectedLayer) === true;
+      return !current.model.getFeatureStore(storeId)?.meta.compacting;
     },
-    execute: async () => {
-      if (!(tracker.currentWidget instanceof JupyterGISDocumentWidget)) {
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
         return;
       }
 
-      const model = tracker.currentWidget?.content.currentViewModel?.jGISModel;
-      if (!model) {
-        return false;
+      const storeId = selectedFeatureStoreId(current.model);
+      if (!storeId) {
+        console.warn(
+          'Fold to Feature Store: select a feature store layer first.',
+        );
+
+        return;
       }
 
-      const selectedLayer = getSingleSelectedLayer(tracker);
-
-      if (!selectedLayer) {
-        return false;
+      if (current.model.getFeatureStore(storeId)?.meta.compacting) {
+        return;
       }
 
-      model.editingVectorLayer = !model.editingVectorLayer;
-      model.updateEditingVectorLayer();
-      commands.notifyCommandChanged(CommandIDs.toggleDrawFeatures);
+      current.model.updateFeatureStoreMeta(storeId, { foldRequested: true });
     },
-    ...icons.get(CommandIDs.toggleDrawFeatures),
+    ...icons.get(CommandIDs.foldFeatureStore),
+  });
+
+  commands.addCommand(CommandIDs.openNewFeatureStoreDialog, {
+    label: trans.__('Feature Store'),
+    caption: trans.__(
+      'Create a feature store layer (server-backed baseline with overlay edits).',
+    ),
+    isEnabled: () => {
+      if (!isFeatureStoreAvailable()) {
+        return false;
+      }
+
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const storeId = UUID.uuid4();
+      const dialog = new LayerCreationFormDialog({
+        model: current.model,
+        title: 'Create Feature Store Layer',
+        createLayer: true,
+        createSource: true,
+        sourceData: {
+          name: 'Feature Store Source',
+          storeId,
+          tileUrlTemplate: buildFeatureStoreTileUrlTemplate(storeId, 0),
+          baselineVersion: 0,
+        },
+        layerData: { name: 'Feature Store' },
+        sourceType: 'FeatureStoreSource',
+        layerType: 'VectorLayer',
+        formSchemaRegistry,
+      });
+      await dialog.launch();
+    },
+    ...icons.get(CommandIDs.openNewFeatureStoreDialog),
+  });
+
+  commands.addCommand(CommandIDs.drawFeaturesOnSelectedLayer, {
+    label: trans.__('Draw features on selected layer'),
+    caption: 'Toggle feature editing on the selected draw layer.',
+    isToggled: () => isDrawing(tracker),
+    isEnabled: () => canDrawOnSelectedLayer(tracker),
+    execute: () => {
+      const context = getDrawingContext(tracker);
+      if (!context || !canDrawOnSelectedLayer(tracker)) {
+        return;
+      }
+
+      toggleDrawing(context.widget, context.model, commands);
+    },
+    ...icons.get(CommandIDs.drawFeaturesOnSelectedLayer),
+  });
+
+  commands.addCommand(CommandIDs.drawFeaturesOnNewLayer, {
+    label: trans.__('Draw features on new layer'),
+    caption: 'Create an empty draw layer and start feature editing.',
+    isEnabled: () => isDocumentEditable(tracker),
+    execute: () => {
+      const context = getDrawingContext(tracker);
+      if (!context || !isDocumentEditable(tracker)) {
+        return;
+      }
+
+      const currentMode = context.model.currentMode;
+      Private.createDrawLayer(context.model);
+
+      if (currentMode !== 'drawing') {
+        toggleDrawing(context.widget, context.model, commands);
+      }
+    },
+    ...icons.get(CommandIDs.drawFeaturesOnNewLayer),
   });
 
   commands.addCommand(CommandIDs.addStorySegment, {
@@ -1906,6 +2556,7 @@ export function addCommands(
           tracker,
           editorServices,
           rendermime,
+          urlResolverFactory,
         );
         return;
       }
@@ -1918,6 +2569,125 @@ export function addCommands(
       session.restoreEditor();
     },
     ...icons.get(CommandIDs.openStoryEditor),
+  });
+
+  commands.addCommand(CommandIDs.copyStorySegment, {
+    label: trans.__('Copy Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      return (
+        !!model?.sharedModel.editable &&
+        model.getSelectedStorySegmentId() !== null
+      );
+    },
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return false;
+      }
+
+      const segmentId = model.getSelectedStorySegmentId();
+      if (!segmentId) {
+        return false;
+      }
+
+      return copyStorySegment(model, segmentId);
+    },
+    ...icons.get(CommandIDs.copyStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.pasteStorySegment, {
+    label: trans.__('Paste Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () =>
+      !!tracker.currentWidget?.model.sharedModel.editable &&
+      getStorySegmentClipboard() !== null,
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return null;
+      }
+
+      return pasteStorySegment(model, model.getSelectedStorySegmentId());
+    },
+    ...icons.get(CommandIDs.pasteStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.duplicateStorySegment, {
+    label: trans.__('Duplicate Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      return (
+        !!model?.sharedModel.editable &&
+        model.getSelectedStorySegmentId() !== null
+      );
+    },
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return null;
+      }
+
+      const segmentId = model.getSelectedStorySegmentId();
+      if (!segmentId) {
+        return null;
+      }
+
+      return duplicateStorySegment(model, segmentId);
+    },
+    ...icons.get(CommandIDs.duplicateStorySegment),
+  });
+
+  commands.addCommand(CommandIDs.removeStorySegment, {
+    label: trans.__('Delete Segment'),
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model?.sharedModel.editable) {
+        return false;
+      }
+
+      return (
+        model.canRemoveStorySegment() &&
+        model.getSelectedStorySegmentId() !== null
+      );
+    },
+    execute: () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return false;
+      }
+
+      const segmentId = model.getSelectedStorySegmentId();
+      if (!segmentId) {
+        return false;
+      }
+
+      return removeStorySegment(model, segmentId);
+    },
+    ...icons.get(CommandIDs.removeStorySegment),
   });
 
   /* Enabled during story presentation (Specta or lab preview). */
@@ -1941,7 +2711,9 @@ export function addCommands(
       }
 
       if (
-        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(model.getSelectedStory().story?.storyType),
+        )
       ) {
         return false;
       }
@@ -1978,7 +2750,9 @@ export function addCommands(
       }
 
       if (
-        model.getSelectedStory().story?.storyType === STORY_TYPE.verticalScroll
+        isVerticalScrollPresentation(
+          getStoryPresentationMode(model.getSelectedStory().story?.storyType),
+        )
       ) {
         return false;
       }
@@ -2047,6 +2821,7 @@ namespace Private {
     tracker: JupyterGISTracker,
     editorServices: IEditorServices,
     rendermime: IRenderMimeRegistry,
+    urlResolverFactory?: IUrlResolverFactory,
   ): Promise<void> {
     await StoryEditorSession.getInstance().openEditor(
       model,
@@ -2056,7 +2831,93 @@ namespace Private {
       tracker,
       editorServices,
       rendermime,
+      urlResolverFactory,
     );
+  }
+
+  /**
+   * Return the selected layer id when that layer can be drawn on.
+   */
+  export function selectedDrawLayerId(
+    model: IJupyterGISModel,
+    tracker: JupyterGISTracker,
+  ): string | undefined {
+    const selectedLayer = getSingleSelectedLayer(tracker);
+    const selected = model.localState?.selected?.value;
+    const selectedLayerId =
+      selected && Object.keys(selected).length === 1
+        ? Object.keys(selected)[0]
+        : undefined;
+
+    if (
+      selectedLayer &&
+      selectedLayerId &&
+      model.checkIfIsADrawVectorLayer(selectedLayer)
+    ) {
+      return selectedLayerId;
+    }
+
+    return undefined;
+  }
+
+  /**
+   * Create an empty inline GeoJSON layer and select it for drawing.
+   */
+  export function createDrawLayer(model: IJupyterGISModel): string {
+    const sourceId = UUID.uuid4();
+    const layerId = UUID.uuid4();
+    const useFeatureStore = isFeatureStoreAvailable();
+
+    let sourceModel: IJGISSource;
+    //! TODO: This is a bad idea. Layer type should be user choice
+    if (useFeatureStore) {
+      const storeId = UUID.uuid4();
+      sourceModel = {
+        type: 'FeatureStoreSource',
+        name: 'Draw Layer Source',
+        parameters: {
+          storeId,
+          tileUrlTemplate: buildFeatureStoreTileUrlTemplate(storeId, 0),
+          baselineVersion: 0,
+        } satisfies IFeatureStoreSource,
+      };
+    } else {
+      sourceModel = {
+        type: 'GeoJSONSource',
+        name: 'Draw Layer Source',
+        parameters: {
+          data: {
+            type: 'FeatureCollection',
+            features: [],
+          },
+        },
+      };
+    }
+
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      name: 'Draw Layer',
+      visible: true,
+      parameters: useFeatureStore
+        ? {
+            source: sourceId,
+            opacity: 1.0,
+          }
+        : {
+            source: sourceId,
+            opacity: 1.0,
+            symbologyState: { layers: [] },
+          },
+    };
+
+    model.sharedModel.addSource(sourceId, sourceModel);
+    model.addLayer(layerId, layerModel);
+    model.syncSelected(
+      { [layerId]: { type: 'layer' } },
+      model.getClientId().toString(),
+    );
+
+    return layerId;
   }
 
   export function createLayerBrowser(
@@ -2076,7 +2937,7 @@ namespace Private {
         registry: layerBrowserRegistry.getRegistryLayers(),
         formSchemaRegistry,
       });
-      await dialog.launch();
+      await launchFollowable(current.model, { kind: 'layerBrowser' }, dialog);
     };
   }
 
@@ -2091,11 +2952,18 @@ namespace Private {
         return;
       }
 
+      const layerId = Object.keys(
+        current.model.localState?.selected?.value ?? {},
+      )[0];
       const dialog = new SymbologyWidget({
         model: current.model,
         state,
       });
-      await dialog.launch();
+      await launchFollowable(
+        current.model,
+        { kind: 'symbology', params: { layerId } },
+        dialog,
+      );
     };
   }
 
@@ -2128,7 +2996,22 @@ namespace Private {
         layerType,
         formSchemaRegistry,
       });
-      await dialog.launch();
+      await launchFollowable(
+        current.model,
+        {
+          kind: 'layerCreation',
+          params: {
+            title,
+            createLayer,
+            createSource,
+            sourceData,
+            layerData,
+            sourceType,
+            layerType,
+          },
+        },
+        dialog,
+      );
     };
   }
 
@@ -2152,6 +3035,26 @@ namespace Private {
           break;
       }
     }
+  }
+
+  /** The single layer selected in the layer tree. If multiple are selected, returns `undefined`. */
+  export function getSelectedLayerId(
+    model: IJupyterGISModel | undefined,
+  ): string | undefined {
+    const selected = model?.localState?.selected?.value;
+    const ids = selected ? Object.keys(selected) : [];
+
+    return ids.length === 1 && selected?.[ids[0]].type === 'layer'
+      ? ids[0]
+      : undefined;
+  }
+
+  export function isSelectedLayerCompared(tracker: JupyterGISTracker): boolean {
+    const model = tracker.currentWidget?.model;
+    const layerId = getSelectedLayerId(model);
+    const current = model?.getComparison()?.layers;
+
+    return !!layerId && !!current && current.includes(layerId);
   }
 
   export async function renameSelectedItem(

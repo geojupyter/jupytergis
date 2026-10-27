@@ -1,67 +1,50 @@
 import type { IJGISStoryMap } from '@jupytergis/schema';
 import type { CSSProperties } from 'react';
 
-import { getCssVarAsColor } from '@/src/tools';
-import { STORY_TYPE } from '@/src/types';
+import {
+  getStoryPresentationMode,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
+import { resolveCssWidth } from './cssWidth';
 
-/** Jupyter theme vars used when presentation colors are unset (see storyPanel.css). */
-const JP_THEME_BG_VAR = '--jp-layout-color0';
-const JP_THEME_TEXT_VAR = '--jp-ui-font-color1';
-
-export function resolveStoryPresentationColorForInput(
-  color: string | undefined,
-  kind: 'bg' | 'text',
-): string {
-  if (color) {
-    return color;
+/** Clamp story overlay opacity to the schema range [0, 1]. */
+export function resolveStoryOpacity(opacity: number | undefined): number {
+  if (opacity === undefined || !Number.isFinite(opacity)) {
+    return 1;
   }
 
-  return getCssVarAsColor(kind === 'bg' ? JP_THEME_BG_VAR : JP_THEME_TEXT_VAR);
+  return Math.min(1, Math.max(0, opacity));
 }
 
-/** CSS variables (+ optional text color) for specta theming */
+/** CSS variables for specta theming. */
 export function getSpectaPresentationCssVars(
   story: IJGISStoryMap | null,
 ): CSSProperties {
-  const isListMode = story?.storyType === STORY_TYPE.verticalScroll;
-  const bgColor = story?.presentationBgColor;
-  const textColor = story?.presentationTextColor;
+  const presentationMode = getStoryPresentationMode(story?.storyType);
+  const verticalScroll = isVerticalScrollPresentation(presentationMode);
+  const overlayContentWidth = resolveCssWidth(story?.overlayContentWidth);
   const style: CSSProperties = {};
 
-  if (textColor) {
-    (style as Record<string, string>)['--jgis-specta-text-color'] = textColor;
-    style.color = textColor;
+  if (story?.storyPanelOpacity !== undefined) {
+    (style as Record<string, string>)['--jgis-story-panel-opacity'] = String(
+      resolveStoryOpacity(story.storyPanelOpacity),
+    );
   }
 
-  if (isListMode) {
+  if (verticalScroll) {
     (style as Record<string, string>)['--jgis-specta-panel-color'] =
       'transparent';
-    if (bgColor) {
-      (style as Record<string, string>)['--jgis-specta-bg-color'] = bgColor;
+
+    if (overlayContentWidth) {
+      (style as Record<string, string>)['--jgis-story-overlay-content-width'] =
+        overlayContentWidth;
     }
-    return style;
-  }
 
-  if (bgColor) {
-    (style as Record<string, string>)['--jgis-specta-panel-color'] = bgColor;
-  }
-
-  return style;
-}
-
-/**
- * Full inline style for solid surfaces (e.g. mobile drawer).
- * Do not use on `.jgis-specta-story-panel-container` — it overrides the gradient.
- */
-export function getSpectaPresentationStyle(
-  story: IJGISStoryMap | null,
-): CSSProperties {
-  const style = getSpectaPresentationCssVars(story);
-  const isListMode = story?.storyType === STORY_TYPE.verticalScroll;
-  const bgColor = story?.presentationBgColor;
-
-  if (!isListMode && bgColor) {
-    style.backgroundColor = bgColor;
+    if (story?.markdownSegmentOpacity !== undefined) {
+      (style as Record<string, string>)[
+        '--jgis-story-markdown-segment-opacity'
+      ] = String(resolveStoryOpacity(story.markdownSegmentOpacity));
+    }
   }
 
   return style;

@@ -6,6 +6,7 @@ import {
   trackerPlugin,
   annotationPlugin,
 } from './plugin';
+import tourPlugin from './tour';
 
 export * from './factory';
 export default [
@@ -15,4 +16,5 @@ export default [
   externalCommandRegistryPlugin,
   layerBrowserRegistryPlugin,
   annotationPlugin,
+  tourPlugin,
 ];

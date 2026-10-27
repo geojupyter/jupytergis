@@ -2,7 +2,7 @@
  * Grammar symbology panel.
  *
  * Shows encoding rules grouped by layer. Each layer has optional render-side
- * transforms (KDE, cluster) followed by (field → scale → channels) mapping rows.
+ * transforms (KDE, cluster) followed by (field → scale → encodings) mapping rows.
  * Multiple layers allow independent rendering pipelines on the same source.
  */
 
@@ -27,6 +27,7 @@ import {
 import { UUID } from '@lumino/coreutils';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
+import { useFollowedState } from '@/src/features/follow/useFollowedState';
 import MappingRow, {
   IGrammarRow,
   WhenRow,
@@ -48,7 +49,7 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 
-const DEFAULT_CHANNELS: Encoding[] = ['fill-color', 'circle-fill-color'];
+const DEFAULT_ENCODINGS: Encoding[] = ['fill-color', 'circle-fill-color'];
 const DEFAULT_RGBA: RGBA = [128, 128, 128, 1];
 
 // Scale schemes that cannot be round-tripped through the QGIS format, and are
@@ -198,6 +199,8 @@ interface ILayerSectionProps {
   featureValues: Record<string, Set<any>>;
   isRasterLayer?: boolean;
   disabledSchemes?: IScale['scheme'][];
+  bandStats?: Record<number, { min: number; max: number }>;
+  normalize?: boolean;
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
   onMoveUp?: () => void;
@@ -212,6 +215,8 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   featureValues,
   isRasterLayer = false,
   disabledSchemes = [],
+  bandStats,
+  normalize = true,
   onChange,
   onDelete,
   onMoveUp,
@@ -296,9 +301,9 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   const isRaster = isRasterLayer || hasKDE;
 
   const addRow = useCallback(() => {
-    const defaultChannels: Encoding[] = isRaster
+    const defaultEncodings: Encoding[] = isRaster
       ? ['pixel-color']
-      : DEFAULT_CHANNELS;
+      : DEFAULT_ENCODINGS;
     onChange({
       ...layer,
       rows: [
@@ -306,13 +311,13 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {
           id: UUID.uuid4(),
           scale: { scheme: 'constant_rgba', params: { value: DEFAULT_RGBA } },
-          channels: [...defaultChannels],
+          encodings: [...defaultEncodings],
         },
       ],
     });
   }, [layer, onChange, isRaster]);
 
-  // KDE layers expose '$density'; raster layers expose $band-N fields.
+  // KDE layers expose '$density'; raster layers expose band_N fields.
   // Both cases suppress the raw feature attribute list.
   const encodingFields: IFieldOption[] = hasKDE
     ? [{ value: '$density', label: '$density' }]
@@ -341,7 +346,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <Button
             type="button"
             variant="ghost"
-            style={{ height: 32, width: 32 }}
+            size="icon-sm"
             onClick={onMoveUp}
             title="Move layer up"
           >
@@ -352,7 +357,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <Button
             type="button"
             variant="ghost"
-            style={{ height: 32, width: 32 }}
+            size="icon-sm"
             onClick={onMoveDown}
             title="Move layer down"
           >
@@ -363,7 +368,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <Button
             type="button"
             variant="ghost"
-            style={{ height: 32, width: 32 }}
+            size="icon-sm"
             onClick={onDelete}
             title="Remove layer"
           >
@@ -378,6 +383,8 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         {(layer.when?.length ?? 0) > 1 && (
           <Button
             type="button"
+            variant="ghost"
+            size="xs"
             className="jp-gis-grammar-when-op"
             onClick={() =>
               onChange({
@@ -400,7 +407,9 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
         ))}
         <Button
           type="button"
-          className="jp-gis-grammar-when-add-btn"
+          variant="ghost"
+          size="icon-xs"
+          className="rounded-[10px] border-dashed"
           onClick={addLayerPredicate}
           title="Add condition"
         >
@@ -517,6 +526,8 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               featureValues={featureValues}
               isRaster={isRaster}
               disabledSchemes={disabledSchemes}
+              bandStats={bandStats}
+              normalize={normalize}
               onChange={updated => updateRow(i, updated)}
               onDelete={() => removeRow(i)}
             />
@@ -557,8 +568,28 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     { layerId, model },
   );
 
-  // For raster layers, expose $band-N pseudo-fields derived from band metadata.
+  // For raster layers, expose band_N pseudo-fields derived from band metadata.
   const { bandRows } = useGetBandInfo(model, layer);
+
+  const bandStats = React.useMemo(() => {
+    const map: Record<number, { min: number; max: number }> = {};
+
+    bandRows.forEach(b => {
+      map[b.band] = {
+        min: b.stats.minimum,
+        max: b.stats.maximum,
+      };
+    });
+
+    return map;
+  }, [bandRows]);
+
+  // Whether the raster source normalizes band values to [0, 1]. This governs
+  // which value space the auto-filled symbology domain must live in.
+  const normalize = React.useMemo(() => {
+    const source = model.getSource(layer?.parameters?.source);
+    return (source?.parameters?.normalize as boolean | undefined) ?? true;
+  }, [model, layer]);
 
   const params = useEffectiveSymbologyParams<VectorSymbologyParams>({
     model,
@@ -599,7 +630,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
             id: rule.mappings.length === 1 ? rule.id : `${rule.id}-${mi}`,
             fields: rule.fields?.length ? rule.fields : undefined,
             scale: mapping.scale,
-            channels: [...(mapping.channels as Encoding[])],
+            encodings: [...(mapping.encodings as Encoding[])],
             ...(rule.when ? { when: rule.when } : {}),
             ...(rule.whenOp ? { whenOp: rule.whenOp } : {}),
           })),
@@ -608,6 +639,11 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     );
   }, [params]);
 
+  // Declared after the effect above so that, in a mirrored dialog, the
+  // collaborator's in-progress rules win over the document's saved ones on
+  // mount.
+  useFollowedState(model, 'symbology:layers', layers, setLayers);
+
   const handleOk = () => {
     if (!layerId || !layer?.parameters) {
       return;
@@ -615,7 +651,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
 
     const grammarLayers: IGrammarLayer[] = layers.map(uiLayer => {
       const rules: IEncodingRule[] = uiLayer.rows
-        .filter(row => row.channels.length > 0)
+        .filter(row => row.encodings.length > 0)
         .map(row => ({
           id: row.id,
           ...(row.fields?.length ? { fields: row.fields } : {}),
@@ -624,7 +660,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           mappings: [
             {
               scale: row.scale,
-              channels: row.channels as [Encoding, ...Encoding[]],
+              encodings: row.encodings as [Encoding, ...Encoding[]],
             },
           ],
         }));
@@ -684,8 +720,8 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
 
   const availableFields = isRasterLayer
     ? bandRows.map(b => ({
-        value: `$band-${b.band}`,
-        label: `$band-${b.band}  ${b.name}${
+        value: `band_${b.band}`,
+        label: `band_${b.band}  ${b.name}${
           b.colorInterpretation ? ` (${b.colorInterpretation})` : ''
         }`,
       }))
@@ -706,6 +742,8 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           featureValues={selectableAttributesAndValues}
           isRasterLayer={isRasterLayer}
           disabledSchemes={model.isQgisDocument ? QGIS_UNSUPPORTED_SCHEMES : []}
+          bandStats={bandStats}
+          normalize={normalize}
           onChange={updated =>
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }
@@ -717,7 +755,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         />
       ))}
       <div className="jp-gis-symbology-button-container">
-        <Button className="jp-gis-grammar-action-btn" onClick={addLayer}>
+        <Button variant="outline" size="sm" onClick={addLayer}>
           Add Layer
         </Button>
       </div>

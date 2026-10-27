@@ -17,6 +17,7 @@ doc = GISDocument(
     zoom=5,
     projection="EPSG:3857",
 )
+await doc.ready()
 
 doc
 ```
@@ -31,6 +32,7 @@ The Python runtime then acts as a collaborator on the document (in the live coll
 from jupytergis import GISDocument
 
 doc = GISDocument("mydocument.jGIS")
+await doc.ready()
 
 doc
 ```
@@ -43,20 +45,17 @@ If this document doesn't exist, it will be created on disk.
 from jupytergis import GISDocument, constant
 
 doc = GISDocument()
+await doc.ready()
 
-doc.add_raster_layer(
-    url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-)
+doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 doc.add_geojson_layer(
     name="Ship Trajectories",
     path="https://openlayers.org/en/latest/examples/data/geojson/ship-trajectories.json",
-    symbology=[constant("red").encoding("stroke")]
+    symbology=[constant("red").encoding("stroke")],
 )
 doc.add_geotiff_layer(
     name="Sentinel-2 cloudless",
-    url="https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif",
-    min=2000,
-    max=25000,
+    url="https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/36/Q/WD/2020/7/S2A_36QWD_20200701_0_L2A/TCI.tif",
 )
 
 doc
@@ -71,6 +70,7 @@ latitude = 48.853757
 longitude = 2.358213
 
 doc = GISDocument(zoom=12, latitude=latitude, longitude=longitude)
+await doc.ready()
 
 geojson = {
     "type": "FeatureCollection",
@@ -91,7 +91,7 @@ doc.add_geojson_layer(
         constant("red").encoding("fill"),
         constant(3).encoding("circle-stroke-width"),
         constant(20).encoding("radius"),
-    ]
+    ],
 )
 
 doc
@@ -103,6 +103,7 @@ doc
 from jupytergis import GISDocument
 
 doc = GISDocument(zoom=5, latitude=46.431742, longitude=1.792230)
+await doc.ready()
 
 doc.add_image_layer(
     name="GeoJupyter logo",
@@ -124,11 +125,12 @@ doc
 from jupytergis import GISDocument, constant
 
 doc = GISDocument(zoom=8, latitude=41.928500, longitude=-87.828527)
+await doc.ready()
 
 doc.add_vectortile_layer(
     name="Buildings",
     url="https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/{z}/{x}/{y}",
-    symbology=[constant("lightblue").encoding("stroke")]
+    symbology=[constant("lightblue").encoding("stroke")],
 )
 
 doc
@@ -140,6 +142,7 @@ doc
 from jupytergis import GISDocument
 
 doc = GISDocument(zoom=8, latitude=41.928500, longitude=-87.828527)
+await doc.ready()
 
 # Utility function to find available layers
 layers = doc.get_wms_available_layers("https://ows.terrestris.de/osm/service")
@@ -147,7 +150,7 @@ layers = doc.get_wms_available_layers("https://ows.terrestris.de/osm/service")
 doc.add_wms_tile_layer(
     url="https://ows.terrestris.de/osm/service",
     layer_name=layers[0]["name"],
-    name="WMS layer"
+    name="WMS layer",
 )
 
 doc
@@ -174,6 +177,7 @@ doc.add_openeo_tile_layer(
 from jupytergis import GISDocument, constant
 
 doc = GISDocument(zoom=2, latitude=58.118086, longitude=-98.799263)
+await doc.ready()
 
 doc.add_geoparquet_layer(
     path="https://raw.githubusercontent.com/opengeospatial/geoparquet/main/examples/example.parquet",
@@ -181,7 +185,7 @@ doc.add_geoparquet_layer(
     symbology=[
         constant("blue").encoding("stroke"),
         constant("lightblue").encoding("fill"),
-    ]
+    ],
 )
 
 doc
@@ -193,6 +197,7 @@ doc
 from jupytergis import GISDocument, constant
 
 doc = GISDocument(zoom=4, latitude=45.895322, longitude=2.267552)
+await doc.ready()
 
 doc.add_geopackage_vector_layer(
     path="https://raw.githubusercontent.com/richard-thomas/ol-load-geopackage/master/examples/dist/Natural_Earth_QGIS_layers_and_styles.gpkg",
@@ -201,7 +206,7 @@ doc.add_geopackage_vector_layer(
     symbology=[
         constant("blue").encoding("stroke"),
         constant("green").encoding("fill"),
-    ]
+    ],
 )
 
 doc
@@ -218,7 +223,7 @@ doc.remove_layer(layer_id)
 You can also inspect convenience properties:
 
 ```python
-print(doc.layers)      # dict keyed by layer id
+print(doc.layers)  # dict keyed by layer id
 print(doc.layer_tree)  # ordered layer ids / groups
 ```
 

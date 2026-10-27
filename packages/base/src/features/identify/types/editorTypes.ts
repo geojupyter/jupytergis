@@ -1,34 +1,34 @@
 import { IDict, IIdentifiedFeature } from '@jupytergis/schema';
 
-export type PatchGeoJSONFeatureProperties = (
+export type PatchGeoJSONFeatureAttributes = (
   sourceId: string,
   target: { featureId: string },
-  propertyUpdates: IDict<any>,
+  attributeUpdates: IDict<any>,
 ) => Promise<boolean>;
 
-export interface IPropertyEditorState {
+export interface IAttributeEditorState {
   editingFeatureIndex: number | null;
   editorMode: 'add' | 'edit' | null;
-  editingPropertyKey: string | null;
-  newPropertyKey: string;
-  newPropertyValue: string;
-  isSavingProperty: boolean;
+  editingAttributeKey: string | null;
+  newAttributeKey: string;
+  newAttributeValue: string;
+  isSavingAttribute: boolean;
 }
 
-export interface IPropertyEditorActions {
-  onEditProperty: (
+export interface IAttributeEditorActions {
+  onEditAttribute: (
     rowIndex: number,
-    propertyKey: string,
+    attributeKey: string,
     value: unknown,
   ) => void;
-  onDeleteProperty: (
+  onDeleteAttribute: (
     feature: IIdentifiedFeature,
     rowIndex: number,
-    propertyKey: string,
+    attributeKey: string,
   ) => Promise<void>;
-  onStartAddProperty: (rowIndex: number) => void;
-  onSaveProperty: (feature: IIdentifiedFeature, rowIndex: number) => void;
-  onCancelProperty: () => void;
-  onNewPropertyKeyChange: (value: string) => void;
-  onNewPropertyValueChange: (value: string) => void;
+  onStartAddAttribute: (rowIndex: number) => void;
+  onSaveAttribute: (feature: IIdentifiedFeature, rowIndex: number) => void;
+  onCancelAttribute: () => void;
+  onNewAttributeKeyChange: (value: string) => void;
+  onNewAttributeValueChange: (value: string) => void;
 }

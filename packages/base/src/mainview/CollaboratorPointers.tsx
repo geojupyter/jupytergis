@@ -1,84 +1,54 @@
-import {
-  faArrowPointer,
-  faWindowMinimize,
-} from '@fortawesome/free-solid-svg-icons';
+import { faArrowPointer } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { collaboratorPill } from '@jupyter/collaboration';
 import { IDict, JgisCoordinates } from '@jupytergis/schema';
-import React, { useState } from 'react';
+import { User } from '@jupyterlab/services';
+import React, { useEffect, useRef } from 'react';
 
 interface ICollaboratorPointersProps {
   clients: IDict<ClientPointer>;
 }
 
 export type ClientPointer = {
-  username: string;
-  displayName: string;
-  color: string;
+  user: User.IIdentity;
   coordinates: JgisCoordinates;
   lonLat: { latitude: number; longitude: number };
+};
+
+const CollaboratorPill: React.FC<{ user: User.IIdentity }> = ({ user }) => {
+  const host = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    host.current?.replaceChildren(collaboratorPill(user));
+    // Rebuild only when what the pill renders changes, not on every pointer move.
+  }, [user.display_name, user.initials, user.avatar_url, user.color]);
+
+  return <div className="jGIS-Remote-Pointer-Pill-Host" ref={host} />;
 };
 
 const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({
   clients,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
     <>
       {clients &&
-        Object.values(clients).map(client => (
+        Object.entries(clients).map(([clientId, client]) => (
           <div
-            className="jGIS-Popup-Wrapper"
+            key={clientId}
+            className="jGIS-Popup-Wrapper jGIS-Remote-Pointer-Wrapper"
             style={{
-              left: `${client.coordinates.x}px`,
-              top: `${client.coordinates.y}px`,
+              transform: `translate3d(${client.coordinates.x}px, ${client.coordinates.y}px, 0)`,
             }}
           >
             <div
-              key={client.username}
               className="jGIS-Remote-Pointer"
-              style={{
-                color: client.color,
-                cursor: 'pointer',
-              }}
-              onClick={() => {
-                setIsOpen(!isOpen);
-              }}
+              style={{ color: client.user.color }}
             >
               <FontAwesomeIcon
                 icon={faArrowPointer}
                 className="jGIS-Remote-Pointer-Icon"
               />
-            </div>
-            <div
-              style={{
-                visibility: isOpen ? 'visible' : 'hidden',
-                background: client.color,
-              }}
-              className="jGIS-Remote-Pointer-Popup jGIS-Floating-Pointer-Popup"
-            >
-              <div
-                className="jGIS-Popup-Topbar"
-                onClick={() => {
-                  setIsOpen(false);
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faWindowMinimize}
-                  className="jGIS-Popup-TopBarIcon"
-                />
-              </div>
-              <div className="jGIS-Remote-Pointer-Popup-Name">
-                {client.displayName}
-              </div>
-              <div className="jGIS-Remote-Pointer-Popup-Coordinates">
-                <br />
-                Pointer Location:
-                <br />
-                Longitude: {client.lonLat.longitude.toFixed(2)}
-                <br />
-                Latitude: {client.lonLat.latitude.toFixed(2)}
-              </div>
+              <CollaboratorPill user={client.user} />
             </div>
           </div>
         ))}

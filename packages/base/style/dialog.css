@@ -7,7 +7,54 @@
   background-image: unset;
 }
 
+/* RJSF sets `disabled` on the `<select>` itself, but the form's own colours
+ * override the browser default, so a disabled dropdown still looks clickable. */
+.jGIS-property-panel .rjsf select:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 /* Collapse the form-group row that contains our hidden field marker */
 .jp-root .form-group:has(.jGIS-hidden-field) {
   display: none !important;
+}
+
+/* A fixed width rather than a minimum: the dialog is shrink-to-fit, so with
+ * only a minimum the Information tab's tables and URLs stretched it wider than
+ * the property form and the dialog jumped when switching tabs. Wide content
+ * wraps or scrolls within this width instead. */
+.jp-gis-object-properties-dialog .jp-Dialog-content {
+  width: min(600px, 90vw);
+  max-height: 80vh;
+}
+
+/* Scroll lives on each tab panel, not the dialog body — otherwise the
+ * scrollbar runs the full body height and sits next to the tab list. */
+.jp-gis-object-properties-dialog .jp-Dialog-body {
+  overflow: hidden;
+}
+
+/* A dialog mirrored from the collaborator we are following. It is a view of
+ * what they are doing, so it may never be submitted. Cancel stays, so the
+ * mirror can always be dismissed. Interaction inside the body is blocked in
+ * `makeReadOnly`. */
+.jgis-follow-mirror .jp-Dialog-footer .jp-mod-accept {
+  display: none;
+}
+
+.jgis-follow-mirror .jp-Dialog-body {
+  cursor: default;
+}
+
+/* The followed collaborator's focused field, painted in their colour. */
+.jgis-follow-mirror .jgis-follow-focus {
+  outline: 2px solid var(--jgis-follow-color, var(--jp-brand-color1));
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Their mouse, drawn over the mirrored dialog. */
+.jgis-follow-mirror .jgis-follow-pointer {
+  pointer-events: none;
+  z-index: 100;
 }

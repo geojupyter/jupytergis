@@ -1,12 +1,24 @@
-import { IJGISStoryMap, IStorySegmentLayer } from '@jupytergis/schema';
-import React, { RefObject } from 'react';
+import {
+  IJGISStoryMap,
+  IJupyterGISModel,
+  IStorySegmentLayer,
+} from '@jupytergis/schema';
+import React, { RefObject, useEffect, useState } from 'react';
 
-import { STORY_TYPE } from '@/src/types';
-import StoryContentSection from './components/StoryContentSection';
+import {
+  getStoryPresentationMode,
+  isColumnPresentation,
+  isVerticalScrollPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
+import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
+import { exitStoryIdentifyMode } from '@/src/features/story/utils/exitStoryIdentifyMode';
+import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
+import { Button } from '@/src/shared/components/Button';
+import { infoIcon } from '@/src/shared/icons';
+import { RenderedStoryMarkdown } from './components/RenderedStoryMarkdown';
+import StoryImageCaptionSection from './components/StoryImageCaptionSection';
 import StoryImageSection from './components/StoryImageSection';
 import StoryNavBar from './components/StoryNavBar';
-import StorySubtitleSection from './components/StorySubtitleSection';
-import StoryTitleSection from './components/StoryTitleSection';
 import { useStoryImagePreload } from './hooks/useStoryImagePreload';
 
 export interface IStoryViewerPanelSegmentNav {
@@ -16,11 +28,10 @@ export interface IStoryViewerPanelSegmentNav {
   hasNext: boolean;
 }
 
-/** Props: story state and callbacks come from useStoryMap in parent (SpectaPanel or SpectaMobileView). */
 interface IStoryViewerPanelProps {
+  model: IJupyterGISModel;
   isSpecta: boolean;
   isMobile?: boolean;
-  /** Ref for the segment container (SpectaPanel uses it for animationend). */
   segmentContainerRef?: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
@@ -48,13 +59,10 @@ export interface IStoryViewerPanelHandle {
  * Where the story nav bar should be rendered in the viewer layout.
  * - below-title: normal mode, guided, no image (under the title)
  * - over-image: normal mode, guided, with image (over the image)
- * - subtitle-specta: specta mode desktop (next to subtitle, fixed centered)
+ * - caption-specta: specta mode desktop (next to caption, fixed centered)
  * Specta mode mobile returns null (nav hidden).
  */
-export type StoryNavPlacement =
-  | 'below-title'
-  | 'over-image'
-  | 'subtitle-specta';
+export type StoryNavPlacement = 'below-title' | 'over-image' | 'caption-specta';
 
 /**
  * Returns which section should render the nav bar, or null if nav should be hidden.
@@ -62,32 +70,22 @@ export type StoryNavPlacement =
 function getStoryNavPlacement(
   isSpecta: boolean,
   hasImage: boolean,
-  storyType: IJGISStoryMap['storyType'],
+  presentationMode: StoryPresentationMode,
   isMobile: boolean,
 ): StoryNavPlacement | null {
-  if (storyType === STORY_TYPE.verticalScroll) {
+  if (isVerticalScrollPresentation(presentationMode)) {
     return null;
   }
 
-  if (storyType === STORY_TYPE.unguided) {
-    return isSpecta && !isMobile ? 'subtitle-specta' : null;
+  if (isSpecta) {
+    return isMobile ? null : 'caption-specta';
   }
 
-  if (storyType === STORY_TYPE.guided) {
-    if (isSpecta) {
-      return isMobile ? null : 'subtitle-specta';
-    }
-    return hasImage ? 'over-image' : 'below-title';
-  }
-
-  return null;
+  return hasImage ? 'over-image' : 'below-title';
 }
 
-/**
- * Story viewer (presentational). Receives story state and callbacks from parent.
- * Desktop scroll/sentinel/imperative handle live in SpectaDesktopView.
- */
 function StoryViewerPanel({
+  model,
   isSpecta,
   isMobile = false,
   segmentContainerRef,
@@ -99,6 +97,22 @@ function StoryViewerPanel({
   disableSegmentAnimation = false,
 }: IStoryViewerPanelProps) {
   const imageLoaded = useStoryImagePreload(activeSlide?.content?.image);
+  const [isIdentifying, setIsIdentifying] = useState(
+    () => model.currentMode === 'identifying',
+  );
+
+  useEffect(() => {
+    const syncMode = (): void => {
+      setIsIdentifying(model.currentMode === 'identifying');
+    };
+
+    syncMode();
+    model.modeChanged.connect(syncMode);
+
+    return () => {
+      model.modeChanged.disconnect(syncMode);
+    };
+  }, [model]);
 
   if (!storyData || storyData?.storySegments?.length === 0) {
     return (
@@ -108,14 +122,18 @@ function StoryViewerPanel({
     );
   }
 
+  const segmentId = storyData.storySegments?.[currentIndex] ?? '';
   const hasImage = !!(activeSlide?.content?.image && imageLoaded);
-  const storyType = storyData.storyType ?? STORY_TYPE.guided;
+  const presentationMode = getStoryPresentationMode(storyData.storyType);
   const navPlacement = getStoryNavPlacement(
     isSpecta,
     hasImage,
-    storyType,
+    presentationMode,
     isMobile,
   );
+  const showIdentifyButton =
+    getSegmentDisplayMode(activeSlide) === 'map' &&
+    activeSlide?.enableIdentify === true;
 
   const navSlot =
     navPlacement !== null && segmentNav ? (
@@ -143,9 +161,7 @@ function StoryViewerPanel({
   return (
     <div
       className={
-        storyData.storyType !== STORY_TYPE.verticalScroll
-          ? 'jgis-story-viewer-panel'
-          : ''
+        isColumnPresentation(presentationMode) ? 'jgis-story-viewer-panel' : ''
       }
     >
       <div
@@ -155,9 +171,31 @@ function StoryViewerPanel({
         style={segmentContainerStyle}
       >
         <div id="jgis-story-segment-header">
-          <h1 className="jgis-story-viewer-title">
-            {layerName ?? `Slide ${currentIndex + 1}`}
-          </h1>
+          <div className="jgis-story-viewer-title-row">
+            <h1 className="jgis-story-viewer-title">
+              {layerName ?? `Slide ${currentIndex + 1}`}
+            </h1>
+            {showIdentifyButton ? (
+              <Button
+                type="button"
+                variant={isIdentifying ? 'default' : 'outline'}
+                size="icon-xs"
+                aria-pressed={isIdentifying}
+                aria-label="Identify features"
+                title="Identify features"
+                className={'rounded-full'}
+                onClick={() => {
+                  if (model.currentMode === 'identifying') {
+                    exitStoryIdentifyMode(model);
+                    return;
+                  }
+                  model.toggleMode('identifying');
+                }}
+              >
+                <infoIcon.react tag="span" />
+              </Button>
+            ) : null}
+          </div>
           {activeSlide?.content?.image && imageLoaded ? (
             <StoryImageSection
               imageUrl={activeSlide.content.image}
@@ -166,20 +204,18 @@ function StoryViewerPanel({
               slideNumber={currentIndex}
               navSlot={navPlacement === 'over-image' ? navSlot : null}
             />
-          ) : (
-            <StoryTitleSection
-              title={storyData.title ?? ''}
-              navSlot={navPlacement === 'below-title' ? navSlot : null}
-            />
-          )}
-          <StorySubtitleSection
-            title={activeSlide?.content?.title ?? ''}
-            navSlot={navPlacement === 'subtitle-specta' ? navSlot : null}
+          ) : null}
+          <StoryImageCaptionSection
+            caption={activeSlide?.content?.imageCaption ?? ''}
+            navSlot={navPlacement === 'caption-specta' ? navSlot : null}
           />
         </div>
         <div id="jgis-story-segment-content">
-          <StoryContentSection
-            markdown={activeSlide?.content?.markdown ?? ''}
+          <RenderedStoryMarkdown
+            model={model}
+            segmentId={segmentId}
+            source={activeSlide?.content?.markdown ?? ''}
+            variant="column"
           />
         </div>
       </div>

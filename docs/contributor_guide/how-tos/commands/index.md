@@ -90,4 +90,4 @@ is a behavior that can be triggered from a menu in the JupyterGIS UI.
   }
   ```
 
-- Re-build JupyterGIS (`jlpm run build`) and test!
+- Re-build JupyterGIS (`pnpm run build`) and test!

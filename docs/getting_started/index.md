@@ -11,8 +11,8 @@ The elements shown in the figure above are:
 1. **Application Launcher** — select which application to start: a Notebook, a Console, a Terminal, or open a GIS file (`.jGIS` or `.qgz`).
 2. **Left Sidebar** — file browser, open tabs, running kernels, collaboration panel, table of contents, extension manager, and the GIS layers list.
 3. **GIS Layers List / Browser Panel**.
-4. **Right Sidebar** — property inspector, kernel usage, debugger, and GIS object properties, annotations and filters.
-5. **GIS object properties, annotations and filters** of a selected GIS layer.
+4. **Right Sidebar** — property inspector, kernel usage, debugger, and GIS annotations and identified features.
+5. **GIS annotations and identified features** of a selected GIS layer.
 6. **Jupyter Toolbar Menu** — used with Jupyter Notebooks.
 7. **Log Console** — used for debugging.
 
@@ -32,7 +32,7 @@ Launch JupyterGIS from your terminal or use the online JupyterLite version.
    ![Add a Vector Layer](images/addVectorLayer.png)
 4. Set the path of the new Shapefile Layer to an open source dataset of counties in the US — `https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/georef-united-states-of-america-county/exports/shp` — and click **Ok**.
    ![Set Shapefile Layer](images/CreateShapefileLayer.png)
-5. You will see the new Shapefile Layer on the map. When clicking on the **Custom Shapefile Layer**, you will also see the details of the object properties on the right. You can pan and zoom to focus on your area of interest, or automatically focus on your new data layer by right-clicking on the **Custom Shapefile Layer** and selecting "Zoom to Layer".
+5. You will see the new Shapefile Layer on the map. Right-click the **Custom Shapefile Layer** and select "Layer Properties" to view and edit its details. You can pan and zoom to focus on your area of interest, or automatically focus on your new data layer by right-clicking on the **Custom Shapefile Layer** and selecting "Zoom to Layer".
    ![View Shapefile Layer](images/viewShapefileLayer.png)
 
 ## Renaming sources and layers

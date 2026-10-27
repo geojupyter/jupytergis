@@ -14,5 +14,5 @@ What does this PR change? Why?
 - [ ] Checks are passing.
       Failing lint checks can be resolved with:
   - `pre-commit run --all-files`
-  - `jlpm run lint`
+  - `pnpm run lint`
 - [ ] If you wish to be cited for your contribution, `CITATION.cff` contains an [author entry](https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md#definitionsperson) for yourself

@@ -1,6 +1,9 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
+import { HYDROWEB_STAC_URL } from '@/src/features/stac-browser/catalogQuery';
+import StacCatalogQueryPanel from '@/src/features/stac-browser/components/catalog-query/StacCatalogQueryPanel';
+import StacWmsCollectionResult from '@/src/features/stac-browser/components/catalog-query/StacWmsCollectionResult';
 import StacFilterExtensionPanel from '@/src/features/stac-browser/components/filter-extension/StacFilterExtensionPanel';
 import StacGeodesFilterPanel from '@/src/features/stac-browser/components/geodes/StacGeodesFilterPanel';
 import StacPanelResults from '@/src/features/stac-browser/components/shared/StacPanelResults';
@@ -8,7 +11,11 @@ import {
   StacResultsProvider,
   useStacResultsContext,
 } from '@/src/features/stac-browser/context/StacResultsContext';
-import { Select, type ISelectItem } from '@/src/shared/components/Select';
+import { Input } from '@/src/shared/components/Input';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/src/shared/components/NativeSelect';
 import {
   Tabs,
   TabsContent,
@@ -19,6 +26,7 @@ import {
 const GEODES_URL = 'https://geodes-portal.cnes.fr/api/stac/';
 const COPERNICUS_URL = 'https://stac.dataspace.copernicus.eu/v1/';
 const WORLDPOP_URL = 'https://api.stac.worldpop.org/';
+const CATALOG_URL_PRESET = 'custom';
 
 // Provider configuration - in the future this will come from STAC index
 interface IProvider {
@@ -27,6 +35,7 @@ interface IProvider {
 }
 
 const PROVIDERS: IProvider[] = [
+  { url: HYDROWEB_STAC_URL, name: 'Hydroweb' },
   { url: COPERNICUS_URL, name: 'Copernicus' },
   { url: GEODES_URL, name: 'GEODES' },
   { url: WORLDPOP_URL, name: 'WorldPop' },
@@ -39,6 +48,8 @@ const URL_TO_PANEL_MAP: Record<
   React.ComponentType<{ model?: IJupyterGISModel }>
 > = {
   [GEODES_URL]: StacGeodesFilterPanel,
+  [COPERNICUS_URL]: StacFilterExtensionPanel,
+  [WORLDPOP_URL]: StacFilterExtensionPanel,
 };
 
 interface IStacViewProps {
@@ -47,48 +58,48 @@ interface IStacViewProps {
 
 // Inner component that uses the context
 const StacPanelContent = ({ model }: IStacViewProps) => {
-  const { totalResults, selectedUrl } = useStacResultsContext();
+  const { totalResults, isLoading, selectedUrl, wmsCollection } =
+    useStacResultsContext();
+  const wmsLayerCount = wmsCollection ? wmsCollection.layers.length : null;
 
   if (!model) {
     return null;
   }
 
-  const ProviderPanel =
-    URL_TO_PANEL_MAP[selectedUrl] ?? StacFilterExtensionPanel;
+  const ProviderPanel = URL_TO_PANEL_MAP[selectedUrl] ?? StacCatalogQueryPanel;
 
   return (
-    <Tabs
-      defaultValue="filters"
-      className="jgis-panel-tabs"
-      style={{ boxShadow: 'none' }}
-    >
-      <TabsList className="jgis-stac-panel-tabs-list">
-        <TabsTrigger className="jGIS-layer-browser-category" value="filters">
+    <Tabs defaultValue="filters" style={{ boxShadow: 'none' }}>
+      <TabsList variant="underline" className="jgis-stac-panel-tabs-list">
+        <TabsTrigger
+          className="jgis-underline-indicator text-sm"
+          value="filters"
+        >
           Filters
         </TabsTrigger>
-        <TabsTrigger
-          className="jGIS-layer-browser-category"
-          value="results"
-          // Total results will always be the the same as the limit if the
-          // provider doesn't support the context extension (where totalPages comes from)
-        >
-          {`Results (${totalResults})`}
+        <TabsTrigger className="jgis-underline-indicator" value="results">
+          {resultsTabLabel(isLoading, wmsLayerCount, totalResults)}
         </TabsTrigger>
       </TabsList>
       <TabsContent value="filters">
         <div className="jgis-stac-filter-extension-panel">
           <StacPanel.ProviderSelect />
+          <CatalogUrlField />
           {selectedUrl ? (
             <ProviderPanel model={model} />
           ) : (
             <div className="jgis-stac-panel-placeholder">
-              Please select a provider above
+              Enter a catalog URL above
             </div>
           )}
         </div>
       </TabsContent>
       <TabsContent value="results">
-        <StacPanelResults />
+        {wmsCollection ? (
+          <StacWmsCollectionResult model={model} />
+        ) : (
+          <StacPanelResults />
+        )}
       </TabsContent>
     </Tabs>
   );
@@ -103,33 +114,100 @@ const StacPanel = ({ model }: IStacViewProps) => {
   );
 };
 
-/**
- * Provider selector component for choosing STAC providers.
- * Uses context to manage selected provider URL.
- */
-function ProviderSelect() {
+function resultsTabLabel(
+  isLoading: boolean,
+  wmsLayerCount: number | null,
+  totalResults: string,
+): string {
+  if (wmsLayerCount !== null) {
+    return `Results (${wmsLayerCount})`;
+  }
+
+  if (isLoading) {
+    return 'Results (...)';
+  }
+
+  return `Results (${totalResults})`;
+}
+
+function isPresetUrl(url: string): boolean {
+  return PROVIDERS.some(provider => provider.url === url);
+}
+
+function CatalogUrlField() {
   const { selectedUrl, setSelectedUrl } = useStacResultsContext();
+  const [urlDraft, setUrlDraft] = useState(selectedUrl);
 
-  const selectedProvider = PROVIDERS.find(
-    provider => provider.url === selectedUrl,
-  );
-  const buttonText = selectedProvider?.name || 'Select a provider...';
+  useEffect(() => {
+    setUrlDraft(selectedUrl);
+  }, [selectedUrl]);
 
-  const items: ISelectItem[] = PROVIDERS.map(provider => ({
-    value: provider.url,
-    label: provider.name,
-    onSelect: () => setSelectedUrl(provider.url),
-  }));
+  if (isPresetUrl(selectedUrl)) {
+    return null;
+  }
+
+  const commitUrl = () => {
+    const next = urlDraft.trim();
+    if (next !== selectedUrl) {
+      setSelectedUrl(next);
+    }
+  };
 
   return (
     <div className="jgis-stac-filter-extension-section">
-      <label className="jgis-stac-filter-extension-label">Provider</label>
-      <Select
-        items={items}
-        buttonText={buttonText}
-        emptyText="No provider found."
-        buttonClassName="jgis-stac-filter-extension-select"
+      <label className="jgis-stac-filter-extension-label">Catalog URL</label>
+      <Input
+        value={urlDraft}
+        spellCheck={false}
+        placeholder="https://"
+        onChange={event => {
+          setUrlDraft(event.target.value);
+        }}
+        onBlur={commitUrl}
+        onKeyDown={event => {
+          if (event.key === 'Enter') {
+            commitUrl();
+          }
+        }}
       />
+    </div>
+  );
+}
+
+function ProviderSelect() {
+  const { selectedUrl, setSelectedUrl } = useStacResultsContext();
+  const isPreset = isPresetUrl(selectedUrl);
+
+  return (
+    <div className="jgis-stac-filter-extension-section">
+      <label
+        htmlFor="stac-provider-select"
+        className="jgis-stac-filter-extension-label"
+      >
+        Provider
+      </label>
+      <NativeSelect
+        id="stac-provider-select"
+        className="w-full"
+        value={isPreset ? selectedUrl : CATALOG_URL_PRESET}
+        onChange={event => {
+          const next = event.target.value;
+          if (next === CATALOG_URL_PRESET) {
+            setSelectedUrl('');
+            return;
+          }
+          setSelectedUrl(next);
+        }}
+      >
+        {PROVIDERS.map(provider => (
+          <NativeSelectOption key={provider.url} value={provider.url}>
+            {provider.name}
+          </NativeSelectOption>
+        ))}
+        <NativeSelectOption value={CATALOG_URL_PRESET}>
+          Catalog URL
+        </NativeSelectOption>
+      </NativeSelect>
     </div>
   );
 }

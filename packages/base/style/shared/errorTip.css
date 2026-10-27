@@ -1,0 +1,7 @@
+.jgis-error-tip-icon {
+  color: var(--jp-error-color1);
+}
+
+.jgis-error-tip-content {
+  max-width: 20rem;
+}

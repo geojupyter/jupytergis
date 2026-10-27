@@ -3,6 +3,7 @@
   "jupyter-config-data": {
     "spectaConfig": {
       "hideTopbar": true
-    }
+    },
+    "jgis_expose_maps": true
   }
 }

@@ -9,6 +9,7 @@ import Ajv from 'ajv';
 import { FeatureLike } from 'ol/Feature';
 
 import {
+  IJGISComparison,
   IJGISContent,
   IJGISLayer,
   IJGISLayerGroup,
@@ -21,21 +22,34 @@ import {
   IJGISStoryMap,
 } from './_interface/project/jgis';
 import { IStorySegmentLayer } from './_interface/project/layers/storySegmentLayer';
-import { DEFAULT_PROJECTION, JupyterGISDoc } from './doc';
+import {
+  DEFAULT_PROJECTION,
+  DEFAULT_WORLD_EXTENT_3857,
+  JupyterGISDoc,
+} from './doc';
+import { isOverlayNearSoftLimit } from './featureStores';
 import {
   AWARENESS_FIELD_KEYS,
   AWARENESS_STATE_FIELDS,
   AwarenessFieldKey,
   IAwarenessFieldChange,
   IAnnotationModel,
+  IDict,
   IIdentifiedFeatures,
+  IDrawCustomAttribute,
+  IDrawCustomAttributePresets,
+  IDrawCustomAttributesByLayer,
+  IDrawCustomAttributesLayerState,
+  IDrawSessionState,
   IJGISLayerDocChange,
   IJGISLayerTreeDocChange,
   IJGISSourceDocChange,
   IJGISUIState,
   IJupyterGISClientState,
   IJupyterGISDoc,
+  IDialogViewState,
   IJupyterGISModel,
+  IOpenDialogState,
   ISelection,
   IStorySegmentRef,
   IUserData,
@@ -47,7 +61,15 @@ import {
 } from './interfaces';
 import { migrateDocument } from './migrations';
 import jgisSchema from './schema/project/jgis.json';
-import { IViewState, Modes } from './types';
+import type {
+  IFeatureStoreFeature,
+  IFeatureStoreGeometry,
+  IFeatureStore,
+  IFeatureStoreMeta,
+  FeatureStoreAddBlockReason,
+  IViewState,
+  Modes,
+} from './types';
 
 const SETTINGS_ID = '@jupytergis/jupytergis-core:jupytergis-settings';
 
@@ -57,12 +79,11 @@ const SPECTA_STORY_TYPES: IJGISStoryMap['storyType'][] = [
 ];
 
 const DEFAULT_SETTINGS: IJupyterGISSettings = {
-  proxyUrl: 'https://corsproxy.io',
+  proxyUrl: '',
   leftPanelDisabled: false,
   rightPanelDisabled: false,
   layersDisabled: false,
   stacBrowserDisabled: false,
-  objectPropertiesDisabled: false,
   annotationsDisabled: false,
   identifyDisabled: false,
   storyMapsDisabled: false,
@@ -81,6 +102,10 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._sharedModel.changed.connect(this._onSharedModelChanged);
     }
     this.sharedModel.awareness.on('change', this._onClientStateChanged);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', this._onPageExit);
+      window.addEventListener('pagehide', this._onPageExit);
+    }
     this._sharedModel.metadataChanged.connect(
       this._metadataChangedHandler,
       this,
@@ -89,12 +114,15 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._annotationsChangedHandler,
       this,
     );
+    this._sharedModel.presetsChanged.connect(this._presetsChangedHandler, this);
+    this._sharedModel.featureStoresChanged.connect(
+      this._featureStoresChangedHandler,
+      this,
+    );
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
     this._pathChanged = new Signal<JupyterGISModel, string>(this);
     this._settingsChanged = new Signal<JupyterGISModel, string>(this);
-
-    this._editingVectorLayer = false;
 
     this._jgisSettings = { ...DEFAULT_SETTINGS };
 
@@ -179,6 +207,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return Array.from(this._tileFeatureCache.get(sourceId) ?? []);
   }
 
+  get tileFeaturesChanged(): ISignal<this, string> {
+    return this._tileFeaturesChanged;
+  }
+
   syncTileFeatures({
     sourceId,
     features,
@@ -192,7 +224,43 @@ export class JupyterGISModel implements IJupyterGISModel {
       featureSet = new Set();
       this._tileFeatureCache.set(sourceId, featureSet);
     }
+    const before = featureSet.size;
     features.forEach(feature => featureSet.add(feature));
+    if (featureSet.size > before) {
+      this._tileFeaturesChanged.emit(sourceId);
+    }
+  }
+
+  replaceTileFeatures({
+    sourceId,
+    features,
+  }: {
+    sourceId: string;
+    features: Map<string, FeatureLike>;
+  }): void {
+    const nextKeys = new Set(features.keys());
+    const previousKeys = this._tileFeatureCacheKeys.get(sourceId);
+
+    const keysUnchanged =
+      previousKeys !== undefined &&
+      previousKeys.size === nextKeys.size &&
+      [...previousKeys].every(key => nextKeys.has(key));
+
+    this._tileFeatureCache.set(sourceId, new Set(features.values()));
+    this._tileFeatureCacheKeys.set(sourceId, nextKeys);
+
+    if (!keysUnchanged) {
+      this._tileFeaturesChanged.emit(sourceId);
+    }
+  }
+
+  clearTileFeatures(sourceId: string): void {
+    const hadFeatures = this._tileFeatureCache.delete(sourceId);
+    this._tileFeatureCacheKeys.delete(sourceId);
+
+    if (hadFeatures) {
+      this._tileFeaturesChanged.emit(sourceId);
+    }
   }
 
   private _onSharedModelChanged = (sender: any, changes: any): void => {
@@ -298,6 +366,41 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._identifiedFeaturesChanged;
   }
 
+  get drawCustomAttributesChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
+  > {
+    return this._drawCustomAttributesChanged;
+  }
+
+  get drawSessionChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawSession']>
+  > {
+    return this._drawSessionChanged;
+  }
+
+  get openDialogChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['openDialog']>
+  > {
+    return this._openDialogChanged;
+  }
+
+  get dialogStateChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['dialogState']>
+  > {
+    return this._dialogStateChanged;
+  }
+
+  get dialogViewChanged(): ISignal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['dialogView']>
+  > {
+    return this._dialogViewChanged;
+  }
+
   get remoteUserChanged(): ISignal<
     this,
     IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
@@ -343,6 +446,10 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._sharedAnnotationsChanged;
   }
 
+  get sharedPresetsChanged(): ISignal<this, MapChange> {
+    return this._sharedPresetsChanged;
+  }
+
   get zoomToPositionSignal(): ISignal<this, string> {
     return this._zoomToPositionSignal;
   }
@@ -367,12 +474,24 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._sharedAnnotationsChanged.emit(args);
   }
 
+  private _presetsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
+    this._sharedPresetsChanged.emit(args);
+  }
+
+  private _featureStoresChangedHandler(_: IJupyterGISDoc, args: MapChange) {
+    this._featureStoresChanged.emit(args);
+  }
+
   dispose(): void {
     this._storyPreviewActive = false;
     if (this._isDisposed) {
       return;
     }
     this._isDisposed = true;
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('beforeunload', this._onPageExit);
+      window.removeEventListener('pagehide', this._onPageExit);
+    }
     this._sharedModel.dispose();
     this._disposed.emit();
     Signal.clearData(this);
@@ -411,8 +530,11 @@ export class JupyterGISModel implements IJupyterGISModel {
         bearing: 0,
         pitch: 0,
         projection: DEFAULT_PROJECTION,
+        extent: [...DEFAULT_WORLD_EXTENT_3857],
       };
       this.sharedModel.annotations = jsonData.annotations ?? {};
+      this.sharedModel.presets = jsonData.presets ?? {};
+      this.sharedModel.featureStores = {};
       this.sharedModel.metadata = jsonData.metadata ?? {};
     });
     this.dirty = true;
@@ -435,9 +557,11 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   readonly flyToGeometrySignal = new Signal<this, any>(this);
+  readonly deleteDrawSelection = new Signal<this, { deleted: boolean }>(this);
   readonly highlightFeatureSignal = new Signal<this, any>(this);
   readonly updateBboxSignal = new Signal<this, any>(this);
-  readonly editingVectorLayerChanged = new Signal<this, boolean>(this);
+  readonly projectionChangedSignal = new Signal<this, string>(this);
+  readonly modeChanged = new Signal<this, Modes>(this);
 
   getContent(): IJGISContent {
     return {
@@ -447,6 +571,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       options: this.sharedModel.options,
       stories: this.sharedModel.stories,
       annotations: this.sharedModel.annotations,
+      presets: this.sharedModel.presets,
       metadata: this.sharedModel.metadata,
     };
   }
@@ -599,6 +724,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const layer = this._sharedModel.getLayer(layer_id);
     const source_id = layer?.parameters?.source;
 
+    this.clearDrawCustomAttributesForLayer(layer_id);
     this._removeLayerTreeLayer(this.getLayerTree(), layer_id);
     this.sharedModel.removeLayer(layer_id);
 
@@ -693,6 +819,218 @@ export class JupyterGISModel implements IJupyterGISModel {
         emitter,
       },
     );
+  }
+
+  syncDrawCustomAttributes(
+    attributesByLayer: IDrawCustomAttributesByLayer,
+    emitter?: string,
+  ): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.drawCustomAttributes,
+      {
+        value: attributesByLayer,
+        emitter,
+      },
+    );
+  }
+
+  getDrawCustomAttributes(layerId: string): IDrawCustomAttribute[] {
+    let winner: IDrawCustomAttributesLayerState | undefined;
+    let winnerClientId: number | undefined;
+
+    for (const [clientId, state] of this.sharedModel.awareness.getStates()) {
+      const layerState = (state as IJupyterGISClientState | null)
+        ?.drawCustomAttributes?.value?.[layerId];
+
+      if (!layerState) {
+        continue;
+      }
+
+      if (
+        !winner ||
+        layerState.updatedAt > winner.updatedAt ||
+        (layerState.updatedAt === winner.updatedAt &&
+          clientId > (winnerClientId ?? -1))
+      ) {
+        winner = layerState;
+        winnerClientId = clientId;
+      }
+    }
+
+    return winner?.attributes ?? [];
+  }
+
+  setDrawCustomAttributesForLayer(
+    layerId: string,
+    attributes: IDrawCustomAttribute[],
+    emitter?: string,
+  ): void {
+    const current = {
+      ...(this.localState?.drawCustomAttributes?.value ?? {}),
+    };
+
+    current[layerId] = {
+      updatedAt: Date.now(),
+      attributes,
+    };
+
+    this.syncDrawCustomAttributes(current, emitter);
+  }
+
+  clearDrawCustomAttributesForLayer(layerId: string, emitter?: string): void {
+    const current = this.localState?.drawCustomAttributes?.value;
+    if (!current || !(layerId in current)) {
+      return;
+    }
+
+    const next = { ...current };
+    next[layerId] = {
+      updatedAt: Date.now(),
+      attributes: [],
+    };
+
+    this.syncDrawCustomAttributes(next, emitter);
+  }
+
+  getDrawCustomAttributePresets(): IDrawCustomAttributePresets {
+    return this.sharedModel.getPresets();
+  }
+
+  setDrawCustomAttributePreset(
+    name: string,
+    attributes: IDrawCustomAttribute[],
+  ): void {
+    this.sharedModel.setPreset(name, attributes);
+  }
+
+  syncDrawSession(session: IDrawSessionState | null, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.drawSession,
+      {
+        value: session,
+        emitter,
+      },
+    );
+  }
+
+  syncOpenDialog(dialog: IOpenDialogState | null, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.openDialog,
+      {
+        value: dialog,
+        emitter,
+      },
+    );
+  }
+
+  syncDialogState(state: IDict | null, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.dialogState,
+      {
+        value: state,
+        emitter,
+      },
+    );
+  }
+
+  setDialogStateKey(key: string, value: unknown, emitter?: string): void {
+    this.syncDialogState(
+      {
+        ...(this.localState?.dialogState?.value ?? {}),
+        [key]: value,
+      },
+      emitter,
+    );
+  }
+
+  syncDialogView(view: IDialogViewState | null, emitter?: string): void {
+    this.sharedModel.awareness.setLocalStateField(
+      AWARENESS_STATE_FIELDS.dialogView,
+      {
+        value: view,
+        emitter,
+      },
+    );
+  }
+
+  updateDialogView(patch: Partial<IDialogViewState>, emitter?: string): void {
+    const current = this.localState?.dialogView?.value;
+    if (!current) {
+      return;
+    }
+    this.syncDialogView({ ...current, ...patch }, emitter);
+  }
+
+  getFeatureStore(storeId: string): IFeatureStore | undefined {
+    return this.sharedModel.getFeatureStore(storeId);
+  }
+
+  getFeatureStoreFeatures(
+    storeId: string,
+  ): Record<string, IFeatureStoreFeature> {
+    return this.sharedModel.getFeatureStoreFeatures(storeId);
+  }
+
+  setFeatureStoreFeature(
+    storeId: string,
+    feature: IFeatureStoreFeature,
+  ): { ok: true } | { ok: false; reason: FeatureStoreAddBlockReason } {
+    return this.sharedModel.setFeatureStoreFeature(storeId, feature);
+  }
+
+  addFeatureStoreFeature(args: {
+    storeId: string;
+    geometry: IFeatureStoreGeometry;
+    props?: IFeatureStoreFeature['props'];
+    id?: string;
+  }):
+    | { ok: true; nearSoftLimit: boolean; feature: IFeatureStoreFeature }
+    | { ok: false; reason: FeatureStoreAddBlockReason } {
+    const feature: IFeatureStoreFeature = {
+      id: args.id ?? UUID.uuid4(),
+      geometry: args.geometry,
+      props: args.props ?? {},
+      updatedAt: new Date().toISOString(),
+      updatedBy: this.getClientId().toString(),
+    };
+
+    const result = this.setFeatureStoreFeature(args.storeId, feature);
+    if (!result.ok) {
+      return result;
+    }
+
+    const store = this.getFeatureStore(args.storeId);
+    return {
+      ok: true,
+      feature,
+      nearSoftLimit: store ? isOverlayNearSoftLimit(store) : false,
+    };
+  }
+
+  removeFeatureStoreFeature(
+    storeId: string,
+    featureId: string,
+    options: { tombstone?: boolean } = {},
+  ): void {
+    this.sharedModel.removeFeatureStoreFeature(storeId, featureId, {
+      tombstone: options.tombstone,
+      updatedBy: this.getClientId().toString(),
+    });
+  }
+
+  clearFeatureStoreOverlay(storeId: string): void {
+    this.sharedModel.clearFeatureStoreOverlay(storeId);
+  }
+
+  updateFeatureStoreMeta(
+    storeId: string,
+    meta: Partial<IFeatureStoreMeta>,
+  ): void {
+    this.sharedModel.updateFeatureStoreMeta(storeId, meta);
+  }
+
+  get featureStoresChanged(): ISignal<IJupyterGISModel, MapChange> {
+    return this._featureStoresChanged;
   }
 
   setUserToFollow(userId?: number): void {
@@ -834,6 +1172,51 @@ export class JupyterGISModel implements IJupyterGISModel {
     return this._currentSegmentIndexChanged;
   }
 
+  getSelectedStorySegmentId(): string | null {
+    const { story } = this.getSelectedStory();
+    const segmentIds = story?.storySegments;
+    if (!segmentIds?.length) {
+      return null;
+    }
+
+    const index = this.getCurrentSegmentIndex() ?? 0;
+    return segmentIds[index] ?? segmentIds[0] ?? null;
+  }
+
+  canRemoveStorySegment(): boolean {
+    const { story } = this.getSelectedStory();
+    return (story?.storySegments?.length ?? 0) > 1;
+  }
+
+  /**
+   * Remove a story segment layer and clamp the current index.
+   * Returns false when the segment is missing or it is the last remaining one.
+   */
+  removeStorySegment(segmentId: string): boolean {
+    const { story } = this.getSelectedStory();
+    if (!story?.storySegments || story.storySegments.length <= 1) {
+      return false;
+    }
+
+    if (!story.storySegments.includes(segmentId)) {
+      return false;
+    }
+
+    const currentIndex = this.getCurrentSegmentIndex();
+    this.sharedModel.transact(() => {
+      this.removeLayer(segmentId);
+    });
+
+    const remainingCount =
+      this.getSelectedStory().story?.storySegments?.length ?? 0;
+
+    this.setCurrentSegmentIndex(
+      remainingCount === 0 ? 0 : Math.min(currentIndex, remainingCount - 1),
+    );
+
+    return true;
+  }
+
   /**
    * Adds a story segment from the current map view
    * @returns Object with storySegmentId and storyMapId, or null if no extent/zoom found
@@ -845,7 +1228,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const zoom = state?.zoom;
     const { storyId } = this.getSelectedStory();
 
-    if (!zoom || !extent) {
+    if (zoom === undefined || !extent) {
       console.warn('No extent or zoom found');
       return null;
     }
@@ -855,12 +1238,14 @@ export class JupyterGISModel implements IJupyterGISModel {
     const layerParams: IStorySegmentLayer = {
       extent,
       zoom,
+      enableIdentify: false,
       transition: { type: 'linear', time: 1 },
       layerOverride: [],
       content: {
         contentMode: 'map',
-        title: '',
+        imageCaption: '',
         image: '',
+        panelWidth: '25%',
       },
     };
     const layerModel: IJGISLayer = {
@@ -880,7 +1265,12 @@ export class JupyterGISModel implements IJupyterGISModel {
       const storyType = 'guided';
       const storySegments = [newStorySegmentId];
 
-      const storyMap: IJGISStoryMap = { title, storyType, storySegments };
+      const storyMap: IJGISStoryMap = {
+        title,
+        storyType,
+        storySegments,
+        overlayContentWidth: '100%',
+      };
 
       this.sharedModel.addStoryMap(storyId, storyMap);
       this._segmentAdded.emit({
@@ -1082,6 +1472,19 @@ export class JupyterGISModel implements IJupyterGISModel {
     }
   }
 
+  getComparison(): IJGISComparison | undefined {
+    return this.getOptions().comparison ?? undefined;
+  }
+
+  /** Compare two layers in the map view, or stop comparing with `undefined`. */
+  setComparison(comparison: IJGISComparison | undefined): void {
+    if (comparison) {
+      this._sharedModel.setOption('comparison', comparison as IDict);
+    } else {
+      this._sharedModel.removeOption('comparison');
+    }
+  }
+
   removeLayerGroup(groupName: string) {
     const layerTree = this.getLayerTree();
     const layerTreeInfo = this._getLayerTreeInfo(groupName);
@@ -1116,10 +1519,11 @@ export class JupyterGISModel implements IJupyterGISModel {
   /**
    * Toggle a map interaction mode on or off.
    * Toggling off sets the mode to 'panning'.
+   * Modes are exclusive, entering one leaves any other.
    * @param mode The mode to be toggled
    */
   toggleMode(mode: Modes) {
-    this._currentMode = this._currentMode === mode ? 'panning' : mode;
+    this.currentMode = this._currentMode === mode ? 'panning' : mode;
   }
 
   get currentMode(): Modes {
@@ -1127,7 +1531,12 @@ export class JupyterGISModel implements IJupyterGISModel {
   }
 
   set currentMode(value: Modes) {
+    if (this._currentMode === value) {
+      return;
+    }
+
     this._currentMode = value;
+    this.modeChanged.emit(value);
   }
 
   setUIState(value: Partial<IJGISUIState>): void {
@@ -1187,14 +1596,30 @@ export class JupyterGISModel implements IJupyterGISModel {
     };
   }
 
+  private _onPageExit = (): void => {
+    this._sharedModel?.awareness.setLocalState(null);
+  };
+
   private _onClientStateChanged = (changed: any) => {
     const clients = this.sharedModel.awareness.getStates() as Map<
       number,
       IJupyterGISClientState
     >;
+    this._unfollowIfUserLeft(changed.removed);
     this._emitAwarenessFieldDeltas(changed, clients);
     this._previousClientStates = new Map(clients);
   };
+
+  /**
+   * Stop following a user once they leave
+   */
+  private _unfollowIfUserLeft(removed?: number[]): void {
+    const followedClientId = this.localState?.remoteUser;
+
+    if (followedClientId !== undefined && removed?.includes(followedClientId)) {
+      this.setUserToFollow(undefined);
+    }
+  }
 
   private _emitAwarenessFieldDeltas(
     changed: {
@@ -1224,6 +1649,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       fields.forEach(field => {
         const previousValue = previousState?.[field];
         const currentValue = currentState?.[field];
+
         if (previousValue === currentValue) {
           return;
         }
@@ -1266,6 +1692,41 @@ export class JupyterGISModel implements IJupyterGISModel {
               >,
             );
             break;
+          case AWARENESS_STATE_FIELDS.drawCustomAttributes:
+            this._drawCustomAttributesChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['drawCustomAttributes']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.drawSession:
+            this._drawSessionChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['drawSession']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.openDialog:
+            this._openDialogChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['openDialog']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.dialogState:
+            this._dialogStateChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['dialogState']
+              >,
+            );
+            break;
+          case AWARENESS_STATE_FIELDS.dialogView:
+            this._dialogViewChanged.emit(
+              payload as IAwarenessFieldChange<
+                IJupyterGISClientState['dialogView']
+              >,
+            );
+            break;
           case AWARENESS_STATE_FIELDS.remoteUser:
             this._remoteUserChanged.emit(
               payload as IAwarenessFieldChange<
@@ -1303,24 +1764,18 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   checkIfIsADrawVectorLayer(layer: IJGISLayer): boolean {
     const selectedSource = this.getSource(layer.parameters?.source);
+    if (!selectedSource) {
+      return false;
+    }
+
+    if (selectedSource.type === 'FeatureStoreSource') {
+      return true;
+    }
 
     return (
-      selectedSource?.type === 'GeoJSONSource' &&
-      selectedSource?.parameters?.data?.type === 'FeatureCollection'
+      selectedSource.type === 'GeoJSONSource' &&
+      selectedSource.parameters?.data?.type === 'FeatureCollection'
     );
-  }
-
-  updateEditingVectorLayer(): void {
-    this.editingVectorLayerChanged.emit(this._editingVectorLayer);
-  }
-
-  get editingVectorLayer(): boolean {
-    return this._editingVectorLayer;
-  }
-
-  set editingVectorLayer(editingVectorLayer: boolean) {
-    this._editingVectorLayer = editingVectorLayer;
-    this.editingVectorLayerChanged.emit(this._editingVectorLayer);
   }
 
   get geolocation(): JgisCoordinates {
@@ -1347,7 +1802,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _settingsChanged: Signal<JupyterGISModel, string>;
   private _jgisSettings: IJupyterGISSettings;
 
-  private _currentMode: Modes;
+  private _currentMode: Modes = 'panning';
 
   private _sharedModel: IJupyterGISDoc;
   private _filePath: string;
@@ -1382,6 +1837,26 @@ export class JupyterGISModel implements IJupyterGISModel {
     this,
     IAwarenessFieldChange<IJupyterGISClientState['identifiedFeatures']>
   >(this);
+  private _drawCustomAttributesChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
+  >(this);
+  private _drawSessionChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['drawSession']>
+  >(this);
+  private _openDialogChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['openDialog']>
+  >(this);
+  private _dialogStateChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['dialogState']>
+  >(this);
+  private _dialogViewChanged = new Signal<
+    this,
+    IAwarenessFieldChange<IJupyterGISClientState['dialogView']>
+  >(this);
   private _remoteUserChanged = new Signal<
     this,
     IAwarenessFieldChange<IJupyterGISClientState['remoteUser']>
@@ -1393,6 +1868,8 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _previousClientStates = new Map<number, IJupyterGISClientState>();
   private _sharedMetadataChanged = new Signal<this, MapChange>(this);
   private _sharedAnnotationsChanged = new Signal<this, MapChange>(this);
+  private _sharedPresetsChanged = new Signal<this, MapChange>(this);
+  private _featureStoresChanged = new Signal<this, MapChange>(this);
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);
@@ -1409,13 +1886,12 @@ export class JupyterGISModel implements IJupyterGISModel {
     { type: SelectionType; itemId: string } | null
   >(this);
 
-  private _editingVectorLayer: boolean;
-
   static worker: Worker;
 
   private _geolocation: JgisCoordinates;
   private _geolocationChanged = new Signal<this, JgisCoordinates>(this);
   private _tileFeatureCache: Map<string, Set<FeatureLike>> = new Map();
+  private _tileFeatureCacheKeys: Map<string, Set<string>> = new Map();
   private _currentSegmentIndex: number;
   private _currentSegmentIndexChanged = new Signal<this, number>(this);
   private _storyPreviewActive = false;
@@ -1424,6 +1900,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
   private _localUIState: Partial<IJGISUIState> = {};
   private _uiStateChanged = new Signal<this, IJGISUIState>(this);
+  private _tileFeaturesChanged = new Signal<this, string>(this);
 }
 
 export namespace JupyterGISModel {

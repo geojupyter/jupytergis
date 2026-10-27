@@ -8,6 +8,7 @@
 from jupytergis import GISDocument, constant
 
 doc = GISDocument()
+await doc.ready()
 doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 
 doc.add_geojson_layer(
@@ -17,22 +18,26 @@ doc.add_geojson_layer(
         constant("white").encoding("stroke"),
     ],
 )
+doc
 ```
 
 ```python
 from jupytergis import GISDocument, field, ClassificationMode
 
 doc = GISDocument()
+await doc.ready()
 doc.add_geojson_layer(
     path="data/eq.geojson",
     symbology=[
         field("mag").encoding("radius"),
-        field("felt").colormap(
+        field("felt")
+        .colormap(
             "viridis",
             domain=[1, 9000],
             mode=ClassificationMode.LOGARITHMIC,
-            n_shades=10
-        ).encoding("fill"),
+            n_shades=10,
+        )
+        .encoding("fill"),
     ],
 )
 
@@ -43,14 +48,13 @@ doc
 from jupytergis import GISDocument, constant, field, when
 
 doc = GISDocument()
+await doc.ready()
 doc.add_geojson_layer(
     path="data/eq.geojson",
     symbology=[
         field("mag").encoding("radius"),
         when(field("mag") >= 8).constant("red").encoding("fill"),
-        when(field("mag") < 8, field("mag") > 3)
-            .constant("orange")
-            .encoding("fill"),
+        when(field("mag") < 8, field("mag") > 3).constant("orange").encoding("fill"),
         when(field("mag") <= 3).constant("green").encoding("fill"),
     ],
 )
@@ -62,6 +66,7 @@ doc
 from jupytergis import GISDocument, constant, field, vega_expr
 
 doc = GISDocument()
+await doc.ready()
 
 doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 
@@ -86,6 +91,7 @@ doc
 from jupytergis import GISDocument, constant, python_expr
 
 doc = GISDocument()
+await doc.ready()
 
 doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 
@@ -109,6 +115,7 @@ doc
 from jupytergis import GISDocument, field
 
 doc = GISDocument()
+await doc.ready()
 doc.add_geojson_layer(
     path="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson",
     symbology=[field("type").categorical(colormap="schemeDark2").encoding("stroke")],
@@ -122,14 +129,18 @@ doc
 ```python
 from jupytergis import GISDocument, field
 
-doc = GISDocument()
+doc = GISDocument(latitude=16.731087, longitude=33.278505, zoom=9)
+await doc.ready()
+
+doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+
 doc.add_geotiff_layer(
-    url="https://s2downloads.eox.at/demo/EOxCloudless/2020/rgbnir/s2cloudless2020-16bits_sinlge-file_z0-4.tif",
-    min=2000,
-    max=25000,
+    url="https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/36/Q/WD/2020/7/S2A_36QWD_20200701_0_L2A/TCI.tif",
     symbology=[
-        field("$band-1").scalar(domain=(0, 0.5), output_range=(0, 1)).encoding("pixel-alpha"),
-        field("$band-1").colormap("winter", n_shades=9).encoding("pixel-rgb"),
+        field("band_1")
+        .scalar(domain=(0, 0.5), output_range=(0, 1))
+        .encoding("pixel-alpha"),
+        field("band_2").colormap("winter", n_shades=9).encoding("pixel-rgb"),
     ],
 )
 doc
@@ -139,31 +150,44 @@ doc
 from jupytergis import GISDocument, field
 
 doc = GISDocument()
+await doc.ready()
+
+doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+
 doc.add_geotiff_layer(
     url="https://eoresults.esa.int/d/FCM-AGB-100m/2023/01/01/FCM-AGB-100m-2023/FCM_Europe_demo_2023_AGB.tif",
-    min=0,
-    max=240,
     symbology=[
-        field("$band-1").identity().encoding("pixel-red", "pixel-green", "pixel-blue", "pixel-alpha"),
+        field("band_1")
+        .scalar(domain=(0, 233), output_range=(4, 20))
+        .encoding("pixel-red", "pixel-green", "pixel-blue", "pixel-alpha"),
     ],
+    normalize=False,
 )
+
+doc
 ```
 
 ```python
 from jupytergis import GISDocument, constant, field
 
 doc = GISDocument()
+await doc.ready()
+doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+
 doc.add_geotiff_layer(
     url="https://eoresults.esa.int/d/FCM-AGB-100m/2023/01/01/FCM-AGB-100m-2023/FCM_Europe_demo_2023_AGB.tif",
-    min=0,
-    max=240,
     symbology=[
         constant(0).encoding("pixel-red"),
-        field("$band-1").scalar(domain=[0, 1], output_range=[0, 255]).encoding("pixel-green"),
+        field("band_1")
+        .scalar(domain=[0, 233], output_range=[0, 25])
+        .encoding("pixel-green"),
         constant(0).encoding("pixel-blue"),
-        field("$band-1").identity().encoding("pixel-alpha"),
+        field("band_1").identity().encoding("pixel-alpha"),
     ],
+    normalize=False,
 )
+
+doc
 ```
 
 ## Symbology on `add_vectortile_layer`
@@ -172,6 +196,7 @@ doc.add_geotiff_layer(
 from jupytergis import GISDocument, field
 
 doc = GISDocument()
+await doc.ready()
 doc.add_geojson_layer(
     path="https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson",
     symbology=[field("type").categorical(colormap="schemeDark2").encoding("stroke")],
@@ -182,7 +207,7 @@ doc
 
 ## Additional symbology recipes
 
-Constant numeric channel mapping:
+Constant numeric encoding mapping:
 
 ```python
 from jupytergis import constant
@@ -203,7 +228,11 @@ Scalar mapping:
 ```python
 from jupytergis import field
 
-symbology = [field("population").scalar(domain=[0, 1_000_000], output_range=[2, 15]).encoding("radius")]
+symbology = [
+    field("population")
+    .scalar(domain=[0, 1_000_000], output_range=[2, 15])
+    .encoding("radius")
+]
 ```
 
 Heatmap and clustering preprocessors as separate symbology layers:
@@ -211,7 +240,11 @@ Heatmap and clustering preprocessors as separate symbology layers:
 ```python
 from jupytergis import cluster, constant, field, heatmap
 
-heat = heatmap(radius=20, blur=30, mappings=[field("$density").colormap("hot").encoding("pixel-rgb")])
+heat = heatmap(
+    radius=20,
+    blur=30,
+    mappings=[field("$density").colormap("hot").encoding("pixel-rgb")],
+)
 clusters = cluster(radius=40, mappings=[constant("black").encoding("stroke")])
 
 symbology = [heat, clusters]

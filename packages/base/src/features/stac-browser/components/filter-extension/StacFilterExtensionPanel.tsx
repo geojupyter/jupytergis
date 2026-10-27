@@ -7,14 +7,27 @@ import StacTemporalExtent from '@/src/features/stac-browser/components/shared/St
 import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 import { useStacFilterExtension } from '@/src/features/stac-browser/hooks/useStacFilterExtension';
 import { IStacCollection } from '@/src/features/stac-browser/types/types';
+import { Button } from '@/src/shared/components/Button';
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+  ComboboxTrigger,
+  ComboboxValue,
+} from '@/src/shared/components/Combobox';
 import { Input } from '@/src/shared/components/Input';
-import { Select } from '@/src/shared/components/Select';
 
 interface IStacFilterExtensionPanelProps {
   model?: IJupyterGISModel;
 }
 
-type FilteredCollection = Pick<IStacCollection, 'id' | 'title'>;
+type CollectionItem = {
+  value: string;
+  label: string;
+};
 
 function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
   const { selectedUrl } = useStacResultsContext();
@@ -40,6 +53,16 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
     baseUrl: selectedUrl,
     limit,
   });
+
+  const collectionItems: CollectionItem[] = collections.map(
+    (option: Pick<IStacCollection, 'id' | 'title'>) => ({
+      value: option.id,
+      label: option.title || option.id,
+    }),
+  );
+
+  const selectedItem =
+    collectionItems.find(item => item.value === selectedCollection) ?? null;
 
   if (!model) {
     console.warn('JupyterGIS model not found');
@@ -70,23 +93,42 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
       {/* collections */}
       <div className="jgis-stac-filter-extension-section">
         <label className="jgis-stac-filter-extension-label">Collection</label>
-        <Select
-          items={collections.map((option: FilteredCollection) => ({
-            value: option.id,
-            label: option.title || option.id,
-            onSelect: () => setSelectedCollection(option.id),
-          }))}
-          buttonText={
-            selectedCollection
-              ? collections.find(c => c.id === selectedCollection)?.title ||
-                'Select a collection...'
-              : 'Select a collection...'
-          }
-          emptyText="No collection found."
-          buttonClassName="jgis-stac-filter-extension-select"
-          showSearch={true}
-          searchPlaceholder="Search collections..."
-        />
+        <Combobox
+          items={collectionItems}
+          itemToStringValue={(item: CollectionItem) => item.label}
+          value={selectedItem}
+          onValueChange={(item: CollectionItem | null) => {
+            setSelectedCollection(item?.value ?? '');
+          }}
+        >
+          <ComboboxTrigger
+            className={'border-input'}
+            render={
+              <Button
+                variant="outline"
+                className="h-auto min-h-8 justify-between text-left whitespace-normal"
+              />
+            }
+          >
+            <span className="flex-1 wrap-break-word">
+              <ComboboxValue />
+            </span>
+          </ComboboxTrigger>
+          <ComboboxContent>
+            <ComboboxInput
+              placeholder="Search collections..."
+              showTrigger={false}
+            />
+            <ComboboxEmpty>No collection found.</ComboboxEmpty>
+            <ComboboxList>
+              {(item: CollectionItem) => (
+                <ComboboxItem key={item.value} value={item}>
+                  {item.label}
+                </ComboboxItem>
+              )}
+            </ComboboxList>
+          </ComboboxContent>
+        </Combobox>
       </div>
 
       {/* Queryable filters */}

@@ -4,6 +4,7 @@ import { PromiseDelegate } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import * as React from 'react';
 
+import { FollowMirrorContext } from '@/src/features/follow/useFollowedState';
 import { CreationForm, ICreationFormProps } from '@/src/shared/formbuilder';
 
 export interface ICreationFormWrapperProps extends ICreationFormProps {
@@ -33,6 +34,10 @@ export interface ICreationFormWrapperProps extends ICreationFormProps {
 
 export interface ICreationFormDialogOptions extends ICreationFormProps {
   title: string;
+  /**
+   * Render as a read-only mirror of the collaborator we are following.
+   */
+  followMirror?: boolean;
 }
 
 export const CreationFormWrapper: React.FC<
@@ -94,23 +99,25 @@ export class LayerCreationFormDialog extends Dialog<IDict> {
     >();
 
     const body = (
-      <div style={{ overflow: 'auto' }}>
-        <CreationFormWrapper
-          model={options.model}
-          formSchemaRegistry={options.formSchemaRegistry}
-          createLayer={options.createLayer}
-          createSource={options.createSource}
-          layerType={options.layerType}
-          sourceType={options.sourceType}
-          sourceData={options.sourceData}
-          layerData={options.layerData}
-          okSignalPromise={okSignalPromise}
-          cancel={cancelCallback}
-          formErrorSignalPromise={formErrorSignalPromise}
-          dialogOptions={options}
-          registerConfirmHandler={registerConfirmHandler}
-        />
-      </div>
+      <FollowMirrorContext.Provider value={!!options.followMirror}>
+        <div style={{ overflow: 'auto' }}>
+          <CreationFormWrapper
+            model={options.model}
+            formSchemaRegistry={options.formSchemaRegistry}
+            createLayer={options.createLayer}
+            createSource={options.createSource}
+            layerType={options.layerType}
+            sourceType={options.sourceType}
+            sourceData={options.sourceData}
+            layerData={options.layerData}
+            okSignalPromise={okSignalPromise}
+            cancel={cancelCallback}
+            formErrorSignalPromise={formErrorSignalPromise}
+            dialogOptions={options}
+            registerConfirmHandler={registerConfirmHandler}
+          />
+        </div>
+      </FollowMirrorContext.Provider>
     );
 
     super({

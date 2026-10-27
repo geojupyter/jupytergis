@@ -22,36 +22,38 @@ function StoryNavBar({
   const containerClassName =
     placement === 'over-image'
       ? 'jgis-story-viewer-nav-container'
-      : placement === 'subtitle-specta'
+      : placement === 'caption-specta'
         ? 'jgis-story-viewer-nav-container-specta-mod'
         : undefined;
 
   const navbarClassName =
-    placement === 'subtitle-specta'
+    placement === 'caption-specta'
       ? 'jgis-story-navbar jgis-story-navbar-specta-mod'
       : 'jgis-story-navbar';
 
   return (
     <div className={containerClassName}>
       <div className={navbarClassName}>
-        <>
-          <Button
-            onClick={onPrev}
-            disabled={!hasPrev}
-            className="jgis-story-navbar-button"
-            aria-label="Previous slide"
-          >
-            <ChevronLeft />
-          </Button>
-          <Button
-            onClick={onNext}
-            disabled={!hasNext}
-            className="jgis-story-navbar-button"
-            aria-label="Next slide"
-          >
-            <ChevronRight />
-          </Button>
-        </>
+        <Button
+          onClick={onPrev}
+          disabled={!hasPrev}
+          variant="outline"
+          size="icon-xs"
+          className="jgis-story-navbar-button"
+          aria-label="Previous slide"
+        >
+          <ChevronLeft />
+        </Button>
+        <Button
+          onClick={onNext}
+          disabled={!hasNext}
+          variant="outline"
+          size="icon-xs"
+          className="jgis-story-navbar-button"
+          aria-label="Next slide"
+        >
+          <ChevronRight />
+        </Button>
       </div>
     </div>
   );

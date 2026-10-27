@@ -198,6 +198,7 @@ As you write or execute code, every change is visible to your team instantly. Mu
     ```python
     from jupytergis import GISDocument
     doc = GISDocument("your_project_name.jGIS")
+    await doc.ready()
     ```
 3. Your colleague can add and execute the following code to list all layers:
     ```python

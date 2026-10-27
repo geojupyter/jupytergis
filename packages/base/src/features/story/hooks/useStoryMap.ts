@@ -3,14 +3,26 @@ import type {
   IJGISStoryMap,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { RefObject, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
+import {
+  getStoryPresentationMode,
+  isColumnPresentation,
+} from '@/src/features/story/presentation/getStoryPresentationMode';
 import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
+import { exitStoryIdentifyMode } from '@/src/features/story/utils/exitStoryIdentifyMode';
+import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import {
   applySegmentLayerOverrides,
   clearSegmentLayerOverrideEntries,
 } from '@/src/features/story/utils/storySegmentOverrides';
-import { STORY_TYPE } from '@/src/types';
 
 export interface IUseStoryMapParams {
   model: IJupyterGISModel;
@@ -66,7 +78,9 @@ export function useStoryMap({
   const currentSegmentContentMode = activeSlide?.content?.contentMode;
 
   const showGradient = storyData?.showGradient ?? true;
-  const isGuidedStory = storyData?.storyType === STORY_TYPE.guided;
+  const isColumnStory = isColumnPresentation(
+    getStoryPresentationMode(storyData?.storyType),
+  );
   const hasPrev = currentIndex > 0;
   const hasNext = currentIndex < segmentCount - 1;
 
@@ -170,13 +184,55 @@ export function useStoryMap({
     };
   }, []);
 
+  // Leave identify only when the active segment actually changes.
+  const previousSegmentRef = useRef<{
+    index: number;
+    id: string | undefined;
+  } | null>(null);
+
+  useEffect(() => {
+    const previous = previousSegmentRef.current;
+    previousSegmentRef.current = {
+      index: currentIndex,
+      id: currentStorySegmentId,
+    };
+
+    if (
+      previous !== null &&
+      previous.index === currentIndex &&
+      previous.id === currentStorySegmentId
+    ) {
+      return;
+    }
+
+    exitStoryIdentifyMode(model);
+  }, [model, currentIndex, currentStorySegmentId]);
+
+  useEffect(() => {
+    return () => {
+      exitStoryIdentifyMode(model);
+    };
+  }, [model]);
+
+  useEffect(() => {
+    const identifyAllowed =
+      getSegmentDisplayMode(activeSlide) === 'map' &&
+      activeSlide?.enableIdentify === true;
+
+    if (!identifyAllowed) {
+      exitStoryIdentifyMode(model);
+    }
+  }, [model, activeSlide]);
+
   useEffect(() => {
     if (!currentStorySegmentId) {
       return;
     }
+
     if (currentSegmentContentMode === 'markdown') {
       return;
     }
+
     model.centerOnPosition(currentStorySegmentId);
   }, [model, currentStorySegmentId, currentSegmentContentMode]);
 
@@ -186,14 +242,14 @@ export function useStoryMap({
       return;
     }
     clearOverrideLayers();
-    if (isGuidedStory) {
+    if (isColumnStory) {
       setSelectedLayerByIndex(currentIndex);
     }
     overrideSymbology(currentIndex);
   }, [
     storyData,
     currentIndex,
-    isGuidedStory,
+    isColumnStory,
     setSelectedLayerByIndex,
     clearOverrideLayers,
     overrideSymbology,
@@ -201,10 +257,10 @@ export function useStoryMap({
 
   // Set selected layer on initial render and when story data changes
   useEffect(() => {
-    if (isGuidedStory && storyData?.storySegments && currentIndex >= 0) {
+    if (isColumnStory && storyData?.storySegments && currentIndex >= 0) {
       setSelectedLayerByIndex(currentIndex);
     }
-  }, [storyData, currentIndex, isGuidedStory, setSelectedLayerByIndex]);
+  }, [storyData, currentIndex, isColumnStory, setSelectedLayerByIndex]);
 
   return {
     storyData,

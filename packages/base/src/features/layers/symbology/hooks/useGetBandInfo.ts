@@ -2,6 +2,7 @@ import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { fromUrl, fromBlob } from 'geotiff';
 import { useEffect, useState } from 'react';
 
+import { buildProxyUrl } from '@/src/shared/proxy';
 import { loadFile } from '@/src/tools';
 import { getBandInfoFromZarr } from '../zarrBandDiscovery';
 
@@ -71,12 +72,19 @@ const useGetBandInfo = (
       }
 
       let tiff;
-      if (
-        sourceInfo.url.startsWith('http') ||
-        sourceInfo.url.startsWith('https')
-      ) {
-        // Handle remote GeoTIFF file
-        tiff = await fromUrl(sourceInfo.url);
+      const isRemote =
+        sourceInfo.url.startsWith('http://') ||
+        sourceInfo.url.startsWith('https://');
+
+      if (isRemote) {
+        const url = buildProxyUrl(
+          model,
+          sourceInfo.url,
+          source?.parameters?.useProxy,
+          source?.parameters?.httpHeaders,
+        );
+
+        tiff = await fromUrl(url);
       } else {
         // Handle local GeoTIFF file
         const preloadedFile = await loadFile({
@@ -94,17 +102,81 @@ const useGetBandInfo = (
         tiff = await fromBlob(preloadedFile.file);
       }
 
-      const image = await tiff.getImage();
+      const imageCount = await tiff.getImageCount();
+      const image =
+        imageCount > 1
+          ? await tiff.getImage(imageCount - 1)
+          : await tiff.getImage();
+
       const numberOfBands = image.getSamplesPerPixel();
 
       const bandsArr: IBandRow[] = [];
+
       for (let i = 0; i < numberOfBands; i++) {
+        // Get min/max from metadata
+        const metadata = image.getGDALMetadata?.();
+
+        let min = Infinity;
+        let max = -Infinity;
+
+        if (metadata) {
+          const m1 = parseFloat(metadata['STATISTICS_MINIMUM']);
+          const m2 = parseFloat(metadata['STATISTICS_MAXIMUM']);
+
+          if (!isNaN(m1) && !isNaN(m2)) {
+            min = m1;
+            max = m2;
+          }
+        }
+
+        // fallback to sampling
+        if (min === Infinity || max === -Infinity) {
+          try {
+            const raster = await image.readRasters({
+              samples: [i],
+              width: 64,
+              height: 64,
+              resampleMethod: 'nearest',
+            });
+
+            if (!Array.isArray(raster)) {
+              throw new Error('Expected raster to be an array of TypedArrays');
+            }
+
+            const bandData = raster[0];
+
+            min = Infinity;
+            max = -Infinity;
+
+            for (let j = 0; j < bandData.length; j++) {
+              const val = bandData[j];
+              if (val < min) {
+                min = val;
+              }
+              if (val > max) {
+                max = val;
+              }
+            }
+          } catch (err) {
+            console.warn(
+              `Could not calculate statistics for band ${i + 1}. Fallback to default min/max.`,
+              err,
+            );
+          }
+        }
+
+        // fallback
+        if (min === Infinity || max === -Infinity) {
+          min = 0;
+          max = 100;
+        }
+
         bandsArr.push({
           band: i + 1,
           name: `Band ${i + 1}`,
           stats: {
-            minimum: sourceInfo.min ?? 0,
-            maximum: sourceInfo.max ?? 100,
+            minimum: min,
+            maximum: max,
           },
         });
       }

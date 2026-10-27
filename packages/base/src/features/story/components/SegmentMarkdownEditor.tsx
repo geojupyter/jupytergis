@@ -1,10 +1,10 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { type IEditorServices, CodeEditor } from '@jupyterlab/codeeditor';
 import type { CodeMirrorEditor } from '@jupyterlab/codemirror';
-import type { IRenderMimeRegistry } from '@jupyterlab/rendermime';
 import React, { useEffect, useRef, useState } from 'react';
 
 import { RenderedStoryMarkdown } from '@/src/features/story/components/RenderedStoryMarkdown';
+import { handleStorySegmentMarkdownPaste } from '@/src/features/story/utils/storySegmentMarkdownPaste';
 import { getStorySegmentMarkdownSharedModel } from '@/src/features/story/utils/storySegmentMarkdownSharedModel';
 import {
   Tabs,
@@ -19,7 +19,6 @@ export interface ISegmentMarkdownEditorProps {
   model: IJupyterGISModel;
   segmentId: string;
   editorServices: IEditorServices;
-  rendermime: IRenderMimeRegistry;
   initialMarkdown?: string;
   rows?: number;
   tall?: boolean;
@@ -29,7 +28,6 @@ export function SegmentMarkdownEditor({
   model,
   segmentId,
   editorServices,
-  rendermime,
   initialMarkdown = '',
   rows = 6,
   tall = false,
@@ -73,6 +71,57 @@ export function SegmentMarkdownEditor({
     }) as CodeMirrorEditor;
     editorRef.current = editor;
 
+    const onPaste = (event: ClipboardEvent): void => {
+      handleStorySegmentMarkdownPaste(event, {
+        model,
+        segmentId,
+        insertMarkdown: markdown => {
+          editor.replaceSelection(markdown);
+        },
+      });
+    };
+
+    host.addEventListener('paste', onPaste);
+
+    // Route undo/redo through Yjs (browser historyUndo only covers typing).
+    host.dataset.jpUndoer = 'true';
+
+    const onKeyDownCapture = (event: KeyboardEvent): void => {
+      const mod = event.ctrlKey || event.metaKey;
+      if (!mod || event.altKey) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      const isUndo = key === 'z' && !event.shiftKey;
+      const isRedo = (key === 'z' && event.shiftKey) || key === 'y';
+
+      if (!isUndo && !isRedo) {
+        return;
+      }
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (isUndo) {
+        editor.undo();
+      } else {
+        editor.redo();
+      }
+    };
+
+    const onBeforeInputCapture = (event: InputEvent): void => {
+      if (
+        event.inputType === 'historyUndo' ||
+        event.inputType === 'historyRedo'
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    host.addEventListener('keydown', onKeyDownCapture, true);
+    host.addEventListener('beforeinput', onBeforeInputCapture, true);
+
     const refreshPreview = (): void => {
       setPreviewMarkdown(sharedModel.getSource());
     };
@@ -81,6 +130,9 @@ export function SegmentMarkdownEditor({
     refreshPreview();
 
     return () => {
+      host.removeEventListener('paste', onPaste);
+      host.removeEventListener('keydown', onKeyDownCapture, true);
+      host.removeEventListener('beforeinput', onBeforeInputCapture, true);
       sharedModel.changed.disconnect(refreshPreview);
       editor.dispose();
       editorRef.current = null;
@@ -91,24 +143,26 @@ export function SegmentMarkdownEditor({
 
   return (
     <Tabs
+      className={'gap-0'}
       value={tab}
       onValueChange={nextTab => setTab(nextTab as MarkdownEditorTab)}
     >
       <TabsList
-        className="jgis-story-editor-markdown-tabs"
+        variant="underline"
+        className="w-full cursor-auto rounded-b-none"
         aria-label="Markdown editor"
       >
-        <TabsTrigger className="jgis-underline-indicator" value="write">
-          Write
+        <TabsTrigger value="write">
+          <span className="jgis-underline-indicator">Write</span>
         </TabsTrigger>
-        <TabsTrigger className="jgis-underline-indicator" value="preview">
-          Preview
+        <TabsTrigger value="preview">
+          <span className="jgis-underline-indicator">Preview</span>
         </TabsTrigger>
       </TabsList>
 
       <TabsContent
         value="write"
-        forceMount
+        keepMounted
         className="jgis-story-editor-markdown-tab-content"
       >
         <div
@@ -120,6 +174,7 @@ export function SegmentMarkdownEditor({
             ref={hostRef}
             className="jgis-story-editor-markdown-editor"
             aria-label="Markdown source"
+            data-lm-suppress-shortcuts="true"
           />
         </div>
       </TabsContent>
@@ -131,7 +186,8 @@ export function SegmentMarkdownEditor({
         <div className="jgis-story-editor-markdown jgis-story-editor-markdown-preview jgis-story-viewer-content">
           {previewMarkdown.trim() ? (
             <RenderedStoryMarkdown
-              rendermime={rendermime}
+              model={model}
+              segmentId={segmentId}
               source={previewMarkdown}
             />
           ) : (
