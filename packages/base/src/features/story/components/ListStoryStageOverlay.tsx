@@ -471,8 +471,6 @@ export function ListStoryStageOverlay({
     () => getSpectaPresentationCssVars(story),
     [
       story?.storyType,
-      story?.presentationBgColor,
-      story?.presentationTextColor,
       story?.overlayContentWidth,
       story?.markdownSegmentOpacity,
       story?.storyPanelOpacity,

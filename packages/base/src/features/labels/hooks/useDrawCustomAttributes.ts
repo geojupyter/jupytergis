@@ -3,14 +3,22 @@ import type {
   IDrawCustomAttributePresets,
   IJupyterGISModel,
 } from '@jupytergis/schema';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useFollowedState } from '@/src/features/follow/useFollowedState';
 import {
   normalizeDrawCustomAttributeKey,
   validateDrawCustomAttributeKey,
 } from '../drawCustomAttributes';
 
 type DraftMode = 'add' | 'edit' | null;
+
+interface IDraftState {
+  draftMode: DraftMode;
+  editingIndex: number | null;
+  draftKey: string;
+  draftValue: string;
+}
 
 export function useDrawCustomAttributes(
   model: IJupyterGISModel,
@@ -54,6 +62,18 @@ export function useDrawCustomAttributes(
       model.sharedPresetsChanged.disconnect(onPresetsChanged);
     };
   }, [model, refreshAttributes, refreshPresets]);
+
+  const draft = useMemo<IDraftState>(
+    () => ({ draftMode, editingIndex, draftKey, draftValue }),
+    [draftMode, editingIndex, draftKey, draftValue],
+  );
+
+  useFollowedState(model, 'draft', draft, (followed: IDraftState) => {
+    setDraftMode(followed.draftMode);
+    setEditingIndex(followed.editingIndex);
+    setDraftKey(followed.draftKey);
+    setDraftValue(followed.draftValue);
+  });
 
   const getKeysForValidation = useCallback((): string[] => {
     const existingKeys = attributes.map(attribute => attribute.key);

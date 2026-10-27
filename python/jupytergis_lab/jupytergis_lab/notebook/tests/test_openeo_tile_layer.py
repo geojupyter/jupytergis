@@ -29,6 +29,12 @@ def _fake_graph(spatial_extent):
         connection=SimpleNamespace(
             root_url="http://127.0.0.1:8080/",
             auth=SimpleNamespace(bearer="test"),
+            list_service_types=lambda: {"XYZ": True},
+            create_service=lambda _graph, _type: SimpleNamespace(
+                describe_service=lambda: {
+                    "url": "http://127.0.0.1:8080/bli-bla-blou/{z}/{x}/{y}",
+                },
+            ),
         ),
     )
 

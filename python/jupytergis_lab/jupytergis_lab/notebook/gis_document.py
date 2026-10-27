@@ -11,7 +11,7 @@ from enum import Enum
 from importlib.metadata import version
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, ClassVar, Literal, Self, cast
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 from uuid import uuid4
 
 import requests
@@ -36,6 +36,7 @@ from jupytergis_core.schema import (
     IRasterLayer,
     IRasterSource,
     IStorySegmentLayer,
+    ITerrainLayer,
     IVectorLayer,
     IVectorTileLayer,
     IVectorTileSource,
@@ -75,9 +76,28 @@ QGIS_UNSUPPORTED_TYPES = {
     LayerType.OpenEOTileLayer,
     LayerType.GeoZarrLayer,
     LayerType.StorySegmentLayer,
+    LayerType.TerrainLayer,
     SourceType.OpenEOTileSource,
     SourceType.GeoZarrSource,
 }
+
+MapAdapterName = Literal["openlayers", "maplibre"]
+
+MAP_ADAPTERS: tuple[str, ...] = ("openlayers", "maplibre")
+
+
+def _validate_map_adapter(map_adapter: str | None) -> MapAdapterName | None:
+    """Return the adapter name as a plain string, or raise on unknown values."""
+    if map_adapter is None:
+        return None
+    # Accept the generated schema enum too, if one exists.
+    value = getattr(map_adapter, "value", map_adapter)
+    if value not in MAP_ADAPTERS:
+        raise ValueError(
+            f"Unknown map adapter {map_adapter!r}. "
+            f"Expected one of: {', '.join(MAP_ADAPTERS)}.",
+        )
+    return cast("MapAdapterName", value)
 
 
 def reversed_tree(root):
@@ -188,6 +208,10 @@ class GISDocument(CommWidget):
 
     :param path: the path to the file that you would like to open. If not provided, a new ephemeral widget will be created.
 
+    :param map_adapter: the map renderer used to display this document,
+        ``"openlayers"`` or ``"maplibre"``. When omitted, the front end's default is used
+        (or the value already saved in the file).
+
     Collaborative client state from the front end is mirrored into :mod:`ypywidgets`
     ``Awareness`` on the kernel. Subscribe with ``on_awareness_change(callback)``
     (returns a subscription id; use ``unobserve_awareness(id)`` to remove). The
@@ -207,7 +231,10 @@ class GISDocument(CommWidget):
         bearing: float | None = None,
         pitch: float | None = None,
         projection: str | None = None,
+        map_adapter: MapAdapterName | None = None,
     ):
+        map_adapter = _validate_map_adapter(map_adapter)
+
         if isinstance(path, Path):
             path = str(path)
 
@@ -244,16 +271,17 @@ class GISDocument(CommWidget):
 
         # For untitled docs, initialize options right away
         if path is None:
-            self.ydoc["options"] = self._options = Map(
-                {
-                    "latitude": latitude or 0,
-                    "longitude": longitude or 0,
-                    "zoom": zoom or 0,
-                    "bearing": bearing or 0,
-                    "pitch": pitch or 0,
-                    "projection": projection or "EPSG:3857",
-                },
-            )
+            initial_options: dict[str, str | float | bool | list[float]] = {
+                "latitude": latitude or 0,
+                "longitude": longitude or 0,
+                "zoom": zoom or 0,
+                "bearing": bearing or 0,
+                "pitch": pitch or 0,
+                "projection": projection or "EPSG:3857",
+            }
+            if map_adapter is not None:
+                initial_options["mapAdapter"] = map_adapter
+            self.ydoc["options"] = self._options = Map(initial_options)
         else:
             self.ydoc["options"] = self._options = Map()
 
@@ -297,6 +325,8 @@ class GISDocument(CommWidget):
                 self._options["pitch"] = pitch
             if projection is not None:
                 self._options["projection"] = projection
+            if map_adapter is not None:
+                self._options["mapAdapter"] = map_adapter
 
         self._handle_doc_ready = types.MethodType(handle_doc_ready, self)
 
@@ -377,6 +407,27 @@ class GISDocument(CommWidget):
     def layer_tree(self) -> list[Any] | None:
         """Get the layer tree"""
         return self._layerTree.to_py()
+
+    @property
+    def map_adapter(self) -> str | None:
+        """The renderer saved in the document, or ``None`` if unset.
+
+        ``None`` means the front end's default renderer is used.
+        """
+        value = self._options.get("mapAdapter")
+        if value in MAP_ADAPTERS:
+            return cast("MapAdapterName", value)
+        return None
+
+    @map_adapter.setter
+    def map_adapter(self, value: MapAdapterName | None) -> None:
+        self._assert_is_ready()
+        value = _validate_map_adapter(value)
+        if value is None:
+            if "mapAdapter" in self._options:
+                del self._options["mapAdapter"]
+        else:
+            self._options["mapAdapter"] = value
 
     @property
     def _is_qgis_document(self) -> bool:
@@ -652,9 +703,14 @@ class GISDocument(CommWidget):
         zoom_to: bool = False,
         zoom_to_extent: bool = True,
     ):
-        """Add an openEO process-graph tile layer to the document.
+        """Add an OpenEO process-graph tile layer to the document.
 
-        :param graph: An openEO datacube / result node (carrying its connection).
+        This requires the OpenEO backend to have an XYZ service type supported.
+        If not supported, this will throw an error.
+
+        This method creates a new XYZ service to render the tiles.
+
+        :param graph: An OpenEO datacube / result node (carrying its connection).
         :param name: Display name for the layer.
         :param opacity: The opacity, between 0 and 1.
         :param zoom_to: When True, zoom the map to the layer once it is added.
@@ -665,12 +721,18 @@ class GISDocument(CommWidget):
             initial view requests — so without this the layer renders blank on
             open. Ignored when the graph declares no spatial extent.
         """
-        # Persist the bearer token alongside the server url so a connection
-        # opened here from the notebook is reused by the frontend without the
-        # user having to sign in a second time from the UI. The bearer is a
-        # session identifier, not long-lived credentials.
-
         self._assert_is_ready()
+
+        service_type = "XYZ"
+
+        service_types = graph.connection.list_service_types()
+        if service_types.get(service_type) is None:
+            raise ValueError(
+                "The OpenEO backend does not allow XYZ services. We cannot show the OpenEO graph dynamically.",
+            )
+
+        service = graph.connection.create_service(graph, "XYZ")
+        service_url = unquote(service.describe_service()["url"])
 
         flat_graph = graph.flat_graph()
 
@@ -680,7 +742,7 @@ class GISDocument(CommWidget):
             "parameters": {
                 "processGraph": flat_graph,
                 "serverUrl": graph.connection.root_url,
-                "authBearer": graph.connection.auth.bearer,
+                "tileServiceURL": service_url,
             },
         }
 
@@ -912,6 +974,58 @@ class GISDocument(CommWidget):
             "name": name,
             "visible": True,
             "parameters": {"source": source_id},
+        }
+
+        return self._add_layer(
+            OBJECT_FACTORY.create_layer(layer, self),
+            zoom_to=zoom_to,
+        )
+
+    def add_terrain_layer(
+        self,
+        url: str,
+        name: str | None = None,
+        exaggeration: float = 1.0,
+        urlParameters: dict | None = None,
+        attribution: str = "",
+        zoom_to: bool = False,
+    ):
+        """Add a 3D terrain layer
+
+        :param url: URL of the DEM (raster-dem) tiles, e.g. Terrarium-encoded elevation tiles
+        :param name: The name that will be used for the object in the document, defaults to "3D Terrain Layer"
+        :param exaggeration: Vertical exaggeration of the terrain, defaults to 1.0
+        :param urlParameters: Parameters to substitute in the URL template.
+        :param attribution: The attribution.
+        :param zoom_to: When True, zoom the map to the layer once it is added.
+        """
+        self._assert_is_ready()
+
+        if urlParameters is None:
+            urlParameters = {}
+        # Extract name from URL if not provided
+        if name is None:
+            name = _extract_layer_name(url)
+
+        source = {
+            "type": SourceType.RasterDemSource,
+            "name": f"{name} Source",
+            "parameters": {
+                "url": url,
+                "attribution": attribution,
+                "urlParameters": urlParameters,
+            },
+        }
+        source_id = self._add_source(OBJECT_FACTORY.create_source(source, self))
+
+        layer = {
+            "type": LayerType.TerrainLayer,
+            "name": name,
+            "visible": True,
+            "parameters": {
+                "source": source_id,
+                "exaggeration": exaggeration,
+            },
         }
 
         return self._add_layer(
@@ -1685,6 +1799,7 @@ class JGISLayer(JGISObject):
         | IGeoZarrLayer
         | IStorySegmentLayer
         | IOpenEOTileLayer
+        | ITerrainLayer
         | dict[str, Any]
     ) = PrivateAttr(default_factory=dict)
 
@@ -1918,6 +2033,7 @@ OBJECT_FACTORY.register_factory(LayerType.GeoZarrLayer, IGeoZarrLayer)
 OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 OBJECT_FACTORY.register_factory(LayerType.OpenEOTileLayer, IOpenEOTileLayer)
+OBJECT_FACTORY.register_factory(LayerType.TerrainLayer, ITerrainLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)

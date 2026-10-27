@@ -13,5 +13,35 @@
 }
 
 .jgis-status-bar-coords {
-  min-width: 160px;
+  flex: 0 0 34ch;
+  width: 34ch;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: inherit;
+}
+
+.jgis-status-bar-coords[data-slot='select-trigger'],
+.jgis-status-bar-projection [data-slot='combobox-trigger'] {
+  height: 16px;
+  min-height: 0;
+  max-height: 16px;
+  font-size: inherit;
+}
+
+.jgis-status-bar-button {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.jgis-status-bar-button:hover:not(:disabled) {
+  background: var(--jp-layout-color3);
+}
+
+.jgis-status-bar-button:focus-visible {
+  outline: 1px solid var(--jp-brand-color1);
+  outline-offset: -1px;
 }

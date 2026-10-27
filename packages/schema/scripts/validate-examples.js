@@ -24,6 +24,7 @@ const LAYER_SCHEMAS = {
   ImageLayer: 'layers/imageLayer.json',
   StacLayer: 'layers/stacLayer.json',
   StorySegmentLayer: 'layers/storySegmentLayer.json',
+  TerrainLayer: 'layers/terrainLayer.json',
 };
 
 const SOURCE_SCHEMAS = {

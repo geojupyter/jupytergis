@@ -29,8 +29,15 @@ import { ReadonlyPartialJSONObject, UUID } from '@lumino/coreutils';
 import { Coordinate } from 'ol/coordinate';
 import { fromLonLat } from 'ol/proj';
 
+import {
+  getMapFeatures,
+  mapFeaturesChanged,
+} from '@/src/mainview/mapFeaturesRegistry';
 import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
-import { addLayerCreationCommands } from './operationCommands';
+import {
+  addLayerCreationCommands,
+  LayerCreationCommandIDs,
+} from './operationCommands';
 import { CommandIDs, icons } from '../constants';
 import { isFeatureStoreAvailable } from '../features/feature-store/availability';
 import { launchFollowable, registerFollowDialogs } from '../features/follow';
@@ -45,6 +52,7 @@ import {
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
+import { showMapRendererDialog } from '../features/map-renderer/mapRendererDialog';
 import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
@@ -195,6 +203,8 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.editOpenEOLayer,
   // GeoZarr layers
   CommandIDs.openNewGeoZarrDialog,
+  // 3D terrain layers
+  CommandIDs.openNewTerrainDialog,
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
@@ -205,6 +215,132 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.storyPrev,
   CommandIDs.storyNext,
 ]);
+
+type AdapterFlag =
+  | 'identify'
+  | 'drawTool'
+  | 'storyMaps'
+  | 'layerComparison'
+  | 'geolocation';
+
+interface IAdapterRequirement {
+  source?: SourceType;
+  layer?: LayerType;
+  flag?: AdapterFlag;
+}
+
+const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
+  // Layer creation dialogs
+  [CommandIDs.openNewRasterDialog]: {
+    source: 'RasterSource',
+    layer: 'RasterLayer',
+  },
+  [CommandIDs.openNewWmsDialog]: {
+    source: 'WmsTileSource',
+    layer: 'RasterLayer',
+  },
+  [CommandIDs.openNewVectorTileDialog]: {
+    source: 'VectorTileSource',
+    layer: 'VectorTileLayer',
+  },
+  [CommandIDs.openNewGeoJSONDialog]: {
+    source: 'GeoJSONSource',
+    layer: 'VectorLayer',
+  },
+  [CommandIDs.openNewShapefileDialog]: {
+    source: 'ShapefileSource',
+    layer: 'VectorLayer',
+  },
+  [CommandIDs.openNewGeoParquetDialog]: {
+    source: 'GeoParquetSource',
+    layer: 'VectorLayer',
+  },
+  [CommandIDs.openNewHillshadeDialog]: {
+    source: 'RasterDemSource',
+    layer: 'HillshadeLayer',
+  },
+  [CommandIDs.openNewTerrainDialog]: {
+    source: 'RasterDemSource',
+    layer: 'TerrainLayer',
+  },
+  [CommandIDs.openNewImageDialog]: {
+    source: 'ImageSource',
+    layer: 'ImageLayer',
+  },
+  [CommandIDs.openNewGeoTiffDialog]: {
+    source: 'GeoTiffSource',
+    layer: 'GeoTiffLayer',
+  },
+  [CommandIDs.openNewGeoZarrDialog]: {
+    source: 'GeoZarrSource',
+    layer: 'GeoZarrLayer',
+  },
+  [CommandIDs.openNewOpenEODialog]: {
+    source: 'OpenEOTileSource',
+    layer: 'OpenEOTileLayer',
+  },
+  [CommandIDs.openNewFeatureStoreDialog]: {
+    source: 'FeatureStoreSource',
+    layer: 'VectorLayer',
+  },
+  [CommandIDs.newGeoPackageVectorEntry]: {
+    source: 'GeoPackageVectorSource',
+    layer: 'VectorLayer',
+  },
+  [CommandIDs.newGeoPackageRasterEntry]: {
+    source: 'GeoPackageRasterSource',
+    layer: 'RasterLayer',
+  },
+
+  // Programmatic creation commands
+  [LayerCreationCommandIDs.newGeoJSONWithParams]: {
+    source: 'GeoJSONSource',
+    layer: 'VectorLayer',
+  },
+  [LayerCreationCommandIDs.newRasterWithParams]: {
+    source: 'RasterSource',
+    layer: 'RasterLayer',
+  },
+  [LayerCreationCommandIDs.newVectorTileWithParams]: {
+    source: 'VectorTileSource',
+    layer: 'VectorTileLayer',
+  },
+  [LayerCreationCommandIDs.newGeoParquetWithParams]: {
+    source: 'GeoParquetSource',
+    layer: 'VectorLayer',
+  },
+  [LayerCreationCommandIDs.newHillshadeWithParams]: {
+    source: 'RasterDemSource',
+    layer: 'HillshadeLayer',
+  },
+  [LayerCreationCommandIDs.newImageWithParams]: {
+    source: 'ImageSource',
+    layer: 'ImageLayer',
+  },
+  [LayerCreationCommandIDs.newGeoTiffWithParams]: {
+    source: 'GeoTiffSource',
+    layer: 'GeoTiffLayer',
+  },
+  [LayerCreationCommandIDs.newGeoZarrWithParams]: {
+    source: 'GeoZarrSource',
+    layer: 'GeoZarrLayer',
+  },
+  [LayerCreationCommandIDs.newShapefileWithParams]: {
+    source: 'ShapefileSource',
+    layer: 'VectorLayer',
+  },
+
+  // Interaction features
+  [CommandIDs.addMarker]: { source: 'MarkerSource' },
+  [CommandIDs.identify]: { flag: 'identify' },
+  [CommandIDs.drawFeaturesOnSelectedLayer]: { flag: 'drawTool' },
+  [CommandIDs.drawFeaturesOnNewLayer]: { flag: 'drawTool' },
+  [CommandIDs.addStorySegment]: { flag: 'storyMaps' },
+  [CommandIDs.openStoryEditor]: { flag: 'storyMaps' },
+  [CommandIDs.compareLayers]: { flag: 'layerComparison' },
+  [CommandIDs.getGeolocation]: { flag: 'geolocation' },
+  [CommandIDs.toggleLocationIndicator]: { flag: 'geolocation' },
+};
 
 interface ICreateEntry {
   tracker: JupyterGISTracker;
@@ -256,7 +392,6 @@ export function addCommands(
     urlResolverFactory,
   });
 
-  addLayerCreationCommands({ tracker, commands, trans });
   /**
    * Wraps a command definition to automatically disable it when the active
    * document does not support it: in Specta mode, or for JupyterGIS-only
@@ -276,6 +411,19 @@ export function addCommands(
       return (
         !!currentModel?.isQgisDocument && QGIS_UNSUPPORTED_COMMANDS.has(id)
       );
+    };
+
+    const unsupportedBy = (): string | undefined => {
+      const req = ADAPTER_REQUIREMENTS[id];
+      const features = getMapFeatures(tracker.currentWidget?.model);
+      if (!req || !features) {
+        return undefined;
+      }
+      const supported =
+        (!req.source || features.sources[req.source]) &&
+        (!req.layer || features.layers[req.layer]) &&
+        (!req.flag || features[req.flag]);
+      return supported ? undefined : features.name;
     };
 
     const resolveLabel = (args?: ReadonlyPartialJSONObject): string =>
@@ -302,6 +450,10 @@ export function addCommands(
         if (isQgisRestricted()) {
           return false;
         }
+        // Disable features the active map renderer cannot provide.
+        if (unsupportedBy()) {
+          return false;
+        }
         // Then check the original isEnabled if it exists
         if (originalIsEnabled) {
           return originalIsEnabled(args ?? {});
@@ -313,6 +465,10 @@ export function addCommands(
         // Hint the user how to regain access to the disabled feature.
         if (isQgisRestricted()) {
           return trans.__('(convert to .jGIS to enable)');
+        }
+        const by = unsupportedBy();
+        if (by) {
+          return trans.__('Not supported by the %1 renderer', by);
         }
         return typeof originalCaption === 'function'
           ? originalCaption(args ?? {})
@@ -329,6 +485,45 @@ export function addCommands(
   ) => {
     return originalAddCommand(id, createRestrictedCommand(id, options));
   };
+
+  const refreshAdapterCommands = () => {
+    Object.keys(ADAPTER_REQUIREMENTS).forEach(commandId => {
+      if (commands.hasCommand(commandId)) {
+        commands.notifyCommandChanged(commandId);
+      }
+    });
+  };
+  mapFeaturesChanged.connect(refreshAdapterCommands);
+  tracker.currentChanged.connect(refreshAdapterCommands);
+
+  addLayerCreationCommands({ tracker, commands, trans });
+
+  const resolveRendererWidget = (args?: ReadonlyPartialJSONObject) => {
+    const filePath =
+      typeof args?.filePath === 'string' ? args.filePath : undefined;
+    return filePath
+      ? tracker.find(w => w.model.filePath === filePath)
+      : tracker.currentWidget;
+  };
+
+  commands.addCommand(CommandIDs.openMapRendererDialog, {
+    label: trans.__('Map Renderer…'),
+    caption: trans.__(
+      'Choose the map renderer for this document and compare what each supports.',
+    ),
+    describedBy: { args: { type: 'object', properties: {} } },
+    isEnabled: args => {
+      const widget = resolveRendererWidget(args);
+      return widget ? widget.model.sharedModel.editable : false;
+    },
+
+    execute: args => {
+      const model = resolveRendererWidget(args)?.model;
+      if (model) {
+        void showMapRendererDialog(model);
+      }
+    },
+  });
 
   commands.addCommand(CommandIDs.symbology, {
     label: trans.__('Edit Symbology'),
@@ -928,6 +1123,34 @@ export function addCommands(
     ...icons.get(CommandIDs.openNewHillshadeDialog),
   });
 
+  commands.addCommand(CommandIDs.openNewTerrainDialog, {
+    label: trans.__('3D Terrain'),
+    caption:
+      'Open a dialog to create a new 3D terrain layer and DEM source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create 3D Terrain Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom 3D Terrain Layer' },
+      sourceType: 'RasterDemSource',
+      layerType: 'TerrainLayer',
+    }),
+    ...icons.get(CommandIDs.openNewTerrainDialog),
+  });
+
   commands.addCommand(CommandIDs.openNewOpenEODialog, {
     label: trans.__('OpenEO Layer'),
     caption:
@@ -980,7 +1203,6 @@ export function addCommands(
         type: 'OpenEOTileSource',
         parameters: {
           serverUrl: result.serverUrl,
-          authBearer: result.authBearer,
           processGraph: result.processGraph,
         },
       });
@@ -1236,6 +1458,32 @@ export function addCommands(
       await Private.removeSelectedItems(model);
     },
     ...icons.get(CommandIDs.removeSelected),
+  });
+
+  commands.addCommand(CommandIDs.deleteSelection, {
+    label: trans.__('Delete'),
+    isEnabled: () => {
+      const model = tracker.currentWidget?.model;
+      const selected = model?.localState?.selected?.value;
+      return !!selected && Object.keys(selected).length > 0;
+    },
+    execute: async () => {
+      const model = tracker.currentWidget?.model;
+      if (!model) {
+        return;
+      }
+
+      if (model.currentMode === 'drawing') {
+        const result = { deleted: false };
+        model.deleteDrawSelection.emit(result);
+
+        if (result.deleted) {
+          return;
+        }
+      }
+
+      Private.removeSelectedItems(model);
+    },
   });
 
   commands.addCommand(CommandIDs.duplicateSelected, {

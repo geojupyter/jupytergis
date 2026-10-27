@@ -21,7 +21,7 @@ import { IGrammarSymbologyState } from '@jupytergis/schema';
 import {
   extractEncodingFieldValues,
   grammarToOLStyle,
-} from '../grammarToOLStyle';
+} from '../adapters/openlayers/grammarToOLStyle';
 
 // ---------------------------------------------------------------------------
 // Helpers

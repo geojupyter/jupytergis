@@ -52,6 +52,7 @@ import {
 } from 'ol';
 import { FeatureLike } from 'ol/Feature';
 import { GeolocationError } from 'ol/Geolocation';
+import ImageTile from 'ol/ImageTile';
 import { unByKey } from 'ol/Observable';
 import TileState from 'ol/TileState';
 import { asArray } from 'ol/color';
@@ -62,6 +63,7 @@ import type { EventsKey } from 'ol/events';
 import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
 import { GeoJSON, MVT } from 'ol/format';
+import FeatureFormat from 'ol/format/Feature';
 import { Geometry as OLGeometry, Point } from 'ol/geom';
 import {
   DoubleClickZoom,
@@ -77,6 +79,7 @@ import {
   PinchZoom,
   Select,
 } from 'ol/interaction';
+import { defaults } from 'ol/interaction/defaults';
 import {
   Image as ImageLayer,
   Layer,
@@ -90,7 +93,9 @@ import TileLayer from 'ol/layer/Tile';
 import {
   fromLonLat,
   get as getProjection,
+  getPointResolution,
   toLonLat,
+  transform,
   transformExtent,
 } from 'ol/proj';
 import { register } from 'ol/proj/proj4.js';
@@ -125,11 +130,6 @@ import {
   OpenEOTileLayer,
   OpenEOTileSource,
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
-import { grammarToOLLayer } from '@/src/features/layers/symbology/grammarToOLLayer';
-import {
-  extractEncodingFieldValues,
-  grammarToOLStyle,
-} from '@/src/features/layers/symbology/grammarToOLStyle';
 import { DEFAULT_FLAT_STYLE } from '@/src/features/layers/symbology/styleBuilder';
 import {
   buildZarrColorStyle,
@@ -137,6 +137,11 @@ import {
   getDefaultRGBBands,
   IZarrBandInfo,
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
+import { grammarToOLLayer } from '@/src/mainview/adapters/openlayers/grammarToOLLayer';
+import {
+  extractEncodingFieldValues,
+  grammarToOLStyle,
+} from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
 import {
   IMapAdapter,
   IMapLayerComparison,
@@ -146,20 +151,18 @@ import {
   VIEWPORT_SYNC_INTERVAL,
 } from '@/src/mainview/mapAdapter';
 import { markerIcon } from '@/src/shared/icons';
+import { buildProxyUrl } from '@/src/shared/proxy';
+import { debounce, getCssVarValue, loadFile, throttle } from '@/src/tools';
+import { ClientPointer } from '../../CollaboratorPointers';
 import {
-  debounce,
-  getCssVarValue,
-  INTERNAL_PROXY_BASE,
-  isJupyterLite,
-  loadFile,
-  throttle,
-} from '@/src/tools';
-import { ClientPointer } from '.././CollaboratorPointers';
+  MAP_ADAPTER_FEATURES,
+  getUnsupportedReason,
+} from '../../mapAdapterFeatures';
 import {
   getZoomExtentForOlLayer,
   isValidExtent,
   transformExtentToViewProjection,
-} from '../utils/olLayerZoomExtent';
+} from '../../utils/olLayerZoomExtent';
 
 type OlLayerTypes =
   | TileLayer
@@ -236,6 +239,73 @@ function tombstoneKey(ids: readonly string[]): string {
   return [...ids].sort().join('\0');
 }
 
+/** Tornado uses 599 when the upstream connection fails before an HTTP status. */
+const WMS_PROXY_RETRY_STATUS = 599;
+const WMS_TILE_MAX_RETRIES = 2;
+
+function loadProxiedWmsTile(
+  tile: ImageTile,
+  proxyUrl: string,
+  attempt = 0,
+): void {
+  if (tile.getState() !== TileState.LOADING) {
+    return;
+  }
+
+  void fetch(proxyUrl, { cache: 'no-store' })
+    .then(async response => {
+      if (tile.getState() !== TileState.LOADING) {
+        return;
+      }
+
+      if (
+        response.status === WMS_PROXY_RETRY_STATUS &&
+        attempt < WMS_TILE_MAX_RETRIES
+      ) {
+        window.setTimeout(
+          () => loadProxiedWmsTile(tile, proxyUrl, attempt + 1),
+          (attempt + 1) * 1000,
+        );
+        return;
+      }
+
+      if (!response.ok) {
+        tile.setState(TileState.ERROR);
+        return;
+      }
+
+      const blob = await response.blob();
+      if (tile.getState() !== TileState.LOADING) {
+        return;
+      }
+      const image = tile.getImage() as HTMLImageElement;
+      const objectUrl = URL.createObjectURL(blob);
+      image.src = objectUrl;
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
+    })
+    .catch(() => {
+      if (tile.getState() !== TileState.LOADING) {
+        return;
+      }
+
+      if (attempt < WMS_TILE_MAX_RETRIES) {
+        window.setTimeout(
+          () => loadProxiedWmsTile(tile, proxyUrl, attempt + 1),
+          (attempt + 1) * 1000,
+        );
+        return;
+      }
+
+      tile.setState(TileState.ERROR);
+    });
+}
+
+const MM_PER_INCH = 25.4;
+/** OGC default screen pixel size (mm). Used by OpenLayers ScaleLine. */
+const OGC_PIXEL_SIZE_MM = 0.28;
+const OGC_SCREEN_DPI = MM_PER_INCH / OGC_PIXEL_SIZE_MM;
+const INCHES_PER_METER = 1000 / MM_PER_INCH;
+
 export class OpenLayersAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
@@ -279,6 +349,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._controlsTarget = controlsTarget;
     this._loggerRegistry = loggerRegistry;
 
+    this.ensureProjectionRegistered(projection);
     const proj = getProjection(projection);
 
     if (!proj) {
@@ -300,6 +371,32 @@ export class OpenLayersAdapter implements IMapAdapter {
       controls.push(this._zoomControl);
     }
 
+    // Discard events that should not apply to the map.
+    const discardEventTarget = (
+      event: MapBrowserEvent<KeyboardEvent | PointerEvent | WheelEvent>,
+    ): boolean => {
+      const eventTarget = event.originalEvent.target;
+
+      if (!(eventTarget instanceof Node)) {
+        return false;
+      }
+
+      return this._map?.getTargetElement()?.contains(eventTarget) ?? false;
+    };
+
+    const interactions = defaults({
+      keyboard: false,
+    }).extend([
+      new KeyboardPan({
+        condition: discardEventTarget,
+      }),
+      new KeyboardZoom({
+        condition: discardEventTarget,
+      }),
+    ]);
+
+    target.tabIndex = 0;
+
     this._map = new OlMap({
       target,
       view: new View({
@@ -309,7 +406,8 @@ export class OpenLayersAdapter implements IMapAdapter {
         projection: proj,
       }),
       controls,
-      keyboardEventTarget: document,
+      interactions,
+      keyboardEventTarget: target,
     });
 
     for (const [sourceId, source] of Object.entries(sources)) {
@@ -355,7 +453,7 @@ export class OpenLayersAdapter implements IMapAdapter {
    */
   private _setupInteractions(): void {
     const dragAndDropInteraction = new DragAndDrop({
-      formatConstructors: [GeoJSON],
+      formatConstructors: [GeoJSON as unknown as typeof FeatureFormat],
     });
 
     dragAndDropInteraction.on('addfeatures', event => {
@@ -467,7 +565,6 @@ export class OpenLayersAdapter implements IMapAdapter {
         getProjection(currentOptions.projection) ?? moveEndView.getProjection();
       const latLng = toLonLat(center, currentProjection);
       const bearing = moveEndView.getRotation();
-      const resolution = moveEndView.getResolution();
 
       const updatedOptions: Partial<IJGISOptions> = {
         latitude: latLng[1],
@@ -484,15 +581,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         ...updatedOptions,
       });
 
-      // Calculate scale
-      if (resolution) {
-        // DPI and inches per meter values taken from OpenLayers
-        const dpi = 25.4 / 0.28;
-        const inchesPerMeter = 1000 / 25.4;
-        const scale = resolution * inchesPerMeter * dpi;
-
-        this._callbacks?.onScaleChange?.(scale);
-      }
+      this._publishScale();
     });
 
     this._map.on('click', event => {
@@ -502,19 +591,23 @@ export class OpenLayersAdapter implements IMapAdapter {
       this._addMarker(event);
     });
 
-    this._map
-      .getViewport()
-      .addEventListener('pointermove', (event: PointerEvent) => {
-        const pixel = this._map.getEventPixel(event);
-        this._lastPointerCoord = this._map.getCoordinateFromPixel(pixel);
-        this._syncPointer(this._lastPointerCoord);
-      });
+    const viewport = this._map.getViewport();
 
-    this._map.getViewport().addEventListener('pointerleave', () => {
+    if (!viewport) {
+      throw new Error('Map viewport is not available');
+    }
+
+    viewport.addEventListener('pointermove', (event: PointerEvent) => {
+      const pixel = this._map.getEventPixel(event);
+      this._lastPointerCoord = this._map.getCoordinateFromPixel(pixel);
+      this._syncPointer(this._lastPointerCoord);
+    });
+
+    viewport.addEventListener('pointerleave', () => {
       this._syncPointer(null);
     });
 
-    this._map.getViewport().addEventListener('contextmenu', event => {
+    viewport.addEventListener('contextmenu', event => {
       event.preventDefault();
       event.stopPropagation();
       this._callbacks?.onContextMenu?.(
@@ -685,11 +778,13 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     const coordinate = this._map.getCoordinateFromPixel(e.pixel);
+
+    const lonLat = toLonLat(coordinate, this._map.getView().getProjection());
     const sourceId = UUID.uuid4();
     const layerId = UUID.uuid4();
 
     const sourceParameters: IMarkerSource = {
-      feature: { coords: [coordinate[0], coordinate[1]] },
+      feature: { coords: [lonLat[0], lonLat[1]] },
     };
 
     const layerParams: IVectorLayer = {
@@ -723,6 +818,17 @@ export class OpenLayersAdapter implements IMapAdapter {
       ? { coordinates: { x: coordinates[0], y: coordinates[1] } }
       : undefined;
     this._model.syncPointer(pointer);
+
+    if (!coordinates) {
+      this._callbacks?.onCursorChange?.(null);
+      return;
+    }
+
+    this._callbacks?.onCursorChange?.({
+      x: coordinates[0],
+      y: coordinates[1],
+      unit: this._map.getView().getProjection().getUnits(),
+    });
   });
 
   /**
@@ -762,7 +868,118 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   getViewportId(): string {
-    return this._map.getViewport().id;
+    const viewport = this._map.getViewport();
+
+    if (!viewport) {
+      throw new Error('Map viewport is not available');
+    }
+
+    return viewport.id;
+  }
+
+  setProjection(code: string): IMapProjection | undefined {
+    const view = this._map.getView();
+    const currentProjection = view.getProjection();
+
+    if (currentProjection.getCode() === code) {
+      return undefined;
+    }
+
+    this.ensureProjectionRegistered(code);
+    const nextProjection = getProjection(code);
+    if (!nextProjection) {
+      this._log('warning', `Invalid projection: ${code}`);
+      return undefined;
+    }
+
+    const center = view.getCenter();
+    const resolution = view.getResolution();
+    if (!center || resolution === undefined) {
+      this._log(
+        'warning',
+        'Cannot change projection: view has no center or resolution',
+      );
+      return undefined;
+    }
+
+    const rotation = view.getRotation();
+    const nextCenter = transform(center, currentProjection, nextProjection);
+    const currentMpu = currentProjection.getMetersPerUnit() ?? 1;
+    const nextMpu = nextProjection.getMetersPerUnit() ?? 1;
+    const currentPointResolution =
+      getPointResolution(currentProjection, 1 / currentMpu, center, 'm') *
+      currentMpu;
+    const nextPointResolution =
+      getPointResolution(nextProjection, 1 / nextMpu, nextCenter, 'm') *
+      nextMpu;
+    const nextResolution =
+      (resolution * currentPointResolution) / nextPointResolution;
+
+    const nextView = new View({
+      projection: nextProjection,
+      center: nextCenter,
+      resolution: nextResolution,
+      rotation,
+    });
+
+    this._geolocation?.setProjection(nextProjection);
+    this._map.setView(nextView);
+    this._publishScale();
+
+    const lonLat = toLonLat(nextCenter, nextProjection);
+    const currentOptions = this._model.getOptions();
+    this._model.setOptions({
+      ...currentOptions,
+      projection: nextProjection.getCode(),
+      longitude: lonLat[0],
+      latitude: lonLat[1],
+      zoom: nextView.getZoom() ?? currentOptions.zoom,
+      bearing: rotation,
+      extent: nextView.calculateExtent(this._map.getSize()),
+    });
+
+    this._rereadViewProjectedVectorSources();
+
+    return {
+      code: nextProjection.getCode(),
+      units: nextProjection.getUnits(),
+    };
+  }
+
+  /**
+   * Vector sources loaded with `featureProjection: view` keep coords in the
+   * old view CRS. Reread them after the view projection changes. Tile and
+   * image sources carry their own projection and are left alone.
+   */
+  private async _rereadViewProjectedVectorSources(): Promise<void> {
+    for (const [storeId, { overlay }] of this._featureStoreSources) {
+      this._syncFeatureStoreOverlaySource(storeId, overlay);
+    }
+
+    this._highlightLayerRef.current?.getSource()?.clear();
+
+    const sources = this._model.getSources();
+    for (const [id, source] of Object.entries(sources)) {
+      if (
+        source.type !== 'GeoJSONSource' &&
+        source.type !== 'ShapefileSource' &&
+        source.type !== 'GeoParquetSource' &&
+        source.type !== 'MarkerSource'
+      ) {
+        continue;
+      }
+
+      try {
+        await this.updateSource(id, source);
+      } catch (error: any) {
+        this._log(
+          'warning',
+          `Failed to reread source "${id}" after projection change: ${error?.message ?? error}`,
+        );
+      }
+    }
+
+    this._drawTool.handleViewProjectionChanged();
   }
 
   getProjection(): IMapProjection {
@@ -772,6 +989,27 @@ export class OpenLayersAdapter implements IMapAdapter {
       code: projection.getCode(),
       units: projection.getUnits(),
     };
+  }
+
+  /** Same scale formula as OpenLayers ScaleLine (status bar). */
+  private _publishScale(): void {
+    const view = this._map.getView();
+    const resolution = view.getResolution();
+    const center = view.getCenter();
+    if (resolution === undefined || !center) {
+      return;
+    }
+
+    const metersPerPixel = getPointResolution(
+      view.getProjection(),
+      resolution,
+      center,
+      'm',
+    );
+
+    this._callbacks?.onScaleChange?.(
+      metersPerPixel * INCHES_PER_METER * OGC_SCREEN_DPI,
+    );
   }
 
   getPixelFromCoordinate(coordinate: Coordinate): [number, number] {
@@ -927,6 +1165,12 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     this._drawTool.leaveDrawMode();
+
+    // Clearing the collection calls setMap(null) on each control, which
+    // removes its element from controlsTarget (scale, fullscreen, rotate, zoom).
+    this._map.getControls().clear();
+    this._zoomControl = undefined;
+
     this._map.setTarget(undefined);
     this._sources.clear();
   }
@@ -1286,15 +1530,12 @@ export class OpenLayersAdapter implements IMapAdapter {
         await this._waitForSourceReady(geoTiffSource);
 
         if (Array.isArray(layerParameters.symbologyState?.layers)) {
-          newMapLayer = grammarToOLLayer(
-            layerParameters.symbologyState as IGrammarSymbologyState,
-            geoTiffSource,
-            layerParameters.opacity ?? 1,
-            layer.visible ?? true,
-            [],
-            true,
+          newMapLayer = grammarToOLLayer({
+            layer,
+            layerId: id,
+            source: geoTiffSource,
             className,
-          ) as OlLayerTypes;
+          }) as OlLayerTypes;
         } else {
           // This is to handle python sending a None for the color
           const layerOptions: any = {
@@ -1321,15 +1562,12 @@ export class OpenLayersAdapter implements IMapAdapter {
         await this._waitForSourceReady(geoZarrSource);
 
         if (Array.isArray(layerParameters.symbologyState?.layers)) {
-          newMapLayer = grammarToOLLayer(
-            layerParameters.symbologyState as IGrammarSymbologyState,
-            geoZarrSource,
-            layerParameters.opacity ?? 1,
-            layer.visible ?? true,
-            [],
-            true,
+          newMapLayer = grammarToOLLayer({
+            layer,
+            layerId: id,
+            source: geoZarrSource,
             className,
-          ) as OlLayerTypes;
+          }) as OlLayerTypes;
         } else {
           const bands = source?.parameters?.bands || [];
           const defaultColor = buildZarrColorStyle(bands);
@@ -1366,6 +1604,11 @@ export class OpenLayersAdapter implements IMapAdapter {
 
       case 'StorySegmentLayer': {
         // Special layer not for this
+        return;
+      }
+
+      case 'TerrainLayer': {
+        // 3D terrain is only supported by the MapLibre adapter.
         return;
       }
     }
@@ -1449,16 +1692,13 @@ export class OpenLayersAdapter implements IMapAdapter {
         : [];
     const featureValues = extractEncodingFieldValues(grammarState, rows);
 
-    return grammarToOLLayer(
-      grammarState,
-      olSource,
-      layerParameters.opacity ?? 1,
-      layer.visible,
+    return grammarToOLLayer({
+      layer,
+      layerId: id,
+      source: olSource,
       featureValues,
-      false,
       className,
-      layerParameters.declutter ? id : false,
-    ) as OlLayerTypes;
+    }) as OlLayerTypes;
   }
 
   // Used by VectorTileLayer (which shares a flat-style API with Grammar output).
@@ -1665,8 +1905,14 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     const olGeometry = new GeoJSON().readGeometry(geometry, {
+      dataProjection: 'EPSG:4326',
       featureProjection: this._map.getView().getProjection(),
     });
+
+    if (!olGeometry) {
+      this._log('warning', 'Failed to parse geometry for flyToGeometry');
+      return;
+    }
 
     const view = this._map.getView();
 
@@ -1696,8 +1942,14 @@ export class OpenLayersAdapter implements IMapAdapter {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
+          dataProjection: 'EPSG:4326',
           featureProjection: this._map.getView().getProjection(),
         });
+
+    if (!parsedGeometry) {
+      this._log('warning', 'Failed to parse geometry for highlighting');
+      return;
+    }
 
     const olFeature = new Feature({
       geometry: parsedGeometry,
@@ -1821,6 +2073,22 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     try {
+      const sourceId = layer.parameters?.source;
+      const source = sourceId ? this._model.getSource(sourceId) : undefined;
+      const unsupported = getUnsupportedReason(
+        this.supportedFeatures,
+        layer,
+        source,
+      );
+      if (unsupported) {
+        this._log(
+          'warning',
+          `OpenLayersAdapter: skipping layer ${id}. ${unsupported}`,
+        );
+        this._callbacks?.onLayerError?.(id, unsupported);
+        return;
+      }
+
       this.addProjection(layer);
       const newMapLayer = await this._buildMapLayer(id, layer);
 
@@ -2170,33 +2438,6 @@ export class OpenLayersAdapter implements IMapAdapter {
   }
 
   /**
-   * Builds the proxy URL for a given URL.
-   * @param url - the URL to proxy.
-   * @param useProxy - whether to use the proxy.
-   * @param httpHeaders - HTTP headers to pass to the proxy.
-   */
-
-  private getProxyUrl(
-    url: string,
-    useProxy?: boolean,
-    httpHeaders?: string,
-  ): string {
-    if (!useProxy) {
-      return url;
-    }
-    const headersParam =
-      httpHeaders && Object.keys(httpHeaders).length > 0
-        ? `&headers=${encodeURIComponent(JSON.stringify(httpHeaders))}`
-        : '';
-
-    const proxyBase = isJupyterLite()
-      ? `${this._model.jgisSettings.proxyUrl}/`
-      : INTERNAL_PROXY_BASE;
-
-    return `${proxyBase}?url=${encodeURIComponent(url)}${headersParam}`;
-  }
-
-  /**
    * Add a source in the map.
    *
    * @param id - the source id.
@@ -2273,7 +2514,8 @@ export class OpenLayersAdapter implements IMapAdapter {
             if (sourceParameters.useProxy) {
               vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
                 const vtTile = tile as VectorTile<RenderFeature>;
-                const proxyUrl = this.getProxyUrl(
+                const proxyUrl = buildProxyUrl(
+                  this._model,
                   tileUrl,
                   sourceParameters.useProxy,
                   sourceParameters.httpHeaders,
@@ -2335,11 +2577,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         case 'OpenEOTileSource': {
           const sourceParameters = source.parameters as IOpenEOTileSource;
 
-          newSource = new OpenEOTileSource({
-            serverUrl: sourceParameters.serverUrl ?? '',
-            authBearer: sourceParameters.authBearer,
-            processGraph: sourceParameters.processGraph,
-          });
+          newSource = new OpenEOTileSource(sourceParameters);
 
           break;
         }
@@ -2353,12 +2591,16 @@ export class OpenLayersAdapter implements IMapAdapter {
               model: this._model,
             }));
 
+          const viewProjection = this._map.getView().getProjection();
           const format = new GeoJSON({
-            featureProjection: this._map.getView().getProjection(),
+            featureProjection: viewProjection,
           });
 
+          // Force EPSG:4326 so a legacy GeoJSON `crs` (e.g. CRS84) does not
+          // become dataProjection — OL has no transform CRS84 → custom EPSGs.
           const featureArray = format.readFeatures(data, {
-            featureProjection: this._map.getView().getProjection(),
+            dataProjection: 'EPSG:4326',
+            featureProjection: viewProjection,
           });
 
           const featureCollection = new Collection(featureArray);
@@ -2414,17 +2656,7 @@ export class OpenLayersAdapter implements IMapAdapter {
             ...sourceParameters.coordinates.map(corner => corner[1]),
           );
 
-          // Convert lon/lat to OpenLayer coordinates
-          const topLeft = fromLonLat([leftSide, topSide]);
-          const bottomRight = fromLonLat([rightSide, bottomSide]);
-
-          // Get extent from coordinates
-          const minX = topLeft[0];
-          const maxY = topLeft[1];
-          const maxX = bottomRight[0];
-          const minY = bottomRight[1];
-
-          const extent = [minX, minY, maxX, maxY];
+          const extent = [leftSide, bottomSide, rightSide, topSide];
 
           const imageUrl = await loadFile({
             filepath: sourceParameters.path,
@@ -2435,6 +2667,7 @@ export class OpenLayersAdapter implements IMapAdapter {
           newSource = new Static({
             interpolate: sourceParameters.interpolate,
             imageExtent: extent,
+            projection: 'EPSG:4326',
             url: imageUrl,
             crossOrigin: '',
           });
@@ -2458,7 +2691,8 @@ export class OpenLayersAdapter implements IMapAdapter {
               if (isRemote) {
                 return {
                   ...addNoData(sourceInfo),
-                  url: this.getProxyUrl(
+                  url: buildProxyUrl(
+                    this._model,
                     sourceInfo.url!,
                     sourceParameters.useProxy,
                     sourceParameters.httpHeaders,
@@ -2622,8 +2856,12 @@ export class OpenLayersAdapter implements IMapAdapter {
 
         case 'MarkerSource': {
           const parameters = source.parameters as IMarkerSource;
-
-          const point = new Point(parameters.feature.coords);
+          const point = new Point(
+            fromLonLat(
+              parameters.feature.coords,
+              this._map.getView().getProjection(),
+            ),
+          );
           const marker = new Feature({
             type: 'icon',
             geometry: point,
@@ -2666,6 +2904,21 @@ export class OpenLayersAdapter implements IMapAdapter {
               LAYERS: selectedLayer,
               TILED: true,
             },
+            ...(sourceParameters.useProxy
+              ? {
+                  tileLoadFunction: (tile, src) => {
+                    loadProxiedWmsTile(
+                      tile as ImageTile,
+                      buildProxyUrl(
+                        this._model,
+                        src,
+                        true,
+                        sourceParameters.httpHeaders,
+                      ),
+                    );
+                  },
+                }
+              : {}),
           });
 
           break;
@@ -3091,7 +3344,23 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     // change source of target layer
-    mapLayer.setSource(this._sources.get(id));
+    const nextOlSource = this._sources.get(id);
+    if (!nextOlSource) {
+      return;
+    }
+
+    // Grammar multi-layer symbology (and similar) uses a LayerGroup. Groups
+    // have no setSource — push the rebuilt source onto each child instead.
+    if (mapLayer instanceof LayerGroup) {
+      for (const child of mapLayer.getLayers().getArray()) {
+        if (typeof (child as Layer).setSource === 'function') {
+          (child as Layer).setSource(nextOlSource);
+        }
+      }
+      return;
+    }
+
+    mapLayer.setSource(nextOlSource);
   }
 
   private computeSourceUrl(source: IJGISSource): string {
@@ -3190,16 +3459,13 @@ export class OpenLayersAdapter implements IMapAdapter {
         ? source.getFeatures().map(f => (f as Feature).getProperties())
         : [];
     const featureValues = extractEncodingFieldValues(grammarState, rows);
-    const nextLayer = grammarToOLLayer(
-      grammarState,
+    const nextLayer = grammarToOLLayer({
+      layer,
+      layerId: id,
       source,
-      layerParams?.opacity ?? layer.parameters?.opacity ?? 1,
-      layer.visible,
       featureValues,
-      layer.type === 'GeoTiffLayer' || layer.type === 'GeoZarrLayer',
-      comparisonLayerClass(id),
-      (layerParams as IVectorLayer | undefined)?.declutter ? id : false,
-    );
+      className: comparisonLayerClass(id),
+    });
 
     if (mapLayer instanceof LayerGroup) {
       if (nextLayer instanceof LayerGroup) {
@@ -3499,6 +3765,10 @@ export class OpenLayersAdapter implements IMapAdapter {
         featureProjection: viewProj,
       });
 
+      if (!geometry) {
+        continue;
+      }
+
       const olFeature = new Feature({ geometry });
       olFeature.setId(feature.id);
       olFeature.setProperties({ ...feature.props, _id: feature.id });
@@ -3621,6 +3891,10 @@ export class OpenLayersAdapter implements IMapAdapter {
 
   get drawTool(): IDrawToolAdapter {
     return this._drawTool;
+  }
+
+  get supportedFeatures() {
+    return MAP_ADAPTER_FEATURES.openlayers;
   }
 
   private _map: OlMap;

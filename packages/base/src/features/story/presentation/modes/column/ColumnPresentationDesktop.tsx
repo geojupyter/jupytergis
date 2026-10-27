@@ -37,12 +37,7 @@ export function ColumnPresentationDesktop({
 
   const spectaPresentationStyle = useMemo(
     () => getSpectaPresentationCssVars(storyData),
-    [
-      storyData?.storyType,
-      storyData?.presentationBgColor,
-      storyData?.presentationTextColor,
-      storyData?.storyPanelOpacity,
-    ],
+    [storyData?.storyType, storyData?.storyPanelOpacity],
   );
 
   useImperativeHandle(

@@ -20,10 +20,11 @@ import shp from 'shpjs';
 
 import LAYER_GALLERY from '@/_generated/layer_gallery.json';
 import {
-  connect as openEOConnect,
+  openEOConnect,
   IOpenEOConnectionInfo,
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
 import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
+import { buildProxyUrl } from '@/src/shared/proxy';
 import { getGdal } from './gdal';
 
 export const debounce = (
@@ -437,51 +438,27 @@ export function describeConnectionError(error: unknown, url: string): string {
   return message ?? String(error);
 }
 
-type ProxyStrategy = 'direct' | 'internal' | 'external';
-
 export const fetchWithProxies = async <T>(
   url: string,
   model: IJupyterGISModel,
   parseResponse: (response: Response) => Promise<T>,
   options?: RequestInit,
-  strategy?: ProxyStrategy,
 ): Promise<T | null> => {
-  let settings: any = null;
+  const proxiedUrl = buildProxyUrl(model, url, true);
+  const strategies = proxiedUrl === url ? [url] : [url, proxiedUrl];
 
-  if (model) {
+  // TODO reconsider this decision?
+  // Try direct url first
+  for (const tryUrl of strategies) {
     try {
-      settings = model.getSettings();
-    } catch (e) {
-      console.warn('Failed to get settings from model. Falling back.', e);
-    }
-  }
-
-  const proxyUrl =
-    settings && settings.proxyUrl ? settings.proxyUrl : 'https://corsproxy.io';
-
-  const strategies: Record<ProxyStrategy, (url: string) => string> = {
-    direct: url => url,
-    internal: url => `${INTERNAL_PROXY_BASE}?url=${encodeURIComponent(url)}`,
-    external: url => `${proxyUrl}/?url=${encodeURIComponent(url)}`,
-  };
-
-  const defaultOrder: ProxyStrategy[] = ['direct', 'internal', 'external'];
-
-  const strategyOrder: ProxyStrategy[] = strategy ? [strategy] : defaultOrder;
-
-  for (const strat of strategyOrder) {
-    const proxyUrl = strategies[strat](url);
-    try {
-      const response = await fetch(proxyUrl, options);
+      const response = await fetch(tryUrl, options);
       if (!response.ok) {
-        console.warn(
-          `Failed to fetch from ${proxyUrl}: ${response.statusText}`,
-        );
+        console.warn(`Failed to fetch from ${tryUrl}: ${response.statusText}`);
         continue;
       }
       return await parseResponse(response);
     } catch (error) {
-      console.warn(`Error fetching from ${proxyUrl}:`, error);
+      console.warn(`Error fetching from ${tryUrl}:`, error);
     }
   }
 
@@ -998,8 +975,6 @@ export const base64ToBlob = async (
 /**
  * A mapping of file extensions to their corresponding MIME types.
  */
-export const INTERNAL_PROXY_BASE = '/jupytergis_core/proxy';
-
 export const MIME_TYPES: { [ext: string]: string } = {
   // from https://github.com/python/cpython/blob/3.9/Lib/mimetypes.py
   '.a': 'application/octet-stream',
@@ -1338,12 +1313,19 @@ function normalizeOpenEOUrl(url: string): string {
 }
 
 /**
+ * Drop a backend's cached catalog so the next fetch sees server-side changes
+ * (e.g. a user-defined process the user just stored).
+ */
+export function invalidateBackendCatalog(url: string | undefined): void {
+  _openEOCatalogCache.delete(normalizeOpenEOUrl(url ?? ''));
+}
+
+/**
  * Fetch (and cache) an OpenEO backend's process + collection catalog. Used
  * to give the ModelBuilder port labels and type-aware validation.
  *
  * Connection (and sign-in) is delegated to the shared `connect` helper in
- * OpenEOTileLayer, which also populates `connectionInfo.authBearer` once the
- * user has authenticated.
+ * OpenEOTileLayer.
  */
 export async function fetchBackendCatalog(
   connectionInfo: IOpenEOConnectionInfo,
