@@ -10,6 +10,7 @@ packages:
 allowBuilds:
   '@fortawesome/fontawesome-free': false
   '@parcel/watcher': false
+  '@vaadin/vaadin-usage-statistics': false
   better-sqlite3: false
   core-js: false
   core-js-pure: false

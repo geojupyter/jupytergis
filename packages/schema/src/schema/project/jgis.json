@@ -267,7 +267,7 @@
           "type": "string",
           "title": "IMapAdapterType",
           "description": "The map adapter to use rendering the map.",
-          "enum": ["openlayers", "maplibre"]
+          "enum": ["openlayers", "maplibre", "deckgl"]
         },
         "latitude": {
           "type": "number",

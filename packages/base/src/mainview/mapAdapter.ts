@@ -204,6 +204,11 @@ export async function createMapAdapter(
       return new MapLibreAdapter(model);
     }
 
+    case 'deckgl': {
+      const { DeckGlAdapter } = await import('./adapters/deckgl/deckGlAdapter');
+      return new DeckGlAdapter(model);
+    }
+
     default: {
       throw new Error(`Unknown map adapter type: ${type}`);
     }
