@@ -174,14 +174,16 @@ class GISDocument(CommWidget):
         # TODO Change this when ipykernel supports awaiting incomming
         # comm messages without being blocked by the execution request
         is_xeus_python = get_ipython().__class__.__name__ == "XPythonShell"
+        is_ipykernel = get_ipython().__class__.__name__ == "ZMQInteractiveShell"
+
         self.supports_top_level_await = (
             is_xeus_python and version("xeus_python_shell") >= "0.8.0"
-        )
+        ) or (is_ipykernel and version("ipykernel") >= "6.0.0")
 
         global AWAIT_WARN_DONE
         if not self.supports_top_level_await and not AWAIT_WARN_DONE:
             warnings.warn(
-                "The JupyterGIS Python API is better experienced in the xeus-python kernel which supports awaiting comm messages",
+                "The JupyterGIS Python API is better experience with top level await support awaiting comm messages (versions requirement: ipykernel > 6.0.0 and xeus-python>0.8.0.)",
                 stacklevel=2,
             )
             AWAIT_WARN_DONE = True
