@@ -110,7 +110,7 @@ class TestLayerAndSourceObjects(TestDocument):
 
         assert source is not None
         assert source.type == SourceType.RasterSource
-        assert source.parameters.url == self.RASTER_URL
+        assert source.url == self.RASTER_URL
         assert source.get_parameter("url") == self.RASTER_URL
 
     def test_sources_are_public(self):
@@ -168,10 +168,10 @@ class TestLayerAndSourceObjects(TestDocument):
 
         layer = self.doc.get_layer("layer-1")
 
-        assert isinstance(layer.parameters, dict)
+        assert isinstance(layer._parameters, dict)
         assert layer.get_parameter("opacity") == 0.5
         assert layer.source.name == "Shapes"
-        assert isinstance(self.doc.sources["source-1"].parameters, dict)
+        assert isinstance(self.doc.sources["source-1"]._parameters, dict)
 
     def test_unknown_parameters_are_not_dropped(self):
         self.doc._layers["layer-1"] = {
@@ -205,16 +205,10 @@ class TestLayerAndSourceObjects(TestDocument):
 
         assert self.doc._layers[layer.id]["visible"] is False
 
-    def test_setting_a_nested_source_parameter_updates_the_document(self):
+    def test_parameters_are_not_exposed(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
-        url = "https://example.com/{z}/{y}/{x}"
 
-        layer.source.parameters.url = url
-
-        assert (
-            self.doc._sources[layer.get_parameter("source")]["parameters"]["url"] == url
-        )
-        assert layer.source.parameters.url == url
+        assert not hasattr(layer, "parameters")
 
     def test_parameters_read_and_write_as_attributes(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")

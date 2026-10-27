@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import functools
 import json
 import logging
 import math
@@ -1397,6 +1396,7 @@ class GISDocument(CommWidget):
         self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
+        obj_dict["parameters"] = _as_stored(new_object._parameters)
         self._sources[_id] = obj_dict
         return _id
 
@@ -1409,6 +1409,7 @@ class GISDocument(CommWidget):
         self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
+        obj_dict["parameters"] = _as_stored(new_object._parameters)
         self._ensure_symbology_qgis_supported(
             obj_dict.get("parameters", {}).get("symbologyState"),
         )
@@ -1509,30 +1510,6 @@ def _as_stored(value: Any) -> Any:
     return value
 
 
-class _WritesThrough(BaseModel):
-    """Parameters that write their own attribute changes to the document."""
-
-    _owner: Any = PrivateAttr(default=None)
-
-    __hash__ = None  # type: ignore[assignment]
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        super().__setattr__(name, value)
-
-        if not name.startswith("_") and self._owner is not None:
-            self._owner._write_parameter(name, getattr(self, name))
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, BaseModel):
-            return NotImplemented
-        return type(self) is type(other) and self.model_dump() == other.model_dump()
-
-
-@functools.cache
-def _writes_through(model: type[BaseModel]) -> type[BaseModel]:
-    return type(model.__name__, (_WritesThrough, model), {})
-
-
 class JGISObject(BaseModel):
     """Base class for the layer and source objects read off a document."""
 
@@ -1542,20 +1519,25 @@ class JGISObject(BaseModel):
 
     name: str
     type: Any
-    parameters: Any
 
     _type_enum: ClassVar[type[Enum] | None] = None
 
     _parent: Any = PrivateAttr(default=None)
     _id: str | None = PrivateAttr(default=None)
+    _parameters: Any = PrivateAttr(default_factory=dict)
 
     @classmethod
-    def _build(cls, parent: Any = None, id: str | None = None, **data: Any) -> Self:
+    def _build(
+        cls,
+        parent: Any = None,
+        id: str | None = None,
+        parameters: Any = None,
+        **data: Any,
+    ) -> Self:
         obj = cls(**data)
         obj._parent = parent
         obj._id = id
-        if isinstance(obj.parameters, _WritesThrough):
-            obj.parameters._owner = obj
+        obj._parameters = {} if parameters is None else parameters
         return obj
 
     @field_validator("type", mode="plain", check_fields=False)
@@ -1573,17 +1555,6 @@ class JGISObject(BaseModel):
         except ValueError:
             return object_type
 
-    @field_validator("parameters", mode="plain", check_fields=False)
-    @classmethod
-    def _keep_parameters_as_given(cls, parameters: Any) -> Any:
-        """Take the parameters as handed over, without union coercion.
-
-        The factory has already decided whether it could type them, and letting
-        pydantic re-resolve the union relabels a type it has no model for as
-        whichever model happens to fit its keys.
-        """
-        return parameters
-
     @property
     def id(self) -> str | None:
         """The identifier this object is stored under, when it is stored."""
@@ -1596,22 +1567,20 @@ class JGISObject(BaseModel):
 
     def get_parameter(self, name: str, default: Any = None) -> Any:
         """Read a parameter, whether the parameters are typed or a raw dict."""
-        parameters = self.parameters
+        parameters = self._parameters
         if isinstance(parameters, dict):
             return parameters.get(name, default)
         return getattr(parameters, name, default)
 
     def set_parameter(self, name: str, value: Any) -> None:
         """Change one parameter and write it to the document."""
-        parameters = self.parameters
+        parameters = self._parameters
         if isinstance(parameters, dict):
-            updated: Any = {**parameters, name: value}
+            self._parameters = {**parameters, name: value}
         else:
-            updated = type(parameters)(**{**parameters.model_dump(), name: value})
-
-        BaseModel.__setattr__(self, "parameters", updated)
-        if isinstance(updated, _WritesThrough):
-            updated._owner = self
+            self._parameters = type(parameters)(
+                **{**parameters.model_dump(), name: value},
+            )
 
         self._write_parameter(name, value)
 
@@ -1619,7 +1588,7 @@ class JGISObject(BaseModel):
         return None
 
     def _parameter_names(self) -> set[str]:
-        parameters = self.__dict__.get("parameters")
+        parameters = self._parameters
         if isinstance(parameters, dict):
             return set(parameters)
         if isinstance(parameters, BaseModel):
@@ -1631,7 +1600,7 @@ class JGISObject(BaseModel):
         try:
             return super().__getattr__(name)  # type: ignore[misc]
         except AttributeError:
-            if name in self._parameter_names():
+            if not name.startswith("_") and name in self._parameter_names():
                 return self.get_parameter(name)
             raise
 
@@ -1664,9 +1633,6 @@ class JGISObject(BaseModel):
         return sorted({*super().__dir__(), *self._parameter_names()})
 
     def _write(self, name: str, value: Any) -> None:
-        if isinstance(value, _WritesThrough):
-            value._owner = self
-
         store, stored = self._stored()
         if store is None:
             return
@@ -1709,7 +1675,7 @@ class JGISObject(BaseModel):
 class JGISLayer(JGISObject):
     type: LayerType | str
     visible: bool
-    parameters: (
+    _parameters: (
         IRasterLayer
         | IVectorLayer
         | IVectorTileLayer
@@ -1720,7 +1686,7 @@ class JGISLayer(JGISObject):
         | IStorySegmentLayer
         | IOpenEOTileLayer
         | dict[str, Any]
-    )
+    ) = PrivateAttr(default_factory=dict)
 
     _type_enum: ClassVar[type[Enum] | None] = LayerType
 
@@ -1739,10 +1705,7 @@ class JGISLayer(JGISObject):
 
         self._parent.apply_symbology(self, symbology)
 
-        parameters = self._parent.get_layer(self._id).parameters
-        BaseModel.__setattr__(self, "parameters", parameters)
-        if isinstance(parameters, _WritesThrough):
-            parameters._owner = self
+        self._parameters = self._parent.get_layer(self._id)._parameters
 
     @property
     def source(self) -> JGISSource | None:
@@ -1757,7 +1720,7 @@ class JGISLayer(JGISObject):
 
 class JGISSource(JGISObject):
     type: SourceType | str
-    parameters: (
+    _parameters: (
         IRasterSource
         | IVectorTileSource
         | IMarkerSource
@@ -1772,7 +1735,7 @@ class JGISSource(JGISObject):
         | IWmsTileSource
         | IOpenEOTileSource
         | dict[str, Any]
-    )
+    ) = PrivateAttr(default_factory=dict)
 
     _type_enum: ClassVar[type[Enum] | None] = SourceType
 
@@ -1852,7 +1815,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
             return parameters
 
         try:
-            return _writes_through(Model)(**parameters)
+            return Model(**parameters)
         except ValidationError:
             return parameters
 
