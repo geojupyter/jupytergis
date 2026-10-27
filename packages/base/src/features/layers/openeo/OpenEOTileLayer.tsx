@@ -16,6 +16,7 @@ import {
 } from '@openeo/js-client';
 // @ts-expect-error
 import Environment from '@openeo/js-client/src/env';
+import { LoadFunction } from 'ol/Tile';
 import TileLayer from 'ol/layer/Tile';
 import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
@@ -26,7 +27,6 @@ import { describeConnectionError } from '@/src/tools';
 import { expandDeviceProviders, OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
 import { ensureSaveResult } from './templates';
-import { LoadFunction } from 'ol/Tile';
 
 Environment.axios.defaults.xsrfCookieName = '_xsrf';
 Environment.axios.defaults.xsrfHeaderName = 'X-XSRFToken';
@@ -424,80 +424,80 @@ export interface IOpenEOTileSourceOptions extends XYZOptions {
 
 export class OpenEOTileSource extends XYZSource {
   constructor(options: IOpenEOTileSourceOptions) {
-    const tileLoadFunction = (retries: number): LoadFunction => async (tile: any, _src: string) => {
-      await this._connected.promise;
+    const tileLoadFunction =
+      (retries: number): LoadFunction =>
+      async (tile: any, _src: string) => {
+        await this._connected.promise;
 
-      let url = this._url;
+        let url = this._url;
 
-      if (!url) {
-        throw new Error('XYZ URL undefined');
-      }
-
-      retries -= 1;
-      const retry: LoadFunction = async (tile: any, _src: string) => {
-        await new Promise(resolve => setTimeout(resolve, TILE_RETRY_RATE));
-        return tileLoadFunction(retries)(tile, _src);
-      }
-
-      const [z, x, y] = tile.tileCoord;
-
-      // openEO backends vary in how they format XYZ service URLs:
-      // some return raw `{z}/{x}/{y}` placeholders, others return them
-      // URL-encoded as `%7Bz%7D/...`. Handle both forms so the same
-      // code works against either kind of backend.
-      url = url.replace('%7Bz%7D', z).replace('{z}', z);
-      url = url.replace('%7By%7D', y).replace('{y}', y);
-      url = url.replace('%7Bx%7D', x).replace('{x}', x);
-
-      let res: Response;
-      try {
-        res = await fetch(url, { method: 'GET' });
-      } catch (err: any) {
-        const errorMessage: string = err?.message ?? String(err);
-
-        if (errorMessage.toLowerCase().includes('rate limit')) {
-          return retry(tile, _src);
+        if (!url) {
+          throw new Error('XYZ URL undefined');
         }
 
-        this._reportTileError(
-          `Tile request failed: ${errorMessage}`,
-        );
-        tile.setState(3);
-        return;
-      }
+        retries -= 1;
+        const retry: LoadFunction = async (tile: any, _src: string) => {
+          await new Promise(resolve => setTimeout(resolve, TILE_RETRY_RATE));
+          return tileLoadFunction(retries)(tile, _src);
+        };
 
-      if (!res.ok) {
-        // Try to surface the backend's actual message rather than a
-        // bare HTTP status — titiler-openeo, like most openEO
-        // backends, returns JSON `{ message: ... }` on errors.
-        let detail = '';
+        const [z, x, y] = tile.tileCoord;
+
+        // openEO backends vary in how they format XYZ service URLs:
+        // some return raw `{z}/{x}/{y}` placeholders, others return them
+        // URL-encoded as `%7Bz%7D/...`. Handle both forms so the same
+        // code works against either kind of backend.
+        url = url.replace('%7Bz%7D', z).replace('{z}', z);
+        url = url.replace('%7By%7D', y).replace('{y}', y);
+        url = url.replace('%7Bx%7D', x).replace('{x}', x);
+
+        let res: Response;
         try {
-          const text = await res.text();
-          try {
-            const parsed = JSON.parse(text);
-            detail =
-              parsed?.message ?? parsed?.detail ?? parsed?.error ?? text;
-          } catch {
-            detail = text;
+          res = await fetch(url, { method: 'GET' });
+        } catch (err: any) {
+          const errorMessage: string = err?.message ?? String(err);
+
+          if (errorMessage.toLowerCase().includes('rate limit')) {
+            return retry(tile, _src);
           }
-        } catch {
-          /* response body unreadable */
+
+          this._reportTileError(`Tile request failed: ${errorMessage}`);
+          tile.setState(3);
+          return;
         }
 
-        if (detail.toLowerCase().includes('rate limit')) {
-          return retry(tile, _src);
+        if (!res.ok) {
+          // Try to surface the backend's actual message rather than a
+          // bare HTTP status — titiler-openeo, like most openEO
+          // backends, returns JSON `{ message: ... }` on errors.
+          let detail = '';
+          try {
+            const text = await res.text();
+            try {
+              const parsed = JSON.parse(text);
+              detail =
+                parsed?.message ?? parsed?.detail ?? parsed?.error ?? text;
+            } catch {
+              detail = text;
+            }
+          } catch {
+            /* response body unreadable */
+          }
+
+          if (detail.toLowerCase().includes('rate limit')) {
+            return retry(tile, _src);
+          }
+
+          this._reportTileError(
+            `HTTP ${res.status} from OpenEO tile service${detail ? `: ${detail}` : ''}`,
+          );
+          tile.setState(3);
+          return;
         }
 
-        this._reportTileError(
-          `HTTP ${res.status} from OpenEO tile service${detail ? `: ${detail}` : ''}`,
-        );
-        tile.setState(3);
-        return;
-      }
-
-      const blob = await res.blob();
-      tile.getImage().src = URL.createObjectURL(blob);
-    };
+        const blob = await res.blob();
+        tile.getImage().src = URL.createObjectURL(blob);
+      };
 
     super({
       ...options,
