@@ -59,6 +59,7 @@ const iconObject = {
   [CommandIDs.openNewVectorTileDialog]: { icon: vectorSquareIcon },
   [CommandIDs.openNewGeoJSONDialog]: { icon: geoJSONIcon },
   [CommandIDs.openNewTripsDialog]: { iconClass: 'fa fa-route' },
+  [CommandIDs.openNewPolygonDialog]: { iconClass: 'fa fa-draw-polygon' },
   [CommandIDs.openNewHillshadeDialog]: { icon: moundIcon },
   [CommandIDs.openNewTerrainDialog]: { icon: moundIcon },
   [CommandIDs.openNewImageDialog]: { iconClass: 'fa fa-image' },

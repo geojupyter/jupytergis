@@ -38,6 +38,8 @@ from jupytergis_core.schema import (
     ITerrainLayer,
     ITripsLayer,
     ITripsSource,
+    IPolygonLayer,
+    IPolygonSource,
     IVectorLayer,
     IVectorTileLayer,
     IVectorTileSource,
@@ -1552,6 +1554,7 @@ class JGISLayer(BaseModel):
         | IOpenEOTileLayer
         | ITerrainLayer
         | ITripsLayer
+        | IPolygonLayer
     )
     _parent = GISDocument | None
 
@@ -1582,6 +1585,7 @@ class JGISSource(BaseModel):
         | IWmsTileSource
         | IOpenEOTileSource
         | ITripsSource
+        | IPolygonSource
     )
     _parent = GISDocument | None
 
@@ -1674,6 +1678,7 @@ OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 OBJECT_FACTORY.register_factory(LayerType.OpenEOTileLayer, IOpenEOTileLayer)
 OBJECT_FACTORY.register_factory(LayerType.TerrainLayer, ITerrainLayer)
 OBJECT_FACTORY.register_factory(LayerType.TripsLayer, ITripsLayer)
+OBJECT_FACTORY.register_factory(LayerType.PolygonLayer, IPolygonLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
@@ -1695,3 +1700,4 @@ OBJECT_FACTORY.register_factory(
 OBJECT_FACTORY.register_factory(SourceType.WmsTileSource, IWmsTileSource)
 OBJECT_FACTORY.register_factory(SourceType.OpenEOTileSource, IOpenEOTileSource)
 OBJECT_FACTORY.register_factory(SourceType.TripsSource, ITripsSource)
+OBJECT_FACTORY.register_factory(SourceType.PolygonSource, IPolygonSource)

@@ -29,6 +29,11 @@ export const vectorSubMenu = (commands: CommandRegistry) => {
 
   subMenu.addItem({
     type: 'command',
+    command: CommandIDs.openNewPolygonDialog,
+  });
+
+  subMenu.addItem({
+    type: 'command',
     command: CommandIDs.openNewShapefileDialog,
   });
 

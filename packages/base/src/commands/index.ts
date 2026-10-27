@@ -207,6 +207,7 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.openNewTerrainDialog,
   // Animated trip layers
   CommandIDs.openNewTripsDialog,
+  CommandIDs.openNewPolygonDialog,
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
@@ -252,6 +253,10 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   [CommandIDs.openNewTripsDialog]: {
     source: 'TripsSource',
     layer: 'TripsLayer',
+  },
+  [CommandIDs.openNewPolygonDialog]: {
+    source: 'PolygonSource',
+    layer: 'PolygonLayer',
   },
   [CommandIDs.openNewShapefileDialog]: {
     source: 'ShapefileSource',
@@ -338,6 +343,10 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   [LayerCreationCommandIDs.newTripsWithParams]: {
     source: 'TripsSource',
     layer: 'TripsLayer',
+  },
+  [LayerCreationCommandIDs.newPolygonWithParams]: {
+    source: 'PolygonSource',
+    layer: 'PolygonLayer',
   },
 
   // Interaction features
@@ -1093,6 +1102,34 @@ export function addCommands(
       layerType: 'TripsLayer',
     }),
     ...icons.get(CommandIDs.openNewTripsDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewPolygonDialog, {
+    label: trans.__('Polygon'),
+    caption:
+      'Open a dialog to create a new polygon layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Polygon Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom Polygon Layer' },
+      sourceType: 'PolygonSource',
+      layerType: 'PolygonLayer',
+    }),
+    ...icons.get(CommandIDs.openNewPolygonDialog),
   });
 
   commands.addCommand(CommandIDs.openNewWmsDialog, {

@@ -1,0 +1,59 @@
+{
+  "type": "object",
+  "description": "PolygonSource",
+  "title": "IPolygonSource",
+  "required": [],
+  "additionalProperties": false,
+  "properties": {
+    "path": {
+      "type": ["string", "null"],
+      "description": "Local path or URL of a JSON array of polygons. Each record has a polygon ring and an optional height."
+    },
+    "data": {
+      "type": "array",
+      "description": "Inline polygons. Used when path is empty.",
+      "items": {
+        "$ref": "#/definitions/polygon"
+      }
+    },
+    "useProxy": {
+      "type": "boolean",
+      "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
+      "default": false
+    },
+    "httpHeaders": {
+      "type": "string",
+      "description": "HTTP headers forwarded to the upstream server when useProxy is true.",
+      "default": ""
+    }
+  },
+  "definitions": {
+    "polygon": {
+      "type": "object",
+      "title": "IPolygonRecord",
+      "description": "One polygon. polygon is the ring, height is the extrusion in meters. Extra fields are kept.",
+      "required": ["polygon"],
+      "additionalProperties": true,
+      "properties": {
+        "polygon": {
+          "type": "array",
+          "description": "Ring positions as [longitude, latitude] or [longitude, latitude, altitude], in order.",
+          "minItems": 3,
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            },
+            "minItems": 2,
+            "maxItems": 3
+          }
+        },
+        "height": {
+          "type": "number",
+          "description": "Extrusion height in meters.",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

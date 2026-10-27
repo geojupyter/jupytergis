@@ -21,6 +21,8 @@ export { IGeoZarrSource } from './_interface/project/sources/geoZarrSource';
 export { IOpenEOTileSource } from './_interface/project/sources/openeoTileSource';
 export { ITripsSource } from './_interface/project/sources/tripsSource';
 export { ITrip } from './_interface/project/sources/tripsSource';
+export { IPolygonSource } from './_interface/project/sources/polygonSource';
+export { IPolygonRecord } from './_interface/project/sources/polygonSource';
 
 // Layers
 export { IHillshadeLayer } from './_interface/project/layers/hillshadeLayer';
@@ -35,6 +37,7 @@ export { IGeoZarrLayer } from './_interface/project/layers/geoZarrLayer';
 export { IOpenEOTileLayer } from './_interface/project/layers/openeoTileLayer';
 export { ITerrainLayer } from './_interface/project/layers/terrainLayer';
 export { ITripsLayer } from './_interface/project/layers/tripsLayer';
+export { IPolygonLayer } from './_interface/project/layers/polygonLayer';
 
 // Processing
 export * from './processing/_generated/exportProcessingSchema';

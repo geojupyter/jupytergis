@@ -8,7 +8,11 @@ import {
   type Widget,
 } from '@deck.gl/core';
 import { TileLayer, TripsLayer } from '@deck.gl/geo-layers';
-import { BitmapLayer, type BitmapLayerProps } from '@deck.gl/layers';
+import {
+  BitmapLayer,
+  PolygonLayer,
+  type BitmapLayerProps,
+} from '@deck.gl/layers';
 import {
   CompassWidget,
   FullscreenWidget,
@@ -17,18 +21,18 @@ import {
 } from '@deck.gl/widgets';
 import type {
   IDict,
-  IGeoJSONSource,
   IIdentifiedFeature,
   IJGISLayer,
   IJGISOptions,
   IJGISSource,
   IJGISUIState,
   IJupyterGISModel,
+  IPolygonLayer,
+  IPolygonSource,
   IRasterLayer,
   IRasterSource,
   ITripsLayer,
   ITripsSource,
-  IVectorLayer,
   JgisCoordinates,
 } from '@jupytergis/schema';
 import { PathExt } from '@jupyterlab/coreutils';
@@ -36,7 +40,7 @@ import type { ILoggerRegistry } from '@jupyterlab/logconsole';
 import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
 import type { IDrawToolAdapter } from '@/src/features/draw-tool';
-import { debounce, fetchWithProxies, loadFile, throttle } from '@/src/tools';
+import { debounce, fetchWithProxies, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
   IMapAdapter,
@@ -91,6 +95,8 @@ const TRIP_TRAIL_LENGTH = 120;
 const TRIP_WIDTH_PIXELS = 4;
 /** One full play-through of every trip, in wall-clock milliseconds. */
 const TRIP_LOOP_MS = 30000;
+const POLYGON_FILL: [number, number, number, number] = [0, 128, 255, 160];
+const POLYGON_LINE: [number, number, number] = [80, 80, 80];
 
 type LngLat = [longitude: number, latitude: number];
 
@@ -113,16 +119,10 @@ type TripSource = {
   duration: number;
 };
 
-type TripFeature = {
-  type?: string;
-  geometry?: {
-    type?: string;
-    coordinates?: number[][];
-  };
-  properties?: {
-    timestamps?: unknown;
-  };
-  features?: TripFeature[];
+/** One footprint. polygon is the ring and height is the extrusion in meters. */
+type PolygonRecord = {
+  polygon: LngLat[];
+  height?: number;
 };
 
 /**
@@ -265,6 +265,7 @@ export class DeckGlAdapter implements IMapAdapter {
     this._unbindCanvasEvents();
     this._rasterSources.clear();
     this._tripSources.clear();
+    this._polygonSources.clear();
     this._deck?.finalize();
     this._deck = undefined;
   }
@@ -398,8 +399,8 @@ export class DeckGlAdapter implements IMapAdapter {
       const layer = this._model.getLayers()[id];
       if (
         layer?.type !== 'RasterLayer' &&
-        layer?.type !== 'VectorLayer' &&
-        layer?.type !== 'TripsLayer'
+        layer?.type !== 'TripsLayer' &&
+        layer?.type !== 'PolygonLayer'
       ) {
         continue;
       }
@@ -407,8 +408,8 @@ export class DeckGlAdapter implements IMapAdapter {
       const sourceId = (
         layer.parameters as
           | IRasterLayer
-          | IVectorLayer
           | ITripsLayer
+          | IPolygonLayer
           | undefined
       )?.source;
       if (!sourceId) {
@@ -418,7 +419,9 @@ export class DeckGlAdapter implements IMapAdapter {
       const loaded =
         layer.type === 'RasterLayer'
           ? this._rasterSources.has(sourceId)
-          : this._tripSources.has(sourceId);
+          : layer.type === 'TripsLayer'
+            ? this._tripSources.has(sourceId)
+            : this._polygonSources.has(sourceId);
       if (loaded) {
         continue;
       }
@@ -456,18 +459,6 @@ export class DeckGlAdapter implements IMapAdapter {
         return;
       }
 
-      case 'GeoJSONSource': {
-        const data = await this._loadGeoJSON(id, source);
-        if (!data) {
-          return;
-        }
-        this._tripSources.set(
-          id,
-          this._tripsFromGeoJSON(data, source.name ?? id),
-        );
-        return;
-      }
-
       case 'TripsSource': {
         const data = await this._loadTrips(id, source);
         if (!data) {
@@ -476,6 +467,23 @@ export class DeckGlAdapter implements IMapAdapter {
         this._tripSources.set(
           id,
           this._tripsFromRecords(data, source.name ?? id),
+        );
+        return;
+      }
+
+      case 'PolygonSource': {
+        const data = await this._loadJsonRecords(
+          id,
+          source,
+          source.parameters as IPolygonSource | undefined,
+          'polygon',
+        );
+        if (!data) {
+          return;
+        }
+        this._polygonSources.set(
+          id,
+          this._polygonsFromRecords(data, source.name ?? id),
         );
         return;
       }
@@ -492,6 +500,7 @@ export class DeckGlAdapter implements IMapAdapter {
   removeSource(id: string): void {
     this._rasterSources.delete(id);
     this._tripSources.delete(id);
+    this._polygonSources.delete(id);
   }
 
   async updateSource(_id: string, _source: IJGISSource): Promise<void> {
@@ -704,13 +713,15 @@ export class DeckGlAdapter implements IMapAdapter {
         if (tileLayer) {
           layers.push(tileLayer);
         }
-      } else if (
-        layer?.type === 'VectorLayer' ||
-        layer?.type === 'TripsLayer'
-      ) {
+      } else if (layer?.type === 'TripsLayer') {
         const tripsLayer = this._createTripsLayer(id, layer);
         if (tripsLayer) {
           layers.push(tripsLayer);
+        }
+      } else if (layer?.type === 'PolygonLayer') {
+        const polygonLayer = this._createPolygonLayer(id, layer);
+        if (polygonLayer) {
+          layers.push(polygonLayer);
         }
       }
     }
@@ -760,10 +771,7 @@ export class DeckGlAdapter implements IMapAdapter {
     id: string,
     layer: IJGISLayer,
   ): TripsLayer<TripPath> | undefined {
-    const parameters = layer.parameters as
-      | IVectorLayer
-      | ITripsLayer
-      | undefined;
+    const parameters = layer.parameters as ITripsLayer | undefined;
     const trips = parameters?.source
       ? this._tripSources.get(parameters.source)
       : undefined;
@@ -771,8 +779,7 @@ export class DeckGlAdapter implements IMapAdapter {
       return undefined;
     }
 
-    const style =
-      layer.type === 'TripsLayer' ? (parameters as ITripsLayer) : undefined;
+    const style = parameters;
 
     return new TripsLayer<TripPath>({
       id,
@@ -788,6 +795,36 @@ export class DeckGlAdapter implements IMapAdapter {
       jointRounded: style?.jointRounded ?? true,
       opacity: parameters?.opacity ?? 1,
       visible: layer.visible ?? true,
+    });
+  }
+
+  private _createPolygonLayer(
+    id: string,
+    layer: IJGISLayer,
+  ): PolygonLayer<PolygonRecord> | undefined {
+    const parameters = layer.parameters as IPolygonLayer | undefined;
+    const polygons = parameters?.source
+      ? this._polygonSources.get(parameters.source)
+      : undefined;
+    if (!polygons || polygons.length === 0) {
+      return undefined;
+    }
+
+    return new PolygonLayer<PolygonRecord>({
+      id,
+      data: polygons,
+      getPolygon: polygon => polygon.polygon,
+      getElevation: polygon => polygon.height ?? 0,
+      filled: parameters?.filled ?? true,
+      stroked: parameters?.stroked ?? true,
+      extruded: true,
+      getFillColor: parameters?.fillColor ?? POLYGON_FILL,
+      getLineColor: parameters?.lineColor ?? POLYGON_LINE,
+      lineWidthUnits: 'pixels',
+      lineWidthMinPixels: parameters?.lineWidthMinPixels ?? 1,
+      opacity: parameters?.opacity ?? 1,
+      visible: layer.visible ?? true,
+      pickable: true,
     });
   }
 
@@ -857,7 +894,20 @@ export class DeckGlAdapter implements IMapAdapter {
   }
 
   private async _loadTrips(id: string, source: IJGISSource): Promise<unknown> {
-    const parameters = source.parameters as ITripsSource | undefined;
+    return this._loadJsonRecords(
+      id,
+      source,
+      source.parameters as ITripsSource | undefined,
+      'trips',
+    );
+  }
+
+  private async _loadJsonRecords(
+    id: string,
+    source: IJGISSource,
+    parameters: { path?: string | null; data?: readonly unknown[] } | undefined,
+    label: string,
+  ): Promise<unknown> {
     if (parameters?.data && parameters.data.length > 0) {
       return parameters.data;
     }
@@ -865,7 +915,7 @@ export class DeckGlAdapter implements IMapAdapter {
     if (!parameters?.path) {
       this._log(
         'error',
-        `DeckGlAdapter: trips source "${source.name ?? id}" has no data or path.`,
+        `DeckGlAdapter: ${label} source "${source.name ?? id}" has no data or path.`,
       );
       return undefined;
     }
@@ -887,7 +937,7 @@ export class DeckGlAdapter implements IMapAdapter {
     } catch (error) {
       this._log(
         'error',
-        `DeckGlAdapter: trips source "${source.name ?? id}" could not be loaded: ${error}`,
+        `DeckGlAdapter: ${label} source "${source.name ?? id}" could not be loaded: ${error}`,
       );
       return undefined;
     }
@@ -895,7 +945,7 @@ export class DeckGlAdapter implements IMapAdapter {
     if (!data) {
       this._log(
         'error',
-        `DeckGlAdapter: trips source "${source.name ?? id}" could not be loaded.`,
+        `DeckGlAdapter: ${label} source "${source.name ?? id}" could not be loaded.`,
       );
       return undefined;
     }
@@ -1021,123 +1071,65 @@ export class DeckGlAdapter implements IMapAdapter {
     return { path: positions, timestamps };
   }
 
-  private async _loadGeoJSON(
-    id: string,
-    source: IJGISSource,
-  ): Promise<unknown> {
-    const parameters = source.parameters as IGeoJSONSource | undefined;
-    let data: unknown = parameters?.data;
-
-    if (!data) {
-      if (!parameters?.path) {
-        this._log(
-          'error',
-          `DeckGlAdapter: GeoJSON source "${source.name ?? id}" has no data or path.`,
-        );
-        return undefined;
-      }
-
-      data = await loadFile({
-        filepath: parameters.path,
-        type: 'GeoJSONSource',
-        model: this._model,
-      });
-    }
-
-    if (typeof data === 'string') {
-      data = JSON.parse(data) as unknown;
-    }
-
-    if (!data) {
-      this._log(
-        'error',
-        `DeckGlAdapter: GeoJSON source "${source.name ?? id}" could not be loaded.`,
-      );
-      return undefined;
-    }
-
-    return data;
-  }
-
-  /**
-   * Keeps LineStrings whose `properties.timestamps` matches the vertex count.
-   * Timestamps are shifted by the earliest value in the file so they stay
-   * inside a 32-bit float.
-   */
-  private _tripsFromGeoJSON(data: unknown, sourceName: string): TripSource {
-    const features = this._lineFeatures(data);
-    const raw: TripPath[] = [];
-    let origin: number | undefined;
+  private _polygonsFromRecords(
+    data: unknown,
+    sourceName: string,
+  ): PolygonRecord[] {
+    const records = Array.isArray(data) ? data : [];
+    const polygons: PolygonRecord[] = [];
     let loggedMismatch = false;
 
-    for (const feature of features) {
-      const coordinates = feature.geometry?.coordinates;
-      const timestamps = feature.properties?.timestamps;
-      if (!coordinates || !Array.isArray(timestamps)) {
-        continue;
-      }
-      if (
-        timestamps.length !== coordinates.length ||
-        !timestamps.every(
-          value => typeof value === 'number' && Number.isFinite(value),
-        )
-      ) {
-        if (!loggedMismatch) {
+    for (const record of records) {
+      const ring = this._polygonRing(record);
+      if (!ring) {
+        if (!loggedMismatch && record && typeof record === 'object') {
           loggedMismatch = true;
           this._log(
             'warning',
-            `DeckGlAdapter: skipping trip features in "${sourceName}" whose timestamps do not match the line.`,
+            `DeckGlAdapter: skipping polygons in "${sourceName}" that have no polygon ring.`,
           );
         }
         continue;
       }
-
-      raw.push({
-        path: coordinates.map(position => [position[0], position[1]]),
-        timestamps,
-      });
-      for (const timestamp of timestamps) {
-        origin = origin === undefined ? timestamp : Math.min(origin, timestamp);
-      }
+      polygons.push(record as PolygonRecord);
     }
 
-    const base = origin ?? 0;
-    let duration = 0;
-    const trips = raw.map(trip => {
-      const shifted = trip.timestamps.map(timestamp => timestamp - base);
-      for (const timestamp of shifted) {
-        duration = Math.max(duration, timestamp);
-      }
-      return { path: trip.path, timestamps: shifted };
-    });
-
-    if (trips.length === 0) {
+    if (polygons.length === 0) {
       this._log(
         'warning',
-        `DeckGlAdapter: GeoJSON source "${sourceName}" has no trip lines.`,
+        `DeckGlAdapter: polygon source "${sourceName}" has no polygons.`,
       );
     }
 
-    return { trips, duration };
+    return polygons;
   }
 
-  private _lineFeatures(data: unknown): TripFeature[] {
-    if (!data || typeof data !== 'object') {
-      return [];
+  private _polygonRing(record: unknown): LngLat[] | undefined {
+    if (!record || typeof record !== 'object') {
+      return undefined;
     }
 
-    const record = data as TripFeature;
-    if (record.type === 'FeatureCollection' && Array.isArray(record.features)) {
-      return record.features.filter(
-        feature => feature.geometry?.type === 'LineString',
-      );
+    const ring = (record as { polygon?: unknown }).polygon;
+    if (!Array.isArray(ring) || ring.length < 3) {
+      return undefined;
     }
 
-    if (record.type === 'Feature' && record.geometry?.type === 'LineString') {
-      return [record];
+    const positions: LngLat[] = [];
+    for (const position of ring) {
+      if (
+        !Array.isArray(position) ||
+        position.length < 2 ||
+        typeof position[0] !== 'number' ||
+        typeof position[1] !== 'number' ||
+        !Number.isFinite(position[0]) ||
+        !Number.isFinite(position[1])
+      ) {
+        return undefined;
+      }
+      positions.push([position[0], position[1]]);
     }
 
-    return [];
+    return positions;
   }
 
   // this shouldnt be in each adapter
@@ -1180,6 +1172,7 @@ export class DeckGlAdapter implements IMapAdapter {
   private _tripFrame?: number;
   private _rasterSources = new Map<string, RasterTileTemplate>();
   private _tripSources = new Map<string, TripSource>();
+  private _polygonSources = new Map<string, PolygonRecord[]>();
   private _syncViewportThrottled: () => void;
   private _syncPointer = throttle((coordinates: LngLat | null) => {
     const pointer = coordinates

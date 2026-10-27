@@ -1616,6 +1616,11 @@ export class OpenLayersAdapter implements IMapAdapter {
         // Animated trips are only supported by the DeckGL adapter.
         return;
       }
+
+      case 'PolygonLayer': {
+        // Contour polygons are only supported by the DeckGL adapter.
+        return;
+      }
     }
 
     // OpenLayers doesn't have name/id field so add it

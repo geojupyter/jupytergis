@@ -16,6 +16,7 @@ export namespace LayerCreationCommandIDs {
   export const newGeoZarrWithParams = 'jupytergis:newGeoZarrWithParams';
   export const newShapefileWithParams = 'jupytergis:newShapefileWithParams';
   export const newTripsWithParams = 'jupytergis:newTripsWithParams';
+  export const newPolygonWithParams = 'jupytergis:newPolygonWithParams';
 }
 
 type LayerCreationSpec = {
@@ -365,6 +366,44 @@ export function addLayerCreationCommands(options: {
         widthMinPixels: p.widthMinPixels ?? 4,
         capRounded: p.capRounded ?? true,
         jointRounded: p.jointRounded ?? true,
+      }),
+    },
+    {
+      id: LayerCreationCommandIDs.newPolygonWithParams,
+      label: 'New Polygon Layer From Parameters',
+      caption:
+        'Add a new polygon layer (by file path or URL) and add it to the given JupyterGIS file',
+      sourceType: 'PolygonSource',
+      layerType: 'PolygonLayer',
+      sourceSchema: {
+        type: 'object',
+        required: ['path'],
+        properties: { path: { type: 'string' } },
+      },
+      layerParamsSchema: {
+        opacity: { type: 'number', default: 1 },
+        filled: { type: 'boolean', default: true },
+        stroked: { type: 'boolean', default: true },
+        fillColor: {
+          type: 'array',
+          items: { type: 'number' },
+          default: [0, 128, 255, 160],
+        },
+        lineColor: {
+          type: 'array',
+          items: { type: 'number' },
+          default: [80, 80, 80],
+        },
+        lineWidthMinPixels: { type: 'number', default: 1 },
+      },
+      buildParameters: (p, id) => ({
+        source: id,
+        opacity: p.opacity ?? 1,
+        filled: p.filled ?? true,
+        stroked: p.stroked ?? true,
+        fillColor: p.fillColor ?? [0, 128, 255, 160],
+        lineColor: p.lineColor ?? [80, 80, 80],
+        lineWidthMinPixels: p.lineWidthMinPixels ?? 1,
       }),
     },
   ];

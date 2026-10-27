@@ -26,6 +26,7 @@ const LAYER_SCHEMAS = {
   StorySegmentLayer: 'layers/storySegmentLayer.json',
   TerrainLayer: 'layers/terrainLayer.json',
   TripsLayer: 'layers/tripsLayer.json',
+  PolygonLayer: 'layers/polygonLayer.json',
 };
 
 const SOURCE_SCHEMAS = {
@@ -41,6 +42,7 @@ const SOURCE_SCHEMAS = {
   FeatureStoreSource: 'sources/featureStoreSource.json',
   MarkerSource: 'sources/markerSource.json',
   TripsSource: 'sources/tripsSource.json',
+  PolygonSource: 'sources/polygonSource.json',
 };
 
 function findJgisFiles(dir, files = []) {

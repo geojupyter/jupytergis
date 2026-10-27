@@ -43,6 +43,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     OpenEOTileSource: false,
     FeatureStoreSource: false,
     TripsSource: false,
+    PolygonSource: false,
   },
   layers: {
     RasterLayer: true,
@@ -57,6 +58,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     OpenEOTileLayer: false,
     StacLayer: false,
     TripsLayer: false,
+    PolygonLayer: false,
   },
   addMarker: false,
   identify: false,
@@ -89,6 +91,7 @@ const DECKGL_FEATURES: IMapAdapterFeatures = {
     OpenEOTileSource: false,
     FeatureStoreSource: false,
     TripsSource: true,
+    PolygonSource: true,
   },
   layers: {
     RasterLayer: true,
@@ -103,6 +106,7 @@ const DECKGL_FEATURES: IMapAdapterFeatures = {
     OpenEOTileLayer: false,
     StacLayer: false,
     TripsLayer: true,
+    PolygonLayer: true,
   },
   addMarker: false,
   identify: false,
@@ -135,6 +139,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     OpenEOTileSource: true,
     FeatureStoreSource: true,
     TripsSource: false,
+    PolygonSource: false,
   },
   layers: {
     RasterLayer: true,
@@ -149,6 +154,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     OpenEOTileLayer: true,
     StacLayer: true,
     TripsLayer: false,
+    PolygonLayer: false,
   },
   addMarker: true,
   identify: true,
@@ -241,6 +247,7 @@ const LAYER_ENTRIES: ILayerEntry[] = [
     source: 'FeatureStoreSource',
   },
   { label: 'Trips', layer: 'TripsLayer', source: 'TripsSource' },
+  { label: 'Polygons', layer: 'PolygonLayer', source: 'PolygonSource' },
 ];
 
 type ToolKey =

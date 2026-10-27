@@ -63,6 +63,8 @@ import type {
   ITerrainLayer,
   ITripsLayer,
   ITripsSource,
+  IPolygonLayer,
+  IPolygonSource,
   IJGISFeatureStores,
   IFeatureStoreFeature,
   IFeatureStoreGeometry,
@@ -761,7 +763,8 @@ export type ILayerGalleryEntry = {
     | IGeoZarrLayer
     | IOpenEOTileLayer
     | ITerrainLayer
-    | ITripsLayer;
+    | ITripsLayer
+    | IPolygonLayer;
   sourceType: SourceType;
   sourceParameters:
     | IGeoJSONSource
@@ -776,7 +779,8 @@ export type ILayerGalleryEntry = {
     | IShapefileSource
     | IVectorTileSource
     | IOpenEOTileSource
-    | ITripsSource;
+    | ITripsSource
+    | IPolygonSource;
   provider: string;
   description: string;
 };
