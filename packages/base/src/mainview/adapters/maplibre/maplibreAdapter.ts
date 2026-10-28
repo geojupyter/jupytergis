@@ -623,19 +623,22 @@ export class MapLibreAdapter implements IMapAdapter {
     }
   }
 
-  private async _replaceSource(id: string, source: IJGISSource): Promise<void> {
+  private async _replaceSource(
+    sourceId: string,
+    source: IJGISSource,
+  ): Promise<void> {
     const layers = this._model.getLayers();
 
     // Every JGIS layer currently drawn from this source.
     const dependentIds = Object.keys(layers).filter(
       layerId =>
-        layers[layerId].parameters?.source === id &&
+        layers[layerId].parameters?.source === sourceId &&
         this._layerSubIds.has(layerId),
     );
 
     if (dependentIds.length === 0) {
-      this.removeSource(id);
-      await this.addSource(id, source);
+      this.removeSource(sourceId);
+      await this.addSource(sourceId, source);
       return;
     }
 
@@ -665,16 +668,16 @@ export class MapLibreAdapter implements IMapAdapter {
       this._removeStyleLayers(layerId);
     }
 
-    this.removeSource(id);
-    await this.addSource(id, source);
+    this.removeSource(sourceId);
+    await this.addSource(sourceId, source);
 
-    if (!this._map.getSource(id)) {
+    if (!this._map.getSource(sourceId)) {
       for (const { layerId } of placements) {
         this.removeLayer(layerId);
         this._callbacks?.onLayerError?.(
           layerId,
-          this._sourceErrors.get(id) ??
-            `Source "${source.name ?? id}" could not be reloaded.`,
+          this._sourceErrors.get(sourceId) ??
+            `Source "${source.name ?? sourceId}" could not be reloaded.`,
         );
       }
       return;
@@ -725,8 +728,9 @@ export class MapLibreAdapter implements IMapAdapter {
         }
       }
 
-      this._sourceToLayerMap.set(id, layerId);
+      this._sourceToLayerMap.set(sourceId, layerId);
       this._trackLayerViewState(layerId); // extent may have changed
+      this._callbacks?.onLayerLoaded?.(layerId);
     }
   }
 
@@ -1011,6 +1015,13 @@ export class MapLibreAdapter implements IMapAdapter {
 
       this._insertIntoLayerOrder(id, index);
       this._trackLayerViewState(id);
+
+      // _buildMapLayer reports failures itself; only a layer that is really
+      // on the map counts as loaded (lets the UI clear its error state).
+      const subIds = this._layerSubIds.get(id) ?? [];
+      if (subIds.length > 0 && subIds.every(s => this._map.getLayer(s))) {
+        this._callbacks?.onLayerLoaded?.(id);
+      }
 
       this._settledLayers.add(id);
       this._callbacks?.onLayerInserted?.(this._settledLayers.size);

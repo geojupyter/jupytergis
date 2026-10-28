@@ -64,6 +64,11 @@ import {
   createGeoJSONFeaturePatcher,
   type PatchGeoJSONFeatureAttributes,
 } from './geoJsonFeaturePatch';
+import {
+  clearLayerError,
+  clearLayerErrors,
+  setLayerError,
+} from './layersErrorRegistry';
 import { MainViewModel } from './mainviewmodel';
 import {
   createMapAdapter,
@@ -440,6 +445,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     if (this._mapAdapter) {
       this._mapAdapter.destroy();
       setMapFeatures(this._model, undefined);
+      clearLayerErrors(this._model);
     }
 
     this._mainViewModel.dispose();
@@ -529,6 +535,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           this.setState(old => ({ ...old, loadingLayer: false }));
         },
         onLayerError: (id, message) => {
+          // greys the layer out
+          setLayerError(this._model, id, String(message));
           const isDuplicate = this.state.loadingErrors.find(
             item => item.id === id && item.error === message,
           );
@@ -542,6 +550,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             ],
           }));
           void showErrorMessage('Failed to load layer', message);
+        },
+        onLayerLoaded: id => {
+          clearLayerError(this._model, id);
         },
         onClientPointerPositionChanged: () => {
           if (!this._mapAdapter) {
@@ -1094,6 +1105,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._mapAdapter = undefined;
       this._mapAdapterType = undefined;
       setMapFeatures(this._model, undefined);
+      // The new adapter reports its own failures; drop the old adapter's.
+      clearLayerErrors(this._model);
 
       // Reset the loading state that the new adapter will report again
       this.setState(old => ({
@@ -1180,6 +1193,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
       if (!newLayer || Object.keys(newLayer).length === 0) {
         this._mapAdapter.removeLayer(id);
+        clearLayerError(this._model, id);
         if (
           this._model.currentMode === 'drawing' &&
           this._model.checkIfIsADrawVectorLayer(oldLayer as IJGISLayer)
