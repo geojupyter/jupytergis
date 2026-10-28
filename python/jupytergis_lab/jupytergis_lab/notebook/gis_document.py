@@ -272,7 +272,7 @@ class GISDocument(CommWidget):
         global AWAIT_WARN_DONE
         if not self.supports_top_level_await and not AWAIT_WARN_DONE:
             warnings.warn(
-                "The JupyterGIS Python API is better experienced with top level await support for comm messages (versions requirement: ipykernel>6.0.0 or xeus-python>0.8.0.)",
+                "The JupyterGIS Python API is better experienced with top level await support for comm messages (versions requirement: ipykernel>=6 or xeus-python>=0.8)",
                 stacklevel=2,
             )
             AWAIT_WARN_DONE = True
