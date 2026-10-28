@@ -175,32 +175,21 @@ def _openeo_view_extent(extent: list[float]) -> list[float]:
     return [minx, miny, maxx, maxy]
 
 
-def _find_by_name_or_id[T: JGISObject](
-    objects: dict[str, T],
-    name_or_id: str,
-    kind: str,
-) -> T:
-    """Look an object up by id, falling back to an unambiguous name."""
-    if name_or_id in objects:
-        return objects[name_or_id]
-
-    matches = [obj for obj in objects.values() if obj.name == name_or_id]
+def _find_by_name[T: JGISObject](objects: list[T], name: str, kind: str) -> T:
+    """Look an object up by its name, which must be unambiguous."""
+    matches = [obj for obj in objects if obj.name == name]
 
     if not matches:
-        raise KeyError(f"No {kind} found with name or ID: {name_or_id!r}")
+        raise KeyError(f"No {kind} found with name: {name!r}")
 
     if len(matches) > 1:
-        ids = ", ".join(sorted(str(match.id) for match in matches))
-        raise ValueError(
-            f"{len(matches)} {kind}s are named {name_or_id!r}. "
-            f"Pass one of these ids instead: {ids}",
-        )
+        raise ValueError(f"{len(matches)} {kind}s are named {name!r}")
 
     return matches[0]
 
 
 def _layer_id(layer: str | JGISLayer) -> str:
-    return layer if isinstance(layer, str) else str(layer.id)
+    return layer if isinstance(layer, str) else str(layer._id)
 
 
 class GISDocument(CommWidget):
@@ -377,31 +366,34 @@ class GISDocument(CommWidget):
             for layer_id, layer in (self._layers.to_py() or {}).items()
         }
 
-    @property
-    def sources(self) -> dict[str, JGISSource]:
-        """Get the document sources, keyed by source id."""
+    def _source_objects(self) -> dict[str, JGISSource]:
         return {
             source_id: OBJECT_FACTORY.read_source(source_id, source, self)
             for source_id, source in (self._sources.to_py() or {}).items()
         }
 
-    def get_layer(self, name_or_id: str) -> JGISLayer:
-        """Find a layer by id, or by name when the name is unambiguous.
+    @property
+    def sources(self) -> list[JGISSource]:
+        """Get the document sources."""
+        return list(self._source_objects().values())
 
-        :param name_or_id: The layer id, or the layer name.
+    def get_layer(self, name: str) -> JGISLayer:
+        """Find a layer by name.
+
+        :param name: The layer name.
         :raises KeyError: If nothing matches.
         :raises ValueError: If several layers share that name.
         """
-        return _find_by_name_or_id(self._layer_objects(), name_or_id, "layer")
+        return _find_by_name(list(self._layer_objects().values()), name, "layer")
 
-    def get_source(self, name_or_id: str) -> JGISSource:
-        """Find a source by id, or by name when the name is unambiguous.
+    def get_source(self, name: str) -> JGISSource:
+        """Find a source by name.
 
-        :param name_or_id: The source id, or the source name.
+        :param name: The source name.
         :raises KeyError: If nothing matches.
         :raises ValueError: If several sources share that name.
         """
-        return _find_by_name_or_id(self.sources, name_or_id, "source")
+        return _find_by_name(self.sources, name, "source")
 
     @property
     def layer_tree(self) -> list[Any] | None:
@@ -1670,11 +1662,6 @@ class JGISObject(BaseModel):
             return object_type
 
     @property
-    def id(self) -> str | None:
-        """The identifier this object is stored under, when it is stored."""
-        return self._id
-
-    @property
     def document(self) -> GISDocument | None:
         """The document this object was read from."""
         return self._parent
@@ -1797,7 +1784,7 @@ class JGISLayer(JGISObject):
 
         self._parent.apply_symbology(self, symbology)
 
-        self._parameters = self._parent.get_layer(self._id)._parameters
+        self._parameters = self._parent._layer_objects()[self._id]._parameters
 
     @property
     def source(self) -> JGISSource | None:
@@ -1807,7 +1794,7 @@ class JGISLayer(JGISObject):
         if source_id is None or self._parent is None:
             return None
 
-        return self._parent.sources.get(source_id)
+        return self._parent._source_objects().get(source_id)
 
 
 class JGISSource(JGISObject):

@@ -25,7 +25,7 @@ class TestZoomTo:
         layer = self.doc.add_raster_layer(TEST_URL, zoom_to=True)
 
         self.doc._comm.send.assert_called_once_with(
-            data={"type": "zoom-to", "layerId": layer.id},
+            data={"type": "zoom-to", "layerId": layer._id},
         )
 
     def test_default_does_not_request_zoom(self):
@@ -49,5 +49,5 @@ class TestZoomTo:
         self.doc.zoom_to_layer(layer)
 
         self.doc._comm.send.assert_called_once_with(
-            data={"type": "zoom-to", "layerId": layer.id},
+            data={"type": "zoom-to", "layerId": layer._id},
         )

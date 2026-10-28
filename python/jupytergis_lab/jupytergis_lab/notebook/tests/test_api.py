@@ -65,8 +65,8 @@ class TestGeoPackageVectorLayer(TestDocument):
     def test_sourcelayer(self):
         self.doc._is_ready = True
         gpkg_layers = self.doc.add_geopackage_vector_layer(TEST_GPKG_VECTOR)
-        assert [layer.id for layer in self.doc.layers] == [
-            layer.id for layer in gpkg_layers
+        assert [layer._id for layer in self.doc.layers] == [
+            layer._id for layer in gpkg_layers
         ]
 
 
@@ -74,8 +74,8 @@ class TestGeoPackageRasterLayer(TestDocument):
     def test_sourcelayer(self):
         self.doc._is_ready = True
         gpkg_layers = self.doc.add_geopackage_raster_layer(TEST_GPKG_RASTER)
-        assert [layer.id for layer in self.doc.layers] == [
-            layer.id for layer in gpkg_layers
+        assert [layer._id for layer in self.doc.layers] == [
+            layer._id for layer in gpkg_layers
         ]
 
 
@@ -100,7 +100,7 @@ class TestLayerAndSourceObjects(TestDocument):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
 
         assert self.doc.layers == [layer]
-        assert layer.id in self.doc.layer_tree
+        assert layer._id in self.doc.layer_tree
         assert layer.name == "Basemap"
         assert layer.type == LayerType.RasterLayer
         assert layer.visible is True
@@ -114,42 +114,38 @@ class TestLayerAndSourceObjects(TestDocument):
         assert source.get_parameter("url") == self.RASTER_URL
 
     def test_sources_are_public(self):
-        source_id = self.doc.add_raster_layer(url=self.RASTER_URL).get_parameter(
-            "source",
-        )
+        layer = self.doc.add_raster_layer(url=self.RASTER_URL)
 
-        assert source_id in self.doc.sources
-        assert self.doc.sources[source_id].id == source_id
+        assert self.doc.sources == [layer.source]
 
     def test_source_lists_the_layers_using_it(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
 
-        assert [user.id for user in layer.source.layers] == [layer.id]
+        assert [user._id for user in layer.source.layers] == [layer._id]
 
-    def test_get_layer_by_id_and_by_name(self):
+    def test_get_layer_by_name(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
 
-        assert self.doc.get_layer(layer.id).id == layer.id
-        assert self.doc.get_layer("Basemap").id == layer.id
+        assert self.doc.get_layer("Basemap")._id == layer._id
+
+        with pytest.raises(KeyError):
+            self.doc.get_layer(layer._id)
 
     def test_get_layer_without_a_match_raises(self):
         with pytest.raises(KeyError, match="No layer found"):
             self.doc.get_layer("Nope")
 
     def test_get_layer_with_an_ambiguous_name_raises(self):
-        first = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
-        second = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+        self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
+        self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
 
-        with pytest.raises(ValueError, match="2 layers are named") as error:
+        with pytest.raises(ValueError, match="2 layers are named"):
             self.doc.get_layer("Basemap")
-
-        assert first.id in str(error.value)
-        assert second.id in str(error.value)
 
     def test_get_source_by_name(self):
         source = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap").source
 
-        assert self.doc.get_source(source.name).id == source.id
+        assert self.doc.get_source(source.name)._id == source._id
 
     def test_unknown_types_read_back_with_raw_parameters(self):
         # A type this version has no model for still has to read back, rather
@@ -166,12 +162,12 @@ class TestLayerAndSourceObjects(TestDocument):
             "parameters": {"source": "source-1", "opacity": 0.5},
         }
 
-        layer = self.doc.get_layer("layer-1")
+        layer = self.doc.get_layer("Shapes")
 
         assert isinstance(layer._parameters, dict)
         assert layer.get_parameter("opacity") == 0.5
         assert layer.source.name == "Shapes"
-        assert isinstance(self.doc.sources["source-1"]._parameters, dict)
+        assert isinstance(self.doc.get_source("Shapes")._parameters, dict)
 
     def test_unknown_parameters_are_not_dropped(self):
         self.doc._layers["layer-1"] = {
@@ -181,29 +177,29 @@ class TestLayerAndSourceObjects(TestDocument):
             "parameters": {"source": "source-1", "opacity": 1.0, "unknown": 7},
         }
 
-        assert self.doc.get_layer("layer-1").get_parameter("unknown") == 7
+        assert self.doc.get_layer("Future").get_parameter("unknown") == 7
 
     def test_layers_follow_the_layer_tree_with_groups_as_sub_lists(self):
         first = self.doc.add_raster_layer(url=self.RASTER_URL, name="First")
         second = self.doc.add_raster_layer(url=self.RASTER_URL, name="Second")
         self.doc._layerTree.clear()
         self.doc._layerTree.extend(
-            [first.id, Map({"name": "Group", "layers": [second.id]})],
+            [first._id, Map({"name": "Group", "layers": [second._id]})],
         )
 
         layers = self.doc.layers
 
-        assert [layer.id for layer in layers[:1]] == [first.id]
+        assert [layer._id for layer in layers[:1]] == [first._id]
         assert isinstance(layers[1], list)
         assert layers[1].name == "Group"
-        assert [layer.id for layer in layers[1]] == [second.id]
+        assert [layer._id for layer in layers[1]] == [second._id]
 
     def test_setting_a_layer_field_updates_the_document(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
 
         layer.visible = False
 
-        assert self.doc._layers[layer.id]["visible"] is False
+        assert self.doc._layers[layer._id]["visible"] is False
 
     def test_parameters_are_not_exposed(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
@@ -218,9 +214,9 @@ class TestLayerAndSourceObjects(TestDocument):
         layer.source.url = url
 
         assert layer.opacity == 0.5
-        assert self.doc._layers[layer.id]["parameters"]["opacity"] == 0.5
+        assert self.doc._layers[layer._id]["parameters"]["opacity"] == 0.5
         assert layer.source.url == url
-        assert self.doc._sources[layer.source.id]["parameters"]["url"] == url
+        assert self.doc._sources[layer.source._id]["parameters"]["url"] == url
         assert "opacity" in dir(layer)
 
     def test_raw_parameters_read_and_write_as_attributes(self):
@@ -230,7 +226,7 @@ class TestLayerAndSourceObjects(TestDocument):
             "visible": True,
             "parameters": {"opacity": 0.5},
         }
-        layer = self.doc.get_layer("layer-1")
+        layer = self.doc.get_layer("Shapes")
 
         layer.opacity = 0.2
 
@@ -240,7 +236,7 @@ class TestLayerAndSourceObjects(TestDocument):
     def test_layer_source_is_the_source_object_not_its_id(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
 
-        assert layer.source.id == layer.get_parameter("source")
+        assert layer.source._id == layer.get_parameter("source")
 
     def test_unknown_attribute_raises(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
@@ -407,7 +403,7 @@ class TestGeoJSONGrammarSymbology(TestDocument):
 
         layer.symbology = [[constant("#00FF00").encoding("fill")]]
 
-        stored = self.doc._layers[layer.id]["parameters"]["symbologyState"]
+        stored = self.doc._layers[layer._id]["parameters"]["symbologyState"]
         assert len(stored["layers"]) == 1
         assert len(layer.symbology.layers) == 1
 
