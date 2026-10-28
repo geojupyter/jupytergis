@@ -16,6 +16,7 @@ import {
 } from '@openeo/js-client';
 // @ts-expect-error
 import Environment from '@openeo/js-client/src/env';
+import { LoadFunction } from 'ol/Tile';
 import TileLayer from 'ol/layer/Tile';
 import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
@@ -31,6 +32,12 @@ Environment.axios.defaults.xsrfCookieName = '_xsrf';
 Environment.axios.defaults.xsrfHeaderName = 'X-XSRFToken';
 
 const CONNECTIONS: { [serverUrl: string]: Connection } = {};
+
+/**
+ * In case of rate limit issues on the backend, we retry this amout of milliseconds
+ */
+const TILE_RETRY_RATE = 2000;
+const TILE_MAX_RETRY = 4;
 
 /**
  * Singleton event hub for OpenEO connection lifecycle. Mainly used so the
@@ -417,10 +424,9 @@ export interface IOpenEOTileSourceOptions extends XYZOptions {
 
 export class OpenEOTileSource extends XYZSource {
   constructor(options: IOpenEOTileSourceOptions) {
-    super({
-      ...options,
-      url: '{z},{x},{y}',
-      tileLoadFunction: async (tile: any, _src: string) => {
+    const tileLoadFunction =
+      (retries: number): LoadFunction =>
+      async (tile: any, _src: string) => {
         await this._connected.promise;
 
         let url = this._url;
@@ -428,6 +434,12 @@ export class OpenEOTileSource extends XYZSource {
         if (!url) {
           throw new Error('XYZ URL undefined');
         }
+
+        retries -= 1;
+        const retry: LoadFunction = async (tile: any, _src: string) => {
+          await new Promise(resolve => setTimeout(resolve, TILE_RETRY_RATE));
+          return tileLoadFunction(retries)(tile, _src);
+        };
 
         const [z, x, y] = tile.tileCoord;
 
@@ -443,9 +455,13 @@ export class OpenEOTileSource extends XYZSource {
         try {
           res = await fetch(url, { method: 'GET' });
         } catch (err: any) {
-          this._reportTileError(
-            `Tile request failed: ${err?.message ?? String(err)}`,
-          );
+          const errorMessage: string = err?.message ?? String(err);
+
+          if (errorMessage.toLowerCase().includes('rate limit')) {
+            return retry(tile, _src);
+          }
+
+          this._reportTileError(`Tile request failed: ${errorMessage}`);
           tile.setState(3);
           return;
         }
@@ -467,6 +483,11 @@ export class OpenEOTileSource extends XYZSource {
           } catch {
             /* response body unreadable */
           }
+
+          if (detail.toLowerCase().includes('rate limit')) {
+            return retry(tile, _src);
+          }
+
           this._reportTileError(
             `HTTP ${res.status} from OpenEO tile service${detail ? `: ${detail}` : ''}`,
           );
@@ -476,7 +497,12 @@ export class OpenEOTileSource extends XYZSource {
 
         const blob = await res.blob();
         tile.getImage().src = URL.createObjectURL(blob);
-      },
+      };
+
+    super({
+      ...options,
+      url: '{z},{x},{y}',
+      tileLoadFunction: tileLoadFunction(TILE_MAX_RETRY),
     });
 
     this.serverUrl = options.serverUrl;
