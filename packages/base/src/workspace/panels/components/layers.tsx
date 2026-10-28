@@ -1176,6 +1176,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
                 const next = Array.isArray(value) ? value[0] : value;
                 handleOpacityChange(next / 100);
               }}
+              disabled={!!loadError}
             />
           </span>
         )}
@@ -1184,6 +1185,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           title={'Move map to the extent of the layer'}
           onClick={moveToExtent}
           minimal
+          disabled={!!loadError}
         >
           <LabIcon.resolveReact
             icon={targetWithCenterIcon}
@@ -1196,6 +1198,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           minimal
           onClick={handleLayerMoreClick}
           title="More options"
+          disabled={!!loadError}
         >
           <FontAwesomeIcon icon={faEllipsisVertical} />
         </Button>
