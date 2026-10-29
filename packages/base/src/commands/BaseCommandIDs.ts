@@ -20,6 +20,9 @@ export const toggleLocationIndicator = 'jupytergis:toggleLocationIndicator';
 // Layers and sources creation commands
 export const openLayerBrowser = 'jupytergis:openLayerBrowser';
 
+// Map renderer
+export const openMapRendererDialog = 'jupytergis:openMapRendererDialog';
+
 // Layer and source
 export const openNewRasterDialog = 'jupytergis:openNewRasterDialog';
 export const openNewWmsDialog = 'jupytergis:openNewWmsDialog';
@@ -27,6 +30,7 @@ export const openNewVectorTileDialog = 'jupytergis:openNewVectorTileDialog';
 export const openNewShapefileDialog = 'jupytergis:openNewShapefileDialog';
 export const openNewGeoJSONDialog = 'jupytergis:openNewGeoJSONDialog';
 export const openNewHillshadeDialog = 'jupytergis:openNewHillshadeDialog';
+export const openNewTerrainDialog = 'jupytergis:openNewTerrainDialog';
 export const openNewImageDialog = 'jupytergis:openNewImageDialog';
 export const openNewGeoTiffDialog = 'jupytergis:openNewGeoTiffDialog';
 export const openNewGeoZarrDialog = 'jupytergis:openNewGeoZarrDialog';
@@ -38,6 +42,7 @@ export const drawFeaturesOnSelectedLayer =
   'jupytergis:drawFeaturesOnSelectedLayer';
 export const drawFeaturesOnNewLayer = 'jupytergis:drawFeaturesOnNewLayer';
 export const deleteSelectedFeatures = 'jupytergis:deleteSelectedFeatures';
+export const deleteSelection = 'jupytergis:deleteSelection';
 export const editSelectedFeature = 'jupytergis:editSelectedFeature';
 
 // Layer and group actions
@@ -58,9 +63,6 @@ export const invokeCompleter = 'jupytergis:invokeConsoleCompleter';
 export const removeConsole = 'jupytergis:removeConsole';
 export const executeConsole = 'jupytergis:executeConsole';
 export const selectCompleter = 'jupytergis:selectConsoleCompleter';
-
-// Tour command
-export const launchFeatureTour = 'jupytergis:launchFeatureTour';
 
 // Map Commands
 export const addAnnotation = 'jupytergis:addAnnotation';
@@ -89,3 +91,7 @@ export const duplicateStorySegment = 'jupytergis:duplicateStorySegment';
 export const removeStorySegment = 'jupytergis:removeStorySegment';
 export const storyPrev = 'jupytergis:storyPrev';
 export const storyNext = 'jupytergis:storyNext';
+
+// Tour / Help
+export const launchFeatureTour = 'jupytergis:launchFeatureTour';
+export const about = 'jupytergis:about';

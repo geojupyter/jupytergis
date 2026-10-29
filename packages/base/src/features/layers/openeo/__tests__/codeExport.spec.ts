@@ -1,19 +1,11 @@
 import { exportProcessGraphCode } from '../codeExport';
-import { OPENEO_TEMPLATES } from '../templates';
+import { NDVI_GRAPH, TRUE_COLOR_GRAPH } from './fixtures/processGraphs';
 
 const SERVER = 'https://openeo.example.org';
 
-function graphOf(id: string): Record<string, any> {
-  const template = OPENEO_TEMPLATES.find(t => t.id === id);
-  if (!template) {
-    throw new Error(`Unknown template ${id}`);
-  }
-  return template.buildGraph(template.defaults);
-}
-
 describe('exportProcessGraphCode — Python', () => {
   it('binds load_collection to the connection with the collection id positional', () => {
-    const code = exportProcessGraphCode(graphOf('true-color'), 'python', {
+    const code = exportProcessGraphCode(TRUE_COLOR_GRAPH, 'python', {
       serverUrl: SERVER,
     });
     expect(code).toContain('import openeo');
@@ -33,7 +25,7 @@ describe('exportProcessGraphCode — Python', () => {
   });
 
   it('emits an authenticate line with credential placeholders', () => {
-    const code = exportProcessGraphCode(graphOf('true-color'), 'python', {
+    const code = exportProcessGraphCode(TRUE_COLOR_GRAPH, 'python', {
       serverUrl: SERVER,
     });
     expect(code).toContain(
@@ -42,7 +34,7 @@ describe('exportProcessGraphCode — Python', () => {
   });
 
   it('emits callback-bearing processes as native datacube methods with def callbacks', () => {
-    const code = exportProcessGraphCode(graphOf('true-color'), 'python', {
+    const code = exportProcessGraphCode(TRUE_COLOR_GRAPH, 'python', {
       serverUrl: SERVER,
     });
     // reduce_dimension is a native method chained on the previous datacube.
@@ -56,7 +48,7 @@ describe('exportProcessGraphCode — Python', () => {
   });
 
   it('uses the generic .process() form (with explicit data) for non-native processes', () => {
-    const code = exportProcessGraphCode(graphOf('true-color'), 'python', {
+    const code = exportProcessGraphCode(TRUE_COLOR_GRAPH, 'python', {
       serverUrl: SERVER,
     });
     expect(code).toMatch(
@@ -65,7 +57,7 @@ describe('exportProcessGraphCode — Python', () => {
   });
 
   it('renders nested arithmetic callbacks (NDVI) with parameter references', () => {
-    const code = exportProcessGraphCode(graphOf('ndvi'), 'python', {
+    const code = exportProcessGraphCode(NDVI_GRAPH, 'python', {
       serverUrl: SERVER,
     });
     expect(code).toContain(
@@ -80,7 +72,7 @@ describe('exportProcessGraphCode — Python', () => {
   });
 
   it('appends the JupyterGIS snippet when requested', () => {
-    const code = exportProcessGraphCode(graphOf('ndvi'), 'python', {
+    const code = exportProcessGraphCode(NDVI_GRAPH, 'python', {
       serverUrl: SERVER,
       includeJupyterGIS: true,
       layerName: 'My NDVI',
@@ -102,7 +94,7 @@ describe('exportProcessGraphCode — Python', () => {
   });
 
   it('reproduces the live map view and disables extent-fitting when a mapView is given', () => {
-    const code = exportProcessGraphCode(graphOf('ndvi'), 'python', {
+    const code = exportProcessGraphCode(NDVI_GRAPH, 'python', {
       serverUrl: SERVER,
       includeJupyterGIS: true,
       layerName: 'My NDVI',
@@ -118,7 +110,7 @@ describe('exportProcessGraphCode — Python', () => {
   });
 
   it('omits the JupyterGIS snippet by default and hints at execute()', () => {
-    const code = exportProcessGraphCode(graphOf('ndvi'), 'python', {
+    const code = exportProcessGraphCode(NDVI_GRAPH, 'python', {
       serverUrl: SERVER,
     });
     expect(code).not.toContain('GISDocument');
@@ -128,7 +120,7 @@ describe('exportProcessGraphCode — Python', () => {
 
 describe('exportProcessGraphCode — R', () => {
   it('emits every process uniformly via the process collection p', () => {
-    const code = exportProcessGraphCode(graphOf('true-color'), 'r', {
+    const code = exportProcessGraphCode(TRUE_COLOR_GRAPH, 'r', {
       serverUrl: SERVER,
     });
     expect(code).toContain('library(openeo)');
@@ -141,7 +133,7 @@ describe('exportProcessGraphCode — R', () => {
   });
 
   it('wraps callbacks in R anonymous functions that return the result', () => {
-    const code = exportProcessGraphCode(graphOf('true-color'), 'r', {
+    const code = exportProcessGraphCode(TRUE_COLOR_GRAPH, 'r', {
       serverUrl: SERVER,
     });
     expect(code).toMatch(/reducer\d+ = function\(data\) \{/);
@@ -149,7 +141,7 @@ describe('exportProcessGraphCode — R', () => {
   });
 
   it('appends the JupyterGIS snippet when requested', () => {
-    const code = exportProcessGraphCode(graphOf('ndvi'), 'r', {
+    const code = exportProcessGraphCode(NDVI_GRAPH, 'r', {
       serverUrl: SERVER,
       includeJupyterGIS: true,
       layerName: 'My NDVI',
@@ -172,7 +164,7 @@ describe('exportProcessGraphCode — R', () => {
   });
 
   it('omits the JupyterGIS snippet by default and hints at compute_result()', () => {
-    const code = exportProcessGraphCode(graphOf('ndvi'), 'r', {
+    const code = exportProcessGraphCode(NDVI_GRAPH, 'r', {
       serverUrl: SERVER,
     });
     expect(code).not.toContain('GISDocument');

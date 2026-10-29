@@ -94,6 +94,7 @@ export async function validateProcessGraphLocally(
   processGraph: Record<string, any>,
   processes: any[] | undefined,
   userProcesses?: any[] | undefined,
+  parameters?: any[] | undefined,
 ): Promise<IValidationError[]> {
   if (!processes || processes.length === 0) {
     return [];
@@ -118,7 +119,11 @@ export async function validateProcessGraphLocally(
       }
     }
     const pg = new ProcessGraph(
-      { id: 'jp-openeo-local', process_graph: processGraph },
+      {
+        id: 'jp-openeo-local',
+        process_graph: processGraph,
+        ...(parameters?.length ? { parameters } : {}),
+      },
       registry,
     );
     await pg.validate(false);
@@ -246,15 +251,17 @@ export function mergeValidationErrors(
 export async function validateProcessGraph(
   connectionInfo: IOpenEOConnectionInfo,
   processGraph: Record<string, any>,
+  parameters?: any[] | undefined,
 ): Promise<IValidationError[]> {
   // Lazily imported so the pure validators above (used in unit tests) don't
   // pull OpenEOTileLayer's @jupyterlab/apputils dependency into the module
   // graph. Only the backend pass needs a live connection.
-  const { connect } = await import('./OpenEOTileLayer');
-  const connection = await connect(connectionInfo);
+  const { openEOConnect } = await import('./OpenEOTileLayer');
+  const connection = await openEOConnect(connectionInfo);
   const result = await connection.validateProcess({
     id: 'jp-openeo-validation',
     process_graph: processGraph,
+    ...(parameters?.length ? { parameters } : {}),
   } as any);
   return (result as any[]).map(e => ({
     code: e?.code,

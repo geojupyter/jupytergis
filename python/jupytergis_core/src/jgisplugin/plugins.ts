@@ -9,6 +9,7 @@ import {
   resetServerAvailabilityCache,
   setFeatureStoreAvailable,
   setServerProcessingEnabled,
+  showAboutDialog,
 } from '@jupytergis/base';
 import {
   IAnnotationModel,
@@ -47,6 +48,7 @@ import {
 import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
+import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 
 import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
@@ -182,8 +184,11 @@ const activate = async (
   collaborativeContentProvider: ICollaborativeContentProvider | null,
   loggerRegistry: ILoggerRegistry | null,
   urlResolverFactory: IUrlResolverFactory | null,
+  translator: ITranslator | null,
 ): Promise<void> => {
   formSchemaRegistry && state;
+  const trans = (translator ?? nullTranslator).load('jupyterlab');
+
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
   }
@@ -324,6 +329,11 @@ const activate = async (
     },
   });
 
+  app.commands.addCommand(CommandIDs.about, {
+    label: trans.__('About JupyterGIS'),
+    execute: () => showAboutDialog(trans),
+  });
+
   // Add the command to the launcher
   if (launcher) {
     launcher.add({
@@ -339,6 +349,11 @@ const activate = async (
       command: CommandIDs.createNew,
       args: { isPalette: true },
       category: PALETTE_CATEGORY,
+    });
+
+    palette.addItem({
+      command: CommandIDs.about,
+      category: trans.__('Help'),
     });
 
     palette.addItem({
@@ -364,6 +379,11 @@ const activate = async (
 
     palette.addItem({
       command: CommandIDs.openNewHillshadeDialog,
+      category: 'JupyterGIS',
+    });
+
+    palette.addItem({
+      command: CommandIDs.openNewTerrainDialog,
       category: 'JupyterGIS',
     });
 
@@ -431,6 +451,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     ICollaborativeContentProvider,
     ILoggerRegistry,
     IUrlResolverFactory,
+    ITranslator,
   ],
   autoStart: true,
   activate,

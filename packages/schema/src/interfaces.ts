@@ -60,6 +60,7 @@ import type {
   IGeoTiffLayer,
   IGeoZarrLayer,
   Modes,
+  ITerrainLayer,
   IJGISFeatureStores,
   IFeatureStoreFeature,
   IFeatureStoreGeometry,
@@ -163,13 +164,29 @@ export interface IDrawCustomAttributesAwarenessState {
   emitter?: string | null;
 }
 
+/**
+ * The draw tool as a collaborator is using it: which layer they are drawing on
+ * and which geometry they have armed. Shared so a follower can see their draw
+ * controls without entering drawing mode themselves.
+ */
+export interface IDrawSessionState {
+  layerId: string;
+  geometry?: string;
+}
+
+export interface IDrawSessionAwarenessState {
+  value?: IDrawSessionState | null;
+  emitter?: string | null;
+}
+
 export type FollowDialogKind =
   | 'symbology'
   | 'layerProperties'
   | 'layerCreation'
   | 'processing'
   | 'layerBrowser'
-  | 'storyEditor';
+  | 'storyEditor'
+  | 'drawCustomAttributes';
 
 export interface IOpenDialogState {
   kind: FollowDialogKind;
@@ -226,6 +243,7 @@ export interface IJupyterGISClientState {
   pointer: { value?: Pointer; emitter?: string | null };
   identifiedFeatures: IIdentifiedFeaturesAwarenessState;
   drawCustomAttributes: IDrawCustomAttributesAwarenessState;
+  drawSession: IDrawSessionAwarenessState;
   openDialog: IOpenDialogAwarenessState;
   dialogState: IDialogStateAwarenessState;
   dialogView: IDialogViewAwarenessState;
@@ -241,6 +259,7 @@ export const AWARENESS_STATE_FIELDS = {
   viewportState: 'viewportState',
   identifiedFeatures: 'identifiedFeatures',
   drawCustomAttributes: 'drawCustomAttributes',
+  drawSession: 'drawSession',
   openDialog: 'openDialog',
   dialogState: 'dialogState',
   dialogView: 'dialogView',
@@ -430,6 +449,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['drawCustomAttributes']>
   >;
+  drawSessionChanged: ISignal<
+    IJupyterGISModel,
+    IAwarenessFieldChange<IJupyterGISClientState['drawSession']>
+  >;
   openDialogChanged: ISignal<
     IJupyterGISModel,
     IAwarenessFieldChange<IJupyterGISClientState['openDialog']>
@@ -462,8 +485,10 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   updateLayerSignal: ISignal<IJupyterGISModel, string>;
   geolocationChanged: Signal<IJupyterGISModel, JgisCoordinates>;
   flyToGeometrySignal: Signal<IJupyterGISModel, any>;
+  deleteDrawSelection: Signal<IJupyterGISModel, { deleted: boolean }>;
   highlightFeatureSignal: Signal<IJupyterGISModel, any>;
   updateBboxSignal: Signal<IJupyterGISModel, any>;
+  projectionChangedSignal: Signal<IJupyterGISModel, string>;
   modeChanged: ISignal<IJupyterGISModel, Modes>;
 
   contentsManager: Contents.IManager | undefined;
@@ -490,6 +515,14 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     sourceId: string;
     features: FeatureLike[];
   }) => void;
+  replaceTileFeatures: ({
+    sourceId,
+    features,
+  }: {
+    sourceId: string;
+    features: Map<string, FeatureLike>;
+  }) => void;
+  clearTileFeatures: (sourceId: string) => void;
 
   getSettings(): Promise<ISettingRegistry.ISettings>;
   settingsReady: Promise<void>;
@@ -557,6 +590,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
     name: string,
     attributes: IDrawCustomAttribute[],
   ): void;
+  syncDrawSession(session: IDrawSessionState | null, emitter?: string): void;
   syncOpenDialog(dialog: IOpenDialogState | null, emitter?: string): void;
   syncDialogState(state: IDict | null, emitter?: string): void;
   setDialogStateKey(key: string, value: unknown, emitter?: string): void;
@@ -637,6 +671,7 @@ export interface IJupyterGISModel extends DocumentRegistry.IModel {
   setUIState(value: Partial<IJGISUIState>): void;
   getUIState(): IJGISUIState;
   uiStateChanged: ISignal<IJupyterGISModel, IJGISUIState>;
+  tileFeaturesChanged: ISignal<IJupyterGISModel, string>;
 }
 
 export interface IUserData {
@@ -722,7 +757,8 @@ export type ILayerGalleryEntry = {
     | IVectorTileLayer
     | IGeoTiffLayer
     | IGeoZarrLayer
-    | IOpenEOTileLayer;
+    | IOpenEOTileLayer
+    | ITerrainLayer;
   sourceType: SourceType;
   sourceParameters:
     | IGeoJSONSource

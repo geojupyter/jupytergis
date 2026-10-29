@@ -8,6 +8,7 @@ import type {
   IJGISSources,
   IJGISUIState,
   IJupyterGISModel,
+  IMapAdapterType,
   JgisCoordinates,
 } from '@jupytergis/schema';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
@@ -15,8 +16,12 @@ import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
 import type { IDrawToolAdapter } from '@/src/features/draw-tool';
 import { ClientPointer } from './CollaboratorPointers';
+import { IMapAdapterFeatures } from './mapAdapterFeatures';
 
-export type MapAdapterType = 'openlayers';
+/**
+ * Renderer used when a document does not specify one.
+ */
+export const DEFAULT_MAP_ADAPTER: IMapAdapterType = 'openlayers';
 
 export const VIEWPORT_SYNC_INTERVAL = 200;
 
@@ -24,6 +29,25 @@ export interface IMapProjection {
   code: string;
   units: string;
 }
+
+/**
+ * Cursor position in the view projection for the status bar.
+ */
+export interface ICursorReadout {
+  x: number;
+  y: number;
+  unit: string;
+}
+
+export type CursorCoordMode = 'degrees' | 'meters' | 'projection';
+
+/**
+ * Built by MainView from `ICursorReadout` + `CursorCoordMode`.
+ */
+export type ICursorDisplay =
+  | { mode: 'degrees'; lon: number; lat: number }
+  | { mode: 'meters'; x: number; y: number }
+  | { mode: 'projection'; x: number; y: number; unit: string };
 
 export interface IMapLayerComparison {
   /** The compared layers: the first shows on the left, the second on the right. */
@@ -48,6 +72,7 @@ export interface IMapAdapter {
   getZoom(): number;
   getViewportId(): string;
   getProjection(): IMapProjection;
+  setProjection(code: string): IMapProjection | undefined;
   getPixelFromCoordinate(coordinate: number[]): [number, number];
 
   registerMap(path?: string): void;
@@ -114,6 +139,8 @@ export interface IMapAdapter {
 
   drawTool: IDrawToolAdapter;
   onFeatureStoresChanged(): void;
+
+  readonly supportedFeatures: IMapAdapterFeatures;
 }
 
 export interface IMapAdapterOptions {
@@ -141,6 +168,7 @@ export interface IMapAdapterOptions {
 export interface IMapAdapterCallbacks {
   onPostRender?: () => void;
   onScaleChange?: (scale: number) => void;
+  onCursorChange?: (cursor: ICursorReadout | null) => void;
   onContextMenu?: (
     event: MouseEvent,
     lastPointerCoord: number[] | null,
@@ -160,14 +188,20 @@ export interface IMapAdapterCallbacks {
  * - OpenLayers → OpenLayers implementation
  */
 export async function createMapAdapter(
-  type: MapAdapterType,
+  type: IMapAdapterType,
   model: IJupyterGISModel,
 ): Promise<IMapAdapter> {
   switch (type) {
     case 'openlayers': {
       const { OpenLayersAdapter } =
-        await import('./adapters/openlayersAdapter');
+        await import('./adapters/openlayers/openlayersAdapter');
       return new OpenLayersAdapter(model);
+    }
+
+    case 'maplibre': {
+      const { MapLibreAdapter } =
+        await import('./adapters/maplibre/maplibreAdapter');
+      return new MapLibreAdapter(model);
     }
 
     default: {

@@ -135,6 +135,7 @@
     ],
     "latitude": 48.855574302496535,
     "longitude": 2.319315992465925,
+    "mapAdapter": "openlayers",
     "pitch": 0.0,
     "projection": "EPSG:3857",
     "zoom": 15.230368389488868
@@ -194,8 +195,6 @@
   },
   "stories": {
     "1b181980-a95a-4f23-8e5d-980c66ff93ea": {
-      "presentationBgColor": "#171B2C",
-      "presentationTextColor": "#AEBAD3",
       "showGradient": true,
       "storySegments": [
         "5f790e80-230b-4c00-8426-b3a9385937a5",

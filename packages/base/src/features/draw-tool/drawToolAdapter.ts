@@ -12,10 +12,13 @@ export interface IDrawToolAdapter {
   enterLayer(): void;
   leaveDrawMode(): void;
   deleteAtCoordinate(coordinate: number[]): boolean;
+  deleteSelectedFeatures(): boolean;
+  toggleDeleteMode(): void;
   getFeatureAtCoordinate(
     coordinate: number[],
   ): IDrawFeatureAttributes | undefined;
   updateFeatureAttributes(featureId: string, attributes: IDict<any>): boolean;
   hasFeatureAtCoordinate(coordinate: number[]): boolean;
   setDrawLayerId(layerId: string): void;
+  handleViewProjectionChanged(): void;
 }

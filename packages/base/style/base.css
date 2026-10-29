@@ -21,9 +21,19 @@
 @import url('./identify.css');
 @import url('./shared/propertyRows.css');
 @import url('./labels.css');
+@import url('./vectorDrawControls.css');
 @import url('./openeo.css');
 @import url('./shared/errorBanner.css');
 @import url('./shared/errorTip.css');
+@import url('maplibre-gl/dist/maplibre-gl.css');
+
+.jp-About-header-wordmark {
+  font-size: var(--jp-ui-font-size3);
+  font-weight: 600;
+  color: var(--jp-ui-font-color0);
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+}
 
 /* JupyterLab modal dialogs (.jp-Dialog) use z-index: 10000, which sits above
    the notification toast container (react-toastify default: 9999). Without this
@@ -327,6 +337,22 @@ button.jp-mod-styled.jp-mod-reject {
   right: 0.125rem;
 }
 
+.jgis-controls-toolbar > .maplibregl-ctrl-group:last-child {
+  align-self: flex-start;
+  margin-left: auto;
+  margin-right: 0.1rem;
+  margin-bottom: 0.1rem;
+}
+
+.jgis-controls-toolbar .maplibregl-ctrl-group button {
+  width: 24px;
+  height: 24px;
+}
+
+.maplibregl-ctrl-bottom-right {
+  display: none;
+}
+
 /* Move controls toolbar to top of map so it's not behind the bottom sheet */
 .jGIS-Mainview-Container.jgis-narrow .jgis-controls-toolbar {
   top: 0.125rem;
@@ -340,32 +366,6 @@ body[data-notebook='specta']
   top: unset;
   bottom: 0.125rem;
   align-items: flex-end;
-}
-
-.jgis-vector-draw-controls {
-  position: absolute;
-  bottom: 1.25rem;
-  right: 1.75rem;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  max-width: min(24rem, 60%);
-  padding: 0.375rem;
-  background-color: color-mix(
-    in srgb,
-    var(--jp-layout-color0),
-    transparent 50%
-  );
-  color: var(--jp-ui-font-color0);
-  border-radius: 0.375rem;
-  gap: 0.375rem;
-  z-index: 9999;
-}
-
-.jgis-vector-draw-controls-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .jGIS-Mainview-Container.jgis-narrow .jgis-panels-wrapper {

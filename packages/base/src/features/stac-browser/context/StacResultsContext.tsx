@@ -11,6 +11,10 @@ import React, {
 } from 'react';
 
 import {
+  HYDROWEB_STAC_URL,
+  ICatalogWmsEndpoint,
+} from '@/src/features/stac-browser/catalogQuery';
+import {
   IStacAsset,
   IStacItem,
   IStacPaginationLink,
@@ -49,6 +53,27 @@ interface IStacResultsContext {
     method?: string,
   ) => Promise<void>;
   executeQueryWithPage: (pageNumber: number) => Promise<void>;
+  catalogCollectionId: string;
+  setCatalogCollectionId: (id: string) => void;
+  startTime: Date | undefined;
+  setStartTime: (date: Date | undefined) => void;
+  endTime: Date | undefined;
+  setEndTime: (date: Date | undefined) => void;
+  selectCatalogCollection: (id: string) => void;
+  registerSelectCollection: (selectFn: (id: string) => void) => void;
+  wmsCollections: IWmsCollectionSummary[];
+  setWmsCollections: (collections: IWmsCollectionSummary[]) => void;
+  wmsCollection: IWmsCollectionSummary | null;
+}
+
+export interface IWmsCollectionSummary {
+  id: string;
+  title: string;
+  description: string;
+  start: string | null;
+  end: string | null;
+  previewHref: string | null;
+  layers: ICatalogWmsEndpoint[];
 }
 
 const StacResultsContext = createContext<IStacResultsContext | undefined>(
@@ -77,7 +102,15 @@ export function StacResultsProvider({
   const [paginationLinks, setPaginationLinksState] = useState<
     IStacPaginationLink[]
   >([]);
-  const [selectedUrl, setSelectedUrlState] = useState('');
+  const [catalogCollectionId, setCatalogCollectionIdState] = useState('');
+  const [startTime, setStartTimeState] = useState<Date | undefined>(undefined);
+  const [endTime, setEndTimeState] = useState<Date | undefined>(undefined);
+  const [wmsCollections, setWmsCollectionsState] = useState<
+    IWmsCollectionSummary[]
+  >([]);
+  const wmsCollection =
+    wmsCollections.find(item => item.id === catalogCollectionId) ?? null;
+  const [selectedUrl, setSelectedUrlState] = useState(HYDROWEB_STAC_URL);
   const [currentPage, setCurrentPageState] = useState(1);
   const currentPageRef = useRef(1);
 
@@ -86,10 +119,13 @@ export function StacResultsProvider({
   const handlePaginationClickRef =
     useRef<(dir: 'next' | 'previous') => Promise<void>>();
   const buildQueryRef = useRef<() => IStacQueryBodyUnion>();
+  const selectCollectionRef = useRef<(id: string) => void>(() => undefined);
+  const hasLoadedSelectedUrlRef = useRef(false);
 
   const stateDb = GlobalStateDbManager.getInstance().getStateDb();
 
-  // Load saved selected URL from StateDB on mount
+  // Load saved selected URL from StateDB on mount. hydroweb is the catalog
+  // to try when nothing has been saved yet.
   useEffect(() => {
     async function loadStacSelectedUrlFromDb() {
       const savedState = (await stateDb?.fetch(STAC_SELECTED_URL_STATE_KEY)) as
@@ -98,15 +134,21 @@ export function StacResultsProvider({
 
       if (savedState?.selectedUrl) {
         setSelectedUrlState(savedState.selectedUrl);
+      } else {
+        setSelectedUrlState(HYDROWEB_STAC_URL);
       }
+      hasLoadedSelectedUrlRef.current = true;
     }
 
     loadStacSelectedUrlFromDb();
   }, [stateDb]);
 
-  // Save selected URL to StateDB on change
+  // Save selected URL to StateDB on change, after the initial load.
   useEffect(() => {
     async function saveStacSelectedUrlToDb() {
+      if (!hasLoadedSelectedUrlRef.current) {
+        return;
+      }
       await stateDb?.save(STAC_SELECTED_URL_STATE_KEY, {
         selectedUrl,
       });
@@ -152,7 +194,41 @@ export function StacResultsProvider({
     setPaginationLinksState([]);
     setTotalResults('0');
     setTotalPages(0);
+    setCatalogCollectionIdState('');
+    setStartTimeState(undefined);
+    setEndTimeState(undefined);
+    setWmsCollectionsState([]);
   }, []);
+
+  const setStartTime = useCallback((date: Date | undefined) => {
+    setStartTimeState(date);
+  }, []);
+
+  const setEndTime = useCallback((date: Date | undefined) => {
+    setEndTimeState(date);
+  }, []);
+
+  const registerSelectCollection = useCallback(
+    (selectFn: (id: string) => void) => {
+      selectCollectionRef.current = selectFn;
+    },
+    [],
+  );
+
+  const selectCatalogCollection = useCallback((id: string) => {
+    selectCollectionRef.current(id);
+  }, []);
+
+  const setCatalogCollectionId = useCallback((id: string) => {
+    setCatalogCollectionIdState(id);
+  }, []);
+
+  const setWmsCollections = useCallback(
+    (collections: IWmsCollectionSummary[]) => {
+      setWmsCollectionsState(collections);
+    },
+    [],
+  );
 
   const setCurrentPage = useCallback((page: number) => {
     setCurrentPageState(page);
@@ -426,6 +502,17 @@ export function StacResultsProvider({
         registerBuildQuery,
         executeQuery,
         executeQueryWithPage,
+        catalogCollectionId,
+        setCatalogCollectionId,
+        startTime,
+        setStartTime,
+        endTime,
+        setEndTime,
+        selectCatalogCollection,
+        registerSelectCollection,
+        wmsCollections,
+        setWmsCollections,
+        wmsCollection,
       }}
     >
       {children}

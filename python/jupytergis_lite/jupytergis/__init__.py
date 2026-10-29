@@ -1,3 +1,3 @@
-__version__ = "0.16.7"
+__version__ = "0.17.1"
 
 from jupytergis_lab import *  # noqa

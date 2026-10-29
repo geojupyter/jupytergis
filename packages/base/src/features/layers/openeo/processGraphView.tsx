@@ -1,4 +1,5 @@
 import { Notification } from '@jupyterlab/apputils';
+import { ProcessRegistry } from '@openeo/js-processgraphs';
 import * as React from 'react';
 
 // The openEO graph editor is the `<openeo-model-builder>` custom element,
@@ -34,6 +35,8 @@ interface IProcessGraphViewProps {
   onEdit?: (graph: Record<string, any>) => void;
   /** Backend process registry — gives the editor port types. */
   processes?: any[];
+  /** Stored user-defined processes, registered under the `user` namespace. */
+  userProcesses?: any[];
   /** Backend collections — used by the editor for richer node info. */
   collections?: any[];
 }
@@ -56,8 +59,29 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
   editable = false,
   onEdit,
   processes,
+  userProcesses,
   collections,
 }) => {
+  // UDPs missing from the registry render as blocks with no parameters.
+  const processRegistry = React.useMemo(() => {
+    if (!processes?.length && !userProcesses?.length) {
+      return null;
+    }
+    const registry = new ProcessRegistry();
+    const register = (specs: any[] | undefined, namespace: string) => {
+      for (const spec of specs ?? []) {
+        try {
+          registry.add(spec, namespace);
+        } catch {
+          // Skip malformed catalog entries.
+        }
+      }
+    };
+    register(processes, 'backend');
+    register(userProcesses, 'user');
+    return registry;
+  }, [processes, userProcesses]);
+
   const onEditRef = React.useRef(onEdit);
   React.useEffect(() => {
     onEditRef.current = onEdit;
@@ -114,8 +138,8 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
     el.editable = editable;
     // Feeding the backend's process + collection registry gives the
     // ModelBuilder port type labels and lets it validate connections.
-    if (processes) {
-      el.processes = processes;
+    if (processRegistry) {
+      el.processes = processRegistry;
     }
     if (collections) {
       el.collections = collections;
@@ -224,7 +248,7 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
       el.removeEventListener('selectionChanged', onSelectionChanged);
       el.removeEventListener('error', onModelError);
     };
-  }, [graph, ready, mountKey, editable, processes, collections]);
+  }, [graph, ready, mountKey, editable, processRegistry, collections]);
 
   // Detect when the container becomes properly sized and the SVG inside
   // the ModelBuilder is still empty — force a remount until it draws.

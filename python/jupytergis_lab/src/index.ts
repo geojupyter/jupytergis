@@ -28,6 +28,7 @@ import {
 } from '@jupyterlab/rendermime';
 import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
+import { RankedMenu } from '@jupyterlab/ui-components';
 import { Menu } from '@lumino/widgets';
 
 import { notebookRendererPlugin } from './notebookrenderer';
@@ -126,6 +127,16 @@ function populateMenus(mainMenu: IMainMenu, isEnabled: () => boolean): void {
   mainMenu.editMenu.undoers.undo.add({
     id: CommandIDs.undo,
     isEnabled,
+  });
+
+  // Place next to About JupyterLab item on the help menu.
+  const help = mainMenu.helpMenu as unknown as RankedMenu;
+  const labAboutIdx = help.items.findIndex(
+    item => item.command === 'help:about',
+  );
+  help.insertItem(labAboutIdx >= 0 ? labAboutIdx + 1 : 0, {
+    command: CommandIDs.about,
+    rank: 0,
   });
 }
 

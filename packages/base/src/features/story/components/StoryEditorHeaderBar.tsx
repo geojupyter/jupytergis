@@ -13,14 +13,10 @@ import {
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import { StoryEditorSession } from '@/src/features/story/storyEditorSession';
 import { CSS_WIDTH_PRESETS } from '@/src/features/story/utils/cssWidth';
-import {
-  resolveStoryOpacity,
-  resolveStoryPresentationColorForInput,
-} from '@/src/features/story/utils/spectaPresentation';
+import { resolveStoryOpacity } from '@/src/features/story/utils/spectaPresentation';
 import { formatStoryTypeLabel } from '@/src/features/story/utils/storyEditorLabels';
 import { Badge } from '@/src/shared/components/Badge';
 import { Button } from '@/src/shared/components/Button';
-import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
   NativeSelectOption,
@@ -168,32 +164,6 @@ function StorySettingsPopover({
                 onUpdateStory({ storyPanelOpacity });
               }}
             />
-            <label className="jgis-story-editor-field">
-              <span>Background color</span>
-              <Input
-                type="color"
-                value={resolveStoryPresentationColorForInput(
-                  story.presentationBgColor,
-                  'bg',
-                )}
-                onChange={event => {
-                  onUpdateStory({ presentationBgColor: event.target.value });
-                }}
-              />
-            </label>
-            <label className="jgis-story-editor-field">
-              <span>Text color</span>
-              <Input
-                type="color"
-                value={resolveStoryPresentationColorForInput(
-                  story.presentationTextColor,
-                  'text',
-                )}
-                onChange={event => {
-                  onUpdateStory({ presentationTextColor: event.target.value });
-                }}
-              />
-            </label>
           </div>
         </div>
       </PopoverContent>

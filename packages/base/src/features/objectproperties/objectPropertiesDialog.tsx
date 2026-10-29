@@ -65,19 +65,22 @@ function ObjectPropertiesBody({
   const [tab, setTab] = React.useState<ObjectPropertiesTab>(initialTab);
 
   useFollowedState(model, 'objectProperties:tab', tab, setTab);
-
   return (
     <Tabs
       value={tab}
       onValueChange={value => setTab(value as ObjectPropertiesTab)}
-      className="jgis-object-properties-tabs"
+      className="min-h-0 w-full"
+      style={{ boxShadow: 'none' }}
     >
-      <TabsList variant="underline">
-        <TabsTrigger className="jgis-underline-indicator" value="properties">
-          Properties
+      <TabsList
+        variant="underline"
+        className="w-full shrink-0 rounded-tl-[8px] rounded-tr-[8px]"
+      >
+        <TabsTrigger className="text-sm" value="properties">
+          <span className="jgis-underline-indicator">Properties</span>
         </TabsTrigger>
-        <TabsTrigger className="jgis-underline-indicator" value="metadata">
-          Metadata
+        <TabsTrigger className="text-sm" value="metadata">
+          <span className="jgis-underline-indicator">Metadata</span>
         </TabsTrigger>
       </TabsList>
 
@@ -90,9 +93,9 @@ function ObjectPropertiesBody({
         />
       </TabsContent>
 
-      {/* Radix unmounts inactive tabs, so metadata is only read — and only
-          fetched — once the user actually opens this tab. */}
-      <TabsContent value="metadata" className={panelClass}>
+      {/* keepMounted so metadata starts loading when the dialog opens and
+          switching tabs does not remount into a loading flash. */}
+      <TabsContent value="metadata" keepMounted className={panelClass}>
         <MetadataView model={model} selectedId={selectedId} />
       </TabsContent>
     </Tabs>
@@ -126,8 +129,9 @@ export class ObjectPropertiesWidget extends Dialog<void> {
 
     // Both panels get the same fixed height and scroll internally, so the
     // dialog does not jump when the user switches tabs: the property form and
-    // the metadata view are rarely the same length.
-    const panelClass = 'h-[min(60vh,32rem)] overflow-y-auto';
+    // the metadata view are rarely the same length. min-h-0 keeps the
+    // overflow scroller below the tab list in the flex column.
+    const panelClass = 'h-[min(60vh,32rem)] min-h-0 overflow-y-auto pt-2';
 
     const body = (
       <FollowMirrorContext.Provider value={!!options.followMirror}>

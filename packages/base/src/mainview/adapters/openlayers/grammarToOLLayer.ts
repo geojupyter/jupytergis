@@ -15,6 +15,7 @@ import {
   IEncodingRule,
   IGrammarLayer,
   IGrammarSymbologyState,
+  IJGISLayer,
   IKDETransform,
 } from '@jupytergis/schema';
 import {
@@ -27,9 +28,9 @@ import LayerGroup from 'ol/layer/Group';
 import { Vector as VectorSource } from 'ol/source';
 import { Rule } from 'ol/style/flat';
 
-import { getColorMap } from './colorRampUtils';
+import { getColorMap } from '@/src/features/layers/symbology/colorRampUtils';
+import { DEFAULT_FLAT_STYLE } from '@/src/features/layers/symbology/styleBuilder';
 import { grammarToOLStyle } from './grammarToOLStyle';
-import { DEFAULT_FLAT_STYLE } from './styleBuilder';
 
 // Default OL heatmap gradient (cool → warm).
 const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
@@ -41,28 +42,38 @@ const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
 /**
  * Compile a Grammar symbology state into a single OL layer.
  *
- * isRaster=true: each grammar layer → WebGLTile (pixel-color encoding → color
- *   style), band_N fields → ['band', N] expressions.
- * isRaster=false (default): non-KDE → VectorImageLayer, KDE → HeatmapLayer.
+ * Raster layers (GeoTiff/GeoZarr): each grammar layer → WebGLTile (pixel-color
+ *   encoding → color style), band_N fields → ['band', N] expressions.
+ * Any other layer: non-KDE → VectorImageLayer, KDE → HeatmapLayer.
  *
  * When the state contains multiple grammar layers a LayerGroup is returned;
  * otherwise the appropriate single layer type is returned directly.
  *
- * `declutter` is the OL declutter group every compiled sub-layer joins, or
- * false for none. OL reads any truthy value as a group *name*, so callers pass
- * the jGIS layer id rather than `true`, which would pool every decluttered
- * layer in the map into one group and make them hide each other's symbols.
+ * `layerId` is the OL declutter group every compiled sub-layer joins when the
+ * layer has declutter on. OL reads any truthy value as a group *name*, hence
+ * the layer id rather than `true`, which would pool every decluttered layer in
+ * the map into one group and make them hide each other's symbols.
  */
-export function grammarToOLLayer(
-  state: IGrammarSymbologyState,
-  source: VectorSource | any,
-  opacity: number,
-  visible: boolean,
-  featureValues: unknown[] = [],
-  isRaster = false,
-  className?: string,
-  declutter: string | false = false,
-): Layer | LayerGroup {
+export function grammarToOLLayer({
+  layer,
+  layerId,
+  source,
+  featureValues = [],
+  className,
+}: {
+  layer: IJGISLayer;
+  layerId: string;
+  source: VectorSource | any;
+  featureValues?: unknown[];
+  className?: string;
+}): Layer | LayerGroup {
+  const parameters = layer.parameters ?? {};
+  const state = (parameters.symbologyState ?? {}) as IGrammarSymbologyState;
+  const opacity = parameters.opacity ?? 1;
+  const visible = layer.visible ?? true;
+  const isRaster =
+    layer.type === 'GeoTiffLayer' || layer.type === 'GeoZarrLayer';
+  const declutter = parameters.declutter ? layerId : false;
   const grammarLayers = state.layers ?? [];
 
   if (isRaster) {
