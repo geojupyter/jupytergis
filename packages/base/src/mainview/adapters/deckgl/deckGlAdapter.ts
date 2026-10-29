@@ -781,26 +781,46 @@ export class DeckGlAdapter implements IMapAdapter {
     } | null = null;
 
     for (const id of layerIds) {
-      const layer = this._model.getLayers()[id];
-      if (layer?.type === 'RasterLayer') {
-        const tileLayer = this._createRasterTileLayer(id, layer);
-        if (tileLayer) {
-          layers.push(tileLayer);
+      const layer = this._model.getLayer(id);
+      if (!layer) {
+        continue;
+      }
+
+      switch (layer.type) {
+        case 'RasterLayer': {
+          const created = this._createRasterTileLayer(id, layer);
+          if (!created) {
+            continue;
+          }
+
+          layers.push(created);
+
+          break;
         }
-      } else if (layer?.type === 'TripsLayer') {
-        const tripsLayer = this._createTripsLayer(id, layer);
-        if (tripsLayer) {
-          layers.push(tripsLayer.layer);
+        case 'TripsLayer': {
+          const created = this._createTripsLayer(id, layer);
+          if (!created) {
+            continue;
+          }
+
+          layers.push(created.layer);
           tripPlayback ??= {
-            from: tripsLayer.from,
-            to: tripsLayer.to,
-            animationSpeed: tripsLayer.animationSpeed,
+            from: created.from,
+            to: created.to,
+            animationSpeed: created.animationSpeed,
           };
+
+          break;
         }
-      } else if (layer?.type === 'PolygonLayer') {
-        const polygonLayer = this._createPolygonLayer(id, layer);
-        if (polygonLayer) {
-          layers.push(polygonLayer);
+        case 'PolygonLayer': {
+          const created = this._createPolygonLayer(id, layer);
+          if (!created) {
+            continue;
+          }
+
+          layers.push(created);
+
+          break;
         }
       }
     }
