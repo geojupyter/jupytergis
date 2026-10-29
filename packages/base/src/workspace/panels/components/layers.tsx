@@ -1198,7 +1198,6 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           minimal
           onClick={handleLayerMoreClick}
           title="More options"
-          disabled={!!loadError}
         >
           <FontAwesomeIcon icon={faEllipsisVertical} />
         </Button>

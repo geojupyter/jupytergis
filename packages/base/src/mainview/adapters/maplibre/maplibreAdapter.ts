@@ -730,7 +730,12 @@ export class MapLibreAdapter implements IMapAdapter {
 
       this._sourceToLayerMap.set(sourceId, layerId);
       this._trackLayerViewState(layerId); // extent may have changed
-      this._callbacks?.onLayerLoaded?.(layerId);
+
+      // _buildMapLayer can fail quietly and just return, so only report the
+      // layer as loaded when it really was built.
+      if (this._isLayerBuilt(layerId)) {
+        this._callbacks?.onLayerLoaded?.(layerId);
+      }
     }
   }
 
@@ -1017,9 +1022,8 @@ export class MapLibreAdapter implements IMapAdapter {
       this._trackLayerViewState(id);
 
       // _buildMapLayer reports failures itself; only a layer that is really
-      // on the map counts as loaded (lets the UI clear its error state).
-      const subIds = this._layerSubIds.get(id) ?? [];
-      if (subIds.length > 0 && subIds.every(s => this._map.getLayer(s))) {
+      // built counts as loaded (lets the UI clear its error state).
+      if (this._isLayerBuilt(id)) {
         this._callbacks?.onLayerLoaded?.(id);
       }
 
@@ -1197,6 +1201,17 @@ export class MapLibreAdapter implements IMapAdapter {
     }
 
     this._layerVisibility.set(id, visible);
+  }
+
+  /*
+   * True when a layer was built and everything it added is on the map.
+   */
+  private _isLayerBuilt(id: string): boolean {
+    const subIds = this._layerSubIds.get(id);
+
+    return (
+      subIds !== undefined && subIds.every(subId => this._map.getLayer(subId))
+    );
   }
 
   /** Removes the layer's MapLibre style layers but keeps its order/visibility. */
