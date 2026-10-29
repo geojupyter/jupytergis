@@ -25,7 +25,7 @@
       },
       "minItems": 3,
       "maxItems": 4,
-      "default": [253, 128, 93]
+      "default": [0, 0, 0, 255]
     },
     "trailLength": {
       "type": "number",
@@ -40,19 +40,19 @@
     },
     "widthMinPixels": {
       "type": "number",
-      "description": "Path width in pixels.",
-      "default": 4,
+      "description": "Minimum path width in pixels.",
+      "default": 1,
       "minimum": 0
     },
     "capRounded": {
       "type": "boolean",
       "description": "Round the ends of the path.",
-      "default": true
+      "default": false
     },
     "jointRounded": {
       "type": "boolean",
       "description": "Round the joints of the path.",
-      "default": true
+      "default": false
     },
     "getPath": {
       "type": "string",

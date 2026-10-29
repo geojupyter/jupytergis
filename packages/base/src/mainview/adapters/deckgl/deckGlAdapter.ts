@@ -90,9 +90,6 @@ const INCHES_PER_METER = 1000 / MM_PER_INCH;
 const EARTH_CIRCUMFERENCE_M = 40075016.686;
 /** deck.gl MapView zoom uses the same 512px tile size as MapLibre. */
 const WEB_MERCATOR_TILE_SIZE = 512;
-const TRIP_COLOR: [number, number, number] = [253, 128, 93];
-const TRIP_TRAIL_LENGTH = 120;
-const TRIP_WIDTH_PIXELS = 4;
 /** One full play-through of every trip, in wall-clock milliseconds. */
 const TRIP_LOOP_MS = 30000;
 const DEFAULT_GET_PATH = 'd => d.path';
@@ -855,14 +852,14 @@ export class DeckGlAdapter implements IMapAdapter {
           typeof stamp === 'number' ? stamp - origin : 0,
         );
       },
-      getColor: parameters?.color ?? TRIP_COLOR,
+      getColor: parameters?.color,
       currentTime: this._tripCurrentTime(duration),
-      trailLength: parameters?.trailLength ?? TRIP_TRAIL_LENGTH,
-      fadeTrail: parameters?.fadeTrail ?? true,
-      widthMinPixels: parameters?.widthMinPixels ?? TRIP_WIDTH_PIXELS,
-      capRounded: parameters?.capRounded ?? true,
-      jointRounded: parameters?.jointRounded ?? true,
-      opacity: parameters?.opacity ?? 1,
+      trailLength: parameters?.trailLength,
+      fadeTrail: parameters?.fadeTrail,
+      widthMinPixels: parameters?.widthMinPixels,
+      capRounded: parameters?.capRounded,
+      jointRounded: parameters?.jointRounded,
+      opacity: parameters?.opacity,
       visible: layer.visible ?? true,
     });
   }
