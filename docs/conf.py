@@ -87,9 +87,6 @@ intersphinx_mapping = {
 
 nitpick_ignore = [
     ("py:mod", "ypywidgets"),
-    ("py:class", "jupytergis_lab.notebook.gis_document.JGISLayer"),
-    ("py:class", "jupytergis_lab.notebook.gis_document.JGISLayerGroup"),
-    ("py:class", "jupytergis_lab.notebook.gis_document.JGISSource"),
     (
         "py:class",
         "titiler.core.algorithm.base.BaseAlgorithm",
