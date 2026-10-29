@@ -97,11 +97,7 @@ const WEB_MERCATOR_TILE_SIZE = 512;
 const MS_PER_TIMESTAMP_UNIT = 60;
 const DEFAULT_GET_PATH = 'd => d.path';
 const DEFAULT_GET_TIMESTAMPS = 'd => d.timestamps';
-const POLYGON_FILL: [number, number, number, number] = [0, 128, 255, 160];
-const POLYGON_LINE: [number, number, number] = [80, 80, 80];
 const DEFAULT_GET_POLYGON = 'd => d.polygon';
-/** deck.gl PolygonLayer default when no getElevation accessor is set. */
-const DEFAULT_ELEVATION = 1000;
 
 type LngLat = [longitude: number, latitude: number];
 
@@ -618,10 +614,7 @@ export class DeckGlAdapter implements IMapAdapter {
       ? { _container: controlsContainer }
       : {};
 
-    const widgets: Widget[] = [
-      new ScaleWidget(placement),
-      //   new CompassWidget(placement),
-    ];
+    const widgets: Widget[] = [new ScaleWidget(placement)];
 
     if (!isSpectaMode) {
       widgets.push(
@@ -671,12 +664,6 @@ export class DeckGlAdapter implements IMapAdapter {
     this._syncPointer(this._lastPointerCoord);
   };
 
-  //   private _onContextMenu = (event: MouseEvent): void => {
-  //     event.preventDefault();
-  //     event.stopPropagation();
-  //     this._callbacks?.onContextMenu?.(event, this._lastPointerCoord);
-  //   };
-
   private _onPointerLeave = (): void => {
     this._syncPointer(null);
   };
@@ -687,13 +674,11 @@ export class DeckGlAdapter implements IMapAdapter {
       return;
     }
 
-    // canvas.addEventListener('contextmenu', this._onContextMenu);
     canvas.addEventListener('pointerleave', this._onPointerLeave);
     this._canvas = canvas;
   }
 
   private _unbindCanvasEvents(): void {
-    // this._canvas?.removeEventListener('contextmenu', this._onContextMenu);
     this._canvas?.removeEventListener('pointerleave', this._onPointerLeave);
     this._canvas = undefined;
   }
@@ -804,11 +789,14 @@ export class DeckGlAdapter implements IMapAdapter {
           }
 
           layers.push(created.layer);
-          tripPlayback ??= {
-            from: created.from,
-            to: created.to,
-            animationSpeed: created.animationSpeed,
-          };
+          // One shared playhead for all trip layers (first wins). Revisit for multi-layer.
+          if (!tripPlayback && created.animationSpeed) {
+            tripPlayback = {
+              from: created.from,
+              to: created.to,
+              animationSpeed: created.animationSpeed,
+            };
+          }
 
           break;
         }
@@ -881,7 +869,7 @@ export class DeckGlAdapter implements IMapAdapter {
     layer: TripsLayer;
     from: number;
     to: number;
-    animationSpeed: number;
+    animationSpeed?: number;
   } | null {
     const parameters = layer.parameters as ITripsLayer | undefined;
     const records = parameters?.source
@@ -918,7 +906,7 @@ export class DeckGlAdapter implements IMapAdapter {
     return {
       from: timing.from,
       to: parameters?.loopLength || timing.to,
-      animationSpeed: parameters?.animationSpeed || 1,
+      animationSpeed: parameters?.animationSpeed,
       layer: new TripsLayer({
         id,
         data: trips,
@@ -971,23 +959,24 @@ export class DeckGlAdapter implements IMapAdapter {
       id,
       data: polygons,
       getPolygon: record => getPolygon(record) as LngLat[],
-      getElevation: record => {
-        if (!getElevation) {
-          return DEFAULT_ELEVATION;
-        }
-        const height = getElevation(record);
-        return typeof height === 'number' && Number.isFinite(height)
-          ? height
-          : 0;
-      },
-      filled: parameters?.filled ?? true,
-      stroked: parameters?.stroked ?? true,
-      extruded: parameters?.extruded ?? false,
-      getFillColor: parameters?.fillColor ?? POLYGON_FILL,
-      getLineColor: parameters?.lineColor ?? POLYGON_LINE,
+      ...(getElevation
+        ? {
+            getElevation: (record: unknown) => {
+              const height = getElevation(record);
+              return typeof height === 'number' && Number.isFinite(height)
+                ? height
+                : 0;
+            },
+          }
+        : {}),
+      filled: parameters?.filled,
+      stroked: parameters?.stroked,
+      extruded: parameters?.extruded,
+      getFillColor: parameters?.fillColor,
+      getLineColor: parameters?.lineColor,
       lineWidthUnits: 'pixels',
-      lineWidthMinPixels: parameters?.lineWidthMinPixels ?? 1,
-      opacity: parameters?.opacity ?? 1,
+      lineWidthMinPixels: parameters?.lineWidthMinPixels,
+      opacity: parameters?.opacity,
       visible: layer.visible ?? true,
       pickable: true,
     });
