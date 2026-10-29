@@ -90,8 +90,11 @@ const INCHES_PER_METER = 1000 / MM_PER_INCH;
 const EARTH_CIRCUMFERENCE_M = 40075016.686;
 /** deck.gl MapView zoom uses the same 512px tile size as MapLibre. */
 const WEB_MERCATOR_TILE_SIZE = 512;
-/** One full play-through of every trip, in wall-clock milliseconds. */
-const TRIP_LOOP_MS = 30000;
+/**
+ * Wall-clock milliseconds per timestamp unit at animationSpeed 1.
+ * Same factor as the deck.gl website trips example.
+ */
+const MS_PER_TIMESTAMP_UNIT = 60;
 const DEFAULT_GET_PATH = 'd => d.path';
 const DEFAULT_GET_TIMESTAMPS = 'd => d.timestamps';
 const POLYGON_FILL: [number, number, number, number] = [0, 128, 255, 160];
@@ -112,8 +115,11 @@ type RasterTileTemplate = {
 type RecordGetter = (record: unknown) => unknown;
 
 type TripTiming = {
+  /** Subtracted from stamps for TripsLayer. 0 when float32 needs no shift. */
   origin: number;
-  duration: number;
+  /** Playhead range in the same units TripsLayer sees after origin. */
+  from: number;
+  to: number;
 };
 
 /**
@@ -155,9 +161,9 @@ function compileGetter(expression: string): RecordGetter {
 }
 
 /**
- * Timestamps are stored as float32, so raw unix ms loses precision.
- * Shift by an origin (the earliest timestamp) so values fit,
- * based on the deck.gl TripsLayer docs example.
+ * TripsLayer stores timestamps as float32. When a value would lose precision
+ * (`Math.fround`), shift by an origin (earliest stamp) so values fit — same
+ * trick as the deck.gl TripsLayer docs. `origin` is 0 when no shift is needed.
  *
  * @see https://deck.gl/docs/api-reference/geo-layers/trips-layer
  */
@@ -169,6 +175,10 @@ function shiftTimestamps(timestamps: unknown, origin: number): number[] {
   return timestamps.map(stamp =>
     typeof stamp === 'number' ? stamp - origin : 0,
   );
+}
+
+function losesFloat32Precision(stamp: number): boolean {
+  return Math.fround(stamp) !== stamp;
 }
 
 /**
@@ -725,7 +735,6 @@ export class DeckGlAdapter implements IMapAdapter {
     this._publishScale(viewState);
   }
 
-  // should go away in rebase
   private _publishScale(viewState: MapViewState): void {
     const latitude = (viewState.latitude * Math.PI) / 180;
     const metersPerPixel =
@@ -765,6 +774,12 @@ export class DeckGlAdapter implements IMapAdapter {
 
     this._layerIds = layerIds;
     const layers = [];
+    let tripPlayback: {
+      from: number;
+      to: number;
+      animationSpeed: number;
+    } | null = null;
+
     for (const id of layerIds) {
       const layer = this._model.getLayers()[id];
       if (layer?.type === 'RasterLayer') {
@@ -775,7 +790,12 @@ export class DeckGlAdapter implements IMapAdapter {
       } else if (layer?.type === 'TripsLayer') {
         const tripsLayer = this._createTripsLayer(id, layer);
         if (tripsLayer) {
-          layers.push(tripsLayer);
+          layers.push(tripsLayer.layer);
+          tripPlayback ??= {
+            from: tripsLayer.from,
+            to: tripsLayer.to,
+            animationSpeed: tripsLayer.animationSpeed,
+          };
         }
       } else if (layer?.type === 'PolygonLayer') {
         const polygonLayer = this._createPolygonLayer(id, layer);
@@ -788,26 +808,38 @@ export class DeckGlAdapter implements IMapAdapter {
     // Index 0 is underneath, matching OpenLayers insertAt.
     this._deck.setProps({ layers });
 
-    const hasTrips = layers.some(layer => layer instanceof TripsLayer);
-    if (hasTrips) {
-      this._startTripAnimation();
+    if (tripPlayback) {
+      this._startTripAnimation(
+        tripPlayback.from,
+        tripPlayback.to,
+        tripPlayback.animationSpeed,
+      );
     } else {
       this._stopTripAnimation();
     }
   }
 
-  private _startTripAnimation(): void {
-    if (this._tripAnimation) {
+  private _startTripAnimation(
+    from: number,
+    to: number,
+    animationSpeed: number,
+  ): void {
+    const span = to - from;
+    const durationMs = (span * MS_PER_TIMESTAMP_UNIT) / animationSpeed;
+    const key = `${from}\0${to}\0${durationMs}`;
+    if (this._tripAnimation && this._tripPlaybackKey === key) {
       return;
     }
 
+    this._stopTripAnimation();
+    this._tripPlaybackKey = key;
     this._tripAnimation = animate({
-      from: 0,
-      to: 1,
-      duration: TRIP_LOOP_MS,
+      from,
+      to,
+      duration: durationMs,
       repeat: Infinity,
-      onUpdate: progress => {
-        this._tripProgress = progress;
+      onUpdate: time => {
+        this._tripTime = time;
         if (this._deck && this._layerIds) {
           this._syncLayers(this._layerIds);
         }
@@ -818,28 +850,26 @@ export class DeckGlAdapter implements IMapAdapter {
   private _stopTripAnimation(): void {
     this._tripAnimation?.stop();
     this._tripAnimation = undefined;
-    this._tripProgress = 0;
+    this._tripPlaybackKey = undefined;
+    this._tripTime = 0;
   }
 
-  private _tripCurrentTime(duration: number): number {
-    if (duration <= 0) {
-      return 0;
-    }
-
-    return this._tripProgress * duration;
-  }
-
-  //TODO <T>!?
   private _createTripsLayer(
     id: string,
     layer: IJGISLayer,
-  ): TripsLayer | undefined {
+  ): {
+    layer: TripsLayer;
+    from: number;
+    to: number;
+    animationSpeed: number;
+  } | null {
     const parameters = layer.parameters as ITripsLayer | undefined;
     const records = parameters?.source
       ? this._tripRecords.get(parameters.source)
       : undefined;
+
     if (!records || records.length === 0) {
-      return undefined;
+      return null;
     }
 
     const pathExpression = parameters?.getPath || DEFAULT_GET_PATH;
@@ -854,31 +884,38 @@ export class DeckGlAdapter implements IMapAdapter {
         'warning',
         `DeckGlAdapter: trips layer "${layer.name ?? id}" has no trips for ${pathExpression}.`,
       );
-      return undefined;
+
+      return null;
     }
 
-    const { origin, duration } = this._tripTiming(
+    const timing = this._tripTiming(
       parameters?.source ?? id,
       stampExpression,
       records,
       getTimestamps,
     );
 
-    return new TripsLayer({
-      id,
-      data: trips,
-      getPath: record => getPath(record) as LngLat[],
-      getTimestamps: record => shiftTimestamps(getTimestamps(record), origin),
-      getColor: parameters?.color,
-      currentTime: this._tripCurrentTime(duration),
-      trailLength: parameters?.trailLength,
-      fadeTrail: parameters?.fadeTrail,
-      widthMinPixels: parameters?.widthMinPixels,
-      capRounded: parameters?.capRounded,
-      jointRounded: parameters?.jointRounded,
-      opacity: parameters?.opacity,
-      visible: layer.visible ?? true,
-    });
+    return {
+      from: timing.from,
+      to: parameters?.loopLength || timing.to,
+      animationSpeed: parameters?.animationSpeed || 1,
+      layer: new TripsLayer({
+        id,
+        data: trips,
+        getPath: record => getPath(record) as LngLat[],
+        getTimestamps: record =>
+          shiftTimestamps(getTimestamps(record), timing.origin),
+        getColor: parameters?.color,
+        currentTime: this._tripTime,
+        trailLength: parameters?.trailLength,
+        fadeTrail: parameters?.fadeTrail,
+        widthMinPixels: parameters?.widthMinPixels,
+        capRounded: parameters?.capRounded,
+        jointRounded: parameters?.jointRounded,
+        opacity: parameters?.opacity,
+        visible: layer.visible ?? true,
+      }),
+    };
   }
 
   private _createPolygonLayer(
@@ -982,7 +1019,7 @@ export class DeckGlAdapter implements IMapAdapter {
     });
   }
 
-  // todo: make pure and resuse
+  // todo: make pure and reuse?
   private _resolveTileUrl(parameters: IRasterSource): string {
     const urlParameters = parameters.urlParameters || {};
     let url = parameters.url;
@@ -1158,25 +1195,33 @@ export class DeckGlAdapter implements IMapAdapter {
       return cached;
     }
 
-    let origin = Number.POSITIVE_INFINITY;
+    let earliest = Number.POSITIVE_INFINITY;
     let latest = Number.NEGATIVE_INFINITY;
+    let needsShift = false;
     for (const record of records) {
       const stamps = getTimestamps(record);
       if (!Array.isArray(stamps)) {
         continue;
       }
+
       for (const stamp of stamps) {
         if (typeof stamp !== 'number' || !Number.isFinite(stamp)) {
           continue;
         }
-        origin = Math.min(origin, stamp);
+        earliest = Math.min(earliest, stamp);
         latest = Math.max(latest, stamp);
+
+        if (!needsShift && losesFloat32Precision(stamp)) {
+          needsShift = true;
+        }
       }
     }
 
-    const timing = Number.isFinite(origin)
-      ? { origin, duration: latest - origin }
-      : { origin: 0, duration: 0 };
+    const timing = Number.isFinite(earliest)
+      ? needsShift
+        ? { origin: earliest, from: 0, to: latest - earliest }
+        : { origin: 0, from: earliest, to: latest }
+      : { origin: 0, from: 0, to: 0 };
     this._tripTimingCache.set(key, timing);
 
     return timing;
@@ -1229,7 +1274,8 @@ export class DeckGlAdapter implements IMapAdapter {
   private _emitBboxChanged: () => void;
   private _layerIds?: string[];
   private _tripAnimation?: AnimationControls;
-  private _tripProgress = 0;
+  private _tripPlaybackKey?: string;
+  private _tripTime = 0;
   private _rasterSources = new Map<string, RasterTileTemplate>();
   private _tripRecords = new Map<string, unknown[]>();
   private _polygonRecords = new Map<string, unknown[]>();

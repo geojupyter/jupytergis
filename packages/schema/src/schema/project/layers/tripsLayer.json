@@ -54,6 +54,17 @@
       "description": "Round the joints of the path.",
       "default": false
     },
+    "loopLength": {
+      "type": "number",
+      "description": "End of the animation playhead, in the same units as the trip timestamps. Defaults to the span of the source timestamps (max - min).",
+      "minimum": 0
+    },
+    "animationSpeed": {
+      "type": "number",
+      "description": "Playback speed. At 1, each timestamp unit lasts 60ms.",
+      "default": 1,
+      "minimum": 0
+    },
     "getPath": {
       "type": "string",
       "description": "Arrow function of one record, d. Returns the path positions.",
