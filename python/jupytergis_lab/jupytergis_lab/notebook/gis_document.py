@@ -1767,7 +1767,7 @@ class JGISLayer(JGISObject):
         | dict[str, Any]
     ) = PrivateAttr(default_factory=dict)
 
-    _type_enum: ClassVar[type[Enum] | None] = LayerType
+    _type_enum = LayerType
 
     def _store(self) -> Map | None:
         return None if self._parent is None else self._parent._layers
@@ -1816,7 +1816,7 @@ class JGISSource(JGISObject):
         | dict[str, Any]
     ) = PrivateAttr(default_factory=dict)
 
-    _type_enum: ClassVar[type[Enum] | None] = SourceType
+    _type_enum = SourceType
 
     def _store(self) -> Map | None:
         return None if self._parent is None else self._parent._sources
