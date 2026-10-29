@@ -22,7 +22,7 @@ export async function showAboutDialog(trans: TranslationBundle): Promise<void> {
       <logoIcon.react margin="7px 9.5px" height="auto" width="58px" />
       <div className="jp-About-header-info">
         <span className="jp-About-header-wordmark">
-          Jupyter<span className="text-[#2D93AD]">GIS</span>
+          Jupyter<span className="text-[#32A6C3]">GIS</span>
         </span>
         {versionInfo}
       </div>
