@@ -26,7 +26,6 @@
 @import url('./shared/errorBanner.css');
 @import url('./shared/errorTip.css');
 @import url('maplibre-gl/dist/maplibre-gl.css');
-/* @import url('@deck.gl/widgets/stylesheet.css'); */
 
 /* JupyterLab modal dialogs (.jp-Dialog) use z-index: 10000, which sits above
    the notification toast container (react-toastify default: 9999). Without this

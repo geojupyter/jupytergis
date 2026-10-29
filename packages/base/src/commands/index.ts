@@ -205,7 +205,7 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.openNewGeoZarrDialog,
   // 3D terrain layers
   CommandIDs.openNewTerrainDialog,
-  // Animated trip layers
+  // DeckGL layers
   CommandIDs.openNewTripsDialog,
   CommandIDs.openNewPolygonDialog,
   // Story maps
