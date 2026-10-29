@@ -24,7 +24,7 @@ import React from 'react';
 
 import { buildProxyUrl, getProxyEndpoint } from '@/src/shared/proxy';
 import { describeConnectionError } from '@/src/tools';
-import { expandDeviceProviders, OpenEODeviceProvider } from './deviceLogin';
+import { OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
 import { ensureSaveResult } from './templates';
 
@@ -322,10 +322,7 @@ export async function openEOConnect(
       connection.setOidcProviderFactory(info =>
         OpenEODeviceProvider.create(connection, info),
       );
-      const providers = expandDeviceProviders(
-        connection,
-        await connection.listAuthProviders(),
-      );
+      const providers = await connection.listAuthProviders();
 
       if (signIn) {
         const authProvider = providers.find(
