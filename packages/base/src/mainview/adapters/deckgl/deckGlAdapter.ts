@@ -100,7 +100,8 @@ const DEFAULT_GET_TIMESTAMPS = 'd => d.timestamps';
 const POLYGON_FILL: [number, number, number, number] = [0, 128, 255, 160];
 const POLYGON_LINE: [number, number, number] = [80, 80, 80];
 const DEFAULT_GET_POLYGON = 'd => d.polygon';
-const DEFAULT_GET_ELEVATION = 'd => d.height';
+/** deck.gl PolygonLayer default when no getElevation accessor is set. */
+const DEFAULT_ELEVATION = 1000;
 
 type LngLat = [longitude: number, latitude: number];
 
@@ -879,10 +880,11 @@ export class DeckGlAdapter implements IMapAdapter {
     }
 
     const polygonExpression = parameters?.getPolygon || DEFAULT_GET_POLYGON;
-    const elevationExpression =
-      parameters?.getElevation || DEFAULT_GET_ELEVATION;
+    const elevationExpression = parameters?.getElevation?.trim();
     const getPolygon = this._getter(polygonExpression);
-    const getElevation = this._getter(elevationExpression);
+    const getElevation = elevationExpression
+      ? this._getter(elevationExpression)
+      : undefined;
     const polygons = records.filter(record =>
       this._isRing(getPolygon(record), 3),
     );
@@ -899,6 +901,9 @@ export class DeckGlAdapter implements IMapAdapter {
       data: polygons,
       getPolygon: record => getPolygon(record) as LngLat[],
       getElevation: record => {
+        if (!getElevation) {
+          return DEFAULT_ELEVATION;
+        }
         const height = getElevation(record);
         return typeof height === 'number' && Number.isFinite(height)
           ? height
@@ -906,7 +911,7 @@ export class DeckGlAdapter implements IMapAdapter {
       },
       filled: parameters?.filled ?? true,
       stroked: parameters?.stroked ?? true,
-      extruded: true,
+      extruded: parameters?.extruded ?? false,
       getFillColor: parameters?.fillColor ?? POLYGON_FILL,
       getLineColor: parameters?.lineColor ?? POLYGON_LINE,
       lineWidthUnits: 'pixels',

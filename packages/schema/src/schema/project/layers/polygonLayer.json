@@ -27,6 +27,11 @@
       "description": "Draw the polygon outline.",
       "default": true
     },
+    "extruded": {
+      "type": "boolean",
+      "description": "Extrude the polygon based on getElevation. Prefer disabling extrusion over returning 0 from getElevation.",
+      "default": false
+    },
     "fillColor": {
       "type": "array",
       "description": "Fill color as RGB or RGBA, channels 0-255.",
@@ -60,8 +65,7 @@
     },
     "getElevation": {
       "type": "string",
-      "description": "Arrow function of one record, d. Returns the extrusion height in meters.",
-      "default": "d => d.height"
+      "description": "Arrow function of one record, d. Returns the extrusion height in meters. Only used when extruded is true. If omitted, every polygon uses 1000 (deck.gl default)."
     }
   }
 }
