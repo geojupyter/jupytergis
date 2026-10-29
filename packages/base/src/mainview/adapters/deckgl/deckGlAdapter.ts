@@ -14,7 +14,6 @@ import {
   type BitmapLayerProps,
 } from '@deck.gl/layers';
 import {
-  CompassWidget,
   FullscreenWidget,
   ZoomWidget,
   _ScaleWidget as ScaleWidget,
@@ -41,6 +40,7 @@ import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
 import type { IDrawToolAdapter } from '@/src/features/draw-tool';
 import { debounce, fetchWithProxies, throttle } from '@/src/tools';
+import { animate, type AnimationControls } from './animate';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
   IMapAdapter,
@@ -774,34 +774,37 @@ export class DeckGlAdapter implements IMapAdapter {
     }
   }
 
-  private _onTripFrame = (): void => {
-    this._tripFrame = undefined;
-    if (!this._deck || !this._layerIds) {
-      return;
-    }
-    this._syncLayers(this._layerIds);
-  };
-
   private _startTripAnimation(): void {
-    if (this._tripFrame !== undefined) {
+    if (this._tripAnimation) {
       return;
     }
-    this._tripFrame = requestAnimationFrame(this._onTripFrame);
+
+    this._tripAnimation = animate({
+      from: 0,
+      to: 1,
+      duration: TRIP_LOOP_MS,
+      repeat: Infinity,
+      onUpdate: progress => {
+        this._tripProgress = progress;
+        if (this._deck && this._layerIds) {
+          this._syncLayers(this._layerIds);
+        }
+      },
+    });
   }
 
   private _stopTripAnimation(): void {
-    if (this._tripFrame === undefined) {
-      return;
-    }
-    cancelAnimationFrame(this._tripFrame);
-    this._tripFrame = undefined;
+    this._tripAnimation?.stop();
+    this._tripAnimation = undefined;
+    this._tripProgress = 0;
   }
 
   private _tripCurrentTime(duration: number): number {
     if (duration <= 0) {
       return 0;
     }
-    return ((performance.now() % TRIP_LOOP_MS) / TRIP_LOOP_MS) * duration;
+
+    return this._tripProgress * duration;
   }
 
   //TODO <T>!?
@@ -1219,7 +1222,8 @@ export class DeckGlAdapter implements IMapAdapter {
   private _lastPointerCoord: LngLat | null = null;
   private _emitBboxChanged: () => void;
   private _layerIds?: string[];
-  private _tripFrame?: number;
+  private _tripAnimation?: AnimationControls;
+  private _tripProgress = 0;
   private _rasterSources = new Map<string, RasterTileTemplate>();
   private _tripRecords = new Map<string, unknown[]>();
   private _polygonRecords = new Map<string, unknown[]>();
