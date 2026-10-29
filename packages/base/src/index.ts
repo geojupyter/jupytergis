@@ -1,6 +1,7 @@
 export * from './features/annotations';
 export * from './features/feature-store/availability';
 export * from './features/processing/serverProcessing';
+export * from './commands/about';
 export * from './commands/index';
 export * from './constants';
 export * from './features/layers/layerCreationFormDialog';

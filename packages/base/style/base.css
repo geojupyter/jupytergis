@@ -27,6 +27,14 @@
 @import url('./shared/errorTip.css');
 @import url('maplibre-gl/dist/maplibre-gl.css');
 
+.jp-About-header-wordmark {
+  font-size: var(--jp-ui-font-size3);
+  font-weight: 600;
+  color: var(--jp-ui-font-color0);
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+}
+
 /* JupyterLab modal dialogs (.jp-Dialog) use z-index: 10000, which sits above
    the notification toast container (react-toastify default: 9999). Without this
    override, error/info toasts are hidden behind the dialog backdrop while a
