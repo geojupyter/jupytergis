@@ -155,6 +155,23 @@ function compileGetter(expression: string): RecordGetter {
 }
 
 /**
+ * Timestamps are stored as float32, so raw unix ms loses precision.
+ * Shift by an origin (the earliest timestamp) so values fit,
+ * based on the deck.gl TripsLayer docs example.
+ *
+ * @see https://deck.gl/docs/api-reference/geo-layers/trips-layer
+ */
+function shiftTimestamps(timestamps: unknown, origin: number): number[] {
+  if (!Array.isArray(timestamps)) {
+    return [];
+  }
+
+  return timestamps.map(stamp =>
+    typeof stamp === 'number' ? stamp - origin : 0,
+  );
+}
+
+/**
  * deck.gl implementation of {@link IMapAdapter}.
  *
  * `initialize` builds an empty interactive Web Mercator map. Layer loading
@@ -495,7 +512,12 @@ export class DeckGlAdapter implements IMapAdapter {
       }
 
       case 'TripsSource': {
-        const data = await this._loadTrips(id, source);
+        const data = await this._loadJsonRecords(
+          id,
+          source,
+          source.parameters,
+          'trips',
+        );
         if (!data) {
           return;
         }
@@ -846,15 +868,7 @@ export class DeckGlAdapter implements IMapAdapter {
       id,
       data: trips,
       getPath: record => getPath(record) as LngLat[],
-      getTimestamps: record => {
-        const stamps = getTimestamps(record);
-        if (!Array.isArray(stamps)) {
-          return [];
-        }
-        return stamps.map(stamp =>
-          typeof stamp === 'number' ? stamp - origin : 0,
-        );
-      },
+      getTimestamps: record => shiftTimestamps(getTimestamps(record), origin),
       getColor: parameters?.color,
       currentTime: this._tripCurrentTime(duration),
       trailLength: parameters?.trailLength,
@@ -985,15 +999,6 @@ export class DeckGlAdapter implements IMapAdapter {
     }
 
     return url;
-  }
-
-  private async _loadTrips(id: string, source: IJGISSource): Promise<unknown> {
-    return this._loadJsonRecords(
-      id,
-      source,
-      source.parameters as ITripsSource | undefined,
-      'trips',
-    );
   }
 
   private async _loadJsonRecords(
@@ -1173,6 +1178,7 @@ export class DeckGlAdapter implements IMapAdapter {
       ? { origin, duration: latest - origin }
       : { origin: 0, duration: 0 };
     this._tripTimingCache.set(key, timing);
+
     return timing;
   }
 
