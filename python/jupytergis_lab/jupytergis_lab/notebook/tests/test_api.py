@@ -85,7 +85,7 @@ class TestGeoParquetLayer(TestDocument):
         geoparquet_layer = self.doc.add_geoparquet_layer(
             TEST_GEOPARQUET,
         )
-        state = geoparquet_layer.get_parameter("symbologyState")
+        state = geoparquet_layer._get_parameter("symbologyState")
         assert state is not None
 
 
@@ -111,7 +111,7 @@ class TestLayerAndSourceObjects(TestDocument):
         assert source is not None
         assert source.type == SourceType.RasterSource
         assert source.url == self.RASTER_URL
-        assert source.get_parameter("url") == self.RASTER_URL
+        assert source._get_parameter("url") == self.RASTER_URL
 
     def test_sources_are_public(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL)
@@ -165,7 +165,7 @@ class TestLayerAndSourceObjects(TestDocument):
         layer = self.doc.get_layer("Shapes")
 
         assert isinstance(layer._parameters, dict)
-        assert layer.get_parameter("opacity") == 0.5
+        assert layer._get_parameter("opacity") == 0.5
         assert layer.source.name == "Shapes"
         assert isinstance(self.doc.get_source("Shapes")._parameters, dict)
 
@@ -177,7 +177,7 @@ class TestLayerAndSourceObjects(TestDocument):
             "parameters": {"source": "source-1", "opacity": 1.0, "unknown": 7},
         }
 
-        assert self.doc.get_layer("Future").get_parameter("unknown") == 7
+        assert self.doc.get_layer("Future")._get_parameter("unknown") == 7
 
     def test_layers_follow_the_layer_tree_with_groups_as_sub_lists(self):
         first = self.doc.add_raster_layer(url=self.RASTER_URL, name="First")
@@ -236,7 +236,7 @@ class TestLayerAndSourceObjects(TestDocument):
     def test_layer_source_is_the_source_object_not_its_id(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
 
-        assert layer.source._id == layer.get_parameter("source")
+        assert layer.source._id == layer._get_parameter("source")
 
     def test_unknown_attribute_raises(self):
         layer = self.doc.add_raster_layer(url=self.RASTER_URL, name="Basemap")
@@ -392,7 +392,7 @@ class TestGeoJSONGrammarSymbology(TestDocument):
             name="Quakes",
             symbology=[[constant("#00FF00").encoding("fill")]],
         )
-        state = layer.get_parameter("symbologyState")
+        state = layer._get_parameter("symbologyState")
         assert state.layers is not None
         assert len(state.layers) == 1
         assert len(state.layers[0].rules) >= 1

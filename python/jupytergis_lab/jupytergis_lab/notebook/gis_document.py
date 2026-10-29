@@ -1666,14 +1666,14 @@ class JGISObject(BaseModel):
         """The document this object was read from."""
         return self._parent
 
-    def get_parameter(self, name: str, default: Any = None) -> Any:
+    def _get_parameter(self, name: str, default: Any = None) -> Any:
         """Read a parameter, whether the parameters are typed or a raw dict."""
         parameters = self._parameters
         if isinstance(parameters, dict):
             return parameters.get(name, default)
         return getattr(parameters, name, default)
 
-    def set_parameter(self, name: str, value: Any) -> None:
+    def _set_parameter(self, name: str, value: Any) -> None:
         """Change one parameter and write it to the document."""
         parameters = self._parameters
         if isinstance(parameters, dict):
@@ -1705,7 +1705,7 @@ class JGISObject(BaseModel):
             return super().__getattr__(name)  # type: ignore[misc]
         except AttributeError:
             if not name.startswith("_") and name in self._parameter_names():
-                return self.get_parameter(name)
+                return self._get_parameter(name)
             raise
 
     def __setattr__(self, name: str, value: Any) -> None:
@@ -1724,7 +1724,7 @@ class JGISObject(BaseModel):
                     f"{type(self).__name__} has no attribute or parameter {name!r}",
                 )
 
-            self.set_parameter(name, value)
+            self._set_parameter(name, value)
             return
 
         super().__setattr__(name, value)
@@ -1775,7 +1775,7 @@ class JGISLayer(JGISObject):
     @property
     def symbology(self) -> Any:
         """The layer symbology state."""
-        return self.get_parameter("symbologyState")
+        return self._get_parameter("symbologyState")
 
     @symbology.setter
     def symbology(self, symbology: SymbologyInput) -> None:
@@ -1789,7 +1789,7 @@ class JGISLayer(JGISObject):
     @property
     def source(self) -> JGISSource | None:
         """The source this layer draws from, or ``None`` if it has none."""
-        source_id = self.get_parameter("source")
+        source_id = self._get_parameter("source")
 
         if source_id is None or self._parent is None:
             return None
@@ -1830,7 +1830,7 @@ class JGISSource(JGISObject):
         return [
             layer
             for layer in self._parent._layer_objects().values()
-            if layer.get_parameter("source") == self._id
+            if layer._get_parameter("source") == self._id
         ]
 
 
