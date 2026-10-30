@@ -88,12 +88,7 @@ const OGC_PIXEL_SIZE_MM = 0.28;
 const OGC_SCREEN_DPI = MM_PER_INCH / OGC_PIXEL_SIZE_MM;
 const INCHES_PER_METER = 1000 / MM_PER_INCH;
 const EARTH_CIRCUMFERENCE_M = 40075016.686;
-/** deck.gl MapView zoom uses the same 512px tile size as MapLibre. */
 const WEB_MERCATOR_TILE_SIZE = 512;
-/**
- * Wall-clock milliseconds per timestamp unit at animationSpeed 1.
- * Same factor as the deck.gl website trips example.
- */
 const MS_PER_TIMESTAMP_UNIT = 60;
 const DEFAULT_GET_PATH = 'd => d.path';
 const DEFAULT_GET_TIMESTAMPS = 'd => d.timestamps';
@@ -101,7 +96,6 @@ const DEFAULT_GET_POLYGON = 'd => d.polygon';
 
 type LngLat = [longitude: number, latitude: number];
 
-/** Resolved XYZ template. `{z}`, `{x}`, `{y}`, and `{-y}` are left for TileLayer. */
 type RasterTileTemplate = {
   url: string;
   minZoom: number;
@@ -111,19 +105,15 @@ type RasterTileTemplate = {
 type RecordGetter = (record: unknown) => unknown;
 
 type TripTiming = {
-  /** Subtracted from stamps for TripsLayer. 0 when float32 needs no shift. */
   origin: number;
-  /** Playhead range in the same units TripsLayer sees after origin. */
   from: number;
   to: number;
 };
 
 /**
  * Compiles a deck.gl accessor string.
- *
- * `d => d.polygon` and `polygon` both read a field. Any other string is an
- * expression with `d` in scope.
  */
+// TODO! This enables arbitrary code exection. Do not merge while this todo is here.
 function compileGetter(expression: string): RecordGetter {
   const trimmed = expression.trim();
   const arrowAt = trimmed.indexOf('=>');
@@ -136,6 +126,7 @@ function compileGetter(expression: string): RecordGetter {
       .map(name => name.trim())
       .filter(Boolean);
     const body = trimmed.slice(arrowAt + 2).trim();
+
     return new Function(...params, `return (${body});`) as RecordGetter;
   }
 
@@ -149,6 +140,7 @@ function compileGetter(expression: string): RecordGetter {
         }
         value = (value as Record<string, unknown>)[key];
       }
+
       return value;
     };
   }
@@ -158,8 +150,9 @@ function compileGetter(expression: string): RecordGetter {
 
 /**
  * TripsLayer stores timestamps as float32. When a value would lose precision
- * (`Math.fround`), shift by an origin (earliest stamp) so values fit — same
- * trick as the deck.gl TripsLayer docs. `origin` is 0 when no shift is needed.
+ * we shift by an origin (earliest timestamp)
+ * Same trick as the deck.gl TripsLayer docs.
+ * `origin` is 0 when no shift is needed.
  *
  * @see https://deck.gl/docs/api-reference/geo-layers/trips-layer
  */
@@ -186,37 +179,6 @@ function losesFloat32Precision(stamp: number): boolean {
 export class DeckGlAdapter implements IMapAdapter {
   constructor(model: IJupyterGISModel) {
     this._model = model;
-
-    this._emitBboxChanged = debounce(() => {
-      const bounds = this._boundsFromViewState(this._viewState);
-      if (!bounds) {
-        return;
-      }
-      this._model.updateBboxSignal.emit(bounds);
-    }, 100) as () => void;
-
-    this._syncViewportThrottled = throttle(() => {
-      if (this._model.localState?.remoteUser) {
-        return;
-      }
-
-      const bounds = this._boundsFromViewState(this._viewState);
-      if (!bounds) {
-        return;
-      }
-
-      this._model.syncViewport(
-        {
-          coordinates: {
-            x: this._viewState.longitude,
-            y: this._viewState.latitude,
-          },
-          zoom: this._viewState.zoom,
-          extent: bounds,
-        },
-        this._mainViewId,
-      );
-    }, VIEWPORT_SYNC_INTERVAL);
   }
 
   async initialize(
@@ -301,7 +263,7 @@ export class DeckGlAdapter implements IMapAdapter {
           },
           onLoad: () => {
             loaded = true;
-            this._bindCanvasEvents();
+            this._setupViewEvents();
             resolve();
           },
         });
@@ -632,15 +594,55 @@ export class DeckGlAdapter implements IMapAdapter {
     return widgets;
   }
 
+  private _setupViewEvents(): void {
+    this._emitBboxChanged = debounce(() => {
+      const bounds = this._boundsFromViewState(this._viewState);
+      if (!bounds) {
+        return;
+      }
+      this._model.updateBboxSignal.emit(bounds);
+    }, 100) as () => void;
+
+    this._syncViewportThrottled = throttle(() => {
+      // Not syncing center if following someone else
+      if (this._model.localState?.remoteUser) {
+        return;
+      }
+
+      const bounds = this._boundsFromViewState(this._viewState);
+      if (!bounds) {
+        return;
+      }
+
+      this._model.syncViewport(
+        {
+          coordinates: {
+            x: this._viewState.longitude,
+            y: this._viewState.latitude,
+          },
+          zoom: this._viewState.zoom,
+          extent: bounds,
+        },
+        this._mainViewId,
+      );
+    }, VIEWPORT_SYNC_INTERVAL);
+
+    const canvas = this._deck?.getCanvas();
+    if (canvas) {
+      canvas.addEventListener('pointerleave', this._onPointerLeave);
+      this._canvas = canvas;
+    }
+  }
+
   private _onViewStateChange = ({
     viewState,
     interactionState,
   }: ViewStateChangeParameters<MapViewState>): void => {
     this._viewState = viewState;
     this._viewDirty = true;
-    this._emitBboxChanged();
+    this._emitBboxChanged?.();
     this._callbacks?.onClientPointerPositionChanged?.();
-    this._syncViewportThrottled();
+    this._syncViewportThrottled?.();
 
     if (!this._isInteracting(interactionState)) {
       this._commitView();
@@ -667,16 +669,6 @@ export class DeckGlAdapter implements IMapAdapter {
   private _onPointerLeave = (): void => {
     this._syncPointer(null);
   };
-
-  private _bindCanvasEvents(): void {
-    const canvas = this._deck?.getCanvas();
-    if (!canvas) {
-      return;
-    }
-
-    canvas.addEventListener('pointerleave', this._onPointerLeave);
-    this._canvas = canvas;
-  }
 
   private _unbindCanvasEvents(): void {
     this._canvas?.removeEventListener('pointerleave', this._onPointerLeave);
@@ -1280,7 +1272,7 @@ export class DeckGlAdapter implements IMapAdapter {
   private _callbacks?: IMapAdapterCallbacks;
   private _controlsTarget?: HTMLElement;
   private _lastPointerCoord: LngLat | null = null;
-  private _emitBboxChanged: () => void;
+  private _emitBboxChanged?: () => void;
   private _layerIds?: string[];
   private _tripAnimation?: AnimationControls;
   private _tripPlaybackKey?: string;
@@ -1290,7 +1282,7 @@ export class DeckGlAdapter implements IMapAdapter {
   private _polygonRecords = new Map<string, unknown[]>();
   private _getters = new Map<string, RecordGetter>();
   private _tripTimingCache = new Map<string, TripTiming>();
-  private _syncViewportThrottled: () => void;
+  private _syncViewportThrottled?: () => void;
   private _syncPointer = throttle((coordinates: LngLat | null) => {
     const pointer = coordinates
       ? { coordinates: { x: coordinates[0], y: coordinates[1] } }
