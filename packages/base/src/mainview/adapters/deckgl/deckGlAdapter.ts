@@ -962,8 +962,8 @@ export class DeckGlAdapter implements IMapAdapter {
       return undefined;
     }
 
-    const getFillColor = this._optionalGetter(parameters?.getFillColor);
-    const getLineColor = this._optionalGetter(parameters?.getLineColor);
+    const getFillColor = this._colorAccessor(parameters?.getFillColor);
+    const getLineColor = this._colorAccessor(parameters?.getLineColor);
     const getElevation = this._optionalGetter(parameters?.getElevation);
 
     return new GeoJsonLayer({
@@ -973,12 +973,8 @@ export class DeckGlAdapter implements IMapAdapter {
       stroked: parameters?.stroked,
       extruded: parameters?.extruded,
       wireframe: parameters?.wireframe,
-      ...(getFillColor
-        ? { getFillColor: (feature: unknown) => getFillColor(feature) as Color }
-        : {}),
-      ...(getLineColor
-        ? { getLineColor: (feature: unknown) => getLineColor(feature) as Color }
-        : {}),
+      ...(getFillColor ? { getFillColor } : {}),
+      ...(getLineColor ? { getLineColor } : {}),
       ...(getElevation
         ? {
             getElevation: (feature: unknown) => {
@@ -1168,6 +1164,24 @@ export class DeckGlAdapter implements IMapAdapter {
   ): RecordGetter | undefined {
     const trimmed = expression?.trim();
     return trimmed ? this._getter(trimmed) : undefined;
+  }
+
+  /**
+   * deck.gl color accessors accept a constant RGB(A) or a per-feature callback.
+   */
+  private _colorAccessor(
+    value: string | readonly number[] | undefined,
+  ): Color | ((feature: unknown) => Color) | undefined {
+    if (value == null) {
+      return undefined;
+    }
+    if (typeof value !== 'string') {
+      return value as unknown as Color;
+    }
+    const getter = this._optionalGetter(value);
+    return getter
+      ? (feature: unknown) => getter(feature) as Color
+      : undefined;
   }
 
   private _getter(expression: string): RecordGetter {

@@ -38,12 +38,36 @@
       "default": false
     },
     "getFillColor": {
-      "type": "string",
-      "description": "Arrow function of one feature, f. Returns RGB or RGBA fill color (0-255). If omitted, deck.gl default [0, 0, 0, 255] is used."
+      "description": "Constant RGB(A) color (0-255), or an arrow function of one feature, f, that returns one. If omitted, deck.gl default [0, 0, 0, 255] is used.",
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 4
+        },
+        {
+          "type": "string"
+        }
+      ]
     },
     "getLineColor": {
-      "type": "string",
-      "description": "Arrow function of one feature, f. Returns RGB or RGBA line color (0-255). If omitted, deck.gl default [0, 0, 0, 255] is used."
+      "description": "Constant RGB(A) color (0-255), or an arrow function of one feature, f, that returns one. If omitted, deck.gl default [0, 0, 0, 255] is used.",
+      "oneOf": [
+        {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "minItems": 3,
+          "maxItems": 4
+        },
+        {
+          "type": "string"
+        }
+      ]
     },
     "getElevation": {
       "type": "string",
