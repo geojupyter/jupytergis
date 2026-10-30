@@ -61,12 +61,15 @@ export async function editOpenEOLayer(
     return;
   }
   if (source) {
-    // Dropping the tileServiceURL, which needs to be recomputed
+    // The old tileServiceURL serves the old graph, so replace it.
     model.sharedModel.updateSource(sourceId, {
       ...source,
       parameters: {
         serverUrl: result.serverUrl,
         processGraph: result.processGraph,
+        ...(result.tileServiceURL
+          ? { tileServiceURL: result.tileServiceURL }
+          : {}),
       },
     });
   }

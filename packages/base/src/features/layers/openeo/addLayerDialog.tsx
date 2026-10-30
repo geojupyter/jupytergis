@@ -9,6 +9,7 @@ import {
   IBackendCatalog,
 } from '@/src/tools';
 import {
+  createOpenEOTileService,
   openEOConnect,
   IOpenEOConnectionInfo,
   listOpenEOConnections,
@@ -36,6 +37,8 @@ export interface IOpenEODialogResult {
   layerName: string;
   serverUrl: string;
   processGraph: Record<string, any>;
+  /** The XYZ service created for the graph, when creating one worked. */
+  tileServiceURL?: string;
 }
 
 interface IBodyState {
@@ -1692,8 +1695,20 @@ export async function showAddOpenEOLayerDialog(
   body.node.addEventListener('input', applyOk);
   const result = await resultPromise;
 
-  if (!result.button.accept) {
+  if (!result.button.accept || !result.value) {
     return null;
   }
-  return result.value ?? null;
+
+  // Create the service here, where we are signed in, so the url can be saved
+  // in the document. On failure the tile source tries again, as it used to.
+  try {
+    result.value.tileServiceURL = await createOpenEOTileService(
+      result.value.serverUrl,
+      result.value.processGraph,
+    );
+  } catch (error) {
+    console.warn('[openeo] could not create the tile service upfront:', error);
+  }
+
+  return result.value;
 }

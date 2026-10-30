@@ -397,6 +397,59 @@ export interface IOpenEOConnectionInfo {
   ) => Promise<boolean>;
 }
 
+/**
+ * Create the XYZ tile service for `processGraph` and return its url. Needs a
+ * live session on `serverUrl`.
+ */
+export async function createOpenEOTileService(
+  serverUrl: string,
+  processGraph: Process,
+): Promise<string> {
+  const connection = getOpenEOConnection(serverUrl);
+
+  // Inject `save_result` for graphs that omit it (e.g. ESA UDPs).
+  const graph = (await resultIsSavingUserProcess(connection, processGraph))
+    ? processGraph
+    : ensureSaveResult(processGraph);
+
+  let service: Service;
+
+  try {
+    service = await connection.createService(graph, 'XYZ');
+  } catch (e) {
+    throw new Error(`Failed to create the XYZ service ${e}`);
+  }
+
+  if (!service.url) {
+    throw new Error('Failed to connect to XYZ service');
+  }
+
+  return service.url;
+}
+
+async function resultIsSavingUserProcess(
+  connection: Connection,
+  graph: Record<string, any>,
+): Promise<boolean> {
+  const nodes = Object.values(graph);
+  const result = nodes.find((node: any) => node?.result === true);
+  if (
+    !result ||
+    result.process_id === 'save_result' ||
+    (result.namespace && result.namespace !== 'user')
+  ) {
+    return false;
+  }
+  try {
+    const udp = await connection.getUserProcess(result.process_id);
+    return Object.values(udp.processGraph ?? {}).some(
+      (node: any) => node?.process_id === 'save_result',
+    );
+  } catch {
+    return false;
+  }
+}
+
 export class OpenEOTileLayer extends TileLayer {
   // Just an alias
 }
@@ -540,67 +593,26 @@ export class OpenEOTileSource extends XYZSource {
       return;
     }
 
-    // Otherwise, try to create the service URL
+    // Otherwise create the service ourselves, which needs a session.
     try {
-      this._connection = getOpenEOConnection(options.serverUrl);
+      getOpenEOConnection(options.serverUrl);
     } catch {
+      // Signing in makes mainView rebuild this source, so give up here.
       await promptOpenEOLogin(options.serverUrl);
-    }
-
-    if (!this._connection) {
       throw new Error('Failed to get OpenEO service connection');
     }
 
-    // Inject `save_result` for graphs that omit it (e.g. ESA UDPs).
-    const graph = (await this._resultIsSavingUserProcess(options.processGraph))
-      ? options.processGraph
-      : ensureSaveResult(options.processGraph);
-
-    let service: Service | null = null;
-
-    try {
-      service = await this._connection.createService(graph, 'XYZ');
-    } catch (e) {
-      throw new Error(`Failed to create the XYZ service ${e}`);
-    }
-
-    if (!service.url) {
-      throw new Error('Failed to connect to XYZ service');
-    }
-
-    this._url = service.url;
+    this._url = await createOpenEOTileService(
+      options.serverUrl,
+      options.processGraph,
+    );
 
     this._connected.resolve();
 
     this.refresh();
   }
 
-  private async _resultIsSavingUserProcess(
-    graph: Record<string, any>,
-  ): Promise<boolean> {
-    const nodes = Object.values(graph);
-    const result = nodes.find((node: any) => node?.result === true);
-    if (
-      !this._connection ||
-      !result ||
-      result.process_id === 'save_result' ||
-      (result.namespace && result.namespace !== 'user')
-    ) {
-      return false;
-    }
-    try {
-      const udp = await this._connection.getUserProcess(result.process_id);
-      return Object.values(udp.processGraph ?? {}).some(
-        (node: any) => node?.process_id === 'save_result',
-      );
-    } catch {
-      return false;
-    }
-  }
-
   private _url: string | null = null;
-
-  private _connection: Connection | null = null;
 
   private _connected: PromiseDelegate<void> = new PromiseDelegate();
 
