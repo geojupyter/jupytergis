@@ -387,6 +387,12 @@ export async function openEOConnect(
   }
 }
 
+/** The server used last, live or not, to suggest when nothing is connected. */
+export function lastUsedOpenEOServer(): IOpenEOConnectionInfo | null {
+  const url = rememberedOpenEOServers().slice(-1)[0];
+  return url ? { url } : null;
+}
+
 /**
  * Reconnects to a server we have a stored token for, so the layer dialogs
  * open on the editor rather than the server picker after a reload. Null when
@@ -395,8 +401,6 @@ export async function openEOConnect(
 export async function restoreOpenEOSession(
   serverUrl?: string,
 ): Promise<IOpenEOConnectionInfo | null> {
-  // Only the server used last: every miss costs a round trip, and the
-  // dialog cannot open until this settles.
   const servers = serverUrl ? [serverUrl] : rememberedOpenEOServers().slice(-1);
 
   for (const url of servers) {
