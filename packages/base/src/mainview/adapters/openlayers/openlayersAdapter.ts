@@ -2109,6 +2109,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         }
 
         this._callbacks?.onLayerInserted?.(numLayers + 1);
+        this._callbacks?.onLayerLoaded?.(id);
       }
 
       if (layer.type !== 'StorySegmentLayer') {
