@@ -199,6 +199,7 @@ export function CreationForm(props: ICreationFormProps) {
           const allTables = await getGeoPackageTableNames(
             sourceParams.path,
             currentSourceType,
+            currentModel,
           );
 
           let tableNames: string[];
