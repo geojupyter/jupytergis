@@ -1,6 +1,5 @@
 import {
   Deck,
-  WebMercatorViewport,
   type InteractionState,
   type MapViewState,
   type PickingInfo,
@@ -437,7 +436,7 @@ export class DeckGlAdapter implements IMapAdapter {
   async addSource(id: string, source: IJGISSource): Promise<void> {
     switch (source.type) {
       case 'RasterSource':
-        // Resolved from the model in `_createRasterTileLayer`.
+        // Data source is resolved in `_createRasterTileLayer`.
         return;
 
       case 'TripsSource':
@@ -449,16 +448,20 @@ export class DeckGlAdapter implements IMapAdapter {
           source.parameters as ITripsSource | IPolygonSource | undefined,
           label,
         );
+
         if (!data) {
           return;
         }
+
         this._jsonRecords.set(
           id,
           this._asJsonRecordArray(data, source.name ?? id, label),
         );
+
         if (source.type === 'TripsSource') {
           this._clearTripTiming(id);
         }
+
         return;
       }
 
@@ -542,10 +545,11 @@ export class DeckGlAdapter implements IMapAdapter {
 
   private _setupViewEvents(): void {
     this._emitBboxChanged = debounce(() => {
-      const bounds = this._boundsFromViewState(this._viewState);
+      const bounds = this._getBounds();
       if (!bounds) {
         return;
       }
+
       this._model.updateBboxSignal.emit(bounds);
     }, 100) as () => void;
 
@@ -555,7 +559,7 @@ export class DeckGlAdapter implements IMapAdapter {
         return;
       }
 
-      const bounds = this._boundsFromViewState(this._viewState);
+      const bounds = this._getBounds();
       if (!bounds) {
         return;
       }
@@ -635,7 +639,7 @@ export class DeckGlAdapter implements IMapAdapter {
     this._viewDirty = false;
 
     const viewState = this._viewState;
-    const bounds = this._boundsFromViewState(viewState);
+    const bounds = this._getBounds();
     const currentOptions = this._model.getOptions();
     const updatedOptions: Partial<IJGISOptions> = {
       latitude: viewState.latitude,
@@ -669,25 +673,8 @@ export class DeckGlAdapter implements IMapAdapter {
     );
   }
 
-  private _boundsFromViewState(
-    viewState: MapViewState,
-  ): [number, number, number, number] | undefined {
-    const canvas = this._deck?.getCanvas();
-    const width = canvas?.clientWidth ?? 0;
-    const height = canvas?.clientHeight ?? 0;
-    if (width === 0 || height === 0) {
-      return undefined;
-    }
-
-    return new WebMercatorViewport({
-      width,
-      height,
-      longitude: viewState.longitude,
-      latitude: viewState.latitude,
-      zoom: viewState.zoom,
-      bearing: viewState.bearing,
-      pitch: viewState.pitch,
-    }).getBounds();
+  private _getBounds(): [number, number, number, number] | undefined {
+    return this._deck?.getViewports()[0]?.getBounds();
   }
 
   private _syncLayers(layerIds: string[]): void {
@@ -751,7 +738,6 @@ export class DeckGlAdapter implements IMapAdapter {
       }
     }
 
-    // Index 0 is underneath, matching OpenLayers insertAt.
     this._deck.setProps({ layers });
 
     if (tripPlayback) {
@@ -973,7 +959,7 @@ export class DeckGlAdapter implements IMapAdapter {
     });
   }
 
-  // todo: make pure and reuse?
+  // todo: pretty sure this is repeated elsewhere, should extract
   private _resolveTileUrl(parameters: IRasterSource): string {
     const urlParameters = parameters.urlParameters || {};
     let url = parameters.url;
