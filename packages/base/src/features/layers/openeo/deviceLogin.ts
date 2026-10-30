@@ -92,10 +92,7 @@ export class OpenEODeviceProvider extends AuthProvider {
     this._client = client;
   }
 
-  /**
-   * Sign back in with the refresh token the last session left behind, so a
-   * page reload does not ask for the device code again.
-   */
+  /** Signs back in with the refresh token the last session left behind. */
   async resumeSession(): Promise<boolean> {
     const refreshToken = await getOpenEOTokensProvider()?.get(
       this._issuer,

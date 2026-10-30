@@ -115,10 +115,8 @@ export const annotationPlugin: JupyterFrontEndPlugin<IAnnotationModel> = {
 };
 
 /**
- * Saves the openEO sign-in so it survives a page reload.
- *
- * Deployments that cannot keep credentials in the browser disable this
- * plugin and answer `IOpenEOTokensProviderToken` with their own store.
+ * Keeps the openEO sign-in across reloads. A deployment that cannot keep
+ * credentials in the browser disables this plugin and provides its own store.
  */
 export const openEOTokensPlugin: JupyterFrontEndPlugin<IOpenEOTokensProvider> =
   {

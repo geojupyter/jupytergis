@@ -50,6 +50,7 @@ import {
 import {
   getLatestOpenEOConnection,
   listOpenEOConnections,
+  restoreOpenEOSession,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
 import { showMapRendererDialog } from '../features/map-renderer/mapRendererDialog';
@@ -1173,15 +1174,16 @@ export function addCommands(
       }
       // Seed the dialog from the global pool of live OpenEO connections
       // (shared across all documents): pre-fill with the most recently
-      // used server and offer the rest in the picker. The user
-      // picks/connects inside the dialog itself, so we don't
-      // pre-authenticate here.
+      // used server and offer the rest in the picker. With nothing live,
+      // a server we kept a token for is signed back in here, so a reload
+      // lands on the editor rather than the server picker.
       // Capture the current map viewport so the Code tab's exported
       // snippet opens on exactly what the user is looking at, rather than
       // the graph's (often arbitrary) spatial_extent.
       const viewOptions = current.model.getOptions();
       const result = await showAddOpenEOLayerDialog({
-        connectionInfo: getLatestOpenEOConnection(),
+        connectionInfo:
+          getLatestOpenEOConnection() ?? (await restoreOpenEOSession()),
         knownServers: listOpenEOConnections(),
         mapView: {
           latitude: viewOptions.latitude,

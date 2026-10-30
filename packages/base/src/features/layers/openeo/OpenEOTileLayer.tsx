@@ -27,6 +27,7 @@ import { describeConnectionError } from '@/src/tools';
 import { OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
 import { ensureSaveResult } from './templates';
+import { rememberOpenEOServer, rememberedOpenEOServers } from './tokens';
 
 Environment.axios.defaults.xsrfCookieName = '_xsrf';
 Environment.axios.defaults.xsrfHeaderName = 'X-XSRFToken';
@@ -277,6 +278,9 @@ export async function openEOConnect(
   // proxy url and which servers answer with a redirect we do not follow.
   url = url.replace(/\/+$/, '');
 
+  // The url to remember: the proxied form is only valid for this page.
+  const serverUrl = url;
+
   // TODO read the proxy setting too, which needs the model down here
   const proxyPrefix = getProxyEndpoint();
   // Callers hand back the url we resolved for them, which is already
@@ -363,6 +367,7 @@ export async function openEOConnect(
     }
 
     CONNECTIONS[url] = connection;
+    rememberOpenEOServer(serverUrl);
 
     connectionInfo.url = url;
 
@@ -383,9 +388,30 @@ export async function openEOConnect(
 }
 
 /**
- * Signs in to whichever provider kept a usable refresh token, so a reload
- * picks the session back up instead of opening the sign-in form.
+ * Reconnects to a server we have a stored token for, so the layer dialogs
+ * open on the editor rather than the server picker after a reload. Null when
+ * nothing could be restored.
  */
+export async function restoreOpenEOSession(
+  serverUrl?: string,
+): Promise<IOpenEOConnectionInfo | null> {
+  // Only the server used last: every miss costs a round trip, and the
+  // dialog cannot open until this settles.
+  const servers = serverUrl ? [serverUrl] : rememberedOpenEOServers().slice(-1);
+
+  for (const url of servers) {
+    const info: IOpenEOConnectionInfo = { url, quiet: true };
+    try {
+      await openEOConnect(info);
+      return info;
+    } catch {
+      // Nothing to restore: the dialog asks for a server instead.
+    }
+  }
+  return null;
+}
+
+/** Signs in to whichever provider kept a usable refresh token. */
 async function resumeSession(providers: AuthProvider[]): Promise<boolean> {
   for (const provider of providers) {
     if (
@@ -424,9 +450,8 @@ export interface IOpenEOConnectionInfo {
   ) => Promise<boolean>;
 
   /**
-   * Connect without asking the user anything: no sign-in form and no error
-   * dialog. Used to restore a session from a stored token, where failing is
-   * a normal outcome the caller handles by asking.
+   * Connect without asking anything: no sign-in form, no error dialog. Used
+   * to restore a session from a stored token, where failing is normal.
    */
   quiet?: boolean;
 }

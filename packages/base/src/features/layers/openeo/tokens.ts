@@ -1,6 +1,7 @@
 import type { IOpenEOTokensProvider } from '@jupytergis/schema';
 
 export const OPENEO_TOKENS_KEY = 'JGIS-OpenEO-refresh-tokens';
+export const OPENEO_SERVERS_KEY = 'JGIS-OpenEO-servers';
 
 interface IStoredToken {
   date: string;
@@ -20,9 +21,8 @@ function normalize(server: string): string {
 }
 
 /**
- * Keeps the openEO refresh tokens in `localStorage`, in the same shape as
- * `~/.local/share/openeo-python-client/refresh-tokens.json`, so the two
- * clients describe a session the same way.
+ * Keeps the tokens in `localStorage`, in the same shape as the openEO Python
+ * client's `~/.local/share/openeo-python-client/refresh-tokens.json`.
  */
 export class LocalStorageOpenEOTokensProvider implements IOpenEOTokensProvider {
   async get(server: string, provider: string): Promise<string | null> {
@@ -59,8 +59,7 @@ export class LocalStorageOpenEOTokensProvider implements IOpenEOTokensProvider {
       const parsed = raw ? JSON.parse(raw) : null;
       return parsed && typeof parsed === 'object' ? parsed : {};
     } catch {
-      // Unreadable or hand-edited storage: start over rather than break
-      // every sign-in from here on.
+      // Hand-edited or unreadable: start over rather than fail every sign-in.
       return {};
     }
   }
@@ -76,18 +75,36 @@ export class LocalStorageOpenEOTokensProvider implements IOpenEOTokensProvider {
 
 let tokensProvider: IOpenEOTokensProvider | null = null;
 
-/**
- * Installs the store the openEO sign-in saves its tokens to. Called by the
- * plugin that answers `IOpenEOTokensProviderToken`.
- */
+/** Installs the store the openEO sign-in saves its tokens to. */
 export function setOpenEOTokensProvider(provider: IOpenEOTokensProvider): void {
   tokensProvider = provider;
 }
 
-/**
- * The installed token store, or null when nothing provides one. Sessions
- * then last as long as the page does.
- */
+/** The installed store, or null when no plugin provides one. */
 export function getOpenEOTokensProvider(): IOpenEOTokensProvider | null {
   return tokensProvider;
+}
+
+/** The openEO servers signed in to before, most recent last. */
+export function rememberedOpenEOServers(): string[] {
+  try {
+    const raw = window.localStorage.getItem(OPENEO_SERVERS_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+    return Array.isArray(parsed)
+      ? parsed.filter(s => typeof s === 'string')
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Remembers a server so a reload knows where to pick the session back up. */
+export function rememberOpenEOServer(server: string): void {
+  const servers = rememberedOpenEOServers().filter(s => s !== server);
+  servers.push(server);
+  try {
+    window.localStorage.setItem(OPENEO_SERVERS_KEY, JSON.stringify(servers));
+  } catch (error) {
+    console.warn('Could not save the openEO servers', error);
+  }
 }

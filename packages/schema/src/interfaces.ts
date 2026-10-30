@@ -845,13 +845,7 @@ export interface IJupyterGISSettings {
   useServerGdalProcessing?: boolean | null;
 }
 
-/**
- * Saves and loads the openEO credentials that outlive a page: today the
- * OIDC refresh tokens, keyed by issuer and client id.
- *
- * JupyterGIS serves this from a plugin so deployments that cannot keep
- * credentials in the browser can provide their own store instead.
- */
+/** Saves and loads the openEO OIDC refresh tokens, per issuer and client id. */
 export interface IOpenEOTokensProvider {
   get(server: string, provider: string): Promise<string | null>;
   set(server: string, provider: string, token: string): Promise<void>;
