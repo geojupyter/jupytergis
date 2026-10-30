@@ -8,6 +8,7 @@ import {
 import Environment from '@openeo/js-client/src/env';
 
 import { buildProxyUrl, getProxyEndpoint } from '@/src/shared/proxy';
+import { getOpenEOTokensProvider } from './tokens';
 
 const DEVICE_GRANT = 'urn:ietf:params:oauth:grant-type:device_code';
 
@@ -91,16 +92,29 @@ export class OpenEODeviceProvider extends AuthProvider {
     this._client = client;
   }
 
+  /** Signs back in with the refresh token the last session left behind. */
+  async resumeSession(): Promise<boolean> {
+    const refreshToken = await getOpenEOTokensProvider()?.get(
+      this._issuer,
+      this._client.id,
+    );
+    if (!refreshToken) {
+      return false;
+    }
+
+    try {
+      await this._discover();
+      return await this._refresh(refreshToken);
+    } catch {
+      return false;
+    }
+  }
+
   async login(
     onCode: (code: IDeviceCode) => void,
     signal: AbortSignal,
   ): Promise<void> {
-    const config = (
-      await Environment.axios.get(
-        proxied(`${this._issuer}/.well-known/openid-configuration`),
-      )
-    ).data;
-    this._tokenEndpoint = config.token_endpoint;
+    const config = await this._discover();
 
     const deviceRequest: Record<string, string> = {
       client_id: this._client.id,
@@ -157,12 +171,30 @@ export class OpenEODeviceProvider extends AuthProvider {
 
   async logout(): Promise<void> {
     window.clearTimeout(this._refreshTimer);
+    await getOpenEOTokensProvider()?.remove(this._issuer, this._client.id);
     await super.logout();
+  }
+
+  private async _discover(): Promise<any> {
+    const config = (
+      await Environment.axios.get(
+        proxied(`${this._issuer}/.well-known/openid-configuration`),
+      )
+    ).data;
+    this._tokenEndpoint = config.token_endpoint;
+    return config;
   }
 
   private _setTokens(tokens: any): void {
     this.setToken(tokens.access_token);
     window.clearTimeout(this._refreshTimer);
+    if (tokens.refresh_token) {
+      void getOpenEOTokensProvider()?.set(
+        this._issuer,
+        this._client.id,
+        tokens.refresh_token,
+      );
+    }
     if (tokens.refresh_token && tokens.expires_in) {
       this._refreshTimer = window.setTimeout(
         () => void this._refresh(tokens.refresh_token),
@@ -171,7 +203,7 @@ export class OpenEODeviceProvider extends AuthProvider {
     }
   }
 
-  private async _refresh(refreshToken: string): Promise<void> {
+  private async _refresh(refreshToken: string): Promise<boolean> {
     // The scope must be sent again, or Microsoft returns a token the
     // backend cannot validate.
     const tokens = await postForm(this._tokenEndpoint, {
@@ -182,9 +214,13 @@ export class OpenEODeviceProvider extends AuthProvider {
     });
     if (tokens.access_token) {
       this._setTokens({ refresh_token: refreshToken, ...tokens });
-    } else {
-      this.setToken(null);
+      return true;
     }
+
+    // Expired or revoked: drop it so we stop trying on every reload.
+    await getOpenEOTokensProvider()?.remove(this._issuer, this._client.id);
+    this.setToken(null);
+    return false;
   }
 
   private _issuer: string;
