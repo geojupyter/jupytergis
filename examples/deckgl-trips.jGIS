@@ -1,0 +1,122 @@
+{
+  "annotations": {},
+  "layerTree": [
+    "77355c8b-463a-4deb-ad2e-28ccbbbea46f",
+    "c89b5818-c369-4a50-8ded-1fb444350ae1",
+    "f7950683-2675-4cd9-ad8b-682428372ad2"
+  ],
+  "layers": {
+    "77355c8b-463a-4deb-ad2e-28ccbbbea46f": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "b83cf987-e78c-4a67-a9b9-0828ad8e655a"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "c89b5818-c369-4a50-8ded-1fb444350ae1": {
+      "name": "Custom Polygon Layer",
+      "parameters": {
+        "extruded": true,
+        "fillColor": [
+          0.0,
+          128.0,
+          255.0,
+          160.0
+        ],
+        "filled": true,
+        "getElevation": "d => d.height",
+        "getPolygon": "d => d.polygon",
+        "lineColor": [
+          80.0,
+          80.0,
+          80.0
+        ],
+        "lineWidthMinPixels": 1.0,
+        "opacity": 1.0,
+        "source": "4ac0dede-df58-4cfe-b869-95111a8c2314",
+        "stroked": true
+      },
+      "type": "PolygonLayer",
+      "visible": true
+    },
+    "f7950683-2675-4cd9-ad8b-682428372ad2": {
+      "name": "Custom Trips Layer",
+      "parameters": {
+        "animationSpeed": 4.0,
+        "capRounded": true,
+        "color": [
+          100.0,
+          50.0,
+          150.0,
+          255.0
+        ],
+        "fadeTrail": true,
+        "getPath": "d => d.path",
+        "getTimestamps": "d => d.timestamps",
+        "jointRounded": false,
+        "loopLength": 1799.0,
+        "opacity": 1.0,
+        "source": "aa0be086-4cb1-4437-8a98-c989805b25d6",
+        "trailLength": 120.0,
+        "widthMinPixels": 4.0
+      },
+      "type": "TripsLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": -11.742489270386267,
+    "extent": [
+      -74.04962077138173,
+      40.68489920744536,
+      -73.9734372649865,
+      40.73818049232904
+    ],
+    "latitude": 40.70239034571772,
+    "longitude": -74.0033590071546,
+    "mapAdapter": "deckgl",
+    "pitch": 45.87040618955512,
+    "projection": "EPSG:3857",
+    "zoom": 13.96922434989147
+  },
+  "presets": {},
+  "schemaVersion": "0.7.0",
+  "sources": {
+    "4ac0dede-df58-4cfe-b869-95111a8c2314": {
+      "name": "Custom Polygon Layer Source",
+      "parameters": {
+        "data": [],
+        "httpHeaders": "",
+        "path": "https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/trips/buildings.json",
+        "useProxy": false
+      },
+      "type": "PolygonSource"
+    },
+    "aa0be086-4cb1-4437-8a98-c989805b25d6": {
+      "name": "Custom Trips Layer Source",
+      "parameters": {
+        "data": [],
+        "httpHeaders": "",
+        "path": "https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/trips/trips-v7.json",
+        "useProxy": false
+      },
+      "type": "TripsSource"
+    },
+    "b83cf987-e78c-4a67-a9b9-0828ad8e655a": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}

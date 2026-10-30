@@ -1,0 +1,79 @@
+{
+  "type": "object",
+  "description": "TripsLayer",
+  "title": "ITripsLayer",
+  "required": ["source"],
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "The id of the source"
+    },
+    "opacity": {
+      "type": "number",
+      "description": "The opacity of the layer",
+      "default": 1,
+      "multipleOf": 0.1,
+      "minimum": 0,
+      "maximum": 1
+    },
+    "color": {
+      "type": "array",
+      "description": "Trail color as RGB or RGBA, channels 0-255. Matches TripsLayer getColor.",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 4,
+      "default": [0, 0, 0, 255]
+    },
+    "trailLength": {
+      "type": "number",
+      "description": "How long a path takes to fade out, in the same units as the trip timestamps.",
+      "default": 120,
+      "minimum": 0
+    },
+    "fadeTrail": {
+      "type": "boolean",
+      "description": "Fade the path out behind the playhead. When false, trailLength has no effect.",
+      "default": true
+    },
+    "widthMinPixels": {
+      "type": "number",
+      "description": "Minimum path width in pixels.",
+      "default": 1,
+      "minimum": 0
+    },
+    "capRounded": {
+      "type": "boolean",
+      "description": "Round the ends of the path.",
+      "default": false
+    },
+    "jointRounded": {
+      "type": "boolean",
+      "description": "Round the joints of the path.",
+      "default": false
+    },
+    "loopLength": {
+      "type": "number",
+      "description": "End of the animation playhead, in the same units as the trip timestamps. Defaults to the span of the source timestamps (max - min).",
+      "minimum": 0
+    },
+    "animationSpeed": {
+      "type": "number",
+      "description": "Playback speed. At 1, each timestamp unit lasts 60ms.",
+      "default": 1,
+      "minimum": 0
+    },
+    "getPath": {
+      "type": "string",
+      "description": "Arrow function of one record, d. Returns the path positions.",
+      "default": "d => d.path"
+    },
+    "getTimestamps": {
+      "type": "string",
+      "description": "Arrow function of one record, d. Returns one timestamp per path position.",
+      "default": "d => d.timestamps"
+    }
+  }
+}

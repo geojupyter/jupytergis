@@ -94,6 +94,7 @@
     "colormap": "^2.3.2",
     "d3-scale-chromatic": "^3.0.0",
     "date-fns": "^4.1.0",
+    "deck.gl": "^9.4.0",
     "gdal3.js": "^2.8.1",
     "geojson-vt": "^4.0.2",
     "geoparquet": "^0.3.0",

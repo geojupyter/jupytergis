@@ -50,7 +50,9 @@
         "StacLayer",
         "StorySegmentLayer",
         "OpenEOTileLayer",
-        "TerrainLayer"
+        "TerrainLayer",
+        "TripsLayer",
+        "PolygonLayer"
       ]
     },
     "sourceType": {
@@ -70,7 +72,9 @@
         "GeoParquetSource",
         "FeatureStoreSource",
         "MarkerSource",
-        "OpenEOTileSource"
+        "OpenEOTileSource",
+        "TripsSource",
+        "PolygonSource"
       ]
     },
     "jGISLayer": {
@@ -267,7 +271,7 @@
           "type": "string",
           "title": "IMapAdapterType",
           "description": "The map adapter to use rendering the map.",
-          "enum": ["openlayers", "maplibre"]
+          "enum": ["openlayers", "maplibre", "deckgl"]
         },
         "latitude": {
           "type": "number",

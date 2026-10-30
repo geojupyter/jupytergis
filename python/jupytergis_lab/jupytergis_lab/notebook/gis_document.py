@@ -31,11 +31,15 @@ from jupytergis_core.schema import (
     IMarkerSource,
     IOpenEOTileLayer,
     IOpenEOTileSource,
+    IPolygonLayer,
+    IPolygonSource,
     IRasterDemSource,
     IRasterLayer,
     IRasterSource,
     IStorySegmentLayer,
     ITerrainLayer,
+    ITripsLayer,
+    ITripsSource,
     IVectorLayer,
     IVectorTileLayer,
     IVectorTileSource,
@@ -80,9 +84,9 @@ QGIS_UNSUPPORTED_TYPES = {
     SourceType.GeoZarrSource,
 }
 
-MapAdapterName = Literal["openlayers", "maplibre"]
+MapAdapterName = Literal["openlayers", "maplibre", "deckgl"]
 
-MAP_ADAPTERS: tuple[str, ...] = ("openlayers", "maplibre")
+MAP_ADAPTERS: tuple[str, ...] = ("openlayers", "maplibre", "deckgl")
 
 
 def _validate_map_adapter(map_adapter: str | None) -> MapAdapterName | None:
@@ -180,7 +184,7 @@ class GISDocument(CommWidget):
     :param path: the path to the file that you would like to open. If not provided, a new ephemeral widget will be created.
 
     :param map_adapter: the map renderer used to display this document,
-        ``"openlayers"`` or ``"maplibre"``. When omitted, the front end's default is used
+        ``"openlayers"``, ``"maplibre"``, or ``"deckgl"``. When omitted, the front end's default is used
         (or the value already saved in the file).
 
     Collaborative client state from the front end is mirrored into :mod:`ypywidgets`
@@ -1549,6 +1553,8 @@ class JGISLayer(BaseModel):
         | IStorySegmentLayer
         | IOpenEOTileLayer
         | ITerrainLayer
+        | ITripsLayer
+        | IPolygonLayer
     )
     _parent = GISDocument | None
 
@@ -1578,6 +1584,8 @@ class JGISSource(BaseModel):
         | IGeoPackageRasterSource
         | IWmsTileSource
         | IOpenEOTileSource
+        | ITripsSource
+        | IPolygonSource
     )
     _parent = GISDocument | None
 
@@ -1669,6 +1677,8 @@ OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 OBJECT_FACTORY.register_factory(LayerType.OpenEOTileLayer, IOpenEOTileLayer)
 OBJECT_FACTORY.register_factory(LayerType.TerrainLayer, ITerrainLayer)
+OBJECT_FACTORY.register_factory(LayerType.TripsLayer, ITripsLayer)
+OBJECT_FACTORY.register_factory(LayerType.PolygonLayer, IPolygonLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
@@ -1689,3 +1699,5 @@ OBJECT_FACTORY.register_factory(
 )
 OBJECT_FACTORY.register_factory(SourceType.WmsTileSource, IWmsTileSource)
 OBJECT_FACTORY.register_factory(SourceType.OpenEOTileSource, IOpenEOTileSource)
+OBJECT_FACTORY.register_factory(SourceType.TripsSource, ITripsSource)
+OBJECT_FACTORY.register_factory(SourceType.PolygonSource, IPolygonSource)

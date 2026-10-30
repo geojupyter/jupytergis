@@ -1611,6 +1611,16 @@ export class OpenLayersAdapter implements IMapAdapter {
         // 3D terrain is only supported by the MapLibre adapter.
         return;
       }
+
+      case 'TripsLayer': {
+        // Animated trips are only supported by the DeckGL adapter.
+        return;
+      }
+
+      case 'PolygonLayer': {
+        // Contour polygons are only supported by the DeckGL adapter.
+        return;
+      }
     }
 
     // OpenLayers doesn't have name/id field so add it

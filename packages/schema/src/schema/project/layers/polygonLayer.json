@@ -1,0 +1,71 @@
+{
+  "type": "object",
+  "description": "PolygonLayer",
+  "title": "IPolygonLayer",
+  "required": ["source"],
+  "additionalProperties": false,
+  "properties": {
+    "source": {
+      "type": "string",
+      "description": "The id of the source"
+    },
+    "opacity": {
+      "type": "number",
+      "description": "The opacity of the layer",
+      "default": 1,
+      "multipleOf": 0.1,
+      "minimum": 0,
+      "maximum": 1
+    },
+    "filled": {
+      "type": "boolean",
+      "description": "Draw the polygon interior.",
+      "default": true
+    },
+    "stroked": {
+      "type": "boolean",
+      "description": "Draw the polygon outline.",
+      "default": true
+    },
+    "extruded": {
+      "type": "boolean",
+      "description": "Extrude the polygon based on getElevation. Prefer disabling extrusion over returning 0 from getElevation.",
+      "default": false
+    },
+    "fillColor": {
+      "type": "array",
+      "description": "Fill color as RGB or RGBA, channels 0-255.",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 4,
+      "default": [0, 128, 255, 160]
+    },
+    "lineColor": {
+      "type": "array",
+      "description": "Outline color as RGB or RGBA, channels 0-255.",
+      "items": {
+        "type": "number"
+      },
+      "minItems": 3,
+      "maxItems": 4,
+      "default": [80, 80, 80]
+    },
+    "lineWidthMinPixels": {
+      "type": "number",
+      "description": "Outline width in pixels.",
+      "default": 1,
+      "minimum": 0
+    },
+    "getPolygon": {
+      "type": "string",
+      "description": "Arrow function of one record, d. Returns the polygon ring.",
+      "default": "d => d.polygon"
+    },
+    "getElevation": {
+      "type": "string",
+      "description": "Arrow function of one record, d. Returns the extrusion height in meters. Only used when extruded is true. If omitted, every polygon uses 1000 (deck.gl default)."
+    }
+  }
+}
