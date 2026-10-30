@@ -36,6 +36,7 @@ export { IOpenEOTileLayer } from './_interface/project/layers/openeoTileLayer';
 export { ITerrainLayer } from './_interface/project/layers/terrainLayer';
 export { ITripsLayer } from './_interface/project/layers/tripsLayer';
 export { IPolygonLayer } from './_interface/project/layers/polygonLayer';
+export { IGeoJsonLayer } from './_interface/project/layers/geoJsonLayer';
 
 // Processing
 export * from './processing/_generated/exportProcessingSchema';

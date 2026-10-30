@@ -17,6 +17,8 @@ export namespace LayerCreationCommandIDs {
   export const newShapefileWithParams = 'jupytergis:newShapefileWithParams';
   export const newTripsWithParams = 'jupytergis:newTripsWithParams';
   export const newPolygonWithParams = 'jupytergis:newPolygonWithParams';
+  export const newGeoJsonLayerWithParams =
+    'jupytergis:newGeoJsonLayerWithParams';
 }
 
 type LayerCreationSpec = {
@@ -417,6 +419,40 @@ export function addLayerCreationCommands(options: {
         lineColor: p.lineColor ?? [80, 80, 80],
         lineWidthMinPixels: p.lineWidthMinPixels ?? 1,
         getPolygon: p.getPolygon ?? 'd => d.polygon',
+        ...(p.getElevation ? { getElevation: p.getElevation } : {}),
+      }),
+    },
+    {
+      id: LayerCreationCommandIDs.newGeoJsonLayerWithParams,
+      label: 'New GeoJSON Layer From Parameters',
+      caption:
+        'Add a new deck.gl GeoJSON layer (by file path or URL) and add it to the given JupyterGIS file',
+      sourceType: 'GeoJSONSource',
+      layerType: 'GeoJsonLayer',
+      sourceSchema: {
+        type: 'object',
+        required: ['path'],
+        properties: { path: { type: 'string' } },
+      },
+      layerParamsSchema: {
+        opacity: { type: 'number', default: 1 },
+        filled: { type: 'boolean', default: true },
+        stroked: { type: 'boolean', default: true },
+        extruded: { type: 'boolean', default: false },
+        wireframe: { type: 'boolean', default: false },
+        getFillColor: { type: 'string' },
+        getLineColor: { type: 'string' },
+        getElevation: { type: 'string' },
+      },
+      buildParameters: (p, id) => ({
+        source: id,
+        opacity: p.opacity ?? 1,
+        filled: p.filled ?? true,
+        stroked: p.stroked ?? true,
+        extruded: p.extruded ?? false,
+        wireframe: p.wireframe ?? false,
+        ...(p.getFillColor ? { getFillColor: p.getFillColor } : {}),
+        ...(p.getLineColor ? { getLineColor: p.getLineColor } : {}),
         ...(p.getElevation ? { getElevation: p.getElevation } : {}),
       }),
     },

@@ -59,6 +59,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     StacLayer: false,
     TripsLayer: false,
     PolygonLayer: false,
+    GeoJsonLayer: false,
   },
   addMarker: false,
   identify: false,
@@ -78,7 +79,7 @@ const DECKGL_FEATURES: IMapAdapterFeatures = {
     RasterSource: true,
     RasterDemSource: false,
     VectorTileSource: false,
-    GeoJSONSource: false,
+    GeoJSONSource: true,
     ImageSource: false,
     ShapefileSource: false,
     GeoTiffSource: false,
@@ -107,6 +108,7 @@ const DECKGL_FEATURES: IMapAdapterFeatures = {
     StacLayer: false,
     TripsLayer: true,
     PolygonLayer: true,
+    GeoJsonLayer: true,
   },
   addMarker: false,
   identify: false,
@@ -155,6 +157,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     StacLayer: true,
     TripsLayer: false,
     PolygonLayer: false,
+    GeoJsonLayer: false,
   },
   addMarker: true,
   identify: true,
@@ -248,6 +251,11 @@ const LAYER_ENTRIES: ILayerEntry[] = [
   },
   { label: 'Trips', layer: 'TripsLayer', source: 'TripsSource' },
   { label: 'Polygons', layer: 'PolygonLayer', source: 'PolygonSource' },
+  {
+    label: 'GeoJSON (Deck.gl)',
+    layer: 'GeoJsonLayer',
+    source: 'GeoJSONSource',
+  },
 ];
 
 type ToolKey =

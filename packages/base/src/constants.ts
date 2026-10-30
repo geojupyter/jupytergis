@@ -60,6 +60,7 @@ const iconObject = {
   [CommandIDs.openNewGeoJSONDialog]: { icon: geoJSONIcon },
   [CommandIDs.openNewTripsDialog]: { iconClass: 'fa fa-route' },
   [CommandIDs.openNewPolygonDialog]: { iconClass: 'fa fa-draw-polygon' },
+  [CommandIDs.openNewGeoJsonLayerDialog]: { icon: geoJSONIcon },
   [CommandIDs.openNewHillshadeDialog]: { icon: moundIcon },
   [CommandIDs.openNewTerrainDialog]: { icon: moundIcon },
   [CommandIDs.openNewImageDialog]: { iconClass: 'fa fa-image' },

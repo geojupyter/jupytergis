@@ -31,6 +31,7 @@ from jupytergis_core.schema import (
     IMarkerSource,
     IOpenEOTileLayer,
     IOpenEOTileSource,
+    IGeoJsonLayer,
     IPolygonLayer,
     IPolygonSource,
     IRasterDemSource,
@@ -1555,6 +1556,7 @@ class JGISLayer(BaseModel):
         | ITerrainLayer
         | ITripsLayer
         | IPolygonLayer
+        | IGeoJsonLayer
     )
     _parent = GISDocument | None
 
@@ -1679,6 +1681,7 @@ OBJECT_FACTORY.register_factory(LayerType.OpenEOTileLayer, IOpenEOTileLayer)
 OBJECT_FACTORY.register_factory(LayerType.TerrainLayer, ITerrainLayer)
 OBJECT_FACTORY.register_factory(LayerType.TripsLayer, ITripsLayer)
 OBJECT_FACTORY.register_factory(LayerType.PolygonLayer, IPolygonLayer)
+OBJECT_FACTORY.register_factory(LayerType.GeoJsonLayer, IGeoJsonLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)

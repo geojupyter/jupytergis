@@ -27,6 +27,7 @@ const LAYER_SCHEMAS = {
   TerrainLayer: 'layers/terrainLayer.json',
   TripsLayer: 'layers/tripsLayer.json',
   PolygonLayer: 'layers/polygonLayer.json',
+  GeoJsonLayer: 'layers/geoJsonLayer.json',
 };
 
 const SOURCE_SCHEMAS = {

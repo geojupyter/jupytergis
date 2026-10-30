@@ -1621,6 +1621,11 @@ export class OpenLayersAdapter implements IMapAdapter {
         // Contour polygons are only supported by the DeckGL adapter.
         return;
       }
+
+      case 'GeoJsonLayer': {
+        // deck.gl GeoJsonLayer is only supported by the DeckGL adapter.
+        return;
+      }
     }
 
     // OpenLayers doesn't have name/id field so add it

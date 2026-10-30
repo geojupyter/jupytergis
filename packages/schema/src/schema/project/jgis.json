@@ -52,7 +52,8 @@
         "OpenEOTileLayer",
         "TerrainLayer",
         "TripsLayer",
-        "PolygonLayer"
+        "PolygonLayer",
+        "GeoJsonLayer"
       ]
     },
     "sourceType": {

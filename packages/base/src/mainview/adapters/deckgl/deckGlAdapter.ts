@@ -1,5 +1,6 @@
 import {
   Deck,
+  type Color,
   type InteractionState,
   type MapViewState,
   type PickingInfo,
@@ -9,8 +10,10 @@ import {
 import { TileLayer, TripsLayer } from '@deck.gl/geo-layers';
 import {
   BitmapLayer,
+  GeoJsonLayer,
   PolygonLayer,
   type BitmapLayerProps,
+  type GeoJsonLayerProps,
 } from '@deck.gl/layers';
 import {
   FullscreenWidget,
@@ -19,6 +22,8 @@ import {
 } from '@deck.gl/widgets';
 import type {
   IDict,
+  IGeoJSONSource,
+  IGeoJsonLayer,
   IIdentifiedFeature,
   IJGISLayer,
   IJGISOptions,
@@ -273,6 +278,7 @@ export class DeckGlAdapter implements IMapAdapter {
     this._layerIds = undefined;
     this._unbindCanvasEvents();
     this._jsonRecords.clear();
+    this._geoJsonData.clear();
     this._tripTimingCache.clear();
     this._deck?.finalize();
     this._deck = undefined;
@@ -414,12 +420,23 @@ export class DeckGlAdapter implements IMapAdapter {
 
       const sourceId = (layer.parameters as { source?: string } | undefined)
         ?.source;
-      if (!sourceId || this._jsonRecords.has(sourceId)) {
+      if (!sourceId) {
+        continue;
+      }
+
+      if (
+        this._jsonRecords.has(sourceId) ||
+        this._geoJsonData.has(sourceId)
+      ) {
         continue;
       }
 
       const source = this._model.getSource(sourceId);
-      if (!source || !JSON_RECORD_SOURCES.has(source.type)) {
+      if (
+        !source ||
+        (!JSON_RECORD_SOURCES.has(source.type) &&
+          source.type !== 'GeoJSONSource')
+      ) {
         continue;
       }
 
@@ -442,7 +459,7 @@ export class DeckGlAdapter implements IMapAdapter {
       case 'TripsSource':
       case 'PolygonSource': {
         const label = source.type === 'TripsSource' ? 'trips' : 'polygon';
-        const data = await this._loadJsonRecords(
+        const data = await this._loadJsonPayload(
           id,
           source,
           source.parameters as ITripsSource | IPolygonSource | undefined,
@@ -465,6 +482,22 @@ export class DeckGlAdapter implements IMapAdapter {
         return;
       }
 
+      case 'GeoJSONSource': {
+        const data = await this._loadJsonPayload(
+          id,
+          source,
+          source.parameters as IGeoJSONSource | undefined,
+          'geojson',
+        );
+
+        if (!data) {
+          return;
+        }
+
+        this._geoJsonData.set(id, data);
+        return;
+      }
+
       default: {
         this._log(
           'warning',
@@ -476,6 +509,7 @@ export class DeckGlAdapter implements IMapAdapter {
 
   removeSource(id: string): void {
     this._jsonRecords.delete(id);
+    this._geoJsonData.delete(id);
     this._clearTripTiming(id);
   }
 
@@ -735,6 +769,16 @@ export class DeckGlAdapter implements IMapAdapter {
 
           break;
         }
+        case 'GeoJsonLayer': {
+          const created = this._createGeoJsonLayer(id, layer);
+          if (!created) {
+            continue;
+          }
+
+          layers.push(created);
+
+          break;
+        }
       }
     }
 
@@ -906,6 +950,51 @@ export class DeckGlAdapter implements IMapAdapter {
     });
   }
 
+  private _createGeoJsonLayer(
+    id: string,
+    layer: IJGISLayer,
+  ): GeoJsonLayer | undefined {
+    const parameters = layer.parameters as IGeoJsonLayer | undefined;
+    const data = parameters?.source
+      ? this._geoJsonData.get(parameters.source)
+      : undefined;
+    if (!data) {
+      return undefined;
+    }
+
+    const getFillColor = this._optionalGetter(parameters?.getFillColor);
+    const getLineColor = this._optionalGetter(parameters?.getLineColor);
+    const getElevation = this._optionalGetter(parameters?.getElevation);
+
+    return new GeoJsonLayer({
+      id,
+      data: data as GeoJsonLayerProps['data'],
+      filled: parameters?.filled,
+      stroked: parameters?.stroked,
+      extruded: parameters?.extruded,
+      wireframe: parameters?.wireframe,
+      ...(getFillColor
+        ? { getFillColor: (feature: unknown) => getFillColor(feature) as Color }
+        : {}),
+      ...(getLineColor
+        ? { getLineColor: (feature: unknown) => getLineColor(feature) as Color }
+        : {}),
+      ...(getElevation
+        ? {
+            getElevation: (feature: unknown) => {
+              const height = getElevation(feature);
+              return typeof height === 'number' && Number.isFinite(height)
+                ? height
+                : 0;
+            },
+          }
+        : {}),
+      opacity: parameters?.opacity,
+      visible: layer.visible ?? true,
+      pickable: true,
+    });
+  }
+
   private _createRasterTileLayer(
     id: string,
     layer: IJGISLayer,
@@ -978,14 +1067,16 @@ export class DeckGlAdapter implements IMapAdapter {
     return url;
   }
 
-  private async _loadJsonRecords(
+  private async _loadJsonPayload(
     id: string,
     source: IJGISSource,
-    parameters: { path?: string | null; data?: readonly unknown[] } | undefined,
+    parameters: { path?: string | null; data?: unknown } | undefined,
     label: string,
   ): Promise<unknown> {
-    if (parameters?.data && parameters.data.length > 0) {
-      return parameters.data;
+    if (parameters?.data != null) {
+      if (!Array.isArray(parameters.data) || parameters.data.length > 0) {
+        return parameters.data;
+      }
     }
 
     if (!parameters?.path) {
@@ -1070,6 +1161,13 @@ export class DeckGlAdapter implements IMapAdapter {
       return [];
     }
     return data;
+  }
+
+  private _optionalGetter(
+    expression: string | undefined,
+  ): RecordGetter | undefined {
+    const trimmed = expression?.trim();
+    return trimmed ? this._getter(trimmed) : undefined;
   }
 
   private _getter(expression: string): RecordGetter {
@@ -1216,6 +1314,7 @@ export class DeckGlAdapter implements IMapAdapter {
   private _tripPlaybackKey?: string;
   private _tripTime = 0;
   private _jsonRecords = new Map<string, unknown[]>();
+  private _geoJsonData = new Map<string, unknown>();
   private _getters = new Map<string, RecordGetter>();
   private _tripTimingCache = new Map<string, TripTiming>();
   private _syncViewportThrottled?: () => void;
