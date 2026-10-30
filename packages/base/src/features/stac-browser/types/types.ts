@@ -217,8 +217,7 @@ export interface IStacGeodesQueryBody {
 
 /**
  * Item-search body for catalogs that honor `collections`, `bbox`, and the
- * query extension on product time. `datetime` is omitted: some catalogs
- * treat it as ingestion time.
+ * query extension on product time.
  */
 export interface IStacCatalogQueryBody {
   bbox: [number, number, number, number];
