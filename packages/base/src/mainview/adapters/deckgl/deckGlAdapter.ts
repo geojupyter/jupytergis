@@ -94,13 +94,10 @@ const DEFAULT_GET_PATH = 'd => d.path';
 const DEFAULT_GET_TIMESTAMPS = 'd => d.timestamps';
 const DEFAULT_GET_POLYGON = 'd => d.polygon';
 
-type LngLat = [longitude: number, latitude: number];
+/** Source types that fetch/store a JSON array of records. */
+const JSON_RECORD_SOURCES = new Set(['TripsSource', 'PolygonSource']);
 
-type RasterTileTemplate = {
-  url: string;
-  minZoom: number;
-  maxZoom: number;
-};
+type LngLat = [longitude: number, latitude: number];
 
 type RecordGetter = (record: unknown) => unknown;
 
@@ -205,7 +202,6 @@ export class DeckGlAdapter implements IMapAdapter {
 
     this._callbacks = callbacks;
     this._mainViewId = mainViewId;
-    this._controlsTarget = controlsTarget;
     this._loggerRegistry = loggerRegistry;
 
     if (projection !== 'EPSG:3857') {
@@ -277,9 +273,7 @@ export class DeckGlAdapter implements IMapAdapter {
     this._stopTripAnimation();
     this._layerIds = undefined;
     this._unbindCanvasEvents();
-    this._rasterSources.clear();
-    this._tripRecords.clear();
-    this._polygonRecords.clear();
+    this._jsonRecords.clear();
     this._tripTimingCache.clear();
     this._deck?.finalize();
     this._deck = undefined;
@@ -406,50 +400,31 @@ export class DeckGlAdapter implements IMapAdapter {
     layer: IJGISLayer,
     _oldLayer?: IDict,
   ): Promise<void> {
-    if (layer.type !== 'TripsLayer' && layer.type !== 'PolygonLayer') {
+    if (!this.supportedFeatures.layers[layer.type] || !this._layerIds) {
       return;
     }
-    if (this._layerIds) {
-      this._syncLayers(this._layerIds);
-    }
+    this._syncLayers(this._layerIds);
   }
 
   async updateLayers(layerIds: string[]): Promise<void> {
     for (const id of layerIds) {
       const layer = this._model.getLayers()[id];
-      if (
-        layer?.type !== 'RasterLayer' &&
-        layer?.type !== 'TripsLayer' &&
-        layer?.type !== 'PolygonLayer'
-      ) {
+      if (!layer || !this.supportedFeatures.layers[layer.type]) {
         continue;
       }
 
-      const sourceId = (
-        layer.parameters as
-          | IRasterLayer
-          | ITripsLayer
-          | IPolygonLayer
-          | undefined
-      )?.source;
-      if (!sourceId) {
-        continue;
-      }
-
-      const loaded =
-        layer.type === 'RasterLayer'
-          ? this._rasterSources.has(sourceId)
-          : layer.type === 'TripsLayer'
-            ? this._tripRecords.has(sourceId)
-            : this._polygonRecords.has(sourceId);
-      if (loaded) {
+      const sourceId = (layer.parameters as { source?: string } | undefined)
+        ?.source;
+      if (!sourceId || this._jsonRecords.has(sourceId)) {
         continue;
       }
 
       const source = this._model.getSource(sourceId);
-      if (source) {
-        await this.addSource(sourceId, source);
+      if (!source || !JSON_RECORD_SOURCES.has(source.type)) {
+        continue;
       }
+
+      await this.addSource(sourceId, source);
     }
 
     this._syncLayers(layerIds);
@@ -461,56 +436,29 @@ export class DeckGlAdapter implements IMapAdapter {
 
   async addSource(id: string, source: IJGISSource): Promise<void> {
     switch (source.type) {
-      case 'RasterSource': {
-        const parameters = source.parameters as IRasterSource;
-        if (!parameters?.url) {
-          this._log(
-            'error',
-            `DeckGlAdapter: raster source "${source.name ?? id}" has no URL.`,
-          );
-          return;
-        }
-
-        this._rasterSources.set(id, {
-          url: this._resolveTileUrl(parameters),
-          minZoom: parameters.minZoom,
-          maxZoom: parameters.maxZoom,
-        });
+      case 'RasterSource':
+        // Resolved from the model in `_createRasterTileLayer`.
         return;
-      }
 
-      case 'TripsSource': {
-        const data = await this._loadJsonRecords(
-          id,
-          source,
-          source.parameters,
-          'trips',
-        );
-        if (!data) {
-          return;
-        }
-        this._tripRecords.set(
-          id,
-          this._jsonRecords(data, source.name ?? id, 'trips'),
-        );
-        this._clearTripTiming(id);
-        return;
-      }
-
+      case 'TripsSource':
       case 'PolygonSource': {
+        const label = source.type === 'TripsSource' ? 'trips' : 'polygon';
         const data = await this._loadJsonRecords(
           id,
           source,
-          source.parameters as IPolygonSource | undefined,
-          'polygon',
+          source.parameters as ITripsSource | IPolygonSource | undefined,
+          label,
         );
         if (!data) {
           return;
         }
-        this._polygonRecords.set(
+        this._jsonRecords.set(
           id,
-          this._jsonRecords(data, source.name ?? id, 'polygon'),
+          this._asJsonRecordArray(data, source.name ?? id, label),
         );
+        if (source.type === 'TripsSource') {
+          this._clearTripTiming(id);
+        }
         return;
       }
 
@@ -524,9 +472,7 @@ export class DeckGlAdapter implements IMapAdapter {
   }
 
   removeSource(id: string): void {
-    this._rasterSources.delete(id);
-    this._tripRecords.delete(id);
-    this._polygonRecords.delete(id);
+    this._jsonRecords.delete(id);
     this._clearTripTiming(id);
   }
 
@@ -865,7 +811,7 @@ export class DeckGlAdapter implements IMapAdapter {
   } | null {
     const parameters = layer.parameters as ITripsLayer | undefined;
     const records = parameters?.source
-      ? this._tripRecords.get(parameters.source)
+      ? this._jsonRecords.get(parameters.source)
       : undefined;
 
     if (!records || records.length === 0) {
@@ -924,7 +870,7 @@ export class DeckGlAdapter implements IMapAdapter {
   ): PolygonLayer | undefined {
     const parameters = layer.parameters as IPolygonLayer | undefined;
     const records = parameters?.source
-      ? this._polygonRecords.get(parameters.source)
+      ? this._jsonRecords.get(parameters.source)
       : undefined;
     if (!records || records.length === 0) {
       return undefined;
@@ -979,18 +925,25 @@ export class DeckGlAdapter implements IMapAdapter {
     layer: IJGISLayer,
   ): TileLayer<unknown> | undefined {
     const parameters = layer.parameters as IRasterLayer | undefined;
-    const template = parameters?.source
-      ? this._rasterSources.get(parameters.source)
-      : undefined;
-    if (!template) {
+    if (!parameters?.source) {
+      return undefined;
+    }
+
+    const source = this._model.getSource(parameters.source);
+    const sourceParams = source?.parameters as IRasterSource | undefined;
+    if (!sourceParams?.url) {
+      this._log(
+        'error',
+        `DeckGlAdapter: raster source "${source?.name ?? parameters.source}" has no URL.`,
+      );
       return undefined;
     }
 
     return new TileLayer({
       id,
-      data: template.url,
-      minZoom: template.minZoom,
-      maxZoom: template.maxZoom,
+      data: this._resolveTileUrl(sourceParams),
+      minZoom: sourceParams.minZoom,
+      maxZoom: sourceParams.maxZoom,
       tileSize: 256,
       opacity: parameters?.opacity ?? 1,
       visible: layer.visible ?? true,
@@ -1118,7 +1071,7 @@ export class DeckGlAdapter implements IMapAdapter {
     }
   }
 
-  private _jsonRecords(
+  private _asJsonRecordArray(
     data: unknown,
     sourceName: string,
     label: string,
@@ -1270,16 +1223,13 @@ export class DeckGlAdapter implements IMapAdapter {
   private _mainViewId?: string;
   private _loggerRegistry?: ILoggerRegistry;
   private _callbacks?: IMapAdapterCallbacks;
-  private _controlsTarget?: HTMLElement;
   private _lastPointerCoord: LngLat | null = null;
   private _emitBboxChanged?: () => void;
   private _layerIds?: string[];
   private _tripAnimation?: AnimationControls;
   private _tripPlaybackKey?: string;
   private _tripTime = 0;
-  private _rasterSources = new Map<string, RasterTileTemplate>();
-  private _tripRecords = new Map<string, unknown[]>();
-  private _polygonRecords = new Map<string, unknown[]>();
+  private _jsonRecords = new Map<string, unknown[]>();
   private _getters = new Map<string, RecordGetter>();
   private _tripTimingCache = new Map<string, TripTiming>();
   private _syncViewportThrottled?: () => void;
