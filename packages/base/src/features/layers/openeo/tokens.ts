@@ -9,6 +9,11 @@ interface IStoredToken {
 
 type StoredTokens = Record<string, Record<string, IStoredToken>>;
 
+/** Seconds, like `rfc3339.now_utc()` in the openEO Python client. */
+function now(): string {
+  return new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+}
+
 /** Trailing slashes only, like `_normalize_url` in the openEO Python client. */
 function normalize(server: string): string {
   return server.replace(/\/+$/, '') || '/';
@@ -30,7 +35,7 @@ export class LocalStorageOpenEOTokensProvider implements IOpenEOTokensProvider {
     const key = normalize(server);
     tokens[key] = {
       ...tokens[key],
-      [provider]: { date: new Date().toISOString(), refresh_token: token },
+      [provider]: { date: now(), refresh_token: token },
     };
     this._save(tokens);
   }

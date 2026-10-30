@@ -72,6 +72,16 @@ async function promptOpenEOLogin(serverUrl: string): Promise<void> {
   }
   _pendingLoginPrompts.add(serverUrl);
   try {
+    // A stored refresh token signs us back in without asking anything.
+    try {
+      const restored: IOpenEOConnectionInfo = { url: serverUrl, quiet: true };
+      await openEOConnect(restored);
+      openEOEvents.connected.emit({ serverUrl: restored.url ?? serverUrl });
+      return;
+    } catch {
+      // Nothing stored for this server, or it no longer works.
+    }
+
     const result = await showDialog({
       title: 'OpenEO session required',
       body: `Not signed in to ${serverUrl}. Log in to render this document's OpenEO layers.`,
@@ -333,9 +343,10 @@ export async function openEOConnect(
         }
 
         await authProvider.login(signIn.username, signIn.password);
-      } else {
-        const authenticate =
-          connectionInfo.authenticate ?? showOpenEOSigninDialog;
+      } else if (!(await resumeSession(providers))) {
+        const authenticate = connectionInfo.quiet
+          ? async () => false
+          : (connectionInfo.authenticate ?? showOpenEOSigninDialog);
         if (!(await authenticate(providers, connection))) {
           throw new OpenEOSigninCancelled(
             'Needs credentials to connect to OpenEO server.',
@@ -363,12 +374,28 @@ export async function openEOConnect(
 
     return connection;
   } catch (error) {
-    if (!(error instanceof OpenEOSigninCancelled)) {
+    if (!(error instanceof OpenEOSigninCancelled) && !connectionInfo.quiet) {
       showErrorMessage(errorTitle, describeConnectionError(error, url));
     }
 
     throw error;
   }
+}
+
+/**
+ * Signs in to whichever provider kept a usable refresh token, so a reload
+ * picks the session back up instead of opening the sign-in form.
+ */
+async function resumeSession(providers: AuthProvider[]): Promise<boolean> {
+  for (const provider of providers) {
+    if (
+      provider instanceof OpenEODeviceProvider &&
+      (await provider.resumeSession())
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export interface IOpenEOConnectionInfo {
@@ -395,6 +422,13 @@ export interface IOpenEOConnectionInfo {
     providers: AuthProvider[],
     connection: Connection,
   ) => Promise<boolean>;
+
+  /**
+   * Connect without asking the user anything: no sign-in form and no error
+   * dialog. Used to restore a session from a stored token, where failing is
+   * a normal outcome the caller handles by asking.
+   */
+  quiet?: boolean;
 }
 
 export class OpenEOTileLayer extends TileLayer {
