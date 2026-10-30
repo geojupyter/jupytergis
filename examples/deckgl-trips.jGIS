@@ -1,14 +1,24 @@
 {
   "annotations": {},
   "layerTree": [
-    "f4182d9c-990b-461a-8b31-341a2de31809",
-    "1f4bb540-cc3c-44fc-aeda-04eb803fe343",
-    "77030ed1-30f0-4909-b585-3809c80654ba"
+    "77355c8b-463a-4deb-ad2e-28ccbbbea46f",
+    "c89b5818-c369-4a50-8ded-1fb444350ae1",
+    "f7950683-2675-4cd9-ad8b-682428372ad2"
   ],
   "layers": {
-    "1f4bb540-cc3c-44fc-aeda-04eb803fe343": {
+    "77355c8b-463a-4deb-ad2e-28ccbbbea46f": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "b83cf987-e78c-4a67-a9b9-0828ad8e655a"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "c89b5818-c369-4a50-8ded-1fb444350ae1": {
       "name": "Custom Polygon Layer",
       "parameters": {
+        "extruded": true,
         "fillColor": [
           0.0,
           128.0,
@@ -16,6 +26,8 @@
           160.0
         ],
         "filled": true,
+        "getElevation": "d => d.height",
+        "getPolygon": "d => d.polygon",
         "lineColor": [
           80.0,
           80.0,
@@ -23,71 +35,57 @@
         ],
         "lineWidthMinPixels": 1.0,
         "opacity": 1.0,
-        "source": "b7abd387-5394-427d-9efa-35cc0d99bed5",
+        "source": "4ac0dede-df58-4cfe-b869-95111a8c2314",
         "stroked": true
       },
       "type": "PolygonLayer",
       "visible": true
     },
-    "77030ed1-30f0-4909-b585-3809c80654ba": {
+    "f7950683-2675-4cd9-ad8b-682428372ad2": {
       "name": "Custom Trips Layer",
       "parameters": {
+        "animationSpeed": 4.0,
         "capRounded": true,
         "color": [
-          253.0,
-          128.0,
-          93.0
+          100.0,
+          50.0,
+          150.0,
+          255.0
         ],
         "fadeTrail": true,
-        "jointRounded": true,
+        "getPath": "d => d.path",
+        "getTimestamps": "d => d.timestamps",
+        "jointRounded": false,
+        "loopLength": 1799.0,
         "opacity": 1.0,
-        "source": "0e6371c1-b2ac-4618-b71e-a2eac01f3e27",
+        "source": "aa0be086-4cb1-4437-8a98-c989805b25d6",
         "trailLength": 120.0,
         "widthMinPixels": 4.0
       },
       "type": "TripsLayer",
       "visible": true
-    },
-    "f4182d9c-990b-461a-8b31-341a2de31809": {
-      "name": "OpenStreetMap.Mapnik Layer",
-      "parameters": {
-        "opacity": 1.0,
-        "source": "e9075698-bc7d-4aa3-8055-e5cc70451958"
-      },
-      "type": "RasterLayer",
-      "visible": true
     }
   },
   "metadata": {},
   "options": {
-    "bearing": 0.0,
+    "bearing": -11.742489270386267,
     "extent": [
-      -74.03040285272691,
-      40.70231945226574,
-      -73.98579765557895,
-      40.726609972951714
+      -74.04962077138173,
+      40.68489920744536,
+      -73.9734372649865,
+      40.73818049232904
     ],
-    "latitude": 40.7144658203792,
-    "longitude": -74.00810025415308,
+    "latitude": 40.70239034571772,
+    "longitude": -74.0033590071546,
     "mapAdapter": "deckgl",
-    "pitch": 0.0,
+    "pitch": 45.87040618955512,
     "projection": "EPSG:3857",
-    "zoom": 14.164611710954206
+    "zoom": 13.96922434989147
   },
   "presets": {},
   "schemaVersion": "0.7.0",
   "sources": {
-    "0e6371c1-b2ac-4618-b71e-a2eac01f3e27": {
-      "name": "Custom Trips Layer Source",
-      "parameters": {
-        "data": [],
-        "httpHeaders": "",
-        "path": "https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/trips/trips-v7.json",
-        "useProxy": false
-      },
-      "type": "TripsSource"
-    },
-    "b7abd387-5394-427d-9efa-35cc0d99bed5": {
+    "4ac0dede-df58-4cfe-b869-95111a8c2314": {
       "name": "Custom Polygon Layer Source",
       "parameters": {
         "data": [],
@@ -97,7 +95,17 @@
       },
       "type": "PolygonSource"
     },
-    "e9075698-bc7d-4aa3-8055-e5cc70451958": {
+    "aa0be086-4cb1-4437-8a98-c989805b25d6": {
+      "name": "Custom Trips Layer Source",
+      "parameters": {
+        "data": [],
+        "httpHeaders": "",
+        "path": "https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/trips/trips-v7.json",
+        "useProxy": false
+      },
+      "type": "TripsSource"
+    },
+    "b83cf987-e78c-4a67-a9b9-0828ad8e655a": {
       "name": "OpenStreetMap.Mapnik",
       "parameters": {
         "attribution": "(C) OpenStreetMap contributors",
