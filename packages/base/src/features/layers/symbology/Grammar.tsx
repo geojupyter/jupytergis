@@ -566,10 +566,11 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <FontAwesomeIcon icon={faPlus} />
           Add Mapping
         </Button>
-        {!isRaster && !hasLabel && (
+        {!isRaster && (
           <Button
             variant="ghost"
             style={{ margin: '0 0 0.5rem 1rem' }}
+            disabled={hasLabel}
             onClick={addLabel}
             title="Label each feature with one of its attributes"
           >
