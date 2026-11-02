@@ -16,6 +16,7 @@ import {
 } from '@openeo/js-client';
 // @ts-expect-error
 import Environment from '@openeo/js-client/src/env';
+import { LoadFunction } from 'ol/Tile';
 import TileLayer from 'ol/layer/Tile';
 import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
@@ -23,7 +24,7 @@ import React from 'react';
 
 import { buildProxyUrl, getProxyEndpoint } from '@/src/shared/proxy';
 import { describeConnectionError } from '@/src/tools';
-import { expandDeviceProviders, OpenEODeviceProvider } from './deviceLogin';
+import { OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
 import { ensureSaveResult } from './templates';
 
@@ -31,6 +32,12 @@ Environment.axios.defaults.xsrfCookieName = '_xsrf';
 Environment.axios.defaults.xsrfHeaderName = 'X-XSRFToken';
 
 const CONNECTIONS: { [serverUrl: string]: Connection } = {};
+
+/**
+ * In case of rate limit issues on the backend, we retry this amout of milliseconds
+ */
+const TILE_RETRY_RATE = 2000;
+const TILE_MAX_RETRY = 4;
 
 /**
  * Singleton event hub for OpenEO connection lifecycle. Mainly used so the
@@ -315,10 +322,7 @@ export async function openEOConnect(
       connection.setOidcProviderFactory(info =>
         OpenEODeviceProvider.create(connection, info),
       );
-      const providers = expandDeviceProviders(
-        connection,
-        await connection.listAuthProviders(),
-      );
+      const providers = await connection.listAuthProviders();
 
       if (signIn) {
         const authProvider = providers.find(
@@ -393,6 +397,59 @@ export interface IOpenEOConnectionInfo {
   ) => Promise<boolean>;
 }
 
+/**
+ * Create the XYZ tile service for `processGraph` and return its url. Needs a
+ * live session on `serverUrl`.
+ */
+export async function createOpenEOTileService(
+  serverUrl: string,
+  processGraph: Process,
+): Promise<string> {
+  const connection = getOpenEOConnection(serverUrl);
+
+  // Inject `save_result` for graphs that omit it (e.g. ESA UDPs).
+  const graph = (await resultIsSavingUserProcess(connection, processGraph))
+    ? processGraph
+    : ensureSaveResult(processGraph);
+
+  let service: Service;
+
+  try {
+    service = await connection.createService(graph, 'XYZ');
+  } catch (e) {
+    throw new Error(`Failed to create the XYZ service ${e}`);
+  }
+
+  if (!service.url) {
+    throw new Error('Failed to connect to XYZ service');
+  }
+
+  return service.url;
+}
+
+async function resultIsSavingUserProcess(
+  connection: Connection,
+  graph: Record<string, any>,
+): Promise<boolean> {
+  const nodes = Object.values(graph);
+  const result = nodes.find((node: any) => node?.result === true);
+  if (
+    !result ||
+    result.process_id === 'save_result' ||
+    (result.namespace && result.namespace !== 'user')
+  ) {
+    return false;
+  }
+  try {
+    const udp = await connection.getUserProcess(result.process_id);
+    return Object.values(udp.processGraph ?? {}).some(
+      (node: any) => node?.process_id === 'save_result',
+    );
+  } catch {
+    return false;
+  }
+}
+
 export class OpenEOTileLayer extends TileLayer {
   // Just an alias
 }
@@ -417,10 +474,9 @@ export interface IOpenEOTileSourceOptions extends XYZOptions {
 
 export class OpenEOTileSource extends XYZSource {
   constructor(options: IOpenEOTileSourceOptions) {
-    super({
-      ...options,
-      url: '{z},{x},{y}',
-      tileLoadFunction: async (tile: any, _src: string) => {
+    const tileLoadFunction =
+      (retries: number): LoadFunction =>
+      async (tile: any, _src: string) => {
         await this._connected.promise;
 
         let url = this._url;
@@ -428,6 +484,12 @@ export class OpenEOTileSource extends XYZSource {
         if (!url) {
           throw new Error('XYZ URL undefined');
         }
+
+        retries -= 1;
+        const retry: LoadFunction = async (tile: any, _src: string) => {
+          await new Promise(resolve => setTimeout(resolve, TILE_RETRY_RATE));
+          return tileLoadFunction(retries)(tile, _src);
+        };
 
         const [z, x, y] = tile.tileCoord;
 
@@ -443,9 +505,13 @@ export class OpenEOTileSource extends XYZSource {
         try {
           res = await fetch(url, { method: 'GET' });
         } catch (err: any) {
-          this._reportTileError(
-            `Tile request failed: ${err?.message ?? String(err)}`,
-          );
+          const errorMessage: string = err?.message ?? String(err);
+
+          if (errorMessage.toLowerCase().includes('rate limit')) {
+            return retry(tile, _src);
+          }
+
+          this._reportTileError(`Tile request failed: ${errorMessage}`);
           tile.setState(3);
           return;
         }
@@ -467,6 +533,11 @@ export class OpenEOTileSource extends XYZSource {
           } catch {
             /* response body unreadable */
           }
+
+          if (detail.toLowerCase().includes('rate limit')) {
+            return retry(tile, _src);
+          }
+
           this._reportTileError(
             `HTTP ${res.status} from OpenEO tile service${detail ? `: ${detail}` : ''}`,
           );
@@ -476,7 +547,12 @@ export class OpenEOTileSource extends XYZSource {
 
         const blob = await res.blob();
         tile.getImage().src = URL.createObjectURL(blob);
-      },
+      };
+
+    super({
+      ...options,
+      url: '{z},{x},{y}',
+      tileLoadFunction: tileLoadFunction(TILE_MAX_RETRY),
     });
 
     this.serverUrl = options.serverUrl;
@@ -517,67 +593,26 @@ export class OpenEOTileSource extends XYZSource {
       return;
     }
 
-    // Otherwise, try to create the service URL
+    // Otherwise create the service ourselves, which needs a session.
     try {
-      this._connection = getOpenEOConnection(options.serverUrl);
+      getOpenEOConnection(options.serverUrl);
     } catch {
+      // Signing in makes mainView rebuild this source, so give up here.
       await promptOpenEOLogin(options.serverUrl);
-    }
-
-    if (!this._connection) {
       throw new Error('Failed to get OpenEO service connection');
     }
 
-    // Inject `save_result` for graphs that omit it (e.g. ESA UDPs).
-    const graph = (await this._resultIsSavingUserProcess(options.processGraph))
-      ? options.processGraph
-      : ensureSaveResult(options.processGraph);
-
-    let service: Service | null = null;
-
-    try {
-      service = await this._connection.createService(graph, 'XYZ');
-    } catch (e) {
-      throw new Error(`Failed to create the XYZ service ${e}`);
-    }
-
-    if (!service.url) {
-      throw new Error('Failed to connect to XYZ service');
-    }
-
-    this._url = service.url;
+    this._url = await createOpenEOTileService(
+      options.serverUrl,
+      options.processGraph,
+    );
 
     this._connected.resolve();
 
     this.refresh();
   }
 
-  private async _resultIsSavingUserProcess(
-    graph: Record<string, any>,
-  ): Promise<boolean> {
-    const nodes = Object.values(graph);
-    const result = nodes.find((node: any) => node?.result === true);
-    if (
-      !this._connection ||
-      !result ||
-      result.process_id === 'save_result' ||
-      (result.namespace && result.namespace !== 'user')
-    ) {
-      return false;
-    }
-    try {
-      const udp = await this._connection.getUserProcess(result.process_id);
-      return Object.values(udp.processGraph ?? {}).some(
-        (node: any) => node?.process_id === 'save_result',
-      );
-    } catch {
-      return false;
-    }
-  }
-
   private _url: string | null = null;
-
-  private _connection: Connection | null = null;
 
   private _connected: PromiseDelegate<void> = new PromiseDelegate();
 

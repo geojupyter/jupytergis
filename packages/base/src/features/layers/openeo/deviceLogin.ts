@@ -11,18 +11,6 @@ import { buildProxyUrl, getProxyEndpoint } from '@/src/shared/proxy';
 
 const DEVICE_GRANT = 'urn:ietf:params:oauth:grant-type:device_code';
 
-// `login.microsoftonline.com/common` multiplexes the two kinds of Microsoft
-// account, and its device page is the work/school one. A personal account
-// cannot finish on that page: the browser is sent to the app's redirect url
-// with an error and polling stays `authorization_pending` until the code
-// expires. The per-account-type tenants each serve a page that completes, so
-// offer one entry for each instead of the `common` one.
-const MICROSOFT_COMMON = 'https://login.microsoftonline.com/common/v2.0';
-const MICROSOFT_TENANTS: [string, string][] = [
-  ['organizations', 'work or school account'],
-  ['consumers', 'personal account'],
-];
-
 export interface IDeviceCode {
   verificationUri: string;
   userCode: string;
@@ -83,49 +71,24 @@ export class OpenEODeviceProvider extends AuthProvider {
     connection: Connection,
     info: OidcProviderMeta,
   ): OpenEODeviceProvider | null {
-    return OpenEODeviceProvider.createAll(connection, info)[0] ?? null;
-  }
-
-  /**
-   * Every sign-in entry this provider offers: one normally, but one per
-   * account type on Microsoft's `common` tenant.
-   */
-  static createAll(
-    connection: Connection,
-    info: OidcProviderMeta,
-  ): OpenEODeviceProvider[] {
     const client = (info.default_clients ?? []).find(c =>
       c.grant_types.some(grant => grant.startsWith(DEVICE_GRANT)),
     );
     if (!client) {
-      return [];
+      return null;
     }
-    if (info.issuer.replace(/\/$/, '') !== MICROSOFT_COMMON) {
-      return [new OpenEODeviceProvider(connection, info, client)];
-    }
-    return MICROSOFT_TENANTS.map(
-      ([tenant, label]) =>
-        new OpenEODeviceProvider(connection, info, client, tenant, label),
-    );
+    return new OpenEODeviceProvider(connection, info, client);
   }
 
   private constructor(
     connection: Connection,
     info: OidcProviderMeta,
     client: OidcClient,
-    tenant?: string,
-    label?: string,
   ) {
     super('oidc', connection, info);
-    this.info = info;
-    this._issuer = info.issuer
-      .replace(/\/$/, '')
-      .replace('/common/', tenant ? `/${tenant}/` : '/common/');
+    this._issuer = info.issuer.replace(/\/$/, '');
     this._scope = (info.scopes?.length ? info.scopes : ['openid']).join(' ');
     this._client = client;
-    if (label) {
-      this.title = `${this.title} (${label})`;
-    }
   }
 
   async login(
@@ -224,25 +187,9 @@ export class OpenEODeviceProvider extends AuthProvider {
     }
   }
 
-  readonly info: OidcProviderMeta;
   private _issuer: string;
   private _scope: string;
   private _client: OidcClient;
   private _tokenEndpoint = '';
   private _refreshTimer = 0;
-}
-
-/**
- * Replace each device provider the factory built with every sign-in entry it
- * offers, so the Microsoft `common` tenant shows one chip per account type.
- */
-export function expandDeviceProviders(
-  connection: Connection,
-  providers: AuthProvider[],
-): AuthProvider[] {
-  return providers.flatMap(provider =>
-    provider instanceof OpenEODeviceProvider
-      ? OpenEODeviceProvider.createAll(connection, provider.info)
-      : [provider],
-  );
 }

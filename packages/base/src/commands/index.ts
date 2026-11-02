@@ -1195,15 +1195,17 @@ export function addCommands(
       const model = current.model;
       const sourceId = UUID.uuid4();
       const layerId = UUID.uuid4();
-      // Persist the bearer alongside the server url so the layer can
-      // re-establish its connection after a reload (or when the document
-      // is reopened) without forcing the user to sign in again.
+      // The saved tile service url is what lets the layer render without an
+      // OpenEO session, for us after a reload and for anyone we share with.
       model.sharedModel.addSource(sourceId, {
         name: `${result.layerName} Source`,
         type: 'OpenEOTileSource',
         parameters: {
           serverUrl: result.serverUrl,
           processGraph: result.processGraph,
+          ...(result.tileServiceURL
+            ? { tileServiceURL: result.tileServiceURL }
+            : {}),
         },
       });
       model.addLayer(layerId, {

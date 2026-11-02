@@ -2,6 +2,34 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.17.1
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.17.0...e4ce8af95e55d293fd4e3a38e6323efdf2ecff66))
+
+### Enhancements made
+
+- OpenEO: add tile fetch retry logic in case of rate limit issues [#1962](https://github.com/geojupyter/jupytergis/pull/1962) ([@martinRenou](https://github.com/martinRenou))
+- Show error for unsupported projection in Maplibre for GeoTIFF. [#1960](https://github.com/geojupyter/jupytergis/pull/1960) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+- Status bar UI [#1959](https://github.com/geojupyter/jupytergis/pull/1959) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- OpenEO: Save UDPs [#1953](https://github.com/geojupyter/jupytergis/pull/1953) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+
+### Maintenance and upkeep improvements
+
+- Update checks and warning message for top level await support. [#1963](https://github.com/geojupyter/jupytergis/pull/1963) ([@HaudinFlorence](https://github.com/HaudinFlorence), [@martinRenou](https://github.com/martinRenou))
+- Remove OpenEO graph templates [#1958](https://github.com/geojupyter/jupytergis/pull/1958) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Pin Python version in CI [#1957](https://github.com/geojupyter/jupytergis/pull/1957) ([@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-10-23&to=2026-10-28&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-10-23..2026-10-28&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-10-23..2026-10-28&type=Issues)) | @HaudinFlorence ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AHaudinFlorence+updated%3A2026-10-23..2026-10-28&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-10-23..2026-10-28&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-10-23..2026-10-28&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.17.0
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.16.8...04d94cfa8c130c88dbef99e0ae528fc3eee715dd))
@@ -35,8 +63,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-10-15&to=2026-10-23&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-10-15..2026-10-23&type=Issues)) | @benjaminszeghy ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Abenjaminszeghy+updated%3A2026-10-15..2026-10-23&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-10-15..2026-10-23&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-10-15..2026-10-23&type=Issues)) | @mfisher87 ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amfisher87+updated%3A2026-10-15..2026-10-23&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-10-15..2026-10-23&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.16.8
 
