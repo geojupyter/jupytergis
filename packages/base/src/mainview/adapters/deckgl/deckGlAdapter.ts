@@ -920,6 +920,9 @@ export class DeckGlAdapter implements IMapAdapter {
       return undefined;
     }
 
+    const style = grammarToDeckAccessors(parameters?.symbologyState, polygons);
+    const symbologyKey = JSON.stringify(parameters?.symbologyState ?? null);
+
     return new PolygonLayer({
       id,
       data: polygons,
@@ -937,13 +940,27 @@ export class DeckGlAdapter implements IMapAdapter {
       filled: parameters?.filled,
       stroked: parameters?.stroked,
       extruded: parameters?.extruded,
-      getFillColor: parameters?.fillColor,
-      getLineColor: parameters?.lineColor,
-      lineWidthUnits: 'pixels',
-      lineWidthMinPixels: parameters?.lineWidthMinPixels,
+      getFillColor: style.getFillColor ?? parameters?.fillColor,
+      getLineColor: style.getLineColor ?? parameters?.lineColor,
+      ...(style.getLineWidth != null
+        ? {
+            getLineWidth: style.getLineWidth,
+            lineWidthUnits: 'pixels' as const,
+            lineWidthMinPixels:
+              typeof style.getLineWidth === 'number' ? style.getLineWidth : 0,
+          }
+        : {
+            lineWidthUnits: 'pixels' as const,
+            lineWidthMinPixels: parameters?.lineWidthMinPixels,
+          }),
       opacity: parameters?.opacity,
       visible: layer.visible ?? true,
       pickable: true,
+      updateTriggers: {
+        getFillColor: symbologyKey,
+        getLineColor: symbologyKey,
+        getLineWidth: symbologyKey,
+      },
     });
   }
 

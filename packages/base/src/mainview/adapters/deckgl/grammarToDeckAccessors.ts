@@ -460,11 +460,13 @@ function readProperty(feature: unknown, field: string): unknown {
   if (!feature || typeof feature !== 'object') {
     return undefined;
   }
+
   const properties = (feature as { properties?: unknown }).properties;
-  if (!properties || typeof properties !== 'object') {
-    return undefined;
+  if (properties && typeof properties === 'object') {
+    return (properties as Record<string, unknown>)[field];
   }
-  return (properties as Record<string, unknown>)[field];
+
+  return (feature as Record<string, unknown>)[field];
 }
 
 function readNumber(feature: unknown, field: string): number | undefined {

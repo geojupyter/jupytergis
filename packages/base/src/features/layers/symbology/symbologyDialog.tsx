@@ -106,6 +106,7 @@ export const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
       case 'VectorLayer':
       case 'VectorTileLayer':
       case 'GeoJsonLayer':
+      case 'PolygonLayer':
       case 'GeoTiffLayer':
       case 'GeoZarrLayer':
         LayerSymbology = (

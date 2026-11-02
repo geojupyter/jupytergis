@@ -356,6 +356,47 @@ describe('grammarToDeckAccessors', () => {
     expect(paintNumber(radius.getPointRadius, { size: '6' })).toBe(0);
   });
 
+  it('reads a bare record when the row has no properties bag', () => {
+    const rows = [{ value: 0 }, { value: 10 }];
+    const accessors = grammarToDeckAccessors(
+      makeState({
+        id: 'record',
+        fields: ['value'],
+        mappings: [
+          {
+            scale: {
+              scheme: 'colorMap',
+              params: {
+                name: 'viridis',
+                nShades: 2,
+                mode: 'equal interval',
+                reverse: false,
+                fallback: [0, 0, 0, 1],
+                colorStops: [
+                  { stop: 0, color: [0, 0, 0, 1] },
+                  { stop: 10, color: [80, 0, 0, 1] },
+                ],
+              },
+            },
+            encodings: ['fill-color'],
+          },
+        ],
+      }),
+      rows,
+    );
+    const fill = accessors.getFillColor;
+    expect(typeof fill).toBe('function');
+    if (typeof fill !== 'function') {
+      return;
+    }
+
+    expect(fill(rows[0])).toEqual([0, 0, 0, 255]);
+    expect(fill({ value: 5 })).toEqual([40, 0, 0, 255]);
+    expect(fill({ properties: { value: 10 }, value: 0 })).toEqual([
+      80, 0, 0, 255,
+    ]);
+  });
+
   it('ignores expression scales', () => {
     const accessors = grammarToDeckAccessors(
       makeState({

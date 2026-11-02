@@ -66,6 +66,21 @@
     "getElevation": {
       "type": "string",
       "description": "Arrow function of one record, d. Returns the extrusion height in meters. Only used when extruded is true. If omitted, every polygon uses 1000 (deck.gl default)."
+    },
+    "symbologyState": {
+      "type": "object",
+      "description": "Grammar symbology for fill, stroke, and line width. Deck.gl accessors are derived at render time. fillColor, lineColor, and lineWidthMinPixels apply when a channel is unset.",
+      "additionalProperties": false,
+      "required": ["layers"],
+      "properties": {
+        "layers": {
+          "type": "array",
+          "description": "Grammar rendering layers. Each layer is an independent rendering pipeline with optional preprocess transforms and encoding rules.",
+          "items": {
+            "$ref": "project/symbology.json#/definitions/IGrammarLayer"
+          }
+        }
+      }
     }
   }
 }

@@ -3,6 +3,7 @@ import {
   IJupyterGISModel,
   IVectorLayer,
   IGeoJsonLayer,
+  IPolygonLayer,
   IGeoTiffLayer,
   IGeoZarrLayer,
   IGrammarSymbologyState,
@@ -19,6 +20,7 @@ export interface ISymbologyPayload {
   symbologyState:
     | IVectorLayer['symbologyState']
     | IGeoJsonLayer['symbologyState']
+    | IPolygonLayer['symbologyState']
     | IGeoTiffLayer['symbologyState']
     | IGeoZarrLayer['symbologyState'];
   /**
