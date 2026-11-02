@@ -96,6 +96,9 @@ const ALL_PIXEL_ENCODINGS = Array.from(
   new Set([...PIXEL_RGBA_ENCODINGS, ...PIXEL_FLOAT_ENCODINGS]),
 );
 
+/** Why a mapping an earlier rule already claims never reaches the map. */
+export const SHADOWED_HINT = 'overridden by a mapping above';
+
 /** Display labels for encodings that need a friendlier name. */
 export const ENCODING_LABELS: Partial<Record<Encoding, string>> = {
   'pixel-color': 'pixel-rgba',
@@ -880,6 +883,7 @@ interface IMappingRowProps {
   bandStats?: Record<number, { min: number; max: number }>;
   normalize?: boolean;
   hideWhen?: boolean;
+  shadowed?: Set<Encoding>;
   onChange: (row: IGrammarRow) => void;
   onDelete: () => void;
 }
@@ -905,6 +909,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   bandStats,
   normalize = true,
   hideWhen = false,
+  shadowed,
   onChange,
   onDelete,
 }) => {
@@ -1161,7 +1166,14 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         {/* --- Output section --- */}
         <div className="jp-gis-grammar-section jp-gis-grammar-output-section">
           {row.encodings.map((ch, i) => (
-            <div key={`${ch}-${i}`} className="jp-gis-grammar-encoding-row">
+            <div
+              key={`${ch}-${i}`}
+              className={
+                shadowed?.has(ch)
+                  ? 'jp-gis-grammar-encoding-row jp-mod-shadowed'
+                  : 'jp-gis-grammar-encoding-row'
+              }
+            >
               <div className="jp-gis-grammar-encoding-select">
                 <NativeSelect
                   value={ch}
@@ -1191,6 +1203,10 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               </Button>
             </div>
           ))}
+
+          {shadowed && shadowed.size > 0 && (
+            <span className="jp-gis-grammar-shadow-note">{SHADOWED_HINT}</span>
+          )}
 
           {/* Add encoding row */}
           {availableToAdd.length > 0 && (

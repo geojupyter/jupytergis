@@ -507,6 +507,17 @@ select option {
   min-width: 0;
 }
 
+/* A mapping an earlier rule already claims: editable, but never reached */
+.jp-gis-grammar-encoding-row.jp-mod-shadowed,
+.jp-gis-grammar-rule-constant.jp-mod-shadowed {
+  opacity: 0.45;
+}
+
+.jp-gis-grammar-shadow-note {
+  color: var(--jp-warn-color1);
+  font-size: var(--jp-ui-font-size0);
+}
+
 .jp-gis-grammar-encoding-select [data-slot='native-select-wrapper'] {
   width: 100%;
   box-sizing: border-box;

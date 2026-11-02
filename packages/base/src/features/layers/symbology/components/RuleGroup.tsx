@@ -10,6 +10,7 @@ import InlineConstant, {
 import MappingRow, {
   ENCODING_LABELS,
   IGrammarRow,
+  SHADOWED_HINT,
   defaultScaleForScheme,
 } from '@/src/features/layers/symbology/components/MappingRow';
 import {
@@ -31,6 +32,7 @@ interface IRuleGroupProps {
   disabledSchemes?: IScale['scheme'][];
   bandStats?: Record<number, { min: number; max: number }>;
   normalize?: boolean;
+  shadowedEncodings: Map<string, Set<Encoding>>;
   onChangeRow: (index: number, row: IGrammarRow) => void;
   onDeleteRow: (index: number) => void;
 }
@@ -53,6 +55,7 @@ function controlLabel(encodings: Encoding[]): string {
  */
 const RuleGroup: React.FC<IRuleGroupProps> = ({
   rows,
+  shadowedEncodings,
   onChangeRow,
   onDeleteRow,
   ...rowProps
@@ -66,6 +69,7 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
       row={row}
       {...rowProps}
       hideWhen={hideWhen}
+      shadowed={shadowedEncodings.get(row.id)}
       onChange={updated => onChangeRow(index, updated)}
       onDelete={() => onDeleteRow(index)}
     />
@@ -106,7 +110,15 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
       {constants.length > 0 && (
         <div className="jp-gis-grammar-rule-constants">
           {constants.map(({ row, index }) => (
-            <label key={row.id} className="jp-gis-grammar-rule-constant">
+            <label
+              key={row.id}
+              className={
+                shadowedEncodings.has(row.id)
+                  ? 'jp-gis-grammar-rule-constant jp-mod-shadowed'
+                  : 'jp-gis-grammar-rule-constant'
+              }
+              title={shadowedEncodings.has(row.id) ? SHADOWED_HINT : undefined}
+            >
               <span>{controlLabel(row.encodings)}</span>
               <InlineConstant
                 scale={row.scale}

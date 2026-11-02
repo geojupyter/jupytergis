@@ -43,6 +43,7 @@ import {
   groupRows,
   rowsToRules,
   rulesToRows,
+  shadowedRowEncodings,
 } from '@/src/features/layers/symbology/ruleRows';
 import { ISymbologyDialogProps } from '@/src/features/layers/symbology/symbologyDialog';
 import {
@@ -338,6 +339,10 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
 
   const styleGroups = groupRows(layer.rows);
   const groupedRows = styleGroups.map(g => g.rows.map(r => r.row));
+  const shadowedEncodings = shadowedRowEncodings(
+    layer.rows,
+    (layer.when?.length ?? 0) > 0,
+  );
 
   // KDE layers expose '$density'; raster layers expose band_N fields.
   // Both cases suppress the raw feature attribute list.
@@ -550,6 +555,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               disabledSchemes={disabledSchemes}
               bandStats={bandStats}
               normalize={normalize}
+              shadowedEncodings={shadowedEncodings}
               onChangeRow={updateRow}
               onDeleteRow={removeRow}
             />
