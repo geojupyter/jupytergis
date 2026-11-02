@@ -623,19 +623,22 @@ export class MapLibreAdapter implements IMapAdapter {
     }
   }
 
-  private async _replaceSource(id: string, source: IJGISSource): Promise<void> {
+  private async _replaceSource(
+    sourceId: string,
+    source: IJGISSource,
+  ): Promise<void> {
     const layers = this._model.getLayers();
 
     // Every JGIS layer currently drawn from this source.
     const dependentIds = Object.keys(layers).filter(
       layerId =>
-        layers[layerId].parameters?.source === id &&
+        layers[layerId].parameters?.source === sourceId &&
         this._layerSubIds.has(layerId),
     );
 
     if (dependentIds.length === 0) {
-      this.removeSource(id);
-      await this.addSource(id, source);
+      this.removeSource(sourceId);
+      await this.addSource(sourceId, source);
       return;
     }
 
@@ -665,16 +668,16 @@ export class MapLibreAdapter implements IMapAdapter {
       this._removeStyleLayers(layerId);
     }
 
-    this.removeSource(id);
-    await this.addSource(id, source);
+    this.removeSource(sourceId);
+    await this.addSource(sourceId, source);
 
-    if (!this._map.getSource(id)) {
+    if (!this._map.getSource(sourceId)) {
       for (const { layerId } of placements) {
         this.removeLayer(layerId);
         this._callbacks?.onLayerError?.(
           layerId,
-          this._sourceErrors.get(id) ??
-            `Source "${source.name ?? id}" could not be reloaded.`,
+          this._sourceErrors.get(sourceId) ??
+            `Source "${source.name ?? sourceId}" could not be reloaded.`,
         );
       }
       return;
@@ -725,8 +728,14 @@ export class MapLibreAdapter implements IMapAdapter {
         }
       }
 
-      this._sourceToLayerMap.set(id, layerId);
+      this._sourceToLayerMap.set(sourceId, layerId);
       this._trackLayerViewState(layerId); // extent may have changed
+
+      // _buildMapLayer can fail quietly and just return, so only report the
+      // layer as loaded when it really was built.
+      if (this._isLayerBuilt(layerId)) {
+        this._callbacks?.onLayerLoaded?.(layerId);
+      }
     }
   }
 
@@ -1012,6 +1021,12 @@ export class MapLibreAdapter implements IMapAdapter {
       this._insertIntoLayerOrder(id, index);
       this._trackLayerViewState(id);
 
+      // _buildMapLayer reports failures itself; only a layer that is really
+      // built counts as loaded (lets the UI clear its error state).
+      if (this._isLayerBuilt(id)) {
+        this._callbacks?.onLayerLoaded?.(id);
+      }
+
       this._settledLayers.add(id);
       this._callbacks?.onLayerInserted?.(this._settledLayers.size);
     } finally {
@@ -1186,6 +1201,17 @@ export class MapLibreAdapter implements IMapAdapter {
     }
 
     this._layerVisibility.set(id, visible);
+  }
+
+  /*
+   * True when a layer was built and everything it added is on the map.
+   */
+  private _isLayerBuilt(id: string): boolean {
+    const subIds = this._layerSubIds.get(id);
+
+    return (
+      subIds !== undefined && subIds.every(subId => this._map.getLayer(subId))
+    );
   }
 
   /** Removes the layer's MapLibre style layers but keeps its order/visibility. */

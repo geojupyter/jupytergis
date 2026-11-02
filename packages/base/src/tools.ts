@@ -654,16 +654,25 @@ async function loadGkpgFromUrl(
 export async function getGeoPackageTableNames(
   filepath: string,
   type: 'GeoPackageVectorSource' | 'GeoPackageRasterSource',
+  model: IJupyterGISModel,
 ) {
   const cacheKey =
     filepath + (type === 'GeoPackageRasterSource' ? 'Raster' : 'Vector');
 
-  const tableMap = await geoPackageCache.get(cacheKey);
-  if (!tableMap) {
+  try {
+    if (!geoPackageCache.has(cacheKey)) {
+      await loadFile({ filepath, type, model });
+    }
+
+    const tableMap = await geoPackageCache.get(cacheKey);
+    if (!tableMap) {
+      return [];
+    }
+
+    return Object.keys(tableMap);
+  } catch {
     return [];
   }
-
-  return Object.keys(tableMap);
 }
 
 /**
