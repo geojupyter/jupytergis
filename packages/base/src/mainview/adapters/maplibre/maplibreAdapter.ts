@@ -56,7 +56,7 @@ import {
   MapLibreSubLayerType,
 } from '@/src/mainview/adapters/maplibre/grammerToMLStyle';
 import { extractEncodingFieldValues } from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { buildProxyUrl, shouldUseProxy } from '@/src/shared/proxy';
 import { debounce, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
@@ -509,7 +509,13 @@ export class MapLibreAdapter implements IMapAdapter {
         case 'WmsTileSource': {
           const sourceParameters = source.parameters as IWmsTileSource;
 
-          if (sourceParameters.useProxy) {
+          if (
+            await shouldUseProxy(
+              this._model,
+              sourceParameters.url,
+              sourceParameters.httpHeaders,
+            )
+          ) {
             this._log(
               'warning',
               `MapLibreAdapter: the tile proxy is not supported for WMS source "${source.name ?? id}" in MapLibre;
@@ -783,7 +789,7 @@ export class MapLibreAdapter implements IMapAdapter {
       const proxied = buildProxyUrl(
         this._model,
         url,
-        parameters.useProxy,
+        await shouldUseProxy(this._model, url, parameters.httpHeaders),
         parameters.httpHeaders,
       );
       return new URL(proxied, window.location.href).href;

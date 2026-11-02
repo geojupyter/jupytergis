@@ -151,7 +151,7 @@ import {
   VIEWPORT_SYNC_INTERVAL,
 } from '@/src/mainview/mapAdapter';
 import { markerIcon } from '@/src/shared/icons';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { buildProxyUrl, shouldUseProxy } from '@/src/shared/proxy';
 import { debounce, getCssVarValue, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
@@ -2512,13 +2512,19 @@ export class OpenLayersAdapter implements IMapAdapter {
               }),
             };
 
-            if (sourceParameters.useProxy) {
+            if (
+              await shouldUseProxy(
+                this._model,
+                url,
+                sourceParameters.httpHeaders,
+              )
+            ) {
               vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
                 const vtTile = tile as VectorTile<RenderFeature>;
                 const proxyUrl = buildProxyUrl(
                   this._model,
                   tileUrl,
-                  sourceParameters.useProxy,
+                  true,
                   sourceParameters.httpHeaders,
                 );
                 vtTile.setLoader((extent, _resolution, projection) => {
@@ -2695,7 +2701,11 @@ export class OpenLayersAdapter implements IMapAdapter {
                   url: buildProxyUrl(
                     this._model,
                     sourceInfo.url!,
-                    sourceParameters.useProxy,
+                    await shouldUseProxy(
+                      this._model,
+                      sourceInfo.url!,
+                      sourceParameters.httpHeaders,
+                    ),
                     sourceParameters.httpHeaders,
                   ),
                 };
@@ -2897,6 +2907,11 @@ export class OpenLayersAdapter implements IMapAdapter {
           const sourceParameters = source.parameters as IWmsTileSource;
           const url = sourceParameters.url;
           const selectedLayer = sourceParameters?.params?.layers;
+          const useProxy = await shouldUseProxy(
+            this._model,
+            url,
+            sourceParameters.httpHeaders,
+          );
 
           newSource = new TileWMSSource({
             attributions: sourceParameters?.attribution,
@@ -2905,7 +2920,7 @@ export class OpenLayersAdapter implements IMapAdapter {
               LAYERS: selectedLayer,
               TILED: true,
             },
-            ...(sourceParameters.useProxy
+            ...(useProxy
               ? {
                   tileLoadFunction: (tile, src) => {
                     loadProxiedWmsTile(

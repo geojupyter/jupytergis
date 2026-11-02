@@ -2,7 +2,7 @@ import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import { fromUrl, fromBlob } from 'geotiff';
 import { useEffect, useState } from 'react';
 
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { buildProxyUrl, shouldUseProxy } from '@/src/shared/proxy';
 import { loadFile } from '@/src/tools';
 import { getBandInfoFromZarr } from '../zarrBandDiscovery';
 
@@ -80,7 +80,11 @@ const useGetBandInfo = (
         const url = buildProxyUrl(
           model,
           sourceInfo.url,
-          source?.parameters?.useProxy,
+          await shouldUseProxy(
+            model,
+            sourceInfo.url,
+            source?.parameters?.httpHeaders,
+          ),
           source?.parameters?.httpHeaders,
         );
 
