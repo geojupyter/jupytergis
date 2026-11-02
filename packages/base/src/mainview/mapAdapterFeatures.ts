@@ -39,7 +39,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     GeoPackageRasterSource: false,
     GeoParquetSource: false,
     MarkerSource: false,
-    WmsTileSource: false,
+    WmsTileSource: true,
     OpenEOTileSource: false,
     FeatureStoreSource: false,
   },

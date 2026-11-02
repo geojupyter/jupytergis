@@ -22,6 +22,7 @@ import type {
   IVectorTileLayer,
   IVectorTileSource,
   IViewState,
+  IWmsTileSource,
   JgisCoordinates,
 } from '@jupytergis/schema';
 import { PageConfig } from '@jupyterlab/coreutils';
@@ -505,6 +506,26 @@ export class MapLibreAdapter implements IMapAdapter {
           break;
         }
 
+        case 'WmsTileSource': {
+          const sourceParameters = source.parameters as IWmsTileSource;
+
+          if (sourceParameters.useProxy) {
+            this._log(
+              'warning',
+              `MapLibreAdapter: the tile proxy is not supported for WMS source "${source.name ?? id}" in MapLibre;
+               tiles are requested directly, so the server must allow CORS.`,
+            );
+          }
+
+          this._map.addSource(id, {
+            type: 'raster',
+            tiles: [this._computeWmsTileUrl(sourceParameters)],
+            tileSize: 256,
+            attribution: sourceParameters.attribution,
+          });
+          break;
+        }
+
         case 'RasterDemSource': {
           const sourceParameters = source.parameters as IRasterDemSource;
           this._map.addSource(id, {
@@ -935,6 +956,48 @@ export class MapLibreAdapter implements IMapAdapter {
     }
 
     return url;
+  }
+
+  /**
+   * Builds the GetMap tile URL template for a WMS source. MapLibre fills in
+   * `{bbox-epsg-3857}` per tile, so this is a plain XYZ-style raster source
+   * that asks the WMS server for 256px images in Web Mercator. The request
+   * parameters match what OpenLayers' TileWMS sends for the same source.
+   */
+  private _computeWmsTileUrl(parameters: IWmsTileSource): string {
+    const baseUrl = parameters.url;
+    const layers = parameters.params?.layers;
+
+    if (!baseUrl) {
+      throw new Error('WMS source has no URL.');
+    }
+    if (!layers) {
+      throw new Error('WMS source has no layers selected.');
+    }
+
+    const query = [
+      'SERVICE=WMS',
+      'VERSION=1.3.0',
+      'REQUEST=GetMap',
+      'FORMAT=image/png',
+      'TRANSPARENT=true',
+      'STYLES=',
+      `LAYERS=${encodeURIComponent(layers)}`,
+      'TILED=true',
+      'CRS=EPSG:3857',
+      'WIDTH=256',
+      'HEIGHT=256',
+      // Must stay unencoded: MapLibre substitutes it for every tile.aditya
+      'BBOX={bbox-epsg-3857}',
+    ].join('&');
+
+    const seperator = !baseUrl.includes('?')
+      ? '?'
+      : /[?&]$/.test(baseUrl)
+        ? ''
+        : '&';
+
+    return `${baseUrl}${seperator}${query}`;
   }
 
   private _resolveVectorSourceLayer(sourceId: string): string | undefined {
@@ -1765,6 +1828,7 @@ export class MapLibreAdapter implements IMapAdapter {
         return this._computeGeoJsonExtent(sourceId);
 
       case 'RasterSource':
+      case 'WmsTileSource':
       case 'VectorTileSource':
         return [...WORLD_EXTENT];
 
