@@ -8,6 +8,7 @@ import { TEXT_ENUM_OPTIONS } from '@/src/features/layers/symbology/components/Sc
 import RgbaColorPicker, {
   RgbaColor,
 } from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
+import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 import {
   NativeSelect,
@@ -68,14 +69,15 @@ const InlineConstant: React.FC<IInlineConstantProps> = ({
   onPromote,
 }) => {
   const promote = onPromote && (
-    <button
+    <Button
       type="button"
-      className="jp-gis-inline-constant-promote"
+      variant="ghost"
+      size="icon-xs"
       onClick={onPromote}
       title="Drive this from a data field"
     >
       <FontAwesomeIcon icon={faChartSimple} />
-    </button>
+    </Button>
   );
 
   if (scale.scheme === 'constant_num') {

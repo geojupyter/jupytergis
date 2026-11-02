@@ -300,24 +300,6 @@ select option {
   width: 48px;
 }
 
-/* Turns a fixed value into a row driven by a field */
-.jp-gis-inline-constant-promote {
-  display: flex;
-  align-items: center;
-  padding: 2px 3px;
-  border: none;
-  border-radius: 3px;
-  background: none;
-  color: var(--jp-ui-font-color3);
-  cursor: pointer;
-  font-size: var(--jp-ui-font-size0);
-}
-
-.jp-gis-inline-constant-promote:hover {
-  color: var(--jp-brand-color1);
-  background: var(--jp-layout-color3);
-}
-
 .jp-gis-grammar-rule-constant .jp-gis-inline-constant-text {
   width: 96px;
 }
