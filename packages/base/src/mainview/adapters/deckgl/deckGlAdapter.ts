@@ -883,11 +883,11 @@ export class DeckGlAdapter implements IMapAdapter {
         getPath: record => getPath(record) as LngLat[],
         getTimestamps: record =>
           shiftTimestamps(getTimestamps(record), timing.origin),
-        ...(trailColor != null ? { getColor: trailColor } : {}),
+        ...(trailColor !== null ? { getColor: trailColor } : {}),
         currentTime: this._tripTime,
         trailLength: parameters?.trailLength,
         fadeTrail: parameters?.fadeTrail,
-        ...(trailWidth != null
+        ...(trailWidth !== null
           ? {
               getWidth: trailWidth,
               widthUnits: 'pixels' as const,
@@ -957,7 +957,7 @@ export class DeckGlAdapter implements IMapAdapter {
       extruded: parameters?.extruded,
       getFillColor: style.getFillColor ?? parameters?.fillColor,
       getLineColor: style.getLineColor ?? parameters?.lineColor,
-      ...(style.getLineWidth != null
+      ...(style.getLineWidth !== null
         ? {
             getLineWidth: style.getLineWidth,
             lineWidthUnits: 'pixels' as const,
@@ -1004,13 +1004,13 @@ export class DeckGlAdapter implements IMapAdapter {
       stroked: parameters?.stroked,
       extruded: parameters?.extruded,
       wireframe: parameters?.wireframe,
-      ...(style.getFillColor != null
+      ...(style.getFillColor !== null
         ? { getFillColor: style.getFillColor }
         : {}),
-      ...(style.getLineColor != null
+      ...(style.getLineColor !== null
         ? { getLineColor: style.getLineColor }
         : {}),
-      ...(style.getLineWidth != null
+      ...(style.getLineWidth !== null
         ? {
             getLineWidth: style.getLineWidth,
             lineWidthUnits: 'pixels' as const,
@@ -1018,7 +1018,7 @@ export class DeckGlAdapter implements IMapAdapter {
               typeof style.getLineWidth === 'number' ? style.getLineWidth : 0,
           }
         : {}),
-      ...(style.getPointRadius != null
+      ...(style.getPointRadius !== null
         ? {
             getPointRadius: style.getPointRadius,
             pointRadiusUnits: 'pixels' as const,
@@ -1124,7 +1124,7 @@ export class DeckGlAdapter implements IMapAdapter {
     parameters: { path?: string | null; data?: unknown } | undefined,
     label: string,
   ): Promise<unknown> {
-    if (parameters?.data != null) {
+    if (parameters?.data !== null) {
       if (!Array.isArray(parameters.data) || parameters.data.length > 0) {
         return parameters.data;
       }

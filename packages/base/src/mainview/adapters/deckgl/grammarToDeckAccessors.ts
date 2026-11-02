@@ -162,10 +162,10 @@ function assignColor(
   encoding: Encoding,
   color: DeckColorAccessor,
 ): void {
-  if (accessors.getFillColor == null && FILL_ENCODINGS.has(encoding)) {
+  if (accessors.getFillColor === null && FILL_ENCODINGS.has(encoding)) {
     accessors.getFillColor = color;
   }
-  if (accessors.getLineColor == null && LINE_ENCODINGS.has(encoding)) {
+  if (accessors.getLineColor === null && LINE_ENCODINGS.has(encoding)) {
     accessors.getLineColor = color;
   }
 }
@@ -175,10 +175,10 @@ function assignNumber(
   encoding: Encoding,
   value: DeckNumberAccessor,
 ): void {
-  if (accessors.getLineWidth == null && WIDTH_ENCODINGS.has(encoding)) {
+  if (accessors.getLineWidth === null && WIDTH_ENCODINGS.has(encoding)) {
     accessors.getLineWidth = value;
   }
-  if (accessors.getPointRadius == null && encoding === 'circle-radius') {
+  if (accessors.getPointRadius === null && encoding === 'circle-radius') {
     accessors.getPointRadius = value;
   }
 }
