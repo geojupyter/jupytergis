@@ -24,7 +24,7 @@ import {
   IOpenEOConnectionInfo,
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
 import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { buildProxyUrl, shouldUseProxy } from '@/src/shared/proxy';
 import { getGdal } from './gdal';
 
 export const debounce = (
@@ -444,22 +444,17 @@ export const fetchWithProxies = async <T>(
   parseResponse: (response: Response) => Promise<T>,
   options?: RequestInit,
 ): Promise<T | null> => {
-  const proxiedUrl = buildProxyUrl(model, url, true);
-  const strategies = proxiedUrl === url ? [url] : [url, proxiedUrl];
+  const tryUrl = buildProxyUrl(model, url, await shouldUseProxy(model, url));
 
-  // TODO reconsider this decision?
-  // Try direct url first
-  for (const tryUrl of strategies) {
-    try {
-      const response = await fetch(tryUrl, options);
-      if (!response.ok) {
-        console.warn(`Failed to fetch from ${tryUrl}: ${response.statusText}`);
-        continue;
-      }
-      return await parseResponse(response);
-    } catch (error) {
-      console.warn(`Error fetching from ${tryUrl}:`, error);
+  try {
+    const response = await fetch(tryUrl, options);
+    if (!response.ok) {
+      console.warn(`Failed to fetch from ${tryUrl}: ${response.statusText}`);
+      return null;
     }
+    return await parseResponse(response);
+  } catch (error) {
+    console.warn(`Error fetching from ${tryUrl}:`, error);
   }
 
   return null;
