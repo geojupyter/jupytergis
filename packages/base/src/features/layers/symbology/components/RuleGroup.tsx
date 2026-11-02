@@ -34,7 +34,7 @@ interface IRuleGroupProps {
   normalize?: boolean;
   shadowedEncodings: Map<string, Set<Encoding>>;
   onChangeRow: (index: number, row: IGrammarRow) => void;
-  onDeleteRow: (index: number) => void;
+  onDeleteRows: (indices: number[]) => void;
 }
 
 /**
@@ -52,17 +52,22 @@ function controlLabel(encodings: Encoding[]): string {
  * The channels that only carry a fixed value become controls on the leading
  * row, so a default label reads as one entry. A channel driven by data keeps
  * the full row it needs for its field, scale and stops, and appears beneath.
+ *
+ * Because those controls are part of the leading row, deleting that row takes
+ * them with it. Leaving them behind would promote one of them to the leading
+ * row and strand the rest, which mean nothing without the channel they style.
  */
 const RuleGroup: React.FC<IRuleGroupProps> = ({
   rows,
   shadowedEncodings,
   onChangeRow,
-  onDeleteRow,
+  onDeleteRows,
   ...rowProps
 }) => {
   const renderRow = (
     { row, index }: { row: IGrammarRow; index: number },
     hideWhen = false,
+    alsoDelete: number[] = [],
   ) => (
     <MappingRow
       key={row.id}
@@ -71,7 +76,7 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
       hideWhen={hideWhen}
       shadowed={shadowedEncodings.get(row.id)}
       onChange={updated => onChangeRow(index, updated)}
-      onDelete={() => onDeleteRow(index)}
+      onDelete={() => onDeleteRows([index, ...alsoDelete])}
     />
   );
 
@@ -106,7 +111,11 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
 
   return (
     <div className="jp-gis-grammar-rule-group">
-      {renderRow(head)}
+      {renderRow(
+        head,
+        false,
+        constants.map(({ index }) => index),
+      )}
       {constants.length > 0 && (
         <div className="jp-gis-grammar-rule-constants">
           {constants.map(({ row, index }) => (
@@ -130,7 +139,7 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
                 type="button"
                 variant="ghost"
                 size="icon-xs"
-                onClick={() => onDeleteRow(index)}
+                onClick={() => onDeleteRows([index])}
                 title="Remove mapping"
               >
                 <FontAwesomeIcon icon={faTrash} />

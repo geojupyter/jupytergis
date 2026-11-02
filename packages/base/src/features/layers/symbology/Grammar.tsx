@@ -299,9 +299,13 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     [layer, onChange],
   );
 
-  const removeRow = useCallback(
-    (index: number) => {
-      onChange({ ...layer, rows: layer.rows.filter((_, i) => i !== index) });
+  const removeRows = useCallback(
+    (indices: number[]) => {
+      const dropped = new Set(indices);
+      onChange({
+        ...layer,
+        rows: layer.rows.filter((_, i) => !dropped.has(i)),
+      });
     },
     [layer, onChange],
   );
@@ -557,7 +561,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               normalize={normalize}
               shadowedEncodings={shadowedEncodings}
               onChangeRow={updateRow}
-              onDeleteRow={removeRow}
+              onDeleteRows={removeRows}
             />
           </div>
         ))}
