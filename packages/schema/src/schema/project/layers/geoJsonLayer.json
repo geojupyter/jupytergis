@@ -37,41 +37,24 @@
       "description": "Draw a wireframe of extruded polygons. Exclusive with solid fill when extruded.",
       "default": false
     },
-    "getFillColor": {
-      "description": "Constant RGB(A) color (0-255), or an arrow function of one feature, f, that returns one. If omitted, deck.gl default [0, 0, 0, 255] is used.",
-      "oneOf": [
-        {
-          "type": "array",
-          "items": {
-            "type": "number"
-          },
-          "minItems": 3,
-          "maxItems": 4
-        },
-        {
-          "type": "string"
-        }
-      ]
-    },
-    "getLineColor": {
-      "description": "Constant RGB(A) color (0-255), or an arrow function of one feature, f, that returns one. If omitted, deck.gl default [0, 0, 0, 255] is used.",
-      "oneOf": [
-        {
-          "type": "array",
-          "items": {
-            "type": "number"
-          },
-          "minItems": 3,
-          "maxItems": 4
-        },
-        {
-          "type": "string"
-        }
-      ]
-    },
     "getElevation": {
       "type": "string",
       "description": "Arrow function of one feature, f. Returns extrusion height in meters. Only used when extruded is true. If omitted, deck.gl default 1000 is used."
+    },
+    "symbologyState": {
+      "type": "object",
+      "description": "Grammar symbology. Source of truth for fill, stroke, line width, and point radius. Deck.gl accessors are derived from constant scales at render time.",
+      "additionalProperties": false,
+      "required": ["layers"],
+      "properties": {
+        "layers": {
+          "type": "array",
+          "description": "Grammar rendering layers. Each layer is an independent rendering pipeline with optional preprocess transforms and encoding rules.",
+          "items": {
+            "$ref": "project/symbology.json#/definitions/IGrammarLayer"
+          }
+        }
+      }
     }
   }
 }

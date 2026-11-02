@@ -440,28 +440,6 @@ export function addLayerCreationCommands(options: {
         stroked: { type: 'boolean', default: true },
         extruded: { type: 'boolean', default: false },
         wireframe: { type: 'boolean', default: false },
-        getFillColor: {
-          oneOf: [
-            {
-              type: 'array',
-              items: { type: 'number' },
-              minItems: 3,
-              maxItems: 4,
-            },
-            { type: 'string' },
-          ],
-        },
-        getLineColor: {
-          oneOf: [
-            {
-              type: 'array',
-              items: { type: 'number' },
-              minItems: 3,
-              maxItems: 4,
-            },
-            { type: 'string' },
-          ],
-        },
         getElevation: { type: 'string' },
       },
       buildParameters: (p, id) => ({
@@ -471,8 +449,6 @@ export function addLayerCreationCommands(options: {
         stroked: p.stroked ?? true,
         extruded: p.extruded ?? false,
         wireframe: p.wireframe ?? false,
-        ...(p.getFillColor != null ? { getFillColor: p.getFillColor } : {}),
-        ...(p.getLineColor != null ? { getLineColor: p.getLineColor } : {}),
         ...(p.getElevation ? { getElevation: p.getElevation } : {}),
       }),
     },

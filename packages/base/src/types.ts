@@ -59,6 +59,7 @@ export type ClassificationMode = (typeof classificationModes)[number];
 export const SYMBOLOGY_VALID_LAYER_TYPES = [
   'VectorLayer',
   'VectorTileLayer',
+  'GeoJsonLayer',
   'GeoTiffLayer',
   'GeoZarrLayer',
 ];

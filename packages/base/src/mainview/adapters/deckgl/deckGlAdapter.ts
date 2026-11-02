@@ -1,6 +1,5 @@
 import {
   Deck,
-  type Color,
   type InteractionState,
   type MapViewState,
   type PickingInfo,
@@ -45,6 +44,7 @@ import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 import type { IDrawToolAdapter } from '@/src/features/draw-tool';
 import { debounce, fetchWithProxies, throttle } from '@/src/tools';
 import { animate, type AnimationControls } from './animate';
+import { grammarToDeckAccessors } from './grammarToDeckAccessors';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
   IMapAdapter,
@@ -424,10 +424,7 @@ export class DeckGlAdapter implements IMapAdapter {
         continue;
       }
 
-      if (
-        this._jsonRecords.has(sourceId) ||
-        this._geoJsonData.has(sourceId)
-      ) {
+      if (this._jsonRecords.has(sourceId) || this._geoJsonData.has(sourceId)) {
         continue;
       }
 
@@ -962,8 +959,7 @@ export class DeckGlAdapter implements IMapAdapter {
       return undefined;
     }
 
-    const getFillColor = this._colorAccessor(parameters?.getFillColor);
-    const getLineColor = this._colorAccessor(parameters?.getLineColor);
+    const style = grammarToDeckAccessors(parameters?.symbologyState);
     const getElevation = this._optionalGetter(parameters?.getElevation);
 
     return new GeoJsonLayer({
@@ -973,8 +969,25 @@ export class DeckGlAdapter implements IMapAdapter {
       stroked: parameters?.stroked,
       extruded: parameters?.extruded,
       wireframe: parameters?.wireframe,
-      ...(getFillColor ? { getFillColor } : {}),
-      ...(getLineColor ? { getLineColor } : {}),
+      ...(style.getFillColor != null
+        ? { getFillColor: style.getFillColor }
+        : {}),
+      ...(style.getLineColor != null
+        ? { getLineColor: style.getLineColor }
+        : {}),
+      ...(style.getLineWidth != null
+        ? {
+            getLineWidth: style.getLineWidth,
+            lineWidthUnits: 'pixels' as const,
+            lineWidthMinPixels: style.getLineWidth,
+          }
+        : {}),
+      ...(style.getPointRadius != null
+        ? {
+            getPointRadius: style.getPointRadius,
+            pointRadiusUnits: 'pixels' as const,
+          }
+        : {}),
       ...(getElevation
         ? {
             getElevation: (feature: unknown) => {
@@ -1164,24 +1177,6 @@ export class DeckGlAdapter implements IMapAdapter {
   ): RecordGetter | undefined {
     const trimmed = expression?.trim();
     return trimmed ? this._getter(trimmed) : undefined;
-  }
-
-  /**
-   * deck.gl color accessors accept a constant RGB(A) or a per-feature callback.
-   */
-  private _colorAccessor(
-    value: string | readonly number[] | undefined,
-  ): Color | ((feature: unknown) => Color) | undefined {
-    if (value == null) {
-      return undefined;
-    }
-    if (typeof value !== 'string') {
-      return value as unknown as Color;
-    }
-    const getter = this._optionalGetter(value);
-    return getter
-      ? (feature: unknown) => getter(feature) as Color
-      : undefined;
   }
 
   private _getter(expression: string): RecordGetter {
