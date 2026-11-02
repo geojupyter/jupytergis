@@ -526,6 +526,7 @@ class GISDocument(CommWidget):
         min_zoom: int = 0,
         max_zoom: int = 24,
         opacity: float = 1,
+        declutter: bool = False,
         symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
@@ -535,6 +536,8 @@ class GISDocument(CommWidget):
         :param url: The tiles url.
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
+        :param declutter: Skip drawing anything that would overlap something
+            already drawn on this layer. Off by default because it hides data.
         :param symbology: The symbology configuration to persist with the layer.
         :param zoom_to: When True, zoom the map to the layer once it is added.
         """
@@ -564,6 +567,7 @@ class GISDocument(CommWidget):
         layer_params: dict[str, Any] = {
             "source": source_id,
             "opacity": opacity,
+            "declutter": declutter,
         }
         layer = {
             "type": LayerType.VectorTileLayer,
@@ -587,6 +591,7 @@ class GISDocument(CommWidget):
         data: dict | None = None,
         name: str | None = None,
         opacity: float = 1,
+        declutter: bool = False,
         symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
@@ -596,6 +601,8 @@ class GISDocument(CommWidget):
         :param path: The path to the JSON file or URL to embed into the jGIS file.
         :param data: The raw GeoJSON data to embed into the jGIS file.
         :param opacity: The opacity, between 0 and 1.
+        :param declutter: Skip drawing anything that would overlap something
+            already drawn on this layer. Off by default because it hides data.
         :param symbology: The symbology configuration to persist with the layer.
         :param zoom_to: When True, zoom the map to the layer once it is added.
         """
@@ -642,6 +649,7 @@ class GISDocument(CommWidget):
         layer_params: dict[str, Any] = {
             "source": source_id,
             "opacity": opacity,
+            "declutter": declutter,
         }
         layer = {
             "type": LayerType.VectorLayer,
@@ -1002,6 +1010,7 @@ class GISDocument(CommWidget):
         path: str,
         name: str | None = None,
         opacity: float = 1,
+        declutter: bool = False,
         symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
@@ -1010,6 +1019,8 @@ class GISDocument(CommWidget):
         :param path: The path to the GeoParquet file to embed into the jGIS file.
         :param name: The name that will be used for the object in the document.
         :param opacity: The opacity, between 0 and 1.
+        :param declutter: Skip drawing anything that would overlap something
+            already drawn on this layer. Off by default because it hides data.
         :param symbology: The symbology configuration to persist with the layer.
         :param zoom_to: When True, zoom the map to the layer once it is added.
         """
@@ -1030,6 +1041,7 @@ class GISDocument(CommWidget):
         layer_params: dict[str, Any] = {
             "source": source_id,
             "opacity": opacity,
+            "declutter": declutter,
         }
         layer = {
             "type": LayerType.VectorLayer,
@@ -1056,6 +1068,7 @@ class GISDocument(CommWidget):
         name: str | None = None,
         type: Literal["circle", "fill", "line"] = "line",
         opacity: float = 1,
+        declutter: bool = False,
         symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
@@ -1066,6 +1079,8 @@ class GISDocument(CommWidget):
         :param name: The name that will be used for the object in the document.
         :param type: The type of the vector layer to create.
         :param opacity: The opacity, between 0 and 1.
+        :param declutter: Skip drawing anything that would overlap something
+            already drawn on this layer. Off by default because it hides data.
         :param symbology: The symbology configuration to persist with the layers.
         :param zoom_to: When True, zoom the map to the last added layer.
         """
@@ -1110,6 +1125,7 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "type": type,
                 "opacity": opacity,
+                "declutter": declutter,
             }
             layer = {
                 "type": LayerType.VectorLayer,
