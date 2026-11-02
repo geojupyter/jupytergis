@@ -61,6 +61,7 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
   'VectorTileLayer',
   'GeoJsonLayer',
   'PolygonLayer',
+  'TripsLayer',
   'GeoTiffLayer',
   'GeoZarrLayer',
 ];

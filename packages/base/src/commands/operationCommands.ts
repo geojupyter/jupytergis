@@ -348,11 +348,6 @@ export function addLayerCreationCommands(options: {
       },
       layerParamsSchema: {
         opacity: { type: 'number', default: 1 },
-        color: {
-          type: 'array',
-          items: { type: 'number' },
-          default: [0, 0, 0, 255],
-        },
         trailLength: { type: 'number', default: 120 },
         fadeTrail: { type: 'boolean', default: true },
         widthMinPixels: { type: 'number', default: 1 },
@@ -366,7 +361,6 @@ export function addLayerCreationCommands(options: {
       buildParameters: (p, id) => ({
         source: id,
         opacity: p.opacity ?? 1,
-        color: p.color ?? [0, 0, 0, 255],
         trailLength: p.trailLength ?? 120,
         fadeTrail: p.fadeTrail ?? true,
         widthMinPixels: p.widthMinPixels ?? 1,

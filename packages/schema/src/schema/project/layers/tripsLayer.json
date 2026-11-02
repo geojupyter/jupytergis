@@ -17,16 +17,6 @@
       "minimum": 0,
       "maximum": 1
     },
-    "color": {
-      "type": "array",
-      "description": "Trail color as RGB or RGBA, channels 0-255. Matches TripsLayer getColor.",
-      "items": {
-        "type": "number"
-      },
-      "minItems": 3,
-      "maxItems": 4,
-      "default": [0, 0, 0, 255]
-    },
     "trailLength": {
       "type": "number",
       "description": "How long a path takes to fade out, in the same units as the trip timestamps.",
@@ -74,6 +64,21 @@
       "type": "string",
       "description": "Arrow function of one record, d. Returns one timestamp per path position.",
       "default": "d => d.timestamps"
+    },
+    "symbologyState": {
+      "type": "object",
+      "description": "Grammar symbology for trail color and width. Fill or stroke color becomes getColor; stroke width or circle radius becomes getWidth. widthMinPixels applies when width is unset. With no color rule, deck.gl uses black.",
+      "additionalProperties": false,
+      "required": ["layers"],
+      "properties": {
+        "layers": {
+          "type": "array",
+          "description": "Grammar rendering layers. Each layer is an independent rendering pipeline with optional preprocess transforms and encoding rules.",
+          "items": {
+            "$ref": "project/symbology.json#/definitions/IGrammarLayer"
+          }
+        }
+      }
     }
   }
 }

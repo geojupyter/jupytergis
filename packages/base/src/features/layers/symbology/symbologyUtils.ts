@@ -4,6 +4,7 @@ import {
   IVectorLayer,
   IGeoJsonLayer,
   IPolygonLayer,
+  ITripsLayer,
   IGeoTiffLayer,
   IGeoZarrLayer,
   IGrammarSymbologyState,
@@ -21,6 +22,7 @@ export interface ISymbologyPayload {
     | IVectorLayer['symbologyState']
     | IGeoJsonLayer['symbologyState']
     | IPolygonLayer['symbologyState']
+    | ITripsLayer['symbologyState']
     | IGeoTiffLayer['symbologyState']
     | IGeoZarrLayer['symbologyState'];
   /**

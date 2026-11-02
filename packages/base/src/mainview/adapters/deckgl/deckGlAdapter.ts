@@ -868,6 +868,11 @@ export class DeckGlAdapter implements IMapAdapter {
       getTimestamps,
     );
 
+    const style = grammarToDeckAccessors(parameters?.symbologyState, trips);
+    const symbologyKey = JSON.stringify(parameters?.symbologyState ?? null);
+    const trailColor = style.getFillColor ?? style.getLineColor;
+    const trailWidth = style.getLineWidth ?? style.getPointRadius;
+
     return {
       from: timing.from,
       to: parameters?.loopLength || timing.to,
@@ -878,15 +883,25 @@ export class DeckGlAdapter implements IMapAdapter {
         getPath: record => getPath(record) as LngLat[],
         getTimestamps: record =>
           shiftTimestamps(getTimestamps(record), timing.origin),
-        getColor: parameters?.color,
+        ...(trailColor != null ? { getColor: trailColor } : {}),
         currentTime: this._tripTime,
         trailLength: parameters?.trailLength,
         fadeTrail: parameters?.fadeTrail,
-        widthMinPixels: parameters?.widthMinPixels,
+        ...(trailWidth != null
+          ? {
+              getWidth: trailWidth,
+              widthUnits: 'pixels' as const,
+              widthMinPixels: typeof trailWidth === 'number' ? trailWidth : 0,
+            }
+          : { widthMinPixels: parameters?.widthMinPixels }),
         capRounded: parameters?.capRounded,
         jointRounded: parameters?.jointRounded,
         opacity: parameters?.opacity,
         visible: layer.visible ?? true,
+        updateTriggers: {
+          getColor: symbologyKey,
+          getWidth: symbologyKey,
+        },
       }),
     };
   }
