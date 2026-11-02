@@ -959,7 +959,7 @@ export class DeckGlAdapter implements IMapAdapter {
       return undefined;
     }
 
-    const style = grammarToDeckAccessors(parameters?.symbologyState);
+    const style = grammarToDeckAccessors(parameters?.symbologyState, data);
     const getElevation = this._optionalGetter(parameters?.getElevation);
 
     return new GeoJsonLayer({
@@ -979,7 +979,8 @@ export class DeckGlAdapter implements IMapAdapter {
         ? {
             getLineWidth: style.getLineWidth,
             lineWidthUnits: 'pixels' as const,
-            lineWidthMinPixels: style.getLineWidth,
+            lineWidthMinPixels:
+              typeof style.getLineWidth === 'number' ? style.getLineWidth : 0,
           }
         : {}),
       ...(style.getPointRadius != null
