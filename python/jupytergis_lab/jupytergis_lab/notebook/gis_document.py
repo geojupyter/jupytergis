@@ -155,6 +155,47 @@ def _openeo_spatial_extent(graph: Any) -> list[float] | None:
     return None
 
 
+def _ensure_save_result(graph: dict, format: str = "PNG") -> dict:
+    """XYZ tiling needs the graph to end in ``save_result``.
+
+    ESA User-Defined Processes omit it so they can be extended, so synthesize
+    one over the result node (PNG) when absent. Returns the graph unchanged
+    when a ``save_result`` is already present or there's no result node to
+    wire onto. Mirrors ``ensureSaveResult`` in the frontend's openeo templates.
+    """
+    nodes = [
+        (node_id, node) for node_id, node in graph.items() if isinstance(node, dict)
+    ]
+    if any(node.get("process_id") == "save_result" for _, node in nodes):
+        return graph
+    result_id = next(
+        (node_id for node_id, node in nodes if node.get("result") is True),
+        None,
+    )
+    if result_id is None:
+        return graph
+    # Mint a non-colliding key.
+    n = 1
+    key = "saveresult1"
+    while key in graph:
+        n += 1
+        key = f"saveresult{n}"
+    demoted = {k: v for k, v in graph[result_id].items() if k != "result"}
+    return {
+        **graph,
+        result_id: demoted,
+        key: {
+            "arguments": {
+                "data": {"from_node": result_id},
+                "format": format,
+                "options": {},
+            },
+            "process_id": "save_result",
+            "result": True,
+        },
+    }
+
+
 def _lonlat_to_webmercator(lon: float, lat: float) -> tuple[float, float]:
     """Project a lon/lat pair (EPSG:4326) to web mercator (EPSG:3857)."""
     radius = 6378137
@@ -654,10 +695,10 @@ class GISDocument(CommWidget):
                 "The OpenEO backend does not allow XYZ services. We cannot show the OpenEO graph dynamically.",
             )
 
-        service = graph.connection.create_service(graph, "XYZ")
-        service_url = unquote(service.describe_service()["url"])
+        flat_graph = _ensure_save_result(graph.flat_graph())
 
-        flat_graph = graph.flat_graph()
+        service = graph.connection.create_service(flat_graph, "XYZ")
+        service_url = unquote(service.describe_service()["url"])
 
         source = {
             "type": SourceType.OpenEOTileSource,
