@@ -3,6 +3,7 @@ from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from jupytergis_lab import GISDocument
+from jupytergis_lab.notebook.gis_document import _ensure_save_result
 
 # Notebook bbox (examples/99-OpenEO-titiler-local.ipynb): a ~0.1° box over NYC.
 BBOX = {"west": -74.0, "south": 40.7, "east": -73.9, "north": 40.8}
@@ -80,3 +81,90 @@ class TestOpenEOTileLayer:
         options = self.doc._options.to_py()
         assert "useExtent" not in options
         assert "extent" not in options
+
+
+def _graph_without_save_result():
+    return {
+        "loadcollection1": {
+            "process_id": "load_collection",
+            "arguments": {"id": "sentinel-2-global-mosaics", "spatial_extent": BBOX},
+        },
+        "ndvi1": {
+            "process_id": "ndvi",
+            "arguments": {"data": {"from_node": "loadcollection1"}},
+            "result": True,
+        },
+    }
+
+
+class TestEnsureSaveResult:
+    def test_adds_save_result_over_the_result_node(self):
+        graph = _ensure_save_result(_graph_without_save_result())
+
+        assert "result" not in graph["ndvi1"]
+        assert graph["saveresult1"] == {
+            "arguments": {
+                "data": {"from_node": "ndvi1"},
+                "format": "PNG",
+                "options": {},
+            },
+            "process_id": "save_result",
+            "result": True,
+        }
+
+    def test_leaves_graph_with_save_result_unchanged(self):
+        graph = _fake_graph(BBOX).flat_graph()
+
+        assert _ensure_save_result(graph) is graph
+
+    def test_leaves_graph_without_result_node_unchanged(self):
+        graph = _graph_without_save_result()
+        del graph["ndvi1"]["result"]
+
+        assert _ensure_save_result(graph) is graph
+
+    def test_mints_a_non_colliding_key(self):
+        graph = _graph_without_save_result()
+        graph["saveresult1"] = {"process_id": "linear_scale_range", "arguments": {}}
+
+        result = _ensure_save_result(graph)
+
+        assert result["saveresult1"] == graph["saveresult1"]
+        assert result["saveresult2"]["process_id"] == "save_result"
+
+    def test_does_not_mutate_the_input(self):
+        graph = _graph_without_save_result()
+
+        _ensure_save_result(graph)
+
+        assert graph == _graph_without_save_result()
+
+
+class TestOpenEOTileLayerSaveResult:
+    def setup_method(self):
+        self._loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(self._loop)
+        self.doc = GISDocument()
+        self.doc._is_ready = True
+        self.doc._comm.send = MagicMock()
+
+    def teardown_method(self):
+        self._loop.close()
+
+    def test_service_and_source_get_a_graph_ending_in_save_result(self):
+        graph = _fake_graph(BBOX)
+        flat = _graph_without_save_result()
+        graph.flat_graph = lambda: flat
+        create_service = MagicMock(
+            return_value=SimpleNamespace(
+                describe_service=lambda: {"url": "http://127.0.0.1:8080/x/{z}/{x}/{y}"},
+            ),
+        )
+        graph.connection.create_service = create_service
+
+        self.doc.add_openeo_tile_layer(graph, name="NDVI")
+
+        sent_graph = create_service.call_args.args[0]
+        assert sent_graph["saveresult1"]["process_id"] == "save_result"
+        source = next(iter(self.doc._sources.to_py().values()))
+        assert source["parameters"]["processGraph"] == sent_graph
