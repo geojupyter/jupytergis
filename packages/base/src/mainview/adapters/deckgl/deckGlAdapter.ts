@@ -1,5 +1,7 @@
 import {
   Deck,
+  MapView,
+  _GlobeView as GlobeView,
   type InteractionState,
   type MapViewState,
   type PickingInfo,
@@ -20,6 +22,7 @@ import {
   _ScaleWidget as ScaleWidget,
 } from '@deck.gl/widgets';
 import type {
+  DeckView,
   IDict,
   IGeoJSONSource,
   IGeoJsonLayer,
@@ -100,6 +103,9 @@ const DEFAULT_GET_POLYGON = 'd => d.polygon';
 
 /** Source types that fetch/store a JSON array of records. */
 const JSON_RECORD_SOURCES = new Set(['TripsSource', 'PolygonSource']);
+
+type DeckGl = Deck<MapView | GlobeView>;
+type DeckGlWidgets = DeckGl['props']['widgets'];
 
 type LngLat = [longitude: number, latitude: number];
 
@@ -224,6 +230,14 @@ export class DeckGlAdapter implements IMapAdapter {
       maxPitch: 85,
     };
     this._viewDirty = false;
+    this._deckView =
+      this._model.getUIState().deckView === 'globe' ? 'globe' : 'map';
+    this._widgetOptions = {
+      mapContainer: target,
+      controlsTarget,
+      zoomButtonsEnabled,
+      isSpectaMode,
+    };
 
     target.tabIndex = 0;
 
@@ -235,11 +249,12 @@ export class DeckGlAdapter implements IMapAdapter {
       let loaded = false;
 
       try {
-        this._deck = new Deck({
+        this._deck = new Deck<MapView | GlobeView>({
           parent: target,
           id: mainViewId,
           width: '100%',
           height: '100%',
+          views: this._createDeckView(),
           initialViewState: this._viewState, //maybe just use viewState since we want to manage state externally
           controller: { doubleClickZoom: true }, // dblClick is true by default
           layers: [],
@@ -271,9 +286,12 @@ export class DeckGlAdapter implements IMapAdapter {
         reject(error);
       }
     });
+
+    this._model.uiStateChanged.connect(this._onDeckViewChanged);
   }
 
   destroy(): void {
+    this._model.uiStateChanged.disconnect(this._onDeckViewChanged);
     this._stopTripAnimation();
     this._layerIds = undefined;
     this._unbindCanvasEvents();
@@ -549,14 +567,17 @@ export class DeckGlAdapter implements IMapAdapter {
     controlsTarget: HTMLElement | undefined,
     zoomButtonsEnabled: boolean,
     isSpectaMode: boolean,
-  ): Widget[] {
+  ): DeckGlWidgets {
     const controlsContainer =
       controlsTarget instanceof HTMLDivElement ? controlsTarget : undefined;
     const placement = controlsContainer
       ? { _container: controlsContainer }
       : {};
 
-    const widgets: Widget[] = [new ScaleWidget(placement)];
+    const widgets: Widget[] = [];
+    if (this._deckView !== 'globe') {
+      widgets.push(new ScaleWidget(placement));
+    }
 
     if (!isSpectaMode) {
       widgets.push(
@@ -571,7 +592,52 @@ export class DeckGlAdapter implements IMapAdapter {
       widgets.push(new ZoomWidget(placement));
     }
 
-    return widgets;
+    return widgets as DeckGlWidgets;
+  }
+
+  private _onDeckViewChanged = (
+    _sender: IJupyterGISModel,
+    state: IJGISUIState,
+  ): void => {
+    const next: DeckView = state.deckView === 'globe' ? 'globe' : 'map';
+    if (next === this._deckView || !this._deck || !this._widgetOptions) {
+      return;
+    }
+
+    this._deckView = next;
+    this._viewEpoch += 1;
+    this._viewState = {
+      longitude: 0,
+      latitude: 0,
+      zoom: 0,
+      pitch: 0,
+      bearing: 0,
+    };
+    const { mapContainer, controlsTarget, zoomButtonsEnabled, isSpectaMode } =
+      this._widgetOptions;
+    this._deck.setProps({
+      views: this._createDeckView(),
+      initialViewState: this._viewState,
+      widgets: this._createWidgets(
+        mapContainer,
+        controlsTarget,
+        zoomButtonsEnabled,
+        isSpectaMode,
+      ),
+    });
+    if (this._layerIds) {
+      this._syncLayers(this._layerIds);
+    }
+  };
+
+  private _createDeckView(): MapView | GlobeView {
+    // deck.gl stores the camera on the view id. A new id drops it.
+    const id = `${this._deckView}:${this._viewEpoch}`;
+    if (this._deckView === 'globe') {
+      return new GlobeView({ id });
+    }
+
+    return new MapView({ id });
   }
 
   private _setupViewEvents(): void {
@@ -1347,7 +1413,15 @@ export class DeckGlAdapter implements IMapAdapter {
   }
 
   private readonly _model: IJupyterGISModel;
-  private _deck?: Deck;
+  private _deck?: DeckGl;
+  private _deckView: DeckView = 'map';
+  private _viewEpoch = 0;
+  private _widgetOptions?: {
+    mapContainer: HTMLDivElement;
+    controlsTarget?: HTMLElement;
+    zoomButtonsEnabled: boolean;
+    isSpectaMode: boolean;
+  };
   private _canvas?: HTMLCanvasElement;
   private _viewState: MapViewState = {
     longitude: 0,

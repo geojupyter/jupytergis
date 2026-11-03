@@ -76,10 +76,14 @@ import type {
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
 
+/** deck.gl camera mode. Local UI state, not stored in the document. */
+export type DeckView = 'map' | 'globe';
+
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
   rightPanelOpen?: boolean;
   locationIndicatorActive?: boolean;
+  deckView?: DeckView;
 }
 
 export interface IJGISStoryMaps {
