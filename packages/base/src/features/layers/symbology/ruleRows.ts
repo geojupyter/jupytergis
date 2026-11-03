@@ -109,8 +109,9 @@ export function groupRows(rows: IGrammarRow[]): IRowGroup[] {
  *
  * The compiler keeps entries up to the first unguarded one per encoding and
  * drops everything after it, so these mappings stay editable but never reach
- * the map. A layer-level guard puts every entry behind a condition, which
- * leaves nothing unreachable.
+ * the map. Mappings of one rule share its guard, so within a rule the first
+ * one wins whether or not it is guarded. A layer-level guard puts every entry
+ * behind a condition, which leaves nothing unreachable.
  */
 export function shadowedRowEncodings(
   rows: IGrammarRow[],
@@ -124,14 +125,18 @@ export function shadowedRowEncodings(
   const claimed = new Set<Encoding>();
   for (const group of groupRows(rows)) {
     const guarded = (group.rows[0].row.when?.length ?? 0) > 0;
+    const inRule = new Set<Encoding>();
     for (const { row } of group.rows) {
-      const dead = row.encodings.filter(encoding => claimed.has(encoding));
+      const dead = row.encodings.filter(
+        encoding => claimed.has(encoding) || inRule.has(encoding),
+      );
       if (dead.length > 0) {
         shadowed.set(row.id, new Set(dead));
       }
-      if (!guarded) {
-        row.encodings.forEach(encoding => claimed.add(encoding));
-      }
+      row.encodings.forEach(encoding => inRule.add(encoding));
+    }
+    if (!guarded) {
+      inRule.forEach(encoding => claimed.add(encoding));
     }
   }
   return shadowed;
