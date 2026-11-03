@@ -151,7 +151,7 @@ import {
   VIEWPORT_SYNC_INTERVAL,
 } from '@/src/mainview/mapAdapter';
 import { markerIcon } from '@/src/shared/icons';
-import { buildProxyUrl, shouldUseProxy } from '@/src/shared/proxy';
+import { buildProxyUrl } from '@/src/shared/proxy';
 import { debounce, getCssVarValue, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
@@ -2513,22 +2513,21 @@ export class OpenLayersAdapter implements IMapAdapter {
             };
 
             if (
-              await shouldUseProxy(
+              (await buildProxyUrl(
                 this._model,
                 url,
                 sourceParameters.httpHeaders,
-              )
+              )) !== url
             ) {
               vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
                 const vtTile = tile as VectorTile<RenderFeature>;
-                const proxyUrl = buildProxyUrl(
-                  this._model,
-                  tileUrl,
-                  true,
-                  sourceParameters.httpHeaders,
-                );
                 vtTile.setLoader((extent, _resolution, projection) => {
-                  return fetch(proxyUrl)
+                  return buildProxyUrl(
+                    this._model,
+                    tileUrl,
+                    sourceParameters.httpHeaders,
+                  )
+                    .then(proxyUrl => fetch(proxyUrl))
                     .then(response => {
                       if (!response.ok) {
                         throw new Error(
@@ -2698,14 +2697,9 @@ export class OpenLayersAdapter implements IMapAdapter {
               if (isRemote) {
                 return {
                   ...addNoData(sourceInfo),
-                  url: buildProxyUrl(
+                  url: await buildProxyUrl(
                     this._model,
                     sourceInfo.url!,
-                    await shouldUseProxy(
-                      this._model,
-                      sourceInfo.url!,
-                      sourceParameters.httpHeaders,
-                    ),
                     sourceParameters.httpHeaders,
                   ),
                 };
@@ -2907,11 +2901,12 @@ export class OpenLayersAdapter implements IMapAdapter {
           const sourceParameters = source.parameters as IWmsTileSource;
           const url = sourceParameters.url;
           const selectedLayer = sourceParameters?.params?.layers;
-          const useProxy = await shouldUseProxy(
-            this._model,
-            url,
-            sourceParameters.httpHeaders,
-          );
+          const useProxy =
+            (await buildProxyUrl(
+              this._model,
+              url,
+              sourceParameters.httpHeaders,
+            )) !== url;
 
           newSource = new TileWMSSource({
             attributions: sourceParameters?.attribution,
@@ -2923,14 +2918,12 @@ export class OpenLayersAdapter implements IMapAdapter {
             ...(useProxy
               ? {
                   tileLoadFunction: (tile, src) => {
-                    loadProxiedWmsTile(
-                      tile as ImageTile,
-                      buildProxyUrl(
-                        this._model,
-                        src,
-                        true,
-                        sourceParameters.httpHeaders,
-                      ),
+                    void buildProxyUrl(
+                      this._model,
+                      src,
+                      sourceParameters.httpHeaders,
+                    ).then(proxyUrl =>
+                      loadProxiedWmsTile(tile as ImageTile, proxyUrl),
                     );
                   },
                 }

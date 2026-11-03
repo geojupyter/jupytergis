@@ -83,9 +83,9 @@ async function probeCorsMode(url: string): Promise<CorsMode> {
 }
 
 /**
- * Whether a request to a URL should go through the CORS proxy.
+ * Builds the URL a request should go to, through the CORS proxy or not.
  *
- * With no proxy available, requests always go direct. Otherwise the first
+ * With no proxy available, the URL is returned as is. Otherwise the first
  * request to a domain sends a GET to it: if the browser lets it through, the
  * domain is CORS friendly and is fetched directly from then on, else it is
  * fetched through the proxy. The answer is kept in IndexedDB per domain.
@@ -94,79 +94,19 @@ async function probeCorsMode(url: string): Promise<CorsMode> {
  *
  * @param model - the JupyterGIS model, to read the proxy setting from.
  * @param url - the URL about to be requested.
- * @param httpHeaders - HTTP headers the request needs, if any.
- */
-export async function shouldUseProxy(
-  model: IJupyterGISModel | undefined,
-  url: string,
-  httpHeaders?: string,
-): Promise<boolean> {
-  if (!getProxyEndpoint(model)) {
-    return false;
-  }
-
-  let origin: string;
-  try {
-    const parsed = new URL(url, window.location.href);
-    if (!parsed.protocol.startsWith('http')) {
-      return false;
-    }
-    origin = parsed.origin;
-  } catch {
-    return false;
-  }
-
-  if (origin === window.location.origin) {
-    return false;
-  }
-
-  if (httpHeaders && Object.keys(httpHeaders).length > 0) {
-    return true;
-  }
-
-  let mode = corsModes.get(origin);
-  if (!mode) {
-    mode = (async () => {
-      const stored = await readCorsMode(origin).catch(() => undefined);
-      if (stored) {
-        return stored;
-      }
-      const probed = await probeCorsMode(url);
-      await writeCorsMode(origin, probed).catch(() => undefined);
-      return probed;
-    })();
-    corsModes.set(origin, mode);
-  }
-
-  return (await mode) === 'proxy';
-}
-
-/**
- * Builds the proxy URL for a given URL.
- *
- * When no proxy is available the URL is returned as is, so the request fails
- * on the server that cannot be reached rather than on a proxy that does not
- * exist.
- *
- * @param model - the JupyterGIS model.
- * @param url - the URL to proxy.
- * @param useProxy - whether to use the proxy.
  * @param httpHeaders - HTTP headers to pass to the proxy.
+ * @param forceProxy - skip the check and always use the proxy.
  */
-export function buildProxyUrl(
+export async function buildProxyUrl(
   model: IJupyterGISModel | undefined,
   url: string,
-  useProxy?: boolean,
   httpHeaders?: string,
-): string {
-  if (!useProxy) {
-    return url;
-  }
-
+  forceProxy = false,
+): Promise<string> {
   const proxyBase = getProxyEndpoint(model);
   if (!proxyBase) {
     // Tile loaders come through here once per tile, so say it once.
-    if (!warnedAboutMissingProxy) {
+    if (forceProxy && !warnedAboutMissingProxy) {
       warnedAboutMissingProxy = true;
       console.warn(
         `No proxy available, requesting ${url} directly. Set the proxy URL in the JupyterGIS settings to use one.`,
@@ -175,10 +115,48 @@ export function buildProxyUrl(
     return url;
   }
 
-  const headersParam =
-    httpHeaders && Object.keys(httpHeaders).length > 0
-      ? `&headers=${encodeURIComponent(JSON.stringify(httpHeaders))}`
-      : '';
+  const hasHeaders = !!httpHeaders && Object.keys(httpHeaders).length > 0;
+
+  if (!forceProxy) {
+    let origin: string;
+    try {
+      const parsed = new URL(url, window.location.href);
+      if (!parsed.protocol.startsWith('http')) {
+        return url;
+      }
+      origin = parsed.origin;
+    } catch {
+      return url;
+    }
+
+    if (origin === window.location.origin) {
+      return url;
+    }
+
+    if (!hasHeaders) {
+      let mode = corsModes.get(origin);
+      if (!mode) {
+        mode = (async () => {
+          const stored = await readCorsMode(origin).catch(() => undefined);
+          if (stored) {
+            return stored;
+          }
+          const probed = await probeCorsMode(url);
+          await writeCorsMode(origin, probed).catch(() => undefined);
+          return probed;
+        })();
+        corsModes.set(origin, mode);
+      }
+
+      if ((await mode) === 'direct') {
+        return url;
+      }
+    }
+  }
+
+  const headersParam = hasHeaders
+    ? `&headers=${encodeURIComponent(JSON.stringify(httpHeaders))}`
+    : '';
 
   return `${proxyBase}?url=${encodeURIComponent(url)}${headersParam}`;
 }

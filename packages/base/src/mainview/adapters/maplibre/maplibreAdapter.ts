@@ -56,7 +56,7 @@ import {
   MapLibreSubLayerType,
 } from '@/src/mainview/adapters/maplibre/grammerToMLStyle';
 import { extractEncodingFieldValues } from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
-import { buildProxyUrl, shouldUseProxy } from '@/src/shared/proxy';
+import { buildProxyUrl } from '@/src/shared/proxy';
 import { debounce, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
@@ -510,11 +510,11 @@ export class MapLibreAdapter implements IMapAdapter {
           const sourceParameters = source.parameters as IWmsTileSource;
 
           if (
-            await shouldUseProxy(
+            (await buildProxyUrl(
               this._model,
               sourceParameters.url,
               sourceParameters.httpHeaders,
-            )
+            )) !== sourceParameters.url
           ) {
             this._log(
               'warning',
@@ -786,10 +786,9 @@ export class MapLibreAdapter implements IMapAdapter {
     parameters: IGeoTiffSource,
   ): Promise<string> {
     if (url.startsWith('http://') || url.startsWith('https://')) {
-      const proxied = buildProxyUrl(
+      const proxied = await buildProxyUrl(
         this._model,
         url,
-        await shouldUseProxy(this._model, url, parameters.httpHeaders),
         parameters.httpHeaders,
       );
       return new URL(proxied, window.location.href).href;

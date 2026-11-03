@@ -154,12 +154,13 @@ function CollectionPreview({ href, model }: ICollectionPreviewProps) {
   const [isHidden, setIsHidden] = useState(false);
 
   const handleError = useCallback(() => {
-    const proxied = buildProxyUrl(model, href, true);
-    if (src !== proxied) {
-      setSrc(proxied);
-      return;
-    }
-    setIsHidden(true);
+    void buildProxyUrl(model, href, undefined, true).then(proxied => {
+      if (src !== proxied) {
+        setSrc(proxied);
+        return;
+      }
+      setIsHidden(true);
+    });
   }, [href, model, src]);
 
   if (isHidden) {

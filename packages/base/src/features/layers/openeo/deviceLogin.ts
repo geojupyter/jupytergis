@@ -16,8 +16,8 @@ export interface IDeviceCode {
   userCode: string;
 }
 
-function proxied(url: string): string {
-  return buildProxyUrl(undefined, url, getProxyEndpoint() !== null);
+function proxied(url: string): Promise<string> {
+  return buildProxyUrl(undefined, url, undefined, getProxyEndpoint() !== null);
 }
 
 async function postForm(
@@ -25,7 +25,7 @@ async function postForm(
   form: Record<string, string>,
 ): Promise<any> {
   const response = await Environment.axios.post(
-    proxied(url),
+    await proxied(url),
     new URLSearchParams(form).toString(),
     {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -97,7 +97,7 @@ export class OpenEODeviceProvider extends AuthProvider {
   ): Promise<void> {
     const config = (
       await Environment.axios.get(
-        proxied(`${this._issuer}/.well-known/openid-configuration`),
+        await proxied(`${this._issuer}/.well-known/openid-configuration`),
       )
     ).data;
     this._tokenEndpoint = config.token_endpoint;
