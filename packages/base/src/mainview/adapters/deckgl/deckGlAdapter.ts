@@ -1041,6 +1041,8 @@ export class DeckGlAdapter implements IMapAdapter {
         getFillColor: symbologyKey,
         getLineColor: symbologyKey,
         getLineWidth: symbologyKey,
+        getElevation: elevationExpression ?? null,
+        getPolygon: polygonExpression,
       },
     });
   }
@@ -1058,6 +1060,7 @@ export class DeckGlAdapter implements IMapAdapter {
     }
 
     const style = grammarToDeckAccessors(parameters?.symbologyState, data);
+    const elevationExpression = parameters?.getElevation?.trim() || null;
     const getElevation = this._optionalGetter(parameters?.getElevation);
     // deck.gl keeps attribute buffers while `data` is the same object.
     // Accessor functions are not compared, so the grammar string is the trigger.
@@ -1108,6 +1111,7 @@ export class DeckGlAdapter implements IMapAdapter {
         getLineColor: symbologyKey,
         getLineWidth: symbologyKey,
         getPointRadius: symbologyKey,
+        getElevation: elevationExpression,
       },
     });
   }
