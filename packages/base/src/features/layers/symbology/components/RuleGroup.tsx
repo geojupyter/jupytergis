@@ -132,6 +132,7 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
               <InlineConstant
                 scale={row.scale}
                 encodings={row.encodings}
+                disabled={shadowedEncodings.has(row.id)}
                 onChange={scale => onChangeRow(index, { ...row, scale })}
                 onPromote={() => promote({ row, index })}
               />

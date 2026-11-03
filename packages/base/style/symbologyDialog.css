@@ -489,9 +489,9 @@ select option {
   min-width: 0;
 }
 
-/* A mapping an earlier rule already claims: editable, but never reached */
+/* A mapping an earlier rule already claims: never reached */
 .jp-gis-grammar-encoding-row.jp-mod-shadowed,
-.jp-gis-grammar-rule-constant.jp-mod-shadowed {
+.jp-gis-grammar-rule-constant.jp-mod-shadowed > span {
   opacity: 0.45;
 }
 

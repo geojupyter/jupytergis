@@ -52,6 +52,7 @@ interface IInlineConstantProps {
   onChange: (scale: IScale) => void;
   /** Turn this channel into a full row driven by a field. */
   onPromote?: () => void;
+  disabled?: boolean;
 }
 
 /**
@@ -67,12 +68,14 @@ const InlineConstant: React.FC<IInlineConstantProps> = ({
   encodings,
   onChange,
   onPromote,
+  disabled = false,
 }) => {
   const promote = onPromote && (
     <Button
       type="button"
       variant="ghost"
       size="icon-xs"
+      disabled={disabled}
       onClick={onPromote}
       title="Drive this from a data field"
     >
@@ -86,6 +89,7 @@ const InlineConstant: React.FC<IInlineConstantProps> = ({
         <NumericInput
           className="jp-gis-inline-constant-num"
           value={scale.params.value}
+          disabled={disabled}
           onChange={value =>
             onChange({ scheme: 'constant_num', params: { value } })
           }
@@ -100,6 +104,7 @@ const InlineConstant: React.FC<IInlineConstantProps> = ({
       <>
         <RgbaColorPicker
           color={scale.params.value as RgbaColor}
+          disabled={disabled}
           onChange={value =>
             onChange({ scheme: 'constant_rgba', params: { value } })
           }
@@ -126,6 +131,7 @@ const InlineConstant: React.FC<IInlineConstantProps> = ({
           <NativeSelect
             className="jp-gis-inline-constant-select"
             value={scale.params.value}
+            disabled={disabled}
             onChange={e => set(e.target.value)}
           >
             {options.map(o => (
@@ -138,6 +144,7 @@ const InlineConstant: React.FC<IInlineConstantProps> = ({
           <Input
             className="jp-mod-styled jp-gis-inline-constant-text"
             value={scale.params.value}
+            disabled={disabled}
             onChange={e => set(e.target.value)}
           />
         )}
