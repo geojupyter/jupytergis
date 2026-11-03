@@ -3,11 +3,19 @@ import type {
   ICategoricalScale,
   IColorMapScale,
   IEncodingRule,
+  IExpressionScale,
   IGrammarLayer,
   IGrammarSymbologyState,
   IScalarScale,
   RGBA,
 } from '@jupytergis/schema';
+import { py2vega } from 'py2vega-ts';
+import {
+  codegenExpression,
+  constants as vegaConstants,
+  functions as vegaFunctions,
+  parseExpression,
+} from 'vega-expression';
 
 import {
   computeCategorizedColorStops,
@@ -63,12 +71,19 @@ interface INumberStop {
   output: number;
 }
 
+type VegaFn = (datum: Record<string, unknown>, global: object) => unknown;
+
+const EMPTY_GLOBAL = Object.freeze({});
+const expressionCache = new Map<string, VegaFn | null>();
+
 /**
  * Compile grammar scales into deck.gl accessor values.
  *
  * Walks grammar layers and rules in document order. The first scale for each
- * prop wins. Guarded rules, preprocessed layers, and expression scales are skipped.
- * `data` supplies attribute values for colorMap and categorical classification.
+ * prop wins. Guarded rules and preprocessed layers are skipped. Expression
+ * scales (vega / python→vega) compile to per-feature functions via
+ * vega-expression. `data` supplies attribute values for colorMap and
+ * categorical classification.
  */
 export function grammarToDeckAccessors(
   state: IGrammarSymbologyState | undefined,
@@ -154,6 +169,16 @@ function applyRule(
             assignColor(accessors, encoding, identityColorAccessor(field));
           } else if (isNumberEncoding(encoding)) {
             assignNumber(accessors, encoding, identityNumberAccessor(field));
+          }
+        }
+        break;
+      }
+      case 'expression': {
+        for (const encoding of mapping.encodings) {
+          if (isColorEncoding(encoding)) {
+            assignColor(accessors, encoding, expressionColorAccessor(scale));
+          } else if (isNumberEncoding(encoding)) {
+            assignNumber(accessors, encoding, expressionNumberAccessor(scale));
           }
         }
         break;
@@ -357,6 +382,122 @@ function identityNumberAccessor(
     const value = readProperty(feature, field);
     return typeof value === 'number' && Number.isFinite(value) ? value : 0;
   };
+}
+
+/**
+ * Python expressions become Vega first (same as OL). Vega is compiled once
+ * with vega-expression and run as `fn(datum)` per feature. GeoJSON features
+ * expose attributes under `properties`; trip/polygon records are the datum.
+ */
+function expressionColorAccessor(
+  scale: IExpressionScale,
+): (feature: unknown) => DeckColor {
+  const fallback = toDeckColor(
+    isRgba(scale.params.fallback)
+      ? scale.params.fallback
+      : ([0, 0, 0, 0] as RGBA),
+  );
+  const fn = compileExpression(
+    scale.params.expr,
+    scale.params.language ?? 'vega',
+  );
+
+  if (!fn) {
+    return () => fallback;
+  }
+
+  return feature => {
+    try {
+      const value = fn(datumFor(feature), EMPTY_GLOBAL);
+
+      return isRgba(value) ? toDeckColor(value) : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+}
+
+function expressionNumberAccessor(
+  scale: IExpressionScale,
+): (feature: unknown) => number {
+  const fallback =
+    typeof scale.params.fallback === 'number' &&
+    Number.isFinite(scale.params.fallback)
+      ? scale.params.fallback
+      : 0;
+
+  const fn = compileExpression(
+    scale.params.expr,
+    scale.params.language ?? 'vega',
+  );
+
+  if (!fn) {
+    return () => fallback;
+  }
+
+  return feature => {
+    try {
+      const value = fn(datumFor(feature), EMPTY_GLOBAL);
+
+      return typeof value === 'number' && Number.isFinite(value)
+        ? value
+        : fallback;
+    } catch {
+      return fallback;
+    }
+  };
+}
+
+function compileExpression(
+  expr: string,
+  language: 'vega' | 'python',
+): VegaFn | null {
+  const trimmed = expr.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const cacheKey = `${language}\0${trimmed}`;
+  if (expressionCache.has(cacheKey)) {
+    return expressionCache.get(cacheKey) ?? null;
+  }
+
+  try {
+    const vegaExpr =
+      language === 'python' ? (py2vega(trimmed) as string) : trimmed;
+    const ast = parseExpression(vegaExpr);
+    const generate = codegenExpression({
+      constants: vegaConstants,
+      functions: vegaFunctions,
+      forbidden: ['window', 'document', 'globalThis', 'Function', 'eval'],
+      allowed: ['datum'],
+      fieldvar: 'datum',
+      globalvar: 'global',
+    });
+    
+    const { code } = generate(ast);
+    const fn = new Function('datum', 'global', `return (${code});`) as VegaFn;
+    expressionCache.set(cacheKey, fn);
+
+    return fn;
+  } catch {
+    expressionCache.set(cacheKey, null);
+    
+    return null;
+  }
+}
+
+function datumFor(feature: unknown): Record<string, unknown> {
+  if (!feature || typeof feature !== 'object') {
+    return {};
+  }
+
+  const properties = (feature as { properties?: unknown }).properties;
+  if (properties && typeof properties === 'object') {
+    return properties as Record<string, unknown>;
+  }
+
+  return feature as Record<string, unknown>;
 }
 
 function interpolateColor(stops: IColorStop[], value: number): DeckColor {

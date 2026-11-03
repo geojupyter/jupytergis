@@ -397,7 +397,7 @@ describe('grammarToDeckAccessors', () => {
     ]);
   });
 
-  it('ignores expression scales', () => {
+  it('evaluates a vega expression against feature properties', () => {
     const accessors = grammarToDeckAccessors(
       makeState({
         id: 'expression',
@@ -406,7 +406,11 @@ describe('grammarToDeckAccessors', () => {
           {
             scale: {
               scheme: 'expression',
-              params: { expr: 'datum.value', fallback: [0, 0, 0, 1] },
+              params: {
+                expr: 'datum.value > 10 ? [255, 0, 0, 1] : [0, 0, 255, 1]',
+                fallback: [0, 0, 0, 1],
+                language: 'vega',
+              },
             },
             encodings: ['fill-color'],
           },
@@ -414,12 +418,100 @@ describe('grammarToDeckAccessors', () => {
       }),
     );
 
-    expect(accessors).toEqual({
-      getFillColor: null,
-      getLineColor: null,
-      getLineWidth: null,
-      getPointRadius: null,
-    });
+    expect(paintColor(accessors.getFillColor, { value: 20 })).toEqual([
+      255, 0, 0, 255,
+    ]);
+    expect(paintColor(accessors.getFillColor, { value: 1 })).toEqual([
+      0, 0, 255, 255,
+    ]);
+  });
+
+  it('evaluates a python expression after py2vega', () => {
+    const accessors = grammarToDeckAccessors(
+      makeState({
+        id: 'expression',
+        fields: ['value'],
+        mappings: [
+          {
+            scale: {
+              scheme: 'expression',
+              params: {
+                expr: '[255, 0, 0, 1] if datum.value > 10 else [0, 0, 255, 1]',
+                fallback: [9, 9, 9, 1],
+                language: 'python',
+              },
+            },
+            encodings: ['fill-color'],
+          },
+        ],
+      }),
+    );
+
+    expect(paintColor(accessors.getFillColor, { value: 20 })).toEqual([
+      255, 0, 0, 255,
+    ]);
+    expect(paintColor(accessors.getFillColor, { value: 1 })).toEqual([
+      0, 0, 255, 255,
+    ]);
+  });
+
+  it('uses fallback when an expression fails or returns the wrong type', () => {
+    const accessors = grammarToDeckAccessors(
+      makeState({
+        id: 'expression',
+        mappings: [
+          {
+            scale: {
+              scheme: 'expression',
+              params: {
+                expr: 'datum.missing.nested',
+                fallback: [1, 2, 3, 0.5],
+                language: 'vega',
+              },
+            },
+            encodings: ['fill-color'],
+          },
+          {
+            scale: {
+              scheme: 'expression',
+              params: {
+                expr: 'datum.label',
+                fallback: 4,
+                language: 'vega',
+              },
+            },
+            encodings: ['stroke-width'],
+          },
+        ],
+      }),
+    );
+
+    expect(paintColor(accessors.getFillColor, {})).toEqual([1, 2, 3, 128]);
+    expect(paintNumber(accessors.getLineWidth, { label: 'wide' })).toBe(4);
+  });
+
+  it('evaluates numeric expressions for width and radius', () => {
+    const accessors = grammarToDeckAccessors(
+      makeState({
+        id: 'expression',
+        fields: ['value'],
+        mappings: [
+          {
+            scale: {
+              scheme: 'expression',
+              params: {
+                expr: 'datum.value * 2',
+                fallback: 1,
+                language: 'vega',
+              },
+            },
+            encodings: ['circle-radius'],
+          },
+        ],
+      }),
+    );
+
+    expect(paintNumber(accessors.getPointRadius, { value: 3 })).toBe(6);
   });
 
   it('returns nothing when symbology is missing', () => {
