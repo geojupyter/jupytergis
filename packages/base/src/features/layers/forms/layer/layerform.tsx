@@ -71,6 +71,10 @@ export function LayerPropertiesForm(
   const uiSchema = useMemo(() => {
     const builtUiSchema: UiSchema = {};
     const dataCopy = deepCopy(formData);
+
+    // Edited via the symbology dialog, not the raw JSON form field.
+    removeFormEntry('symbologyState', formData, schema, builtUiSchema);
+
     processBaseSchema(
       dataCopy,
       schema,
