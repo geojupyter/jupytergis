@@ -50,8 +50,7 @@
         "params": {
           "layers": "TOPO-OSM-WMS"
         },
-        "url": "https://ows.terrestris.de/osm/service",
-        "useProxy": false
+        "url": "https://ows.terrestris.de/osm/service"
       },
       "type": "WmsTileSource"
     }
