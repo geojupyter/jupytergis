@@ -69,15 +69,10 @@ function stringFieldExpr(field: string): ExpressionValue {
 }
 
 /**
- * Metres per pixel at a web-map zoom level.
- *
- * This is the Web Mercator tile scheme (EPSG:3857, 256px tiles), which is the
- * default projection and the one every zoom-level number a user has ever seen
- * refers to. A document using a different projection will find these
- * thresholds land at slightly different scales, which is the same
- * approximation every "min zoom" setting in web mapping makes.
+ * Metres per pixel at a web-map zoom level in Web Mercator (EPSG:3857, 256px
+ * tiles), for callers that have no map view to ask.
  */
-function resolutionForZoom(zoom: number): number {
+function webMercatorResolutionForZoom(zoom: number): number {
   return 156543.03392804097 / Math.pow(2, zoom);
 }
 
@@ -129,10 +124,14 @@ interface IEncodingEntry {
  *   Required for categorical and colorRamp scales so the compiler can
  *   enumerate unique values / compute classification breaks at render time,
  *   mirroring how buildVectorFlatStyle works.
+ * @param resolutionForZoom  Turns a zoom guard into the view resolution it
+ *   compares against. Pass the map view's getResolutionForZoom so the guard
+ *   follows the document's projection.
  */
 export function grammarToOLStyle(
   state: IGrammarSymbologyState,
   featureValues: unknown[] = [],
+  resolutionForZoom: (zoom: number) => number = webMercatorResolutionForZoom,
 ): Record<string, ExpressionValue> {
   // Accumulate per-encoding entries from all layers and their rules.
   // Layers with a kde/cluster preprocess are handled at the renderer level;
@@ -151,7 +150,7 @@ export function grammarToOLStyle(
     // Layer-level guard: compiled separately then AND-ed with the rule guard.
     const layerGuard =
       layer.when && layer.when.length > 0
-        ? compileGuard(layer.when, layer.whenOp ?? 'all')
+        ? compileGuard(layer.when, layer.whenOp ?? 'all', resolutionForZoom)
         : undefined;
 
     for (const rule of layer.rules) {
@@ -160,7 +159,7 @@ export function grammarToOLStyle(
       const ruleField = rule.fields?.[0];
       const ruleGuard =
         rule.when && rule.when.length > 0
-          ? compileGuard(rule.when, rule.whenOp ?? 'all')
+          ? compileGuard(rule.when, rule.whenOp ?? 'all', resolutionForZoom)
           : undefined;
       const guard =
         layerGuard && ruleGuard
@@ -435,13 +434,19 @@ function assembleStyle(
 
 function compileGuard(
   predicates: IPredicate[],
-  op: 'all' | 'any' = 'all',
+  op: 'all' | 'any',
+  resolutionForZoom: (zoom: number) => number,
 ): ExpressionValue {
-  const conditions = predicates.map(compilePredicate);
+  const conditions = predicates.map(p =>
+    compilePredicate(p, resolutionForZoom),
+  );
   return conditions.length === 1 ? conditions[0] : [op, ...conditions];
 }
 
-function compilePredicate(predicate: IPredicate): ExpressionValue {
+function compilePredicate(
+  predicate: IPredicate,
+  resolutionForZoom: (zoom: number) => number,
+): ExpressionValue {
   switch (predicate.type) {
     case 'geometryType':
       return ['==', ['geometry-type'], predicate.value];

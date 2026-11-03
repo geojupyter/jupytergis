@@ -1698,8 +1698,12 @@ export class OpenLayersAdapter implements IMapAdapter {
       source: olSource,
       featureValues,
       className,
+      resolutionForZoom: this._resolutionForZoom,
     }) as OlLayerTypes;
   }
+
+  private _resolutionForZoom = (zoom: number): number =>
+    this._map.getView().getResolutionForZoom(zoom);
 
   // Used by VectorTileLayer (which shares a flat-style API with Grammar output).
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
@@ -1712,6 +1716,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const flatStyle = grammarToOLStyle(
       layerParams.symbologyState as IGrammarSymbologyState,
       [],
+      this._resolutionForZoom,
     );
 
     const layerStyle: Rule = { style: flatStyle };
@@ -3466,6 +3471,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       source,
       featureValues,
       className: comparisonLayerClass(id),
+      resolutionForZoom: this._resolutionForZoom,
     });
 
     if (mapLayer instanceof LayerGroup) {
