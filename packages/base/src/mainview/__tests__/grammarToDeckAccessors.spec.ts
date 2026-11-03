@@ -520,8 +520,57 @@ describe('grammarToDeckAccessors', () => {
       getLineColor: null,
       getLineWidth: null,
       getPointRadius: null,
+      getElevation: null,
+      geometry: {},
     };
     expect(grammarToDeckAccessors(undefined)).toEqual(empty);
     expect(grammarToDeckAccessors({ layers: [] })).toEqual(empty);
+  });
+
+  it('reads elevation from an identity field and a constant', () => {
+    const identity = grammarToDeckAccessors(
+      makeState({
+        id: 'elevation',
+        fields: ['height'],
+        mappings: [{ scale: { scheme: 'identity' }, encodings: ['elevation'] }],
+      }),
+    );
+    expect(paintNumber(identity.getElevation, { height: 12 })).toBe(12);
+
+    const constant = grammarToDeckAccessors(
+      makeState({
+        id: 'elevation',
+        mappings: [
+          {
+            scale: { scheme: 'constant_num', params: { value: 40 } },
+            encodings: ['elevation'],
+          },
+        ],
+      }),
+    );
+    expect(constant.getElevation).toBe(40);
+  });
+
+  it('collects geometry property names, first value wins', () => {
+    const accessors = grammarToDeckAccessors({
+      layers: [
+        {
+          id: 'first',
+          geometry: { path: 'route', timestamps: 'times' },
+          rules: [],
+        },
+        {
+          id: 'second',
+          geometry: { path: 'other', polygon: 'ring' },
+          rules: [],
+        },
+      ],
+    });
+
+    expect(accessors.geometry).toEqual({
+      path: 'route',
+      timestamps: 'times',
+      polygon: 'ring',
+    });
   });
 });

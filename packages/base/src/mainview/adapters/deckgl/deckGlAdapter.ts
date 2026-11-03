@@ -47,7 +47,11 @@ import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 import type { IDrawToolAdapter } from '@/src/features/draw-tool';
 import { debounce, fetchWithProxies, throttle } from '@/src/tools';
 import { animate, type AnimationControls } from './animate';
-import { grammarToDeckAccessors } from './grammarToDeckAccessors';
+import {
+  deckGeometryBinding,
+  grammarToDeckAccessors,
+  type DeckNumberAccessor,
+} from './grammarToDeckAccessors';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
   IMapAdapter,
@@ -97,9 +101,9 @@ const INCHES_PER_METER = 1000 / MM_PER_INCH;
 const EARTH_CIRCUMFERENCE_M = 40075016.686;
 const WEB_MERCATOR_TILE_SIZE = 512;
 const MS_PER_TIMESTAMP_UNIT = 60;
-const DEFAULT_GET_PATH = 'd => d.path';
-const DEFAULT_GET_TIMESTAMPS = 'd => d.timestamps';
-const DEFAULT_GET_POLYGON = 'd => d.polygon';
+const DEFAULT_PATH_FIELD = 'path';
+const DEFAULT_TIMESTAMPS_FIELD = 'timestamps';
+const DEFAULT_POLYGON_FIELD = 'polygon';
 
 /** Source types that fetch/store a JSON array of records. */
 const JSON_RECORD_SOURCES = new Set(['TripsSource', 'PolygonSource']);
@@ -156,6 +160,28 @@ function propertyKeys(expression: string): string[] | null {
   }
 
   return body.split('.').slice(1);
+}
+
+function elevationAccessor(
+  elevation: DeckNumberAccessor | null,
+): DeckNumberAccessor | undefined {
+  if (elevation === null) {
+    return undefined;
+  }
+
+  if (typeof elevation === 'number') {
+    return elevation;
+  }
+
+  return feature => {
+    const height = elevation(feature);
+    return height;
+  };
+}
+
+function geometryField(value: string | undefined, fallback: string): string {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : fallback;
 }
 
 function readProperties(keys: string[]): RecordGetter {
@@ -964,17 +990,21 @@ export class DeckGlAdapter implements IMapAdapter {
       return null;
     }
 
-    const pathExpression = parameters?.getPath || DEFAULT_GET_PATH;
-    const stampExpression = parameters?.getTimestamps || DEFAULT_GET_TIMESTAMPS;
-    const getPath = this._getter(pathExpression);
-    const getTimestamps = this._getter(stampExpression);
+    const geometry = deckGeometryBinding(parameters?.symbologyState);
+    const pathField = geometryField(geometry.path, DEFAULT_PATH_FIELD);
+    const stampField = geometryField(
+      geometry.timestamps,
+      DEFAULT_TIMESTAMPS_FIELD,
+    );
+    const getPath = this._getter(pathField);
+    const getTimestamps = this._getter(stampField);
     const trips = records.filter(record =>
       this._isTrip(getPath(record), getTimestamps(record)),
     );
     if (trips.length === 0) {
       this._log(
         'warning',
-        `DeckGlAdapter: trips layer "${layer.name ?? id}" has no trips for ${pathExpression}.`,
+        `DeckGlAdapter: trips layer "${layer.name ?? id}" has no trips for ${pathField}.`,
       );
 
       return null;
@@ -982,7 +1012,7 @@ export class DeckGlAdapter implements IMapAdapter {
 
     const timing = this._tripTiming(
       parameters?.source ?? id,
-      stampExpression,
+      stampField,
       records,
       getTimestamps,
     );
@@ -1039,40 +1069,29 @@ export class DeckGlAdapter implements IMapAdapter {
       return undefined;
     }
 
-    const polygonExpression = parameters?.getPolygon || DEFAULT_GET_POLYGON;
-    const elevationExpression = parameters?.getElevation?.trim();
-    const getPolygon = this._getter(polygonExpression);
-    const getElevation = elevationExpression
-      ? this._getter(elevationExpression)
-      : undefined;
+    const geometry = deckGeometryBinding(parameters?.symbologyState);
+    const polygonField = geometryField(geometry.polygon, DEFAULT_POLYGON_FIELD);
+    const getPolygon = this._getter(polygonField);
     const polygons = records.filter(record =>
       this._isRing(getPolygon(record), 3),
     );
     if (polygons.length === 0) {
       this._log(
         'warning',
-        `DeckGlAdapter: polygon layer "${layer.name ?? id}" has no polygons for ${polygonExpression}.`,
+        `DeckGlAdapter: polygon layer "${layer.name ?? id}" has no polygons for ${polygonField}.`,
       );
       return undefined;
     }
 
     const style = grammarToDeckAccessors(parameters?.symbologyState, polygons);
     const symbologyKey = JSON.stringify(parameters?.symbologyState ?? null);
+    const getElevation = elevationAccessor(style.getElevation);
 
     return new PolygonLayer({
       id,
       data: polygons,
       getPolygon: record => getPolygon(record) as LngLat[],
-      ...(getElevation
-        ? {
-            getElevation: (record: unknown) => {
-              const height = getElevation(record);
-              return typeof height === 'number' && Number.isFinite(height)
-                ? height
-                : 0;
-            },
-          }
-        : {}),
+      ...(getElevation !== undefined ? { getElevation } : {}),
       filled: parameters?.filled,
       stroked: parameters?.stroked,
       extruded: parameters?.extruded,
@@ -1096,8 +1115,8 @@ export class DeckGlAdapter implements IMapAdapter {
         getFillColor: symbologyKey,
         getLineColor: symbologyKey,
         getLineWidth: symbologyKey,
-        getElevation: elevationExpression ?? null,
-        getPolygon: polygonExpression,
+        getElevation: symbologyKey,
+        getPolygon: polygonField,
       },
     });
   }
@@ -1115,8 +1134,7 @@ export class DeckGlAdapter implements IMapAdapter {
     }
 
     const style = grammarToDeckAccessors(parameters?.symbologyState, data);
-    const elevationExpression = parameters?.getElevation?.trim() || null;
-    const getElevation = this._optionalGetter(parameters?.getElevation);
+    const getElevation = elevationAccessor(style.getElevation);
     // deck.gl keeps attribute buffers while `data` is the same object.
     // Accessor functions are not compared, so the grammar string is the trigger.
     const symbologyKey = JSON.stringify(parameters?.symbologyState ?? null);
@@ -1148,16 +1166,7 @@ export class DeckGlAdapter implements IMapAdapter {
             pointRadiusUnits: 'pixels' as const,
           }
         : {}),
-      ...(getElevation
-        ? {
-            getElevation: (feature: unknown) => {
-              const height = getElevation(feature);
-              return typeof height === 'number' && Number.isFinite(height)
-                ? height
-                : 0;
-            },
-          }
-        : {}),
+      ...(getElevation !== undefined ? { getElevation } : {}),
       opacity: parameters?.opacity,
       visible: layer.visible ?? true,
       pickable: true,
@@ -1166,7 +1175,7 @@ export class DeckGlAdapter implements IMapAdapter {
         getLineColor: symbologyKey,
         getLineWidth: symbologyKey,
         getPointRadius: symbologyKey,
-        getElevation: elevationExpression,
+        getElevation: symbologyKey,
       },
     });
   }
@@ -1337,13 +1346,6 @@ export class DeckGlAdapter implements IMapAdapter {
       return [];
     }
     return data;
-  }
-
-  private _optionalGetter(
-    expression: string | undefined,
-  ): RecordGetter | undefined {
-    const trimmed = expression?.trim();
-    return trimmed ? this._getter(trimmed) : undefined;
   }
 
   private _getter(expression: string): RecordGetter {

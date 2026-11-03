@@ -29,7 +29,7 @@
     },
     "extruded": {
       "type": "boolean",
-      "description": "Extrude Polygon and MultiPolygon features using getElevation.",
+      "description": "Extrude Polygon and MultiPolygon features using the elevation encoding.",
       "default": false
     },
     "wireframe": {
@@ -37,13 +37,9 @@
       "description": "Draw a wireframe of extruded polygons. Exclusive with solid fill when extruded.",
       "default": false
     },
-    "getElevation": {
-      "type": "string",
-      "description": "Arrow function of one feature, f. Returns extrusion height in meters. Only used when extruded is true. If omitted, deck.gl default 1000 is used."
-    },
     "symbologyState": {
       "type": "object",
-      "description": "Grammar symbology. Source of truth for fill, stroke, line width, and point radius. Deck.gl accessors are derived from constant scales at render time.",
+      "description": "Grammar symbology. Source of truth for fill, stroke, line width, point radius, and elevation. Deck.gl accessors are derived at render time.",
       "additionalProperties": false,
       "required": ["layers"],
       "properties": {

@@ -227,6 +227,10 @@ function deriveEncodingLabel(encodings: string[]): string {
     return 'Radius';
   }
 
+  if (set.has('elevation')) {
+    return 'Elevation';
+  }
+
   // Pixel encodings (raster / KDE).
   if (set.has('pixel-color')) {
     return 'pixel-rgba';
@@ -406,6 +410,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
         const isStrokeWidth = encodings.some(ch =>
           STROKE_WIDTH_ENCODINGS.has(ch as string),
         );
+        const isElevation = (encodings as string[]).includes('elevation');
 
         // Skip the alpha mapping itself — it's shown implicitly via withAlpha.
         if ((encodings as string[]).includes('pixel-alpha')) {
@@ -561,6 +566,41 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
             minWidth: p.range[0],
             maxWidth: p.range[1],
             domain: p.domain,
+          });
+        } else if (isElevation && scale.scheme === 'scalar') {
+          const p = scale.params;
+          entries.push({
+            type: 'stroke-width',
+            field,
+            encoding: encodingLbl,
+            when: whenLbl,
+            minWidth: p.range[0],
+            maxWidth: p.range[1],
+            domain: p.domain,
+          });
+        } else if (isElevation && scale.scheme === 'constant_num') {
+          entries.push({
+            type: 'expression',
+            field,
+            encoding: encodingLbl,
+            when: whenLbl,
+            expr: String(scale.params.value),
+          });
+        } else if (isElevation && scale.scheme === 'identity') {
+          entries.push({
+            type: 'expression',
+            field,
+            encoding: encodingLbl,
+            when: whenLbl,
+            expr: field ?? '',
+          });
+        } else if (isElevation && scale.scheme === 'expression') {
+          entries.push({
+            type: 'expression',
+            field,
+            encoding: encodingLbl,
+            when: whenLbl,
+            expr: scale.params.expr,
           });
         }
       }

@@ -55,19 +55,9 @@
       "default": 1,
       "minimum": 0
     },
-    "getPath": {
-      "type": "string",
-      "description": "Arrow function of one record, d. Returns the path positions.",
-      "default": "d => d.path"
-    },
-    "getTimestamps": {
-      "type": "string",
-      "description": "Arrow function of one record, d. Returns one timestamp per path position.",
-      "default": "d => d.timestamps"
-    },
     "symbologyState": {
       "type": "object",
-      "description": "Grammar symbology for trail color and width. Fill or stroke color becomes getColor; stroke width or circle radius becomes getWidth. widthMinPixels applies when width is unset. With no color rule, deck.gl uses black.",
+      "description": "Grammar symbology for trail color and width, plus geometry property names. Fill or stroke color becomes getColor; stroke width or circle radius becomes getWidth. widthMinPixels applies when width is unset. With no color rule, deck.gl uses black. geometry.path and geometry.timestamps name the record properties; they default to path and timestamps.",
       "additionalProperties": false,
       "required": ["layers"],
       "properties": {

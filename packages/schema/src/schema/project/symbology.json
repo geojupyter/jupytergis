@@ -45,7 +45,7 @@
     },
     "PosFloatEncoding": {
       "type": "string",
-      "enum": ["stroke-width", "circle-radius", "circle-stroke-width"]
+      "enum": ["stroke-width", "circle-radius", "circle-stroke-width", "elevation"]
     },
     "Encoding": {
       "title": "Encoding",
@@ -444,6 +444,26 @@
         }
       }
     },
+    "IGeometryBinding": {
+      "type": "object",
+      "title": "IGeometryBinding",
+      "description": "Property names for path, timestamps, or polygon on a plain JSON record. Each value is a dotted property path, not an expression. DeckGL reads these. OpenLayers ignores them.",
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Property holding trip positions. DeckGL defaults to path."
+        },
+        "timestamps": {
+          "type": "string",
+          "description": "Property holding one timestamp per path position. DeckGL defaults to timestamps."
+        },
+        "polygon": {
+          "type": "string",
+          "description": "Property holding a polygon ring. DeckGL defaults to polygon."
+        }
+      }
+    },
     "IGrammarLayer": {
       "type": "object",
       "title": "IGrammarLayer",
@@ -452,6 +472,7 @@
       "additionalProperties": false,
       "properties": {
         "id": { "type": "string", "description": "Stable UUID." },
+        "geometry": { "$ref": "#/definitions/IGeometryBinding" },
         "preprocess": {
           "type": "array",
           "description": "Render-side transforms (KDE, cluster) applied before encoding rules.",

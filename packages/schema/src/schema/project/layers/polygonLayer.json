@@ -29,7 +29,7 @@
     },
     "extruded": {
       "type": "boolean",
-      "description": "Extrude the polygon based on getElevation. Prefer disabling extrusion over returning 0 from getElevation.",
+      "description": "Extrude the polygon using the elevation encoding. Prefer disabling extrusion over a constant elevation of 0.",
       "default": false
     },
     "fillColor": {
@@ -58,18 +58,9 @@
       "default": 1,
       "minimum": 0
     },
-    "getPolygon": {
-      "type": "string",
-      "description": "Arrow function of one record, d. Returns the polygon ring.",
-      "default": "d => d.polygon"
-    },
-    "getElevation": {
-      "type": "string",
-      "description": "Arrow function of one record, d. Returns the extrusion height in meters. Only used when extruded is true. If omitted, every polygon uses 1000 (deck.gl default)."
-    },
     "symbologyState": {
       "type": "object",
-      "description": "Grammar symbology for fill, stroke, and line width. Deck.gl accessors are derived at render time. fillColor, lineColor, and lineWidthMinPixels apply when a channel is unset.",
+      "description": "Grammar symbology for fill, stroke, line width, and elevation. Deck.gl accessors are derived at render time.",
       "additionalProperties": false,
       "required": ["layers"],
       "properties": {

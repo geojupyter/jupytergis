@@ -4,6 +4,7 @@ import type {
   IColorMapScale,
   IEncodingRule,
   IExpressionScale,
+  IGeometryBinding,
   IGrammarLayer,
   IGrammarSymbologyState,
   IScalarScale,
@@ -40,6 +41,8 @@ export interface IDeckSymbologyAccessors {
   getLineColor: DeckColorAccessor | null;
   getLineWidth: DeckNumberAccessor | null;
   getPointRadius: DeckNumberAccessor | null;
+  getElevation: DeckNumberAccessor | null;
+  geometry: IGeometryBinding;
 }
 
 const EMPTY_ACCESSORS = (): IDeckSymbologyAccessors => ({
@@ -47,6 +50,8 @@ const EMPTY_ACCESSORS = (): IDeckSymbologyAccessors => ({
   getLineColor: null,
   getLineWidth: null,
   getPointRadius: null,
+  getElevation: null,
+  geometry: {},
 });
 
 const FILL_ENCODINGS = new Set<Encoding>(['fill-color', 'circle-fill-color']);
@@ -85,11 +90,42 @@ const expressionCache = new Map<string, VegaFn | null>();
  * vega-expression. `data` supplies attribute values for colorMap and
  * categorical classification.
  */
+/**
+ * First geometry property name in document order wins.
+ * Later grammar layers fill only the names that are still unset.
+ */
+export function deckGeometryBinding(
+  state: IGrammarSymbologyState | undefined,
+): IGeometryBinding {
+  const geometry: IGeometryBinding = {};
+  for (const layer of state?.layers ?? []) {
+    const binding = layer.geometry;
+    if (!binding) {
+      continue;
+    }
+
+    if (geometry.path === undefined && binding.path) {
+      geometry.path = binding.path;
+    }
+
+    if (geometry.timestamps === undefined && binding.timestamps) {
+      geometry.timestamps = binding.timestamps;
+    }
+
+    if (geometry.polygon === undefined && binding.polygon) {
+      geometry.polygon = binding.polygon;
+    }
+  }
+
+  return geometry;
+}
+
 export function grammarToDeckAccessors(
   state: IGrammarSymbologyState | undefined,
   data?: unknown,
 ): IDeckSymbologyAccessors {
   const accessors = EMPTY_ACCESSORS();
+  accessors.geometry = deckGeometryBinding(state);
   if (!state?.layers?.length) {
     return accessors;
   }
@@ -210,8 +246,13 @@ function assignNumber(
   if (accessors.getLineWidth === null && WIDTH_ENCODINGS.has(encoding)) {
     accessors.getLineWidth = value;
   }
+
   if (accessors.getPointRadius === null && encoding === 'circle-radius') {
     accessors.getPointRadius = value;
+  }
+  
+  if (accessors.getElevation === null && encoding === 'elevation') {
+    accessors.getElevation = value;
   }
 }
 
@@ -220,7 +261,11 @@ function isColorEncoding(encoding: Encoding): boolean {
 }
 
 function isNumberEncoding(encoding: Encoding): boolean {
-  return WIDTH_ENCODINGS.has(encoding) || encoding === 'circle-radius';
+  return (
+    WIDTH_ENCODINGS.has(encoding) ||
+    encoding === 'circle-radius' ||
+    encoding === 'elevation'
+  );
 }
 
 function colorMapAccessor(
@@ -474,7 +519,7 @@ function compileExpression(
       fieldvar: 'datum',
       globalvar: 'global',
     });
-    
+
     const { code } = generate(ast);
     const fn = new Function('datum', 'global', `return (${code});`) as VegaFn;
     expressionCache.set(cacheKey, fn);
@@ -482,7 +527,7 @@ function compileExpression(
     return fn;
   } catch {
     expressionCache.set(cacheKey, null);
-    
+
     return null;
   }
 }

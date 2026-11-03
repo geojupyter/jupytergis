@@ -355,8 +355,6 @@ export function addLayerCreationCommands(options: {
         jointRounded: { type: 'boolean', default: false },
         loopLength: { type: 'number' },
         animationSpeed: { type: 'number', default: 1 },
-        getPath: { type: 'string', default: 'd => d.path' },
-        getTimestamps: { type: 'string', default: 'd => d.timestamps' },
       },
       buildParameters: (p, id) => ({
         source: id,
@@ -368,8 +366,6 @@ export function addLayerCreationCommands(options: {
         jointRounded: p.jointRounded ?? false,
         ...(p.loopLength !== undefined ? { loopLength: p.loopLength } : {}),
         animationSpeed: p.animationSpeed ?? 1,
-        getPath: p.getPath ?? 'd => d.path',
-        getTimestamps: p.getTimestamps ?? 'd => d.timestamps',
       }),
     },
     {
@@ -400,8 +396,6 @@ export function addLayerCreationCommands(options: {
           default: [80, 80, 80],
         },
         lineWidthMinPixels: { type: 'number', default: 1 },
-        getPolygon: { type: 'string', default: 'd => d.polygon' },
-        getElevation: { type: 'string' },
       },
       buildParameters: (p, id) => ({
         source: id,
@@ -412,8 +406,6 @@ export function addLayerCreationCommands(options: {
         fillColor: p.fillColor ?? [0, 128, 255, 160],
         lineColor: p.lineColor ?? [80, 80, 80],
         lineWidthMinPixels: p.lineWidthMinPixels ?? 1,
-        getPolygon: p.getPolygon ?? 'd => d.polygon',
-        ...(p.getElevation ? { getElevation: p.getElevation } : {}),
       }),
     },
     {
@@ -434,7 +426,6 @@ export function addLayerCreationCommands(options: {
         stroked: { type: 'boolean', default: true },
         extruded: { type: 'boolean', default: false },
         wireframe: { type: 'boolean', default: false },
-        getElevation: { type: 'string' },
       },
       buildParameters: (p, id) => ({
         source: id,
@@ -443,7 +434,6 @@ export function addLayerCreationCommands(options: {
         stroked: p.stroked ?? true,
         extruded: p.extruded ?? false,
         wireframe: p.wireframe ?? false,
-        ...(p.getElevation ? { getElevation: p.getElevation } : {}),
       }),
     },
   ];
