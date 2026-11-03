@@ -1,0 +1,61 @@
+{
+  "annotations": {},
+  "layerTree": [
+    "b48f33a3-5fd6-4ebc-abb2-7c2029243473"
+  ],
+  "layers": {
+    "b48f33a3-5fd6-4ebc-abb2-7c2029243473": {
+      "name": "Custom WMS Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "e6ac12b5-8a68-4b55-a062-9a6d628c4af0",
+        "symbologyState": {
+          "layers": [
+            {
+              "id": "af9c5bce-5001-4740-9264-3b5c886986ad",
+              "rules": []
+            }
+          ]
+        }
+      },
+      "type": "GeoTiffLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -0.22361368839867168,
+      45.290148071493775,
+      14.259026606759193,
+      50.7528254944057
+    ],
+    "latitude": 48.09396467096414,
+    "longitude": 7.017706459179976,
+    "mapAdapter": "maplibre",
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 5.871614552696697
+  },
+  "presets": {},
+  "schemaVersion": "0.7.0",
+  "sources": {
+    "e6ac12b5-8a68-4b55-a062-9a6d628c4af0": {
+      "name": "Custom WMS Layer Source",
+      "parameters": {
+        "attribution": "",
+        "httpHeaders": "",
+        "interpolate": false,
+        "params": {
+          "layers": "TOPO-OSM-WMS"
+        },
+        "url": "https://ows.terrestris.de/osm/service",
+        "useProxy": false
+      },
+      "type": "WmsTileSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}
