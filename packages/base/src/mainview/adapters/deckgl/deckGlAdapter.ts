@@ -117,42 +117,59 @@ type TripTiming = {
   to: number;
 };
 
+const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
+const MEMBER_PATH = /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)*$/;
+
 /**
- * Compiles a deck.gl accessor string.
+ * Reads a property path from a record.
+ *
+ * `name` and `name.a.b` walk the record. `param => param.a.b` walks from
+ * the parameter, which stands for the record. Parentheses around the
+ * parameter are optional. Anything else is rejected.
  */
-// TODO! This enables arbitrary code exection. Do not merge while this todo is here.
-function compileGetter(expression: string): RecordGetter {
-  const trimmed = expression.trim();
-  const arrowAt = trimmed.indexOf('=>');
-  if (arrowAt > 0) {
-    const params = trimmed
-      .slice(0, arrowAt)
-      .trim()
-      .replace(/^\(|\)$/g, '')
-      .split(',')
-      .map(name => name.trim())
-      .filter(Boolean);
-    const body = trimmed.slice(arrowAt + 2).trim();
-
-    return new Function(...params, `return (${body});`) as RecordGetter;
+export function compileGetter(expression: string): RecordGetter {
+  const keys = propertyKeys(expression.trim());
+  if (!keys) {
+    throw new Error(`Unsupported getter "${expression.trim()}"`);
   }
 
-  if (/^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)*$/.test(trimmed)) {
-    const keys = trimmed.split('.');
-    return record => {
-      let value = record;
-      for (const key of keys) {
-        if (value === null || typeof value !== 'object') {
-          return undefined;
-        }
-        value = (value as Record<string, unknown>)[key];
+  return readProperties(keys);
+}
+
+function propertyKeys(expression: string): string[] | null {
+  const arrowAt = expression.indexOf('=>');
+  if (arrowAt === -1) {
+    return MEMBER_PATH.test(expression) ? expression.split('.') : null;
+  }
+
+  let parameter = expression.slice(0, arrowAt).trim();
+  if (parameter.startsWith('(') && parameter.endsWith(')')) {
+    parameter = parameter.slice(1, -1).trim();
+  }
+  if (!IDENTIFIER.test(parameter)) {
+    return null;
+  }
+
+  const body = expression.slice(arrowAt + 2).trim();
+  if (!body.startsWith(`${parameter}.`) || !MEMBER_PATH.test(body)) {
+    return null;
+  }
+
+  return body.split('.').slice(1);
+}
+
+function readProperties(keys: string[]): RecordGetter {
+  return record => {
+    let value = record;
+    for (const key of keys) {
+      if (value === null || typeof value !== 'object') {
+        return undefined;
       }
+      value = (value as Record<string, unknown>)[key];
+    }
 
-      return value;
-    };
-  }
-
-  return new Function('d', `return (${trimmed});`) as RecordGetter;
+    return value;
+  };
 }
 
 /**
@@ -413,8 +430,28 @@ export class DeckGlAdapter implements IMapAdapter {
   }
 
   applyOptions(
-    _options: IJGISOptions,
+    options: IJGISOptions,
   ): { code: string; units: string } | undefined {
+    if (
+      options.projection !== undefined &&
+      options.projection !== 'EPSG:3857'
+    ) {
+      this._log(
+        'warning',
+        `DeckGL only supports EPSG:3857; ignoring requested projection ${options.projection}.`,
+      );
+    }
+
+    const current = this._viewState;
+    this._setInitialView({
+      ...current,
+      longitude: options.longitude ?? current.longitude,
+      latitude: options.latitude ?? current.latitude,
+      zoom: options.zoom ?? current.zoom,
+      bearing: options.bearing ?? current.bearing ?? 0,
+      pitch: options.pitch ?? current.pitch ?? 0,
+    });
+
     return undefined;
   }
 
@@ -528,8 +565,12 @@ export class DeckGlAdapter implements IMapAdapter {
     this._clearTripTiming(id);
   }
 
-  async updateSource(_id: string, _source: IJGISSource): Promise<void> {
-    noop();
+  async updateSource(id: string, source: IJGISSource): Promise<void> {
+    this.removeSource(id);
+    await this.addSource(id, source);
+    if (this._layerIds) {
+      this._syncLayers(this._layerIds);
+    }
   }
 
   setZoomButtonsEnabled(_enabled: boolean | undefined): void {
@@ -605,30 +646,42 @@ export class DeckGlAdapter implements IMapAdapter {
     }
 
     this._deckView = next;
-    this._viewEpoch += 1;
-    this._viewState = {
-      longitude: 0,
-      latitude: 0,
-      zoom: 0,
-      pitch: 0,
-      bearing: 0,
-    };
     const { mapContainer, controlsTarget, zoomButtonsEnabled, isSpectaMode } =
       this._widgetOptions;
-    this._deck.setProps({
-      views: this._createDeckView(),
-      initialViewState: this._viewState,
-      widgets: this._createWidgets(
+    const current = this._viewState;
+    this._setInitialView(
+      {
+        ...current,
+        longitude: current.longitude,
+        latitude: current.latitude,
+        zoom: current.zoom,
+        bearing: current.bearing ?? 0,
+        pitch: current.pitch ?? 0,
+      },
+      this._createWidgets(
         mapContainer,
         controlsTarget,
         zoomButtonsEnabled,
         isSpectaMode,
       ),
-    });
+    );
     if (this._layerIds) {
       this._syncLayers(this._layerIds);
     }
   };
+
+  /**
+   * deck.gl reads `initialViewState` only for a new view id.
+   */
+  private _setInitialView(next: MapViewState, widgets?: DeckGlWidgets): void {
+    this._viewEpoch += 1;
+    this._viewState = next;
+    this._deck?.setProps({
+      views: this._createDeckView(),
+      initialViewState: this._viewState,
+      ...(widgets ? { widgets } : {}),
+    });
+  }
 
   private _createDeckView(): MapView | GlobeView {
     // deck.gl stores the camera on the view id. A new id drops it.
@@ -939,9 +992,11 @@ export class DeckGlAdapter implements IMapAdapter {
     const trailColor = style.getFillColor ?? style.getLineColor;
     const trailWidth = style.getLineWidth ?? style.getPointRadius;
 
+    const end = parameters?.loopLength ?? timing.to + timing.origin;
+
     return {
       from: timing.from,
-      to: parameters?.loopLength || timing.to,
+      to: end - timing.origin,
       animationSpeed: parameters?.animationSpeed,
       layer: new TripsLayer({
         id,
