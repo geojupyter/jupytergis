@@ -341,7 +341,7 @@ export class MapLibreAdapter implements IMapAdapter {
     });
 
     this._map.on('click', event => {
-      void this._addMarker(event);
+      this._addMarker(event);
     });
 
     this._map.on('contextmenu', event => {
