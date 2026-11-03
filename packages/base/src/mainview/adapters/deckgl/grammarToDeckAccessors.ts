@@ -28,11 +28,18 @@ export type DeckNumberAccessor = number | ((feature: unknown) => number);
  * Width and radius are pixels.
  */
 export interface IDeckSymbologyAccessors {
-  getFillColor?: DeckColorAccessor;
-  getLineColor?: DeckColorAccessor;
-  getLineWidth?: DeckNumberAccessor;
-  getPointRadius?: DeckNumberAccessor;
+  getFillColor: DeckColorAccessor | null;
+  getLineColor: DeckColorAccessor | null;
+  getLineWidth: DeckNumberAccessor | null;
+  getPointRadius: DeckNumberAccessor | null;
 }
+
+const EMPTY_ACCESSORS = (): IDeckSymbologyAccessors => ({
+  getFillColor: null,
+  getLineColor: null,
+  getLineWidth: null,
+  getPointRadius: null,
+});
 
 const FILL_ENCODINGS = new Set<Encoding>(['fill-color', 'circle-fill-color']);
 const LINE_ENCODINGS = new Set<Encoding>([
@@ -67,11 +74,11 @@ export function grammarToDeckAccessors(
   state: IGrammarSymbologyState | undefined,
   data?: unknown,
 ): IDeckSymbologyAccessors {
+  const accessors = EMPTY_ACCESSORS();
   if (!state?.layers?.length) {
-    return {};
+    return accessors;
   }
 
-  const accessors: IDeckSymbologyAccessors = {};
   for (const layer of state.layers) {
     if (!canPaint(layer)) {
       continue;

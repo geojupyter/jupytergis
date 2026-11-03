@@ -1124,7 +1124,7 @@ export class DeckGlAdapter implements IMapAdapter {
     parameters: { path?: string | null; data?: unknown } | undefined,
     label: string,
   ): Promise<unknown> {
-    if (parameters?.data !== null) {
+    if (parameters?.data !== undefined && parameters?.data !== null) {
       if (!Array.isArray(parameters.data) || parameters.data.length > 0) {
         return parameters.data;
       }

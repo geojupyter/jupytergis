@@ -47,9 +47,9 @@ function feature(properties: Record<string, unknown>): {
 }
 
 function paintColor(
-  accessor: DeckColorAccessor | undefined,
+  accessor: DeckColorAccessor | null | undefined,
   properties: Record<string, unknown>,
-): DeckColor | undefined {
+): DeckColor | null | undefined {
   if (typeof accessor !== 'function') {
     return accessor;
   }
@@ -57,9 +57,9 @@ function paintColor(
 }
 
 function paintNumber(
-  accessor: DeckNumberAccessor | undefined,
+  accessor: DeckNumberAccessor | null | undefined,
   properties: Record<string, unknown>,
-): number | undefined {
+): number | null | undefined {
   if (typeof accessor !== 'function') {
     return accessor;
   }
@@ -119,7 +119,7 @@ describe('grammarToDeckAccessors', () => {
 
     expect(accessors.getLineWidth).toBe(2.5);
     expect(accessors.getPointRadius).toBe(8);
-    expect(accessors.getFillColor).toBeUndefined();
+    expect(accessors.getFillColor).toBeNull();
   });
 
   it('interpolates explicit color stops and falls back otherwise', () => {
@@ -414,11 +414,22 @@ describe('grammarToDeckAccessors', () => {
       }),
     );
 
-    expect(accessors).toEqual({});
+    expect(accessors).toEqual({
+      getFillColor: null,
+      getLineColor: null,
+      getLineWidth: null,
+      getPointRadius: null,
+    });
   });
 
   it('returns nothing when symbology is missing', () => {
-    expect(grammarToDeckAccessors(undefined)).toEqual({});
-    expect(grammarToDeckAccessors({ layers: [] })).toEqual({});
+    const empty = {
+      getFillColor: null,
+      getLineColor: null,
+      getLineWidth: null,
+      getPointRadius: null,
+    };
+    expect(grammarToDeckAccessors(undefined)).toEqual(empty);
+    expect(grammarToDeckAccessors({ layers: [] })).toEqual(empty);
   });
 });
