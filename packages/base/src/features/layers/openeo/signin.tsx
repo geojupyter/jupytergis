@@ -17,6 +17,10 @@ export interface IOpenEOSigninProps {
   onSwitchServer?: () => void;
 }
 
+function defaultClientId(provider: AuthProvider | undefined): string {
+  return provider instanceof OpenEODeviceProvider ? provider.clientId : '';
+}
+
 function providerLabel(provider: AuthProvider): string {
   return (
     provider.getTitle() ||
@@ -43,6 +47,9 @@ export function OpenEOSignin({
   );
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
+  const [clientId, setClientId] = React.useState(() =>
+    defaultClientId(providers[0]),
+  );
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [code, setCode] = React.useState<IDeviceCode | null>(null);
@@ -58,6 +65,7 @@ export function OpenEOSignin({
   const provider = providers[providerIndex];
   const isAnonymous = providerIndex === ANONYMOUS;
   const isBasic = provider?.getType() === 'basic';
+  const isDevice = provider instanceof OpenEODeviceProvider;
 
   const signIn = async () => {
     if (isAnonymous) {
@@ -68,6 +76,7 @@ export function OpenEOSignin({
     setError(null);
     try {
       if (provider instanceof OpenEODeviceProvider) {
+        provider.setClientId(clientId.trim());
         await provider.login(setCode, abort.current.signal);
       } else {
         await provider?.login(username, password);
@@ -92,6 +101,7 @@ export function OpenEOSignin({
 
   const pick = (index: number) => {
     setProviderIndex(index);
+    setClientId(defaultClientId(providers[index]));
     setError(null);
   };
 
@@ -147,6 +157,18 @@ export function OpenEOSignin({
                 : 'Device Code Flow (default)'}
             </option>
           </select>
+        </label>
+      )}
+
+      {isDevice && (
+        <label className="jp-openeo-field">
+          <span>Client ID</span>
+          <input
+            type="text"
+            value={clientId}
+            onChange={e => setClientId(e.target.value)}
+            disabled={busy}
+          />
         </label>
       )}
 
@@ -207,7 +229,8 @@ export function OpenEOSignin({
           disabled={
             busy ||
             (!provider && !isAnonymous) ||
-            (isBasic && (!username || !password))
+            (isBasic && (!username || !password)) ||
+            (isDevice && !clientId.trim())
           }
         >
           {busy ? 'Signing in…' : action}
