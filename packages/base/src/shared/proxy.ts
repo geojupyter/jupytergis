@@ -158,5 +158,8 @@ export async function buildProxyUrl(
     ? `&headers=${encodeURIComponent(JSON.stringify(httpHeaders))}`
     : '';
 
-  return `${proxyBase}?url=${encodeURIComponent(url)}${headersParam}`;
+  // Leave tile placeholders like {z} or {bbox-epsg-3857} for the map to fill in.
+  const target = encodeURIComponent(url).replace(/%7B([\w-]+)%7D/g, '{$1}');
+
+  return `${proxyBase}?url=${target}${headersParam}`;
 }

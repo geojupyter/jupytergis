@@ -509,23 +509,15 @@ export class MapLibreAdapter implements IMapAdapter {
         case 'WmsTileSource': {
           const sourceParameters = source.parameters as IWmsTileSource;
 
-          if (
-            (await buildProxyUrl(
-              this._model,
-              sourceParameters.url,
-              sourceParameters.httpHeaders,
-            )) !== sourceParameters.url
-          ) {
-            this._log(
-              'warning',
-              `MapLibreAdapter: the tile proxy is not supported for WMS source "${source.name ?? id}" in MapLibre;
-               tiles are requested directly, so the server must allow CORS.`,
-            );
-          }
-
           this._map.addSource(id, {
             type: 'raster',
-            tiles: [this._computeWmsTileUrl(sourceParameters)],
+            tiles: [
+              await buildProxyUrl(
+                this._model,
+                this._computeWmsTileUrl(sourceParameters),
+                sourceParameters.httpHeaders,
+              ),
+            ],
             tileSize: 256,
             attribution: sourceParameters.attribution,
           });
