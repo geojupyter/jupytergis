@@ -5,8 +5,6 @@ import { isJupyterLite } from '@/src/tools';
 
 export const INTERNAL_PROXY_BASE = '/jupytergis_core/proxy';
 
-let warnedAboutMissingProxy = false;
-
 /**
  * The CORS proxy requests should go through, or null when there is none.
  *
@@ -92,62 +90,51 @@ async function probeCorsMode(url: string): Promise<CorsMode> {
  * @param model - the JupyterGIS model, to read the proxy setting from.
  * @param url - the URL about to be requested.
  * @param httpHeaders - HTTP headers to pass to the proxy.
- * @param forceProxy - skip the check and always use the proxy.
  */
 export async function buildProxyUrl(
   model: IJupyterGISModel | undefined,
   url: string,
   httpHeaders?: string,
-  forceProxy = false,
 ): Promise<string> {
   const proxyBase = getProxyEndpoint(model);
   if (!proxyBase) {
-    // Tile loaders come through here once per tile, so say it once.
-    if (forceProxy && !warnedAboutMissingProxy) {
-      warnedAboutMissingProxy = true;
-      console.warn(
-        `No proxy available, requesting ${url} directly. Set the proxy URL in the JupyterGIS settings to use one.`,
-      );
-    }
     return url;
   }
 
   const hasHeaders = !!httpHeaders && Object.keys(httpHeaders).length > 0;
 
-  if (!forceProxy) {
-    let origin: string;
-    try {
-      const parsed = new URL(url, window.location.href);
-      if (!parsed.protocol.startsWith('http')) {
-        return url;
-      }
-      origin = parsed.origin;
-    } catch {
+  let origin: string;
+  try {
+    const parsed = new URL(url, window.location.href);
+    if (!parsed.protocol.startsWith('http')) {
       return url;
     }
+    origin = parsed.origin;
+  } catch {
+    return url;
+  }
 
-    if (origin === window.location.origin) {
-      return url;
+  if (origin === window.location.origin) {
+    return url;
+  }
+
+  if (!hasHeaders) {
+    let mode = corsModes.get(origin);
+    if (!mode) {
+      mode = (async () => {
+        const stored = await readCorsMode(origin).catch(() => undefined);
+        if (stored) {
+          return stored;
+        }
+        const probed = await probeCorsMode(url);
+        await writeCorsMode(origin, probed).catch(() => undefined);
+        return probed;
+      })();
+      corsModes.set(origin, mode);
     }
 
-    if (!hasHeaders) {
-      let mode = corsModes.get(origin);
-      if (!mode) {
-        mode = (async () => {
-          const stored = await readCorsMode(origin).catch(() => undefined);
-          if (stored) {
-            return stored;
-          }
-          const probed = await probeCorsMode(url);
-          await writeCorsMode(origin, probed).catch(() => undefined);
-          return probed;
-        })();
-        corsModes.set(origin, mode);
-      }
-
-      if ((await mode) === 'direct') {
-        return url;
-      }
+    if ((await mode) === 'direct') {
+      return url;
     }
   }
 

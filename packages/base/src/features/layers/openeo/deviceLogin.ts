@@ -7,7 +7,7 @@ import {
 // @ts-expect-error the env module has no type definitions
 import Environment from '@openeo/js-client/src/env';
 
-import { buildProxyUrl, getProxyEndpoint } from '@/src/shared/proxy';
+import { buildProxyUrl } from '@/src/shared/proxy';
 
 const DEVICE_GRANT = 'urn:ietf:params:oauth:grant-type:device_code';
 
@@ -17,7 +17,7 @@ export interface IDeviceCode {
 }
 
 function proxied(url: string): Promise<string> {
-  return buildProxyUrl(undefined, url, undefined, getProxyEndpoint() !== null);
+  return buildProxyUrl(undefined, url);
 }
 
 async function postForm(
