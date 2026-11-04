@@ -691,7 +691,8 @@ export const loadFile = async (fileInfo: {
     switch (type) {
       case 'ImageSource': {
         try {
-          const response = await fetch(filepath);
+          const imageUrl = await maybeProxied(filepath, model);
+          const response = await fetch(imageUrl);
           if (!response.ok) {
             throw new Error(`Failed to fetch image from URL: ${filepath}`);
           }
@@ -703,7 +704,7 @@ export const loadFile = async (fileInfo: {
 
           // load the image to verify it's not corrupted
           await validateImage(await response.blob());
-          return filepath;
+          return imageUrl;
         } catch (error) {
           console.error('Error validating remote image:', error);
           throw error;
