@@ -32,6 +32,7 @@ interface IRuleGroupProps {
   disabledSchemes?: IScale['scheme'][];
   bandStats?: Record<number, { min: number; max: number }>;
   normalize?: boolean;
+  zoomRangeSupported?: boolean;
   shadowedEncodings: Map<string, Set<Encoding>>;
   onChangeRow: (index: number, row: IGrammarRow) => void;
   onDeleteRows: (indices: number[]) => void;

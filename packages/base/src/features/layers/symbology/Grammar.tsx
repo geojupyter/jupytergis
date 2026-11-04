@@ -50,6 +50,7 @@ import {
   saveSymbology,
   VectorSymbologyParams,
 } from '@/src/features/layers/symbology/symbologyUtils';
+import { useMapFeatures } from '@/src/mainview/hooks/useMapFeatures';
 import { Button } from '@/src/shared/components/Button';
 import {
   NativeSelect,
@@ -208,6 +209,7 @@ interface ILayerSectionProps {
   disabledSchemes?: IScale['scheme'][];
   bandStats?: Record<number, { min: number; max: number }>;
   normalize?: boolean;
+  zoomRangeSupported?: boolean;
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
   onMoveUp?: () => void;
@@ -224,6 +226,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   disabledSchemes = [],
   bandStats,
   normalize = true,
+  zoomRangeSupported,
   onChange,
   onDelete,
   onMoveUp,
@@ -432,6 +435,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             key={i}
             predicate={pred}
             availableFields={availableFields}
+            zoomRangeSupported={zoomRangeSupported}
             onChange={updated => updateLayerPredicate(i, updated)}
             onDelete={() => removeLayerPredicate(i)}
           />
@@ -559,6 +563,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               disabledSchemes={disabledSchemes}
               bandStats={bandStats}
               normalize={normalize}
+              zoomRangeSupported={zoomRangeSupported}
               shadowedEncodings={shadowedEncodings}
               onChangeRow={updateRow}
               onDeleteRows={removeRows}
@@ -605,6 +610,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
   segmentId,
 }) => {
   const layer = layerId !== undefined ? model.getLayer(layerId) : null;
+  const zoomRangeSupported = useMapFeatures(model)?.zoomRangeSymbology;
   const isRasterLayer =
     layer?.type === 'GeoTiffLayer' || layer?.type === 'GeoZarrLayer';
 
@@ -761,6 +767,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           disabledSchemes={model.isQgisDocument ? QGIS_UNSUPPORTED_SCHEMES : []}
           bandStats={bandStats}
           normalize={normalize}
+          zoomRangeSupported={zoomRangeSupported}
           onChange={updated =>
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }

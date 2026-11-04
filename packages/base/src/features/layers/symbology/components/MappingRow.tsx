@@ -543,6 +543,7 @@ interface IFieldOption {
 interface IWhenRowProps {
   predicate: IPredicate;
   availableFields: IFieldOption[];
+  zoomRangeSupported?: boolean;
   onChange: (pred: IPredicate) => void;
   onDelete: () => void;
 }
@@ -555,6 +556,7 @@ interface IWhenRowProps {
 export const WhenRow: React.FC<IWhenRowProps> = ({
   predicate,
   availableFields,
+  zoomRangeSupported = true,
   onChange,
   onDelete,
 }) => {
@@ -601,7 +603,9 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
           Field Compare
         </NativeSelectOption>
         <NativeSelectOption value="between">Between</NativeSelectOption>
-        <NativeSelectOption value="zoomRange">Zoom Range</NativeSelectOption>
+        {(zoomRangeSupported || draft.type === 'zoomRange') && (
+          <NativeSelectOption value="zoomRange">Zoom Range</NativeSelectOption>
+        )}
       </NativeSelect>
 
       {draft.type === 'geometryType' && (
@@ -882,6 +886,7 @@ interface IMappingRowProps {
   disabledSchemes?: IScale['scheme'][];
   bandStats?: Record<number, { min: number; max: number }>;
   normalize?: boolean;
+  zoomRangeSupported?: boolean;
   hideWhen?: boolean;
   shadowed?: Set<Encoding>;
   onChange: (row: IGrammarRow) => void;
@@ -908,6 +913,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   disabledSchemes = [],
   bandStats,
   normalize = true,
+  zoomRangeSupported,
   hideWhen = false,
   shadowed,
   onChange,
@@ -1260,6 +1266,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               key={i}
               predicate={pred}
               availableFields={availableFields}
+              zoomRangeSupported={zoomRangeSupported}
               onChange={updated => updatePredicate(i, updated)}
               onDelete={() => removePredicate(i)}
             />
