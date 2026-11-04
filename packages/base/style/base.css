@@ -180,22 +180,66 @@ button.jp-mod-styled.jp-mod-reject {
 }
 
 .jgis-floating-right-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   padding: 0.5rem 0.75rem;
   font-size: var(--jp-ui-font-size1);
   font-weight: 600;
   border-bottom: 1px solid var(--jp-border-color1);
   cursor: grab;
   user-select: none;
-  text-align: center;
 }
 
 .jgis-floating-right-panel-header:active {
   cursor: grabbing;
 }
 
+.jgis-floating-right-panel-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.jgis-floating-right-panel-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.jgis-floating-right-panel-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .jgis-floating-right-panel-body {
   font-size: var(--jp-ui-font-size0);
   padding-bottom: 1rem;
+}
+
+.jgis-floating-right-panel.jgis-floating-right-panel-collapsed {
+  width: auto;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+}
+
+.jgis-floating-right-panel-collapsed .jgis-floating-right-panel-header {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 8px;
+  box-shadow:
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.jgis-floating-right-panel-collapsed .jgis-floating-right-panel-header:hover {
+  background-color: var(--jp-layout-color2);
 }
 
 .jgis-left-panel-container {

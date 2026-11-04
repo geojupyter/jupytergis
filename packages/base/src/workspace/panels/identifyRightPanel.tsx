@@ -6,6 +6,7 @@ import {
 import * as React from 'react';
 
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
+import { infoIcon } from '../../shared/icons';
 import { FloatingRightPanel } from './floatingRightPanel';
 
 interface IIdentifyRightPanelProps {
@@ -50,7 +51,7 @@ const IdentifyRightPanelComponent: React.FC<IIdentifyRightPanelProps> = ({
   }
 
   return (
-    <FloatingRightPanel title="Identified Features">
+    <FloatingRightPanel title="Identified Features" icon={infoIcon}>
       <IdentifyPanelComponent
         model={model}
         patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}

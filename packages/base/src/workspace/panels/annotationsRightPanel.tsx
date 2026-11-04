@@ -6,6 +6,7 @@ import {
 import * as React from 'react';
 
 import { AnnotationsPanel } from '../../features/annotations';
+import { pencilSolidIcon } from '../../shared/icons';
 import { FloatingRightPanel } from './floatingRightPanel';
 
 interface IAnnotationsRightPanelProps {
@@ -46,6 +47,7 @@ const AnnotationsRightPanelComponent: React.FC<
   return (
     <FloatingRightPanel
       title="Annotations"
+      icon={pencilSolidIcon}
       defaultPosition={{ x: -20, y: 48 }}
     >
       <AnnotationsPanel annotationModel={annotationModel} jgisModel={model} />
