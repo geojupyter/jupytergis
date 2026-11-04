@@ -45,7 +45,12 @@
     },
     "PosFloatEncoding": {
       "type": "string",
-      "enum": ["stroke-width", "circle-radius", "circle-stroke-width", "elevation"]
+      "enum": [
+        "stroke-width",
+        "circle-radius",
+        "circle-stroke-width",
+        "elevation"
+      ]
     },
     "Encoding": {
       "title": "Encoding",

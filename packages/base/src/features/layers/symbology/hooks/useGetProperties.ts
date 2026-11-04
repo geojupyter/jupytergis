@@ -61,6 +61,53 @@ async function getGeoJsonProperties({
   return result;
 }
 
+async function getRecordProperties({
+  source,
+  model,
+  sourceType,
+}: {
+  source: any;
+  model: IJupyterGISModel;
+  sourceType: SourceType;
+}): Promise<Record<string, Set<any>>> {
+  const result: Record<string, Set<any>> = {};
+  const inline = source.parameters.data;
+  const data =
+    Array.isArray(inline) && inline.length > 0
+      ? inline
+      : await loadFile({
+          filepath: source.parameters.path,
+          type: sourceType,
+          model,
+        });
+
+  if (!Array.isArray(data)) {
+    throw new Error('Failed to read JSON records');
+  }
+
+  for (const record of data) {
+    if (!record || typeof record !== 'object' || Array.isArray(record)) {
+      continue;
+    }
+
+    for (const [key, value] of Object.entries(record)) {
+      if (!result[key]) {
+        result[key] = new Set();
+      }
+      if (
+        value === null ||
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean'
+      ) {
+        result[key].add(value);
+      }
+    }
+  }
+
+  return result;
+}
+
 function getVectorTileProperties({
   model,
   sourceId,
@@ -118,6 +165,11 @@ export const useGetProperties = ({
         )
       ) {
         result = await getGeoJsonProperties({ source, model, sourceType });
+      } else if (
+        sourceType === 'TripsSource' ||
+        sourceType === 'PolygonSource'
+      ) {
+        result = await getRecordProperties({ source, model, sourceType });
       } else if (sourceType === 'VectorTileSource') {
         const sourceId = layer?.parameters?.source;
         result = getVectorTileProperties({ model, sourceId });

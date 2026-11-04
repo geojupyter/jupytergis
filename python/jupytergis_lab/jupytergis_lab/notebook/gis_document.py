@@ -17,6 +17,7 @@ import requests
 from IPython import get_ipython
 from IPython.display import display
 from jupytergis_core.schema import (
+    IGeoJsonLayer,
     IGeoJSONSource,
     IGeoPackageRasterSource,
     IGeoPackageVectorSource,
@@ -31,7 +32,6 @@ from jupytergis_core.schema import (
     IMarkerSource,
     IOpenEOTileLayer,
     IOpenEOTileSource,
-    IGeoJsonLayer,
     IPolygonLayer,
     IPolygonSource,
     IRasterDemSource,

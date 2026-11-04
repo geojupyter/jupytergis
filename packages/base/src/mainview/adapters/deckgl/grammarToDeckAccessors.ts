@@ -250,7 +250,7 @@ function assignNumber(
   if (accessors.getPointRadius === null && encoding === 'circle-radius') {
     accessors.getPointRadius = value;
   }
-  
+
   if (accessors.getElevation === null && encoding === 'elevation') {
     accessors.getElevation = value;
   }
