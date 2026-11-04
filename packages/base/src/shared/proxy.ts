@@ -71,11 +71,8 @@ async function writeCorsMode(origin: string, mode: CorsMode): Promise<void> {
 }
 
 async function probeCorsMode(url: string): Promise<CorsMode> {
-  // Tile templates point at no real file, so ask for the first tile instead.
-  const probeUrl = url.replace(/\{-?[xyz]\}/g, '0');
   try {
-    const response = await fetch(probeUrl);
-    await response.body?.cancel();
+    await fetch(url, { method: 'HEAD' });
     return 'direct';
   } catch {
     return 'proxy';
@@ -86,7 +83,7 @@ async function probeCorsMode(url: string): Promise<CorsMode> {
  * Builds the URL a request should go to, through the CORS proxy or not.
  *
  * With no proxy available, the URL is returned as is. Otherwise the first
- * request to a domain sends a GET to it: if the browser lets it through, the
+ * request to a domain sends a HEAD to it: if the browser lets it through, the
  * domain is CORS friendly and is fetched directly from then on, else it is
  * fetched through the proxy. The answer is kept in IndexedDB per domain.
  * Requests that carry HTTP headers always use the proxy, since only the proxy
