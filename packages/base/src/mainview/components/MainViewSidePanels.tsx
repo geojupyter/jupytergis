@@ -9,7 +9,11 @@ import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
 import type { PatchGeoJSONFeatureAttributes } from '@/src/mainview/geoJsonFeaturePatch';
-import { LeftPanel, MergedPanel, RightPanel } from '@/src/workspace/panels';
+import {
+  IdentifyRightPanel,
+  LeftPanel,
+  MergedPanel,
+} from '@/src/workspace/panels';
 
 export interface IMainViewSidePanelsProps {
   model: IJupyterGISModel;
@@ -55,16 +59,11 @@ export function MainViewSidePanels({
           settings={settings}
         />
       ) : null}
-      {formSchemaRegistry && annotationModel ? (
-        <RightPanel
-          model={model}
-          commands={commands}
-          formSchemaRegistry={formSchemaRegistry}
-          annotationModel={annotationModel}
-          settings={settings}
-          patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}
-        />
-      ) : null}
+      <IdentifyRightPanel
+        model={model}
+        settings={settings}
+        patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}
+      />
     </>
   );
 }

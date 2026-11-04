@@ -175,6 +175,29 @@ button.jp-mod-styled.jp-mod-reject {
   right: 0;
 }
 
+.jgis-identify-right-panel {
+  background-color: var(--jp-layout-color0);
+}
+
+.jgis-identify-right-panel-header {
+  padding: 0.5rem 0.75rem;
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 600;
+  border-bottom: 1px solid var(--jp-border-color1);
+  cursor: grab;
+  user-select: none;
+  text-align: center;
+}
+
+.jgis-identify-right-panel-header:active {
+  cursor: grabbing;
+}
+
+.jgis-identify-right-panel-body {
+  font-size: var(--jp-ui-font-size0);
+  padding-bottom: 1rem;
+}
+
 .jgis-left-panel-container {
   width: 250px;
   left: 0;
