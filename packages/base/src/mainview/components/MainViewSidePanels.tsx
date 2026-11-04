@@ -11,6 +11,7 @@ import React from 'react';
 import type { PatchGeoJSONFeatureAttributes } from '@/src/mainview/geoJsonFeaturePatch';
 import {
   AnnotationsRightPanel,
+  FloatingPanelDock,
   IdentifyRightPanel,
   LeftPanel,
   MergedPanel,
@@ -61,19 +62,21 @@ export function MainViewSidePanels({
           settings={settings}
         />
       ) : null}
-      <IdentifyRightPanel
-        model={model}
-        settings={settings}
-        patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}
-      />
-      {annotationModel ? (
-        <AnnotationsRightPanel
+      <FloatingPanelDock>
+        <IdentifyRightPanel
           model={model}
-          annotationModel={annotationModel}
           settings={settings}
+          patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}
         />
-      ) : null}
-      <StacRightPanel model={model} settings={settings} />
+        {annotationModel ? (
+          <AnnotationsRightPanel
+            model={model}
+            annotationModel={annotationModel}
+            settings={settings}
+          />
+        ) : null}
+        <StacRightPanel model={model} settings={settings} />
+      </FloatingPanelDock>
     </>
   );
 }

@@ -1,4 +1,5 @@
 export * from './annotationsRightPanel';
+export * from './floatingPanelDock';
 export * from './floatingRightPanel';
 export * from './header';
 export * from './identifyRightPanel';

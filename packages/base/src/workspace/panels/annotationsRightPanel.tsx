@@ -45,11 +45,7 @@ const AnnotationsRightPanelComponent: React.FC<
   }
 
   return (
-    <FloatingRightPanel
-      title="Annotations"
-      icon={pencilSolidIcon}
-      defaultPosition={{ x: -20, y: 48 }}
-    >
+    <FloatingRightPanel title="Annotations" icon={pencilSolidIcon}>
       <AnnotationsPanel annotationModel={annotationModel} jgisModel={model} />
     </FloatingRightPanel>
   );
