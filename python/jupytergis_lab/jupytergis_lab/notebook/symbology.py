@@ -81,6 +81,10 @@ class VisualEncoding(StrEnum):
     pixel_rgb = "pixel-rgb"
     stroke_color = "stroke-color"
     stroke_width = "stroke-width"
+    text_fill_color = "text-fill-color"
+    text_font_size = "text-font-size"
+    text_stroke_color = "text-stroke-color"
+    text_stroke_width = "text-stroke-width"
 
 
 class ClassificationMode(Enum):
