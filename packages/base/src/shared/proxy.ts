@@ -68,12 +68,18 @@ async function writeCorsMode(origin: string, mode: CorsMode): Promise<void> {
   });
 }
 
-async function probeCorsMode(url: string): Promise<CorsMode> {
+async function probeCorsMode(url: string): Promise<CorsMode | undefined> {
   try {
     await fetch(url, { method: 'HEAD' });
     return 'direct';
   } catch {
-    return 'proxy';
+    try {
+      // no-cors skips the CORS check, so success here means CORS was the cause.
+      await fetch(url, { method: 'HEAD', mode: 'no-cors' });
+      return 'proxy';
+    } catch {
+      return undefined;
+    }
   }
 }
 
@@ -82,8 +88,8 @@ async function probeCorsMode(url: string): Promise<CorsMode> {
  *
  * With no proxy available, the URL is returned as is. Otherwise the first
  * request to a domain sends a HEAD to it: if the browser lets it through, the
- * domain is CORS friendly and is fetched directly from then on, else it is
- * fetched through the proxy. The answer is kept in IndexedDB per domain.
+ * domain is CORS friendly and is fetched directly from then on. If CORS blocks
+ * it, it goes through the proxy. The answer is kept in IndexedDB per domain.
  * Requests that carry HTTP headers always use the proxy, since only the proxy
  * forwards them.
  *
@@ -127,6 +133,10 @@ export async function maybeProxied(
           return stored;
         }
         const probed = await probeCorsMode(url);
+        if (!probed) {
+          corsModes.delete(origin);
+          return 'direct';
+        }
         await writeCorsMode(origin, probed).catch(() => undefined);
         return probed;
       })();

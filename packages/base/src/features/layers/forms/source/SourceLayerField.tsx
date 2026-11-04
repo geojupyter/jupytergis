@@ -11,7 +11,7 @@ import { maybeProxied } from '@/src/shared/proxy';
 
 interface ISourceLayerFieldProps extends WidgetProps {
   model: IJupyterGISModel;
-  /** Latest form values (url, urlParameters, zoom range, proxy settings). */
+  /** Latest form values (url, urlParameters, zoom range, HTTP headers). */
   getSource: () => IDict;
 }
 
