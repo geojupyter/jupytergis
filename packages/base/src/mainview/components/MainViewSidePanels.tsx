@@ -14,6 +14,7 @@ import {
   IdentifyRightPanel,
   LeftPanel,
   MergedPanel,
+  StacRightPanel,
 } from '@/src/workspace/panels';
 
 export interface IMainViewSidePanelsProps {
@@ -72,6 +73,7 @@ export function MainViewSidePanels({
           settings={settings}
         />
       ) : null}
+      <StacRightPanel model={model} settings={settings} />
     </>
   );
 }

@@ -231,6 +231,10 @@ function createContextMenu(
     type: 'submenu',
     submenu: vectorSubMenu(commands),
   });
+  newLayerSubMenu.addItem({
+    type: 'command',
+    command: CommandIDs.toggleStacBrowser,
+  });
 
   // Separator
   gisContextMenu.addItem({
