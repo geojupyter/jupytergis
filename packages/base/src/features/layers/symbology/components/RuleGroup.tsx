@@ -90,23 +90,42 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
   const constants = rest.filter(({ row }) => isConstantScale(row.scale));
   const dynamic = rest.filter(({ row }) => !isConstantScale(row.scale));
 
+  const { featureValues } = rowProps;
+  const hasNumbers = (field: string) =>
+    numericValuesFor(field, featureValues).length > 0;
+
+  /**
+   * The input a fixed channel starts from once it follows the data. The rule's
+   * own field is the sensible default, except that a ramp cannot read a text
+   * column, so it takes the first numeric one. Undefined when there is none.
+   */
+  const promotedFields = (row: IGrammarRow): string[] | undefined => {
+    const own = row.fields ?? head.row.fields ?? [];
+    const readsNumbers = dataDrivenSchemeFor(row.scale) !== 'identity';
+    if (!readsNumbers || !(own[0] in featureValues) || hasNumbers(own[0])) {
+      return own;
+    }
+    const numeric = Object.keys(featureValues).find(hasNumbers);
+    return numeric ? [numeric] : undefined;
+  };
+
   /**
    * Give a fixed channel a scale and a field so it becomes a row of its own.
-   * The rule's own field is the sensible starting point, and the row collapses
-   * back into a control the moment its scheme returns to a constant.
+   * The row collapses back into a control the moment its scheme returns to a
+   * constant.
    */
   const promote = ({ row, index }: { row: IGrammarRow; index: number }) => {
     const scheme = dataDrivenSchemeFor(row.scale);
     if (!scheme) {
       return;
     }
-    const fields = row.fields ?? head.row.fields;
+    const fields = promotedFields(row);
     onChangeRow(index, {
       ...row,
       fields,
       scale: withDataDomain(
         defaultScaleForScheme(scheme, row.encodings),
-        numericValuesFor(fields?.[0], rowProps.featureValues),
+        numericValuesFor(fields?.[0], featureValues),
       ),
     });
   };
@@ -138,7 +157,9 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
                 encodings={row.encodings}
                 disabled={shadowedEncodings.has(row.id)}
                 onChange={scale => onChangeRow(index, { ...row, scale })}
-                onPromote={() => promote({ row, index })}
+                onPromote={
+                  promotedFields(row) && (() => promote({ row, index }))
+                }
               />
               <Button
                 type="button"
