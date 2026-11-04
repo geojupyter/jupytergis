@@ -15,9 +15,11 @@ interface IAnnotationsRightPanelProps {
   settings: IJupyterGISSettings;
 }
 
-const AnnotationsRightPanelComponent: React.FC<
-  IAnnotationsRightPanelProps
-> = ({ model, annotationModel, settings }) => {
+const AnnotationsRightPanelComponent: React.FC<IAnnotationsRightPanelProps> = ({
+  model,
+  annotationModel,
+  settings,
+}) => {
   const [hasAnnotations, setHasAnnotations] = React.useState(
     () => annotationModel.getAnnotationIds().length > 0,
   );

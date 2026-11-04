@@ -85,12 +85,10 @@ export function FloatingRightPanel({
               className="jgis-floating-right-panel-icon"
             />
           ) : null}
-          {isOpen ? (
-            <span className="jgis-floating-right-panel-title">{title}</span>
-          ) : null}
+          <span className="jgis-floating-right-panel-title">{title}</span>
         </div>
-        <div className="jgis-floating-right-panel-body" hidden={!isOpen}>
-          {children}
+        <div className="jgis-floating-right-panel-body">
+          <div className="jgis-floating-right-panel-body-inner">{children}</div>
         </div>
       </div>
     </Draggable>
