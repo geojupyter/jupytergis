@@ -10,7 +10,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 
 interface IStacWmsCollectionResultProps {
   model?: IJupyterGISModel;
@@ -154,7 +154,7 @@ function CollectionPreview({ href, model }: ICollectionPreviewProps) {
   const [isHidden, setIsHidden] = useState(false);
 
   const handleError = useCallback(() => {
-    void buildProxyUrl(model, href).then(proxied => {
+    void maybeProxied(href, model).then(proxied => {
       if (src !== proxied) {
         setSrc(proxied);
         return;

@@ -87,13 +87,13 @@ async function probeCorsMode(url: string): Promise<CorsMode> {
  * Requests that carry HTTP headers always use the proxy, since only the proxy
  * forwards them.
  *
- * @param model - the JupyterGIS model, to read the proxy setting from.
  * @param url - the URL about to be requested.
+ * @param model - the JupyterGIS model, to read the proxy setting from.
  * @param httpHeaders - HTTP headers to pass to the proxy.
  */
-export async function buildProxyUrl(
-  model: IJupyterGISModel | undefined,
+export async function maybeProxied(
   url: string,
+  model?: IJupyterGISModel,
   httpHeaders?: string,
 ): Promise<string> {
   const proxyBase = getProxyEndpoint(model);

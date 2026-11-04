@@ -151,7 +151,7 @@ import {
   VIEWPORT_SYNC_INTERVAL,
 } from '@/src/mainview/mapAdapter';
 import { markerIcon } from '@/src/shared/icons';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 import { debounce, getCssVarValue, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
@@ -2506,9 +2506,9 @@ export class OpenLayersAdapter implements IMapAdapter {
               attributions: sourceParameters.attribution,
               minZoom: sourceParameters.minZoom,
               maxZoom: sourceParameters.maxZoom,
-              url: await buildProxyUrl(
-                this._model,
+              url: await maybeProxied(
                 url,
+                this._model,
                 sourceParameters.httpHeaders,
               ),
               format: new MVT({
@@ -2656,9 +2656,9 @@ export class OpenLayersAdapter implements IMapAdapter {
               if (isRemote) {
                 return {
                   ...addNoData(sourceInfo),
-                  url: await buildProxyUrl(
-                    this._model,
+                  url: await maybeProxied(
                     sourceInfo.url!,
+                    this._model,
                     sourceParameters.httpHeaders,
                   ),
                 };
@@ -2869,9 +2869,9 @@ export class OpenLayersAdapter implements IMapAdapter {
               TILED: true,
             },
             tileLoadFunction: (tile, src) => {
-              void buildProxyUrl(
-                this._model,
+              void maybeProxied(
                 src,
+                this._model,
                 sourceParameters.httpHeaders,
               ).then(proxyUrl =>
                 loadProxiedWmsTile(tile as ImageTile, proxyUrl),

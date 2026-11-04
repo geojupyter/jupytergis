@@ -7,7 +7,7 @@ import {
   detectVectorTileLayers,
   resolveTileUrlTemplate,
 } from '@/src/shared/detectVectorTileLayers';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 
 interface ISourceLayerFieldProps extends WidgetProps {
   model: IJupyterGISModel;
@@ -48,7 +48,7 @@ export function SourceLayerField(props: ISourceLayerFieldProps): JSX.Element {
             : undefined,
         signal: controller.signal,
         fetchTile: async tileUrl =>
-          fetch(await buildProxyUrl(model, tileUrl, source.httpHeaders), {
+          fetch(await maybeProxied(tileUrl, model, source.httpHeaders), {
             signal: controller.signal,
           }),
       });

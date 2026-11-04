@@ -22,7 +22,7 @@ import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
 import React from 'react';
 
-import { buildProxyUrl, getProxyEndpoint } from '@/src/shared/proxy';
+import { getProxyEndpoint, maybeProxied } from '@/src/shared/proxy';
 import { describeConnectionError } from '@/src/tools';
 import { OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
@@ -273,7 +273,7 @@ export async function openEOConnect(
   // proxied. Wrapping it again builds a url that misses the connection
   // cache, so we would open a second, unauthenticated connection.
   if (proxyPrefix && !url.startsWith(proxyPrefix)) {
-    url = await buildProxyUrl(undefined, url);
+    url = await maybeProxied(url);
   }
 
   // Already connected to that server url. Re-insert so the cache stays
@@ -315,7 +315,7 @@ export async function openEOConnect(
     // the proxy to fetch the Jupyter server itself, which answers 403.
     if (proxyPrefix && !baseUrl.startsWith(proxyPrefix)) {
       // @ts-expect-error We monkey patch this when using our proxy
-      connection.baseUrl = await buildProxyUrl(undefined, baseUrl);
+      connection.baseUrl = await maybeProxied(baseUrl);
     }
 
     if (!connection.isAuthenticated()) {

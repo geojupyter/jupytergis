@@ -7,7 +7,7 @@ import {
 // @ts-expect-error the env module has no type definitions
 import Environment from '@openeo/js-client/src/env';
 
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 
 const DEVICE_GRANT = 'urn:ietf:params:oauth:grant-type:device_code';
 
@@ -16,16 +16,12 @@ export interface IDeviceCode {
   userCode: string;
 }
 
-function proxied(url: string): Promise<string> {
-  return buildProxyUrl(undefined, url);
-}
-
 async function postForm(
   url: string,
   form: Record<string, string>,
 ): Promise<any> {
   const response = await Environment.axios.post(
-    await proxied(url),
+    await maybeProxied(url),
     new URLSearchParams(form).toString(),
     {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -97,7 +93,7 @@ export class OpenEODeviceProvider extends AuthProvider {
   ): Promise<void> {
     const config = (
       await Environment.axios.get(
-        await proxied(`${this._issuer}/.well-known/openid-configuration`),
+        await maybeProxied(`${this._issuer}/.well-known/openid-configuration`),
       )
     ).data;
     this._tokenEndpoint = config.token_endpoint;

@@ -24,7 +24,7 @@ import {
   IOpenEOConnectionInfo,
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
 import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 import { getGdal } from './gdal';
 
 export const debounce = (
@@ -444,7 +444,7 @@ export const fetchWithProxies = async <T>(
   parseResponse: (response: Response) => Promise<T>,
   options?: RequestInit,
 ): Promise<T | null> => {
-  const tryUrl = await buildProxyUrl(model, url);
+  const tryUrl = await maybeProxied(url, model);
 
   try {
     const response = await fetch(tryUrl, options);

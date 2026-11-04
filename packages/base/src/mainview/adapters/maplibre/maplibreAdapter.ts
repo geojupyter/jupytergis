@@ -56,7 +56,7 @@ import {
   MapLibreSubLayerType,
 } from '@/src/mainview/adapters/maplibre/grammerToMLStyle';
 import { extractEncodingFieldValues } from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 import { debounce, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
@@ -512,9 +512,9 @@ export class MapLibreAdapter implements IMapAdapter {
           this._map.addSource(id, {
             type: 'raster',
             tiles: [
-              await buildProxyUrl(
-                this._model,
+              await maybeProxied(
                 this._computeWmsTileUrl(sourceParameters),
+                this._model,
                 sourceParameters.httpHeaders,
               ),
             ],
@@ -778,9 +778,9 @@ export class MapLibreAdapter implements IMapAdapter {
     parameters: IGeoTiffSource,
   ): Promise<string> {
     if (url.startsWith('http://') || url.startsWith('https://')) {
-      const proxied = await buildProxyUrl(
-        this._model,
+      const proxied = await maybeProxied(
         url,
+        this._model,
         parameters.httpHeaders,
       );
       return new URL(proxied, window.location.href).href;
