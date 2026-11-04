@@ -109,34 +109,37 @@ export function groupRows(rows: IGrammarRow[]): IRowGroup[] {
  *
  * The compiler keeps entries up to the first unguarded one per encoding and
  * drops everything after it, so these mappings stay editable but never reach
- * the map. Mappings of one rule share its guard, so within a rule the first
- * one wins whether or not it is guarded. A layer-level guard puts every entry
- * behind a condition, which leaves nothing unreachable.
+ * the map. The first entry also wins over any later one behind the same guard,
+ * in the same rule or not. A layer-level guard applies to every entry alike, so
+ * it changes none of this.
  */
 export function shadowedRowEncodings(
   rows: IGrammarRow[],
-  layerGuarded = false,
 ): Map<string, Set<Encoding>> {
   const shadowed = new Map<string, Set<Encoding>>();
-  if (layerGuarded) {
-    return shadowed;
-  }
+  const unguarded = new Set<Encoding>();
+  const claimedByGuard = new Map<string, Set<Encoding>>([['', unguarded]]);
 
-  const claimed = new Set<Encoding>();
   for (const group of groupRows(rows)) {
-    const guarded = (group.rows[0].row.when?.length ?? 0) > 0;
-    const inRule = new Set<Encoding>();
+    const { when, whenOp } = group.rows[0].row;
+    // Sorted because the shared document does not keep a predicate's key order.
+    const guard = when?.length
+      ? JSON.stringify([
+          when.map(p => Object.entries(p).sort()),
+          whenOp ?? 'all',
+        ])
+      : '';
+    const claimed = claimedByGuard.get(guard) ?? new Set<Encoding>();
+    claimedByGuard.set(guard, claimed);
+
     for (const { row } of group.rows) {
       const dead = row.encodings.filter(
-        encoding => claimed.has(encoding) || inRule.has(encoding),
+        encoding => unguarded.has(encoding) || claimed.has(encoding),
       );
       if (dead.length > 0) {
         shadowed.set(row.id, new Set(dead));
       }
-      row.encodings.forEach(encoding => inRule.add(encoding));
-    }
-    if (!guarded) {
-      inRule.forEach(encoding => claimed.add(encoding));
+      row.encodings.forEach(encoding => claimed.add(encoding));
     }
   }
   return shadowed;

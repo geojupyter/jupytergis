@@ -346,10 +346,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
 
   const styleGroups = groupRows(layer.rows);
   const groupedRows = styleGroups.map(g => g.rows.map(r => r.row));
-  const shadowedEncodings = shadowedRowEncodings(
-    layer.rows,
-    (layer.when?.length ?? 0) > 0,
-  );
+  const shadowedEncodings = shadowedRowEncodings(layer.rows);
 
   // KDE layers expose '$density'; raster layers expose band_N fields.
   // Both cases suppress the raw feature attribute list.
