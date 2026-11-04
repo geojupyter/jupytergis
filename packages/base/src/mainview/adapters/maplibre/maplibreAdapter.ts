@@ -14,6 +14,7 @@ import type {
   IJupyterGISModel,
   IGeoTiffSource,
   IGeoTiffLayer,
+  IMarkerSource,
   IRasterLayer,
   IRasterSource,
   IRasterDemSource,
@@ -27,6 +28,7 @@ import type {
 } from '@jupytergis/schema';
 import { PageConfig } from '@jupyterlab/coreutils';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
+import { UUID } from '@lumino/coreutils';
 import type {
   Feature as GeoJSONFeature,
   FeatureCollection,
@@ -56,6 +58,7 @@ import {
   MapLibreSubLayerType,
 } from '@/src/mainview/adapters/maplibre/grammerToMLStyle';
 import { extractEncodingFieldValues } from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
+import { markerIcon } from '@/src/shared/icons';
 import { buildProxyUrl } from '@/src/shared/proxy';
 import { debounce, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
@@ -338,7 +341,7 @@ export class MapLibreAdapter implements IMapAdapter {
     });
 
     this._map.on('click', event => {
-      //   this._addMarker(event);           TODO
+      this._addMarker(event);
     });
 
     this._map.on('contextmenu', event => {
@@ -432,6 +435,25 @@ export class MapLibreAdapter implements IMapAdapter {
           this._map.addSource(id, {
             type: 'geojson',
             data,
+          });
+
+          break;
+        }
+
+        case 'MarkerSource': {
+          const sourceParameters = source.parameters as IMarkerSource;
+          const [lng, lat] = sourceParameters.feature.coords;
+
+          this._map.addSource(id, {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [lng, lat],
+              },
+              properties: sourceParameters.feature.properties ?? {},
+            },
           });
 
           break;
@@ -1000,6 +1022,73 @@ export class MapLibreAdapter implements IMapAdapter {
     return `${baseUrl}${seperator}${query}`;
   }
 
+  /**
+   * Registers the marker pin for a color as a map image.
+   */
+  private async _ensureMarkerImage(color: string): Promise<string> {
+    const imageId = `jgis-marker-${color}`;
+
+    if (this._map.hasImage(imageId)) {
+      return imageId;
+    }
+
+    const svg = markerIcon.svgstr
+      .split('{{COLOR}}')
+      .join(color)
+      .replace('<svg', '<svg width="128" height="128"');
+
+    const image = new Image(128, 128);
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error('Failed to render marker icon.'));
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    });
+
+    if (!this._map.hasImage(imageId)) {
+      this._map.addImage(imageId, image, { pixelRatio: 4 });
+    }
+    return imageId;
+  }
+
+  private async _addMarker(event: {
+    lngLat: { lng: number; lat: number };
+  }): Promise<void> {
+    if (this._model.currentMode !== 'marking') {
+      return;
+    }
+
+    const { lng, lat } = event.lngLat;
+    const sourceId = UUID.uuid4();
+    const layerId = UUID.uuid4();
+
+    const sourceParameters: IMarkerSource = {
+      feature: { coords: [lng, lat] },
+    };
+    const layerParameters: IVectorLayer = {
+      opacity: 1.0,
+      source: sourceId,
+      symbologyState: { layers: [] },
+    };
+
+    const sourceModel: IJGISSource = {
+      type: 'MarkerSource',
+      name: 'Marker',
+      parameters: sourceParameters,
+    };
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      visible: true,
+      name: 'Marker',
+      parameters: layerParameters,
+    };
+
+    this._model.sharedModel.addSource(sourceId, sourceModel);
+    await this.addSource(sourceId, sourceModel);
+
+    this._model.addLayer(layerId, layerModel);
+    await this.addLayer(layerId, layerModel, this._layerOrder.length);
+  }
+
   private _resolveVectorSourceLayer(sourceId: string): string | undefined {
     const source = this._model.getSource(sourceId);
 
@@ -1052,6 +1141,10 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   async addLayer(id: string, layer: IJGISLayer, index?: number): Promise<void> {
+    if (this._layerSubIds.has(id) || this._loadingLayers.has(id)) {
+      return;
+    }
+
     this._callbacks?.onLayerAddStarted?.();
     this._loadingLayers.add(id);
 
@@ -1171,6 +1264,32 @@ export class MapLibreAdapter implements IMapAdapter {
 
         case 'VectorLayer': {
           const parameters = layer.parameters as IVectorLayer;
+
+          if (source.type === 'MarkerSource') {
+            const markerSource = source.parameters as IMarkerSource;
+            const imageId = await this._ensureMarkerImage(
+              markerSource.color || '#3463a0',
+            );
+
+            this._map.addLayer({
+              id,
+              type: 'symbol',
+              source: sourceId,
+              layout: {
+                'icon-image': imageId,
+                'icon-anchor': 'bottom',
+                'icon-allow-overlap': true,
+                'icon-ignore-placement': true,
+                visibility: visible ? 'visible' : 'none',
+              },
+              paint: {
+                'icon-opacity': parameters.opacity ?? 1,
+              },
+            });
+
+            this._layerSubIds.set(id, [id]);
+            break;
+          }
 
           this._addVectorLayerGroup(
             id,
@@ -1380,6 +1499,15 @@ export class MapLibreAdapter implements IMapAdapter {
       case 'VectorTileLayer': {
         const params = layer.parameters as IVectorLayer;
         const opacity = params.opacity ?? 1;
+
+        if (this._model.getSource(params.source)?.type === 'MarkerSource') {
+          // A marker is a single symbol layer with no symbology to recompile.
+          for (const subId of subIds) {
+            this._map.setPaintProperty(subId, 'icon-opacity', opacity);
+            this._map.setLayoutProperty(subId, 'visibility', visibility);
+          }
+          break;
+        }
 
         if (Array.isArray(params.symbologyState?.layers)) {
           // Same as OL's _syncGrammarSubLayers: recompile and swap, keep z-position.
@@ -1831,6 +1959,26 @@ export class MapLibreAdapter implements IMapAdapter {
       case 'WmsTileSource':
       case 'VectorTileSource':
         return [...WORLD_EXTENT];
+
+      case 'MarkerSource': {
+        const coords = (
+          this._model.getSource(sourceId)?.parameters as
+            | IMarkerSource
+            | undefined
+        )?.feature?.coords;
+        if (!coords) {
+          return undefined;
+        }
+        // A point has no size; pad it so "zoom to layer" lands on a sensible
+        // zoom instead of the maximum.
+        const pad = 0.01;
+        return [
+          coords[0] - pad,
+          coords[1] - pad,
+          coords[0] + pad,
+          coords[1] + pad,
+        ];
+      }
 
       case 'GeoTiffSource': {
         // Bounds come from the COG's TileJSON, captured when the source loaded.
