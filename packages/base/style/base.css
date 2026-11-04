@@ -175,11 +175,11 @@ button.jp-mod-styled.jp-mod-reject {
   right: 0;
 }
 
-.jgis-identify-right-panel {
+.jgis-floating-right-panel {
   background-color: var(--jp-layout-color0);
 }
 
-.jgis-identify-right-panel-header {
+.jgis-floating-right-panel-header {
   padding: 0.5rem 0.75rem;
   font-size: var(--jp-ui-font-size1);
   font-weight: 600;
@@ -189,11 +189,11 @@ button.jp-mod-styled.jp-mod-reject {
   text-align: center;
 }
 
-.jgis-identify-right-panel-header:active {
+.jgis-floating-right-panel-header:active {
   cursor: grabbing;
 }
 
-.jgis-identify-right-panel-body {
+.jgis-floating-right-panel-body {
   font-size: var(--jp-ui-font-size0);
   padding-bottom: 1rem;
 }
