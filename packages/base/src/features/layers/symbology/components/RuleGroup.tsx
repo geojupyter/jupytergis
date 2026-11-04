@@ -57,6 +57,7 @@ function controlLabel(encodings: Encoding[]): string {
  * Because those controls are part of the leading row, deleting that row takes
  * them with it. Leaving them behind would promote one of them to the leading
  * row and strand the rest, which mean nothing without the channel they style.
+ * A label's data-driven rows go too, since they style nothing without its text.
  */
 const RuleGroup: React.FC<IRuleGroupProps> = ({
   rows,
@@ -115,7 +116,9 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
       {renderRow(
         head,
         false,
-        constants.map(({ index }) => index),
+        (head.row.encodings.includes('text-value') ? rest : constants).map(
+          ({ index }) => index,
+        ),
       )}
       {constants.length > 0 && (
         <div className="jp-gis-grammar-rule-constants">
