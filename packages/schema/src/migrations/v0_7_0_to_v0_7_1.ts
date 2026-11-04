@@ -1,5 +1,5 @@
 /**
- * Migration from schema version 0.7.0 to 0.8.0.
+ * Migration from schema version 0.7.0 to 0.7.1.
  *
  * Drops `useProxy` from the sources: whether a request goes through the CORS
  * proxy is now worked out per domain at runtime.
