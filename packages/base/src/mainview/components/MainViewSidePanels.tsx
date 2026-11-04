@@ -10,7 +10,8 @@ import React from 'react';
 
 import type { PatchGeoJSONFeatureAttributes } from '@/src/mainview/geoJsonFeaturePatch';
 import {
-  ContextRightPanel,
+  AnnotationsRightPanel,
+  IdentifyRightPanel,
   LeftPanel,
   MergedPanel,
 } from '@/src/workspace/panels';
@@ -59,12 +60,18 @@ export function MainViewSidePanels({
           settings={settings}
         />
       ) : null}
-      <ContextRightPanel
+      <IdentifyRightPanel
         model={model}
         settings={settings}
-        annotationModel={annotationModel}
         patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}
       />
+      {annotationModel ? (
+        <AnnotationsRightPanel
+          model={model}
+          annotationModel={annotationModel}
+          settings={settings}
+        />
+      ) : null}
     </>
   );
 }

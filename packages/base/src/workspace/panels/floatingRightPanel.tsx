@@ -4,11 +4,13 @@ import Draggable from 'react-draggable';
 interface IFloatingRightPanelProps {
   title: string;
   children: ReactNode;
+  defaultPosition?: { x: number; y: number };
 }
 
 export function FloatingRightPanel({
   title,
   children,
+  defaultPosition,
 }: IFloatingRightPanelProps): JSX.Element {
   const [isOpen, setIsOpen] = useState(true);
   const didDragRef = useRef(false);
@@ -25,6 +27,7 @@ export function FloatingRightPanel({
     <Draggable
       handle="[data-drag-handle]"
       bounds=".jGIS-Mainview-Container"
+      defaultPosition={defaultPosition}
       onStart={() => {
         didDragRef.current = false;
       }}
