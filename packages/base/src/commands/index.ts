@@ -331,7 +331,6 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   },
 
   // Interaction features
-  [CommandIDs.addMarker]: { source: 'MarkerSource' },
   [CommandIDs.identify]: { flag: 'identify' },
   [CommandIDs.drawFeaturesOnSelectedLayer]: { flag: 'drawTool' },
   [CommandIDs.drawFeaturesOnNewLayer]: { flag: 'drawTool' },

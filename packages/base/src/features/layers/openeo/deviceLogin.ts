@@ -66,25 +66,27 @@ export class OpenEODeviceProvider extends AuthProvider {
   static create(
     connection: Connection,
     info: OidcProviderMeta,
-  ): OpenEODeviceProvider | null {
-    const client = (info.default_clients ?? []).find(c =>
-      c.grant_types.some(grant => grant.startsWith(DEVICE_GRANT)),
-    );
-    if (!client) {
-      return null;
-    }
-    return new OpenEODeviceProvider(connection, info, client);
+  ): OpenEODeviceProvider {
+    return new OpenEODeviceProvider(connection, info);
   }
 
-  private constructor(
-    connection: Connection,
-    info: OidcProviderMeta,
-    client: OidcClient,
-  ) {
+  private constructor(connection: Connection, info: OidcProviderMeta) {
     super('oidc', connection, info);
     this._issuer = info.issuer.replace(/\/$/, '');
     this._scope = (info.scopes?.length ? info.scopes : ['openid']).join(' ');
-    this._client = client;
+    this._clients = info.default_clients ?? [];
+    this._clientId =
+      this._clients.find(c =>
+        c.grant_types.some(grant => grant.startsWith(DEVICE_GRANT)),
+      )?.id ?? '';
+  }
+
+  get clientId(): string {
+    return this._clientId;
+  }
+
+  setClientId(clientId: string): void {
+    this._clientId = clientId;
   }
 
   async login(
@@ -99,14 +101,20 @@ export class OpenEODeviceProvider extends AuthProvider {
     this._tokenEndpoint = config.token_endpoint;
 
     const deviceRequest: Record<string, string> = {
-      client_id: this._client.id,
+      client_id: this._clientId,
       scope: this._scope,
     };
     const tokenRequest: Record<string, string> = {
-      client_id: this._client.id,
+      client_id: this._clientId,
       grant_type: DEVICE_GRANT,
     };
-    if (this._client.grant_types.includes(`${DEVICE_GRANT}+pkce`)) {
+    if (
+      this._clients.some(
+        c =>
+          c.id === this._clientId &&
+          c.grant_types.includes(`${DEVICE_GRANT}+pkce`),
+      )
+    ) {
       const verifier = base64Url(crypto.getRandomValues(new Uint8Array(32)));
       deviceRequest.code_challenge = base64Url(
         await crypto.subtle.digest(
@@ -171,7 +179,7 @@ export class OpenEODeviceProvider extends AuthProvider {
     // The scope must be sent again, or Microsoft returns a token the
     // backend cannot validate.
     const tokens = await postForm(this._tokenEndpoint, {
-      client_id: this._client.id,
+      client_id: this._clientId,
       grant_type: 'refresh_token',
       refresh_token: refreshToken,
       scope: this._scope,
@@ -185,7 +193,8 @@ export class OpenEODeviceProvider extends AuthProvider {
 
   private _issuer: string;
   private _scope: string;
-  private _client: OidcClient;
+  private _clients: OidcClient[];
+  private _clientId: string;
   private _tokenEndpoint = '';
   private _refreshTimer = 0;
 }

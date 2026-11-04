@@ -12,7 +12,6 @@ export interface IMapAdapterFeatures {
   readonly name: string;
   readonly sources: Readonly<Record<SourceType, boolean>>;
   readonly layers: Readonly<Record<LayerType, boolean>>;
-  readonly addMarker: boolean;
   readonly identify: boolean;
   readonly drawTool: boolean;
   readonly storyMaps: boolean;
@@ -38,7 +37,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     GeoPackageVectorSource: false,
     GeoPackageRasterSource: false,
     GeoParquetSource: false,
-    MarkerSource: false,
+    MarkerSource: true,
     WmsTileSource: true,
     OpenEOTileSource: false,
     FeatureStoreSource: false,
@@ -56,7 +55,6 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     OpenEOTileLayer: false,
     StacLayer: false,
   },
-  addMarker: false,
   identify: false,
   drawTool: false,
   storyMaps: false,
@@ -100,7 +98,6 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     OpenEOTileLayer: true,
     StacLayer: true,
   },
-  addMarker: true,
   identify: true,
   drawTool: true,
   geolocation: true,
@@ -192,7 +189,6 @@ const LAYER_ENTRIES: ILayerEntry[] = [
 ];
 
 type ToolKey =
-  | 'addMarker'
   | 'identify'
   | 'drawTool'
   | 'storyMaps'
@@ -201,7 +197,6 @@ type ToolKey =
   | 'customProjections';
 
 const TOOL_LABELS: Record<ToolKey, string> = {
-  addMarker: 'Place markers',
   identify: 'Identify features',
   drawTool: 'Drawing tools',
   storyMaps: 'Story maps',
