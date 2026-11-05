@@ -286,6 +286,18 @@ button.jp-mod-styled.jp-mod-reject {
 .jgis-floating-right-panel.jgis-floating-right-panel-collapsed {
   width: 36px;
   max-height: none;
+  overflow: hidden;
+}
+
+/*
+ * Accordion measures panel height while the chip is still 36px wide. Keep
+ * content laid out at full panel width so text does not wrap tall, then
+ * shrink after the width transition.
+ */
+.jgis-floating-right-panel [data-slot='accordion-content'] {
+  width: 330px;
+  max-width: 330px;
+  box-sizing: border-box;
 }
 
 .jgis-floating-right-panel-collapsed .jgis-floating-right-panel-shell {
