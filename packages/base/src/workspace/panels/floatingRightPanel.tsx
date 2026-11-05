@@ -84,8 +84,8 @@ export function FloatingRightPanel({
               variant={isOpen ? 'ghost' : 'outline'}
               size={isOpen ? 'sm' : 'icon-sm'}
               className={cn(
-                'jgis-floating-right-panel-header w-full justify-center gap-1.5 no-underline hover:no-underline',
-                isOpen && 'rounded-none',
+                'jgis-floating-right-panel-header w-full justify-center no-underline hover:no-underline',
+                isOpen && 'gap-1.5 rounded-none',
               )}
             />
           }
@@ -99,12 +99,7 @@ export function FloatingRightPanel({
             }
           }}
         >
-          {icon ? (
-            <icon.react
-              tag="span"
-              className="jgis-floating-right-panel-icon"
-            />
-          ) : null}
+          {icon ? <icon.react tag="span" className="size-4" /> : null}
           <span className="jgis-floating-right-panel-title">{title}</span>
         </AccordionTrigger>
         <AccordionContent className="jgis-floating-right-panel-body">

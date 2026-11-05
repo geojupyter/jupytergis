@@ -188,7 +188,6 @@ button.jp-mod-styled.jp-mod-reject {
   gap: 0.5rem;
   max-height: calc(100% - 0.5rem);
   pointer-events: none;
-  /* background-color: var(--jp-layout-color1); */
 }
 
 .jgis-floating-panel-dock > * {
@@ -201,6 +200,11 @@ button.jp-mod-styled.jp-mod-reject {
   max-height: calc(100vh - 1rem);
   border: none;
   transition: width 200ms ease-in-out;
+}
+
+/* Accordion.Header is an h3; kill UA margins only in this chrome. */
+.jgis-floating-right-panel h3 {
+  margin: 0;
 }
 
 .jgis-floating-right-panel-shell {
@@ -253,16 +257,14 @@ button.jp-mod-styled.jp-mod-reject {
 }
 
 .jgis-floating-right-panel-icon {
-  display: inline-flex;
-  flex-shrink: 0;
   width: 16px;
   height: 16px;
 }
 
-.jgis-floating-right-panel-icon svg {
+/* .jgis-floating-right-panel-icon svg {
   width: 16px;
   height: 16px;
-}
+} */
 
 .jgis-floating-right-panel-title {
   min-width: 0;
