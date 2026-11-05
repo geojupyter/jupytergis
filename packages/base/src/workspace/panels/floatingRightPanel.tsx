@@ -28,7 +28,7 @@ export function FloatingRightPanel({
   const { openValues, registerOpen } = useFloatingPanelAccordion();
   const isOpen = openValues.includes(value);
 
-  useEffect(() => registerOpen(value), [value, registerOpen]); //s
+  useEffect(() => registerOpen(value), [value, registerOpen]);
 
   return (
     <AccordionItem

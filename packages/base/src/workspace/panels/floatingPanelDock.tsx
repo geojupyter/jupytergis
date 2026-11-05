@@ -13,7 +13,6 @@ export type FloatingPanelId =
 
 interface IFloatingPanelAccordionContext {
   openValues: FloatingPanelId[];
-  setOpenValues: React.Dispatch<React.SetStateAction<FloatingPanelId[]>>;
   registerOpen: (value: FloatingPanelId) => () => void;
 }
 
@@ -55,7 +54,7 @@ export function FloatingPanelDock({
 
   return (
     <FloatingPanelAccordionContext.Provider
-      value={{ openValues, setOpenValues, registerOpen }}
+      value={{ openValues, registerOpen }}
     >
       <Accordion
         multiple

@@ -2193,7 +2193,8 @@ export function addCommands(
 
   commands.addCommand(CommandIDs.toggleStacBrowser, {
     label: trans.__('Add STAC Layer'),
-    caption: 'Toggle the STAC browser panel in the current JupyterGIS document.',
+    caption:
+      'Toggle the STAC browser panel in the current JupyterGIS document.',
     describedBy: {
       args: {
         type: 'object',
@@ -2205,8 +2206,10 @@ export function addCommands(
       if (!current) {
         return false;
       }
+
       const { stacBrowserDisabled, rightPanelDisabled } =
         current.model.jgisSettings;
+
       return !stacBrowserDisabled && !rightPanelDisabled;
     },
     isToggled: () => {
@@ -2214,6 +2217,7 @@ export function addCommands(
       if (!current) {
         return false;
       }
+
       return current.model.getUIState().stacBrowserOpen === true;
     },
     execute: () => {
@@ -2221,6 +2225,7 @@ export function addCommands(
       if (!current) {
         return;
       }
+
       const open = current.model.getUIState().stacBrowserOpen === true;
       current.model.setUIState({ stacBrowserOpen: !open });
       commands.notifyCommandChanged(CommandIDs.toggleStacBrowser);
