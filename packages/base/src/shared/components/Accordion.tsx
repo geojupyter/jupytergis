@@ -1,4 +1,5 @@
 import { Accordion as AccordionPrimitive } from '@base-ui/react/accordion';
+import { cva, type VariantProps } from 'class-variance-authority';
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import React from 'react';
 
@@ -24,24 +25,37 @@ function AccordionItem({ className, ...props }: AccordionPrimitive.Item.Props) {
   );
 }
 
-interface IAccordionTriggerProps extends AccordionPrimitive.Trigger.Props {
-  hideChevron?: boolean;
-}
+const accordionTriggerVariants = cva(
+  'group/accordion-trigger relative flex flex-1 outline-none transition-all focus-visible:ring-3 focus-visible:ring-ring/50 aria-disabled:pointer-events-none aria-disabled:opacity-50 **:data-[slot=accordion-trigger-icon]:ml-auto **:data-[slot=accordion-trigger-icon]:size-4 **:data-[slot=accordion-trigger-icon]:text-muted-foreground',
+  {
+    variants: {
+      variant: {
+        default:
+          'items-start justify-between rounded-lg border border-transparent py-2.5 text-left text-sm font-medium hover:underline focus-visible:border-ring focus-visible:after:border-ring',
+        plain: 'items-center border-0 p-0 hover:no-underline',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+    },
+  },
+);
 
 function AccordionTrigger({
   className,
   children,
   hideChevron = false,
+  variant = 'default',
   ...props
-}: IAccordionTriggerProps) {
+}: AccordionPrimitive.Trigger.Props &
+  VariantProps<typeof accordionTriggerVariants> & {
+    hideChevron?: boolean;
+  }) {
   return (
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         data-slot="accordion-trigger"
-        className={cn(
-          'group/accordion-trigger relative flex flex-1 items-start justify-between rounded-lg border border-transparent py-2.5 text-left text-sm font-medium transition-all outline-none hover:underline focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:after:border-ring aria-disabled:pointer-events-none aria-disabled:opacity-50 **:data-[slot=accordion-trigger-icon]:ml-auto **:data-[slot=accordion-trigger-icon]:size-4 **:data-[slot=accordion-trigger-icon]:text-muted-foreground',
-          className,
-        )}
+        className={cn(accordionTriggerVariants({ variant, className }))}
         {...props}
       >
         {children}
@@ -85,4 +99,10 @@ function AccordionContent({
   );
 }
 
-export { Accordion, AccordionItem, AccordionTrigger, AccordionContent };
+export {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+  accordionTriggerVariants,
+};

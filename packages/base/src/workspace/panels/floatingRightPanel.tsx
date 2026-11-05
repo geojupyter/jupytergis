@@ -6,7 +6,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '../../shared/components/Accordion';
-import { Button } from '../../shared/components/Button';
 import { cn } from '../../shared/components/utils';
 import {
   type FloatingPanelId,
@@ -29,7 +28,7 @@ export function FloatingRightPanel({
   const { openValues, registerOpen } = useFloatingPanelAccordion();
   const isOpen = openValues.includes(value);
 
-  useEffect(() => registerOpen(value), [value, registerOpen]);
+  useEffect(() => registerOpen(value), [value, registerOpen]); //s
 
   return (
     <AccordionItem
@@ -41,19 +40,9 @@ export function FloatingRightPanel({
     >
       <div className="jgis-floating-right-panel-shell">
         <AccordionTrigger
+          variant="plain"
           hideChevron
-          render={
-            <Button
-              variant={isOpen ? 'ghost' : 'outline'}
-              size={isOpen ? 'sm' : 'icon'}
-              className={cn(
-                'jgis-floating-right-panel-header h-(--jgis-floating-panel-chip-size) w-full justify-center no-underline shadow-none hover:no-underline',
-                isOpen && 'gap-1.5 rounded-none bg-secondary',
-                !isOpen && 'size-(--jgis-floating-panel-chip-size)',
-              )}
-            />
-          }
-          className="flex w-full flex-none items-center justify-center border-0 border-b border-b-border p-0 no-underline hover:no-underline"
+          className="jgis-floating-right-panel-header"
           title={title}
         >
           {icon ? <icon.react tag="span" className="size-4" /> : null}
