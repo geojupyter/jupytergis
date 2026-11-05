@@ -7,6 +7,7 @@ import * as React from 'react';
 
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
 import { infoIcon } from '../../shared/icons';
+import { FloatingPanelId } from './floatingPanelDock';
 import { FloatingRightPanel } from './floatingRightPanel';
 
 interface IIdentifyRightPanelProps {
@@ -52,7 +53,7 @@ const IdentifyRightPanelComponent: React.FC<IIdentifyRightPanelProps> = ({
 
   return (
     <FloatingRightPanel
-      value="identify"
+      value={FloatingPanelId.Identify}
       title="Identified Features"
       icon={infoIcon}
     >

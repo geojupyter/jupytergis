@@ -7,6 +7,7 @@ import * as React from 'react';
 
 import { AnnotationsPanel } from '../../features/annotations';
 import { pencilSolidIcon } from '../../shared/icons';
+import { FloatingPanelId } from './floatingPanelDock';
 import { FloatingRightPanel } from './floatingRightPanel';
 
 interface IAnnotationsRightPanelProps {
@@ -48,7 +49,7 @@ const AnnotationsRightPanelComponent: React.FC<IAnnotationsRightPanelProps> = ({
 
   return (
     <FloatingRightPanel
-      value="annotations"
+      value={FloatingPanelId.Annotations}
       title="Annotations"
       icon={pencilSolidIcon}
     >

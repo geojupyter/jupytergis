@@ -175,14 +175,21 @@ button.jp-mod-styled.jp-mod-reject {
   right: 0;
 }
 
+/*
+ * Floating right dock: only vertical scroller for the panel stack.
+ * Tokens keep expanded width / chip size in sync (panel, content measure, TW).
+ */
 .jgis-floating-panel-dock {
+  --jgis-floating-panel-width: 330px;
+  --jgis-floating-panel-chip-size: 36px;
+
   position: absolute;
   top: 0.25rem;
   right: 0.25rem;
   z-index: 40;
   display: flex;
   width: auto;
-  max-width: 330px;
+  max-width: var(--jgis-floating-panel-width);
   flex-direction: column;
   align-items: flex-end;
   gap: 0.5rem;
@@ -211,8 +218,7 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jgis-floating-right-panel {
   position: relative;
-  width: 330px;
-  /* Grow with content; the dock scrolls when the stack exceeds the viewport. */
+  width: var(--jgis-floating-panel-width);
   max-height: none;
   border: none;
   transition: width 200ms ease-in-out;
@@ -241,9 +247,9 @@ button.jp-mod-styled.jp-mod-reject {
 
 .jgis-floating-right-panel-header {
   box-sizing: border-box;
-  height: 36px;
+  height: var(--jgis-floating-panel-chip-size);
   font-weight: 600;
-  cursor: grab;
+  cursor: pointer;
   transition:
     border-color 200ms ease-in-out,
     border-radius 200ms ease-in-out,
@@ -255,19 +261,10 @@ button.jp-mod-styled.jp-mod-reject {
   text-decoration: none;
 }
 
-.jgis-floating-right-panel-header:active {
-  cursor: grabbing;
-}
-
 .jgis-floating-right-panel-icon {
   width: 16px;
   height: 16px;
 }
-
-/* .jgis-floating-right-panel-icon svg {
-  width: 16px;
-  height: 16px;
-} */
 
 .jgis-floating-right-panel-title {
   min-width: 0;
@@ -287,19 +284,19 @@ button.jp-mod-styled.jp-mod-reject {
 }
 
 .jgis-floating-right-panel.jgis-floating-right-panel-collapsed {
-  width: 36px;
+  width: var(--jgis-floating-panel-chip-size);
   max-height: none;
   overflow: hidden;
 }
 
 /*
- * Accordion measures panel height while the chip is still 36px wide. Keep
+ * Accordion measures panel height while the chip is still chip-sized. Keep
  * content laid out at full panel width so text does not wrap tall, then
  * shrink after the width transition.
  */
 .jgis-floating-right-panel [data-slot='accordion-content'] {
-  width: 330px;
-  max-width: 330px;
+  width: var(--jgis-floating-panel-width);
+  max-width: var(--jgis-floating-panel-width);
   box-sizing: border-box;
 }
 
@@ -317,7 +314,6 @@ button.jp-mod-styled.jp-mod-reject {
   box-shadow:
     0 4px 8px 0 rgba(0, 0, 0, 0.2),
     0 6px 20px 0 rgba(0, 0, 0, 0.19);
-  cursor: pointer;
 }
 
 .jgis-floating-right-panel-collapsed .jgis-floating-right-panel-header:hover {
@@ -327,12 +323,6 @@ button.jp-mod-styled.jp-mod-reject {
 .jgis-floating-right-panel-collapsed .jgis-floating-right-panel-title {
   max-width: 0;
   opacity: 0;
-}
-
-.jgis-floating-right-panel.jgis-floating-right-panel-undocked {
-  position: absolute;
-  right: 0;
-  z-index: 41;
 }
 
 .jgis-left-panel-container {

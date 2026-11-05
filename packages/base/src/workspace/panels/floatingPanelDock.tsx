@@ -2,9 +2,19 @@ import * as React from 'react';
 
 import { Accordion } from '../../shared/components/Accordion';
 
+export const FloatingPanelId = {
+  Annotations: 'annotations',
+  Identify: 'identify',
+  STAC: 'stac',
+} as const;
+
+export type FloatingPanelId =
+  (typeof FloatingPanelId)[keyof typeof FloatingPanelId];
+
 interface IFloatingPanelAccordionContext {
-  openValues: string[];
-  setOpenValues: React.Dispatch<React.SetStateAction<string[]>>;
+  openValues: FloatingPanelId[];
+  setOpenValues: React.Dispatch<React.SetStateAction<FloatingPanelId[]>>;
+  registerOpen: (value: FloatingPanelId) => () => void;
 }
 
 const FloatingPanelAccordionContext =
@@ -17,6 +27,7 @@ export function useFloatingPanelAccordion(): IFloatingPanelAccordionContext {
       'useFloatingPanelAccordion must be used within FloatingPanelDock',
     );
   }
+
   return context;
 }
 
@@ -25,22 +36,33 @@ interface IFloatingPanelDockProps {
 }
 
 /**
- * Top-right accordion dock that stacks floating panels.
- * Multiple panels may be expanded at once.
+ * Top-right accordion that stacks floating panels.
  */
 export function FloatingPanelDock({
   children,
 }: IFloatingPanelDockProps): JSX.Element {
-  const [openValues, setOpenValues] = React.useState<string[]>([]);
+  const [openValues, setOpenValues] = React.useState<FloatingPanelId[]>([]);
+
+  const registerOpen = React.useCallback((value: FloatingPanelId) => {
+    setOpenValues(current =>
+      current.includes(value) ? current : [...current, value],
+    );
+
+    return () => {
+      setOpenValues(current => current.filter(item => item !== value));
+    };
+  }, []);
 
   return (
     <FloatingPanelAccordionContext.Provider
-      value={{ openValues, setOpenValues }}
+      value={{ openValues, setOpenValues, registerOpen }}
     >
       <Accordion
         multiple
         value={openValues}
-        onValueChange={nextValues => setOpenValues(nextValues)}
+        onValueChange={nextValues =>
+          setOpenValues(nextValues as FloatingPanelId[])
+        }
         className="jgis-floating-panel-dock w-auto"
       >
         {children}

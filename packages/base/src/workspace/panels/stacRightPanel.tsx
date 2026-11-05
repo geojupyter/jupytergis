@@ -3,6 +3,7 @@ import * as React from 'react';
 
 import StacPanel from '../../features/stac-browser/components/StacPanel';
 import { bookOpenIcon } from '../../shared/icons';
+import { FloatingPanelId } from './floatingPanelDock';
 import { FloatingRightPanel } from './floatingRightPanel';
 import { useUIState } from './hooks/useUIState';
 
@@ -27,7 +28,11 @@ const StacRightPanelComponent: React.FC<IStacRightPanelProps> = ({
   }
 
   return (
-    <FloatingRightPanel value="stac" title="STAC Browser" icon={bookOpenIcon}>
+    <FloatingRightPanel
+      value={FloatingPanelId.STAC}
+      title="STAC Browser"
+      icon={bookOpenIcon}
+    >
       <StacPanel model={model} />
     </FloatingRightPanel>
   );
