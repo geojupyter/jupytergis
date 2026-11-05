@@ -256,6 +256,7 @@ button.jp-mod-styled.jp-mod-reject {
   border-bottom: 1px solid var(--jp-border-color1);
   font-weight: 600;
   cursor: pointer;
+  background-color: var(--jp-layout-color2);
   transition:
     border-color 200ms ease-in-out,
     border-radius 200ms ease-in-out,
@@ -276,13 +277,18 @@ button.jp-mod-styled.jp-mod-reject {
   flex-shrink: 0;
 }
 
+.jgis-floating-right-panel[data-open] .jgis-floating-right-panel-icon {
+  display: none;
+}
+
 .jgis-floating-right-panel-title {
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  opacity: 1;
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 500;
   transition:
     opacity 150ms ease-in-out,
     max-width 200ms ease-in-out;
@@ -326,12 +332,6 @@ button.jp-mod-styled.jp-mod-reject {
   box-shadow:
     0 4px 8px 0 rgba(0, 0, 0, 0.2),
     0 6px 20px 0 rgba(0, 0, 0, 0.19);
-}
-
-.jp-ThemedContainer
-  .jgis-floating-right-panel[data-open]
-  .jgis-floating-right-panel-header {
-  gap: 0.375rem;
 }
 
 .jp-ThemedContainer

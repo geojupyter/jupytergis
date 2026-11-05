@@ -43,7 +43,12 @@ export function FloatingRightPanel({
           {icon ? (
             <icon.react tag="span" className="jgis-floating-right-panel-icon" />
           ) : null}
-          <span className="jgis-floating-right-panel-title">{title}</span>
+          <span
+            className="jgis-floating-right-panel-title jgis-underline-indicator"
+            data-active
+          >
+            {title}
+          </span>
         </AccordionTrigger>
         <AccordionContent className="jgis-floating-right-panel-body">
           {children}
