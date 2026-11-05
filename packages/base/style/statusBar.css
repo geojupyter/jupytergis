@@ -21,7 +21,7 @@
   font-size: inherit;
 }
 
-.jgis-status-bar-coords[data-slot='select-trigger'],
+.jgis-status-bar-item[data-slot='select-trigger'],
 .jgis-status-bar-projection [data-slot='combobox-trigger'] {
   height: 16px;
   min-height: 0;

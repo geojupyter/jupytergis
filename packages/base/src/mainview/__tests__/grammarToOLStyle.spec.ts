@@ -72,6 +72,17 @@ describe('grammarToOLStyle — constant scale', () => {
     );
     expect(style['stroke-width']).toBe(3);
   });
+
+  it('leaves elevation out of the flat style', () => {
+    const style = grammarToOLStyle(
+      makeState({
+        id: '1',
+        fields: ['height'],
+        mappings: [{ scale: { scheme: 'identity' }, encodings: ['elevation'] }],
+      }),
+    );
+    expect(style.elevation).toBeUndefined();
+  });
 });
 
 // ---------------------------------------------------------------------------

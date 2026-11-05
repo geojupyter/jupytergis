@@ -41,6 +41,8 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     WmsTileSource: true,
     OpenEOTileSource: false,
     FeatureStoreSource: false,
+    TripsSource: false,
+    PolygonSource: false,
   },
   layers: {
     RasterLayer: true,
@@ -54,6 +56,9 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     GeoZarrLayer: false,
     OpenEOTileLayer: false,
     StacLayer: false,
+    TripsLayer: false,
+    PolygonLayer: false,
+    GeoJsonLayer: false,
   },
   identify: false,
   drawTool: false,
@@ -64,6 +69,55 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
   clusterSymbology: false,
   customProjections: false,
   requiresVectorTileSourceLayer: true,
+};
+
+const DECKGL_FEATURES: IMapAdapterFeatures = {
+  name: 'DeckGL',
+  sources: {
+    RasterSource: true,
+    RasterDemSource: false,
+    VectorTileSource: false,
+    GeoJSONSource: true,
+    ImageSource: false,
+    ShapefileSource: false,
+    GeoTiffSource: false,
+    GeoZarrSource: false,
+    GeoPackageVectorSource: false,
+    GeoPackageRasterSource: false,
+    GeoParquetSource: false,
+    MarkerSource: false,
+    WmsTileSource: false,
+    OpenEOTileSource: false,
+    FeatureStoreSource: false,
+    TripsSource: true,
+    PolygonSource: true,
+  },
+  layers: {
+    RasterLayer: true,
+    VectorLayer: false,
+    VectorTileLayer: false,
+    HillshadeLayer: false,
+    TerrainLayer: false,
+    StorySegmentLayer: false,
+    ImageLayer: false,
+    GeoTiffLayer: false,
+    GeoZarrLayer: false,
+    OpenEOTileLayer: false,
+    StacLayer: false,
+    TripsLayer: true,
+    PolygonLayer: true,
+    GeoJsonLayer: true,
+  },
+  addMarker: false,
+  identify: false,
+  drawTool: false,
+  storyMaps: false,
+  geolocation: false,
+  layerComparison: false,
+  heatmapSymbology: false,
+  clusterSymbology: false,
+  customProjections: false,
+  requiresVectorTileSourceLayer: false,
 };
 
 const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
@@ -84,6 +138,8 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     WmsTileSource: true,
     OpenEOTileSource: true,
     FeatureStoreSource: true,
+    TripsSource: false,
+    PolygonSource: false,
   },
   layers: {
     RasterLayer: true,
@@ -97,6 +153,9 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     GeoZarrLayer: true,
     OpenEOTileLayer: true,
     StacLayer: true,
+    TripsLayer: false,
+    PolygonLayer: false,
+    GeoJsonLayer: false,
   },
   identify: true,
   drawTool: true,
@@ -114,6 +173,7 @@ export const MAP_ADAPTER_FEATURES: Readonly<
 > = {
   maplibre: MAPLIBRE_FEATURES,
   openlayers: OPENLAYERS_FEATURES,
+  deckgl: DECKGL_FEATURES,
 };
 
 /**
@@ -185,6 +245,13 @@ const LAYER_ENTRIES: ILayerEntry[] = [
     label: 'Feature store',
     layer: 'VectorLayer',
     source: 'FeatureStoreSource',
+  },
+  { label: 'Trips', layer: 'TripsLayer', source: 'TripsSource' },
+  { label: 'Polygons', layer: 'PolygonLayer', source: 'PolygonSource' },
+  {
+    label: 'GeoJSON (Deck.gl)',
+    layer: 'GeoJsonLayer',
+    source: 'GeoJSONSource',
   },
 ];
 

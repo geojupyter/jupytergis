@@ -51,6 +51,7 @@ const POSFLOAT_ENCODINGS: Encoding[] = [
   'stroke-width',
   'circle-stroke-width',
   'circle-radius',
+  'elevation',
 ];
 const ALL_ENCODINGS = [...RGBA_ENCODINGS, ...POSFLOAT_ENCODINGS];
 

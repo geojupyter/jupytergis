@@ -15,6 +15,10 @@ export namespace LayerCreationCommandIDs {
   export const newGeoTiffWithParams = 'jupytergis:newGeoTiffWithParams';
   export const newGeoZarrWithParams = 'jupytergis:newGeoZarrWithParams';
   export const newShapefileWithParams = 'jupytergis:newShapefileWithParams';
+  export const newTripsWithParams = 'jupytergis:newTripsWithParams';
+  export const newPolygonWithParams = 'jupytergis:newPolygonWithParams';
+  export const newGeoJsonLayerWithParams =
+    'jupytergis:newGeoJsonLayerWithParams';
 }
 
 type LayerCreationSpec = {
@@ -328,6 +332,108 @@ export function addLayerCreationCommands(options: {
         color: p.color ?? {},
         opacity: p.opacity ?? 1,
         symbologyState: p.symbologyState ?? { layers: [] },
+      }),
+    },
+    {
+      id: LayerCreationCommandIDs.newTripsWithParams,
+      label: 'New Trips Layer From Parameters',
+      caption:
+        'Add a new trips layer (by file path or URL) and add it to the given JupyterGIS file',
+      sourceType: 'TripsSource',
+      layerType: 'TripsLayer',
+      sourceSchema: {
+        type: 'object',
+        required: ['path'],
+        properties: { path: { type: 'string' } },
+      },
+      layerParamsSchema: {
+        opacity: { type: 'number', default: 1 },
+        trailLength: { type: 'number', default: 120 },
+        fadeTrail: { type: 'boolean', default: true },
+        widthMinPixels: { type: 'number', default: 1 },
+        capRounded: { type: 'boolean', default: false },
+        jointRounded: { type: 'boolean', default: false },
+        loopLength: { type: 'number' },
+        animationSpeed: { type: 'number', default: 1 },
+      },
+      buildParameters: (p, id) => ({
+        source: id,
+        opacity: p.opacity ?? 1,
+        trailLength: p.trailLength ?? 120,
+        fadeTrail: p.fadeTrail ?? true,
+        widthMinPixels: p.widthMinPixels ?? 1,
+        capRounded: p.capRounded ?? false,
+        jointRounded: p.jointRounded ?? false,
+        ...(p.loopLength !== undefined ? { loopLength: p.loopLength } : {}),
+        animationSpeed: p.animationSpeed ?? 1,
+      }),
+    },
+    {
+      id: LayerCreationCommandIDs.newPolygonWithParams,
+      label: 'New Polygon Layer From Parameters',
+      caption:
+        'Add a new polygon layer (by file path or URL) and add it to the given JupyterGIS file',
+      sourceType: 'PolygonSource',
+      layerType: 'PolygonLayer',
+      sourceSchema: {
+        type: 'object',
+        required: ['path'],
+        properties: { path: { type: 'string' } },
+      },
+      layerParamsSchema: {
+        opacity: { type: 'number', default: 1 },
+        filled: { type: 'boolean', default: true },
+        stroked: { type: 'boolean', default: true },
+        extruded: { type: 'boolean', default: false },
+        fillColor: {
+          type: 'array',
+          items: { type: 'number' },
+          default: [0, 128, 255, 160],
+        },
+        lineColor: {
+          type: 'array',
+          items: { type: 'number' },
+          default: [80, 80, 80],
+        },
+        lineWidthMinPixels: { type: 'number', default: 1 },
+      },
+      buildParameters: (p, id) => ({
+        source: id,
+        opacity: p.opacity ?? 1,
+        filled: p.filled ?? true,
+        stroked: p.stroked ?? true,
+        extruded: p.extruded ?? false,
+        fillColor: p.fillColor ?? [0, 128, 255, 160],
+        lineColor: p.lineColor ?? [80, 80, 80],
+        lineWidthMinPixels: p.lineWidthMinPixels ?? 1,
+      }),
+    },
+    {
+      id: LayerCreationCommandIDs.newGeoJsonLayerWithParams,
+      label: 'New GeoJSON Layer From Parameters',
+      caption:
+        'Add a new deck.gl GeoJSON layer (by file path or URL) and add it to the given JupyterGIS file',
+      sourceType: 'GeoJSONSource',
+      layerType: 'GeoJsonLayer',
+      sourceSchema: {
+        type: 'object',
+        required: ['path'],
+        properties: { path: { type: 'string' } },
+      },
+      layerParamsSchema: {
+        opacity: { type: 'number', default: 1 },
+        filled: { type: 'boolean', default: true },
+        stroked: { type: 'boolean', default: true },
+        extruded: { type: 'boolean', default: false },
+        wireframe: { type: 'boolean', default: false },
+      },
+      buildParameters: (p, id) => ({
+        source: id,
+        opacity: p.opacity ?? 1,
+        filled: p.filled ?? true,
+        stroked: p.stroked ?? true,
+        extruded: p.extruded ?? false,
+        wireframe: p.wireframe ?? false,
       }),
     },
   ];

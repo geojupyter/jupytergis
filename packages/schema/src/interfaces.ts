@@ -61,6 +61,11 @@ import type {
   IGeoZarrLayer,
   Modes,
   ITerrainLayer,
+  ITripsLayer,
+  ITripsSource,
+  IPolygonLayer,
+  IPolygonSource,
+  IGeoJsonLayer,
   IJGISFeatureStores,
   IFeatureStoreFeature,
   IFeatureStoreGeometry,
@@ -71,10 +76,14 @@ import type {
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
 
+/** deck.gl camera mode. Local UI state, not stored in the document. */
+export type DeckView = 'map' | 'globe';
+
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
   rightPanelOpen?: boolean;
   locationIndicatorActive?: boolean;
+  deckView?: DeckView;
 }
 
 export interface IJGISStoryMaps {
@@ -758,7 +767,10 @@ export type ILayerGalleryEntry = {
     | IGeoTiffLayer
     | IGeoZarrLayer
     | IOpenEOTileLayer
-    | ITerrainLayer;
+    | ITerrainLayer
+    | ITripsLayer
+    | IPolygonLayer
+    | IGeoJsonLayer;
   sourceType: SourceType;
   sourceParameters:
     | IGeoJSONSource
@@ -772,7 +784,9 @@ export type ILayerGalleryEntry = {
     | IRasterSource
     | IShapefileSource
     | IVectorTileSource
-    | IOpenEOTileSource;
+    | IOpenEOTileSource
+    | ITripsSource
+    | IPolygonSource;
   provider: string;
   description: string;
 };
