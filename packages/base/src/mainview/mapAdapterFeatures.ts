@@ -12,7 +12,6 @@ export interface IMapAdapterFeatures {
   readonly name: string;
   readonly sources: Readonly<Record<SourceType, boolean>>;
   readonly layers: Readonly<Record<LayerType, boolean>>;
-  readonly identify: boolean;
   readonly drawTool: boolean;
   readonly storyMaps: boolean;
   readonly geolocation: boolean;
@@ -55,7 +54,6 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     OpenEOTileLayer: false,
     StacLayer: false,
   },
-  identify: false,
   drawTool: false,
   storyMaps: false,
   geolocation: false,
@@ -98,7 +96,6 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     OpenEOTileLayer: true,
     StacLayer: true,
   },
-  identify: true,
   drawTool: true,
   geolocation: true,
   storyMaps: true,
@@ -189,7 +186,6 @@ const LAYER_ENTRIES: ILayerEntry[] = [
 ];
 
 type ToolKey =
-  | 'identify'
   | 'drawTool'
   | 'storyMaps'
   | 'layerComparison'
@@ -197,7 +193,6 @@ type ToolKey =
   | 'customProjections';
 
 const TOOL_LABELS: Record<ToolKey, string> = {
-  identify: 'Identify features',
   drawTool: 'Drawing tools',
   storyMaps: 'Story maps',
   layerComparison: 'Layer swipe comparison',
