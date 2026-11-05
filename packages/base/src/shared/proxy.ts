@@ -137,22 +137,22 @@ export async function maybeProxied(
   }
 
   if (!hasHeaders) {
-    let mode = corsModes.get(origin);
+    let mode = corsModes.get(url);
     if (!mode) {
       mode = (async () => {
-        const stored = await readCorsMode(origin).catch(() => undefined);
+        const stored = await readCorsMode(url).catch(() => undefined);
         if (stored) {
           return stored;
         }
         const probed = await probeCorsMode(url);
         if (!probed) {
-          corsModes.delete(origin);
+          corsModes.delete(url);
           return 'direct';
         }
         await writeCorsMode(origin, probed).catch(() => undefined);
         return probed;
       })();
-      corsModes.set(origin, mode);
+      corsModes.set(url, mode);
     }
 
     if ((await mode) === 'direct') {
