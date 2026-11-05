@@ -27,7 +27,7 @@ const StacRightPanelComponent: React.FC<IStacRightPanelProps> = ({
   }
 
   return (
-    <FloatingRightPanel title="STAC Browser" icon={bookOpenIcon}>
+    <FloatingRightPanel value="stac" title="STAC Browser" icon={bookOpenIcon}>
       <StacPanel model={model} />
     </FloatingRightPanel>
   );

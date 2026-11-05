@@ -51,7 +51,11 @@ const IdentifyRightPanelComponent: React.FC<IIdentifyRightPanelProps> = ({
   }
 
   return (
-    <FloatingRightPanel title="Identified Features" icon={infoIcon}>
+    <FloatingRightPanel
+      value="identify"
+      title="Identified Features"
+      icon={infoIcon}
+    >
       <IdentifyPanelComponent
         model={model}
         patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}

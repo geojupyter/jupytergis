@@ -47,7 +47,11 @@ const AnnotationsRightPanelComponent: React.FC<IAnnotationsRightPanelProps> = ({
   }
 
   return (
-    <FloatingRightPanel title="Annotations" icon={pencilSolidIcon}>
+    <FloatingRightPanel
+      value="annotations"
+      title="Annotations"
+      icon={pencilSolidIcon}
+    >
       <AnnotationsPanel annotationModel={annotationModel} jgisModel={model} />
     </FloatingRightPanel>
   );

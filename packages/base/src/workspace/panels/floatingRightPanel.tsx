@@ -1,41 +1,55 @@
 import { LabIcon } from '@jupyterlab/ui-components';
-import React, { ReactNode, useRef, useState } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import Draggable, { DraggableData, DraggableEvent } from 'react-draggable';
 
+import {
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '../../shared/components/Accordion';
+import { Button } from '../../shared/components/Button';
 import { cn } from '../../shared/components/utils';
+import { useFloatingPanelAccordion } from './floatingPanelDock';
 
 interface IFloatingRightPanelProps {
+  value: string;
   title: string;
   children: ReactNode;
   icon?: LabIcon;
 }
 
 export function FloatingRightPanel({
+  value,
   title,
   children,
   icon,
 }: IFloatingRightPanelProps): JSX.Element {
+  const { openValues, setOpenValues } = useFloatingPanelAccordion();
+  const isOpen = openValues.includes(value);
+
   const nodeRef = useRef<HTMLDivElement>(null);
-  const [isOpen, setIsOpen] = useState(true);
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [undockTop, setUndockTop] = useState(0);
   const [isUndocked, setIsUndocked] = useState(false);
   const didDragRef = useRef(false);
 
-  const handleHeaderClick = () => {
-    if (didDragRef.current) {
-      return;
-    }
+  useEffect(() => {
+    setOpenValues(current =>
+      current.includes(value) ? current : [...current, value],
+    );
 
-    setIsOpen(open => {
-      if (open) {
-        setPosition({ x: 0, y: 0 });
-        setIsUndocked(false);
-        setUndockTop(0);
-      }
-      return !open;
-    });
-  };
+    return () => {
+      setOpenValues(current => current.filter(item => item !== value));
+    };
+  }, [value, setOpenValues]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setPosition({ x: 0, y: 0 });
+      setIsUndocked(false);
+      setUndockTop(0);
+    }
+  }, [isOpen]);
 
   const handleDragStart = () => {
     didDragRef.current = false;
@@ -52,32 +66,38 @@ export function FloatingRightPanel({
   };
 
   return (
-    <Draggable
-      nodeRef={nodeRef}
-      handle="[data-drag-handle]"
-      bounds=".jGIS-Mainview-Container"
-      disabled={!isOpen}
-      position={position}
-      onStart={handleDragStart}
-      onDrag={handleDrag}
+    <AccordionItem
+      value={value}
+      className={cn(
+        'jgis-floating-right-panel border-none',
+        !isOpen && 'jgis-floating-right-panel-collapsed',
+        isUndocked && 'jgis-floating-right-panel-undocked',
+      )}
+      style={isUndocked ? { top: undockTop } : undefined}
     >
-      <div
-        ref={nodeRef}
-        className={cn(
-          'jgis-floating-right-panel',
-          !isOpen && 'jgis-floating-right-panel-collapsed',
-          isUndocked && 'jgis-floating-right-panel-undocked',
-        )}
-        style={isUndocked ? { top: undockTop } : undefined}
-      >
-        <div
-          className="jgis-floating-right-panel-header"
+      {/* Drag re-enabled later; shell keeps chrome + width animation. */}
+      <div ref={nodeRef} className="jgis-floating-right-panel-shell">
+        <AccordionTrigger
+          hideChevron
+          render={
+            <Button
+              variant={isOpen ? 'ghost' : 'outline'}
+              size={isOpen ? 'sm' : 'icon-sm'}
+              className={cn(
+                'jgis-floating-right-panel-header w-full justify-center gap-1.5 no-underline hover:no-underline',
+                isOpen && 'rounded-none',
+              )}
+            />
+          }
+          className="flex-none items-center justify-center py-0 no-underline hover:no-underline"
           data-drag-handle
-          role="button"
-          aria-expanded={isOpen}
-          aria-label={title}
           title={title}
-          onClick={handleHeaderClick}
+          onClickCapture={event => {
+            if (didDragRef.current) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
+          }}
         >
           {icon ? (
             <icon.react
@@ -86,11 +106,11 @@ export function FloatingRightPanel({
             />
           ) : null}
           <span className="jgis-floating-right-panel-title">{title}</span>
-        </div>
-        <div className="jgis-floating-right-panel-body">
-          <div className="jgis-floating-right-panel-body-inner">{children}</div>
-        </div>
+        </AccordionTrigger>
+        <AccordionContent className="jgis-floating-right-panel-body">
+          {children}
+        </AccordionContent>
       </div>
-    </Draggable>
+    </AccordionItem>
   );
 }
