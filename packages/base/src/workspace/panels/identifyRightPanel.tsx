@@ -5,10 +5,10 @@ import {
 } from '@jupytergis/schema';
 import * as React from 'react';
 
-import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
-import { infoIcon } from '../../shared/icons';
 import { FloatingPanelId } from './floatingPanelDock';
 import { FloatingRightPanel } from './floatingRightPanel';
+import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
+import { infoIcon } from '../../shared/icons';
 
 interface IIdentifyRightPanelProps {
   model: IJupyterGISModel;
@@ -43,9 +43,7 @@ const IdentifyRightPanelComponent: React.FC<IIdentifyRightPanelProps> = ({
   }, [model]);
 
   const visible =
-    !settings.rightPanelDisabled &&
-    !settings.identifyDisabled &&
-    isIdentifying;
+    !settings.rightPanelDisabled && !settings.identifyDisabled && isIdentifying;
 
   if (!visible) {
     return null;

@@ -2,15 +2,15 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import React, { ReactNode, useEffect } from 'react';
 
 import {
+  type FloatingPanelId,
+  useFloatingPanelAccordion,
+} from './floatingPanelDock';
+import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '../../shared/components/Accordion';
 import { cn } from '../../shared/components/utils';
-import {
-  type FloatingPanelId,
-  useFloatingPanelAccordion,
-} from './floatingPanelDock';
 
 interface IFloatingRightPanelProps {
   value: FloatingPanelId;

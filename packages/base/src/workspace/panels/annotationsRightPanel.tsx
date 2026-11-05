@@ -5,10 +5,10 @@ import {
 } from '@jupytergis/schema';
 import * as React from 'react';
 
-import { AnnotationsPanel } from '../../features/annotations';
-import { pencilSolidIcon } from '../../shared/icons';
 import { FloatingPanelId } from './floatingPanelDock';
 import { FloatingRightPanel } from './floatingRightPanel';
+import { AnnotationsPanel } from '../../features/annotations';
+import { pencilSolidIcon } from '../../shared/icons';
 
 interface IAnnotationsRightPanelProps {
   model: IJupyterGISModel;
