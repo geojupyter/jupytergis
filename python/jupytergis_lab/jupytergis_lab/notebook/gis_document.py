@@ -697,6 +697,12 @@ class GISDocument(CommWidget):
 
         flat_graph = _ensure_save_result(graph.flat_graph())
 
+        errors = graph.connection.validate_process_graph(flat_graph)
+        if errors:
+            raise ValueError(
+                f"The OpenEO process graph is invalid: {'; '.join(e['message'] for e in errors)}",
+            )
+
         service = graph.connection.create_service(flat_graph, "XYZ")
         service_url = unquote(service.describe_service()["url"])
 
