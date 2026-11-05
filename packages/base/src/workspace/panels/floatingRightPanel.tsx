@@ -10,7 +10,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '../../shared/components/Accordion';
-import { cn } from '../../shared/components/utils';
 
 interface IFloatingRightPanelProps {
   value: FloatingPanelId;
@@ -25,18 +24,14 @@ export function FloatingRightPanel({
   children,
   icon,
 }: IFloatingRightPanelProps): JSX.Element {
-  const { openValues, registerOpen } = useFloatingPanelAccordion();
-  const isOpen = openValues.includes(value);
+  const { registerOpen } = useFloatingPanelAccordion();
 
   useEffect(() => registerOpen(value), [value, registerOpen]);
 
   return (
     <AccordionItem
       value={value}
-      className={cn(
-        'jgis-floating-right-panel border-none',
-        !isOpen && 'jgis-floating-right-panel-collapsed',
-      )}
+      className="jgis-floating-right-panel border-none"
     >
       <div className="jgis-floating-right-panel-shell">
         <AccordionTrigger
@@ -45,7 +40,9 @@ export function FloatingRightPanel({
           className="jgis-floating-right-panel-header"
           title={title}
         >
-          {icon ? <icon.react tag="span" className="size-4" /> : null}
+          {icon ? (
+            <icon.react tag="span" className="jgis-floating-right-panel-icon" />
+          ) : null}
           <span className="jgis-floating-right-panel-title">{title}</span>
         </AccordionTrigger>
         <AccordionContent className="jgis-floating-right-panel-body">

@@ -12,7 +12,6 @@ export type FloatingPanelId =
   (typeof FloatingPanelId)[keyof typeof FloatingPanelId];
 
 interface IFloatingPanelAccordionContext {
-  openValues: FloatingPanelId[];
   registerOpen: (value: FloatingPanelId) => () => void;
 }
 
@@ -53,9 +52,7 @@ export function FloatingPanelDock({
   }, []);
 
   return (
-    <FloatingPanelAccordionContext.Provider
-      value={{ openValues, registerOpen }}
-    >
+    <FloatingPanelAccordionContext.Provider value={{ registerOpen }}>
       <Accordion
         multiple
         value={openValues}
