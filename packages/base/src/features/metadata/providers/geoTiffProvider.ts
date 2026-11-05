@@ -1,6 +1,7 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { fromBlob, fromUrl, GeoTIFF, GeoTIFFImage } from 'geotiff';
 
+import { maybeProxied } from '@/src/shared/proxy';
 import { loadFile } from '@/src/tools';
 import {
   IBandMetadata,
@@ -81,7 +82,7 @@ async function openGeoTiff(
   model: IJupyterGISModel,
 ): Promise<GeoTIFF> {
   if (url.startsWith('http://') || url.startsWith('https://')) {
-    return await fromUrl(url);
+    return await fromUrl(await maybeProxied(url, model));
   }
 
   if (url.startsWith('data:')) {

@@ -61,8 +61,7 @@
         "attribution": "",
         "httpHeaders": "",
         "interpolate": false,
-        "url": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
-        "useProxy": false
+        "url": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
       },
       "type": "RasterDemSource"
     },
@@ -72,8 +71,7 @@
         "attribution": "",
         "httpHeaders": "",
         "interpolate": false,
-        "url": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png",
-        "useProxy": false
+        "url": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png"
       },
       "type": "RasterDemSource"
     },

@@ -331,12 +331,10 @@ function existingWmsLayerId(
     const parameters = source.parameters as {
       url?: string;
       params?: { layers?: string };
-      useProxy?: boolean;
     };
     return (
       parameters.url === endpoint.url &&
-      parameters.params?.layers === endpoint.layers &&
-      parameters.useProxy === true
+      parameters.params?.layers === endpoint.layers
     );
   })?.[0];
 
@@ -411,7 +409,6 @@ function addWmsLayer(
     parameters: {
       url: endpoint.url,
       params: { layers: endpoint.layers },
-      useProxy: true,
     },
   });
   model.addLayer(layerId, {

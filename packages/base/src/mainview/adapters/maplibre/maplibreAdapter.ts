@@ -59,7 +59,7 @@ import {
 } from '@/src/mainview/adapters/maplibre/grammerToMLStyle';
 import { extractEncodingFieldValues } from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
 import { markerIcon } from '@/src/shared/icons';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 import { debounce, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
@@ -531,17 +531,15 @@ export class MapLibreAdapter implements IMapAdapter {
         case 'WmsTileSource': {
           const sourceParameters = source.parameters as IWmsTileSource;
 
-          if (sourceParameters.useProxy) {
-            this._log(
-              'warning',
-              `MapLibreAdapter: the tile proxy is not supported for WMS source "${source.name ?? id}" in MapLibre;
-               tiles are requested directly, so the server must allow CORS.`,
-            );
-          }
-
           this._map.addSource(id, {
             type: 'raster',
-            tiles: [this._computeWmsTileUrl(sourceParameters)],
+            tiles: [
+              await maybeProxied(
+                this._computeWmsTileUrl(sourceParameters),
+                this._model,
+                sourceParameters.httpHeaders,
+              ),
+            ],
             tileSize: 256,
             attribution: sourceParameters.attribution,
           });
@@ -802,10 +800,9 @@ export class MapLibreAdapter implements IMapAdapter {
     parameters: IGeoTiffSource,
   ): Promise<string> {
     if (url.startsWith('http://') || url.startsWith('https://')) {
-      const proxied = buildProxyUrl(
-        this._model,
+      const proxied = await maybeProxied(
         url,
-        parameters.useProxy,
+        this._model,
         parameters.httpHeaders,
       );
       return new URL(proxied, window.location.href).href;

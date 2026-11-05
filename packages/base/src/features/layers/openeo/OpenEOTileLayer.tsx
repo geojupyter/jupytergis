@@ -22,7 +22,7 @@ import { XYZ as XYZSource } from 'ol/source';
 import { Options as XYZOptions } from 'ol/source/XYZ';
 import React from 'react';
 
-import { buildProxyUrl, getProxyEndpoint } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 import { describeConnectionError } from '@/src/tools';
 import { OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
@@ -268,13 +268,7 @@ export async function openEOConnect(
   url = url.replace(/\/+$/, '');
 
   // TODO read the proxy setting too, which needs the model down here
-  const proxyPrefix = getProxyEndpoint();
-  // Callers hand back the url we resolved for them, which is already
-  // proxied. Wrapping it again builds a url that misses the connection
-  // cache, so we would open a second, unauthenticated connection.
-  if (proxyPrefix && !url.startsWith(proxyPrefix)) {
-    url = buildProxyUrl(undefined, url, true);
-  }
+  url = await maybeProxied(url);
 
   // Already connected to that server url. Re-insert so the cache stays
   // ordered by recency (last key === most recently used), and reflect the
@@ -309,14 +303,7 @@ export async function openEOConnect(
     });
 
     // @ts-expect-error We monkey patch this when using our proxy
-    const baseUrl: string = connection.baseUrl;
-    // js-client keeps the url we connected with when the server advertises no
-    // separate version url, so it is already proxied. Wrapping it again asks
-    // the proxy to fetch the Jupyter server itself, which answers 403.
-    if (proxyPrefix && !baseUrl.startsWith(proxyPrefix)) {
-      // @ts-expect-error We monkey patch this when using our proxy
-      connection.baseUrl = buildProxyUrl(undefined, baseUrl, true);
-    }
+    connection.baseUrl = await maybeProxied(connection.baseUrl);
 
     if (!connection.isAuthenticated()) {
       connection.setOidcProviderFactory(info =>

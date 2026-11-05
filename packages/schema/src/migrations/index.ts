@@ -8,6 +8,7 @@
 
 import { migrate as migrateV0_5ToV0_6 } from './v0_5_to_v0_6';
 import { migrate as migrateV0_6ToV0_7 } from './v0_6_to_v0_7';
+import { migrate as migrateV0_7_0ToV0_7_1 } from './v0_7_0_to_v0_7_1';
 import { SCHEMA_VERSION } from '../_interface/version';
 
 interface IMigrationStep {
@@ -19,6 +20,7 @@ interface IMigrationStep {
 const STEPS: IMigrationStep[] = [
   { from: '0.5.0', to: '0.6.0', migrate: migrateV0_5ToV0_6 },
   { from: '0.6.0', to: '0.7.0', migrate: migrateV0_6ToV0_7 },
+  { from: '0.7.0', to: '0.7.1', migrate: migrateV0_7_0ToV0_7_1 },
 ];
 
 const DEFAULT_OVERLAY_CONTENT_WIDTH = '100%';
