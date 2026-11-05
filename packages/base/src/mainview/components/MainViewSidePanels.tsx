@@ -63,11 +63,6 @@ export function MainViewSidePanels({
         />
       ) : null}
       <FloatingPanelDock>
-        <IdentifyRightPanel
-          model={model}
-          settings={settings}
-          patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}
-        />
         {annotationModel ? (
           <AnnotationsRightPanel
             model={model}
@@ -76,6 +71,11 @@ export function MainViewSidePanels({
           />
         ) : null}
         <StacRightPanel model={model} settings={settings} />
+        <IdentifyRightPanel
+          model={model}
+          settings={settings}
+          patchGeoJSONFeatureAttributes={patchGeoJSONFeatureAttributes}
+        />
       </FloatingPanelDock>
     </>
   );

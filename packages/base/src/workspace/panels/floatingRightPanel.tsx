@@ -82,14 +82,15 @@ export function FloatingRightPanel({
           render={
             <Button
               variant={isOpen ? 'ghost' : 'outline'}
-              size={isOpen ? 'sm' : 'icon-sm'}
+              size={isOpen ? 'sm' : 'icon'}
               className={cn(
-                'jgis-floating-right-panel-header w-full justify-center no-underline hover:no-underline',
-                isOpen && 'gap-1.5 rounded-none',
+                'jgis-floating-right-panel-header h-9 w-full justify-center no-underline shadow-none hover:no-underline',
+                isOpen && 'gap-1.5 rounded-none bg-secondary',
+                !isOpen && 'size-9',
               )}
             />
           }
-          className="flex-none items-center justify-center py-0 no-underline hover:no-underline"
+          className="flex w-full flex-none items-center justify-center border-0 border-b border-b-border p-0 no-underline hover:no-underline"
           data-drag-handle
           title={title}
           onClickCapture={event => {

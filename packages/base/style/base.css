@@ -187,17 +187,33 @@ button.jp-mod-styled.jp-mod-reject {
   align-items: flex-end;
   gap: 0.5rem;
   max-height: calc(100% - 0.5rem);
+  overflow-x: hidden;
+  overflow-y: auto;
   pointer-events: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.jgis-floating-panel-dock::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 .jgis-floating-panel-dock > * {
   pointer-events: auto;
 }
 
+.jgis-floating-panel-dock > [data-slot='accordion-item'],
+.jgis-floating-right-panel {
+  flex-shrink: 0;
+}
+
 .jgis-floating-right-panel {
   position: relative;
   width: 330px;
-  max-height: calc(100vh - 1rem);
+  /* Grow with content; the dock scrolls when the stack exceeds the viewport. */
+  max-height: none;
   border: none;
   transition: width 200ms ease-in-out;
 }
@@ -205,6 +221,7 @@ button.jp-mod-styled.jp-mod-reject {
 /* Accordion.Header is an h3; kill UA margins only in this chrome. */
 .jgis-floating-right-panel h3 {
   margin: 0;
+  width: 100%;
 }
 
 .jgis-floating-right-panel-shell {
@@ -223,24 +240,10 @@ button.jp-mod-styled.jp-mod-reject {
 }
 
 .jgis-floating-right-panel-header {
-  display: flex;
-  flex: none;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  /* gap: 0.35rem; */
   box-sizing: border-box;
   height: 36px;
-  padding: 0 0.75rem;
-  font-size: var(--jp-ui-font-size1);
   font-weight: 600;
-  border: 1px solid transparent;
-  border-bottom-color: var(--jp-border-color1);
-  border-radius: 0;
-  background: transparent;
   cursor: grab;
-  user-select: none;
-  text-decoration: none;
   transition:
     border-color 200ms ease-in-out,
     border-radius 200ms ease-in-out,
