@@ -2,6 +2,38 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.17.2
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.17.1...79c7f42598a9d9275d165e2b601b5b22f86a77d3))
+
+### Enhancements made
+
+- Custom Marker support in Maplibre [#1982](https://github.com/geojupyter/jupytergis/pull/1982) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+- Allow setting client-id while connecting to the backend with OIDC [#1981](https://github.com/geojupyter/jupytergis/pull/1981) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Use the CORS proxy automatically instead of the useProxy option [#1980](https://github.com/geojupyter/jupytergis/pull/1980) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Use the story editor slider for the opacity [#1979](https://github.com/geojupyter/jupytergis/pull/1979) ([@arjxn-py](https://github.com/arjxn-py), [@gjmooney](https://github.com/gjmooney))
+- Ensure the OpenEO graph ends in save_result in the Python API [#1976](https://github.com/geojupyter/jupytergis/pull/1976) ([@costajohnt](https://github.com/costajohnt), [@martinRenou](https://github.com/martinRenou))
+- Add WMS Layer support in Maplibre [#1975](https://github.com/geojupyter/jupytergis/pull/1975) ([@nakul-py](https://github.com/nakul-py), [@martinRenou](https://github.com/martinRenou))
+- Create the openEO tile service when the layer is added [#1974](https://github.com/geojupyter/jupytergis/pull/1974) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Create 'About JupyterGIS' help menu item [#1967](https://github.com/geojupyter/jupytergis/pull/1967) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py))
+- Make unsupported layers looks like disabled [#1965](https://github.com/geojupyter/jupytergis/pull/1965) ([@nakul-py](https://github.com/nakul-py), [@arjxn-py](https://github.com/arjxn-py))
+
+### Bugs fixed
+
+- Load the GeoPackage if it's tables isn't cached [#1970](https://github.com/geojupyter/jupytergis/pull/1970) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Remove Microsoft login special case [#1966](https://github.com/geojupyter/jupytergis/pull/1966) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-10-28&to=2026-11-05&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-10-28..2026-11-05&type=Issues)) | @costajohnt ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Acostajohnt+updated%3A2026-10-28..2026-11-05&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-10-28..2026-11-05&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-10-28..2026-11-05&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-10-28..2026-11-05&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.17.1
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.17.0...e4ce8af95e55d293fd4e3a38e6323efdf2ecff66))
@@ -27,8 +59,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-10-23&to=2026-10-28&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-10-23..2026-10-28&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-10-23..2026-10-28&type=Issues)) | @HaudinFlorence ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AHaudinFlorence+updated%3A2026-10-23..2026-10-28&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-10-23..2026-10-28&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-10-23..2026-10-28&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.17.0
 
