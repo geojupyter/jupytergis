@@ -60,12 +60,14 @@ export function grammarToOLLayer({
   source,
   featureValues = [],
   className,
+  resolutionForZoom,
 }: {
   layer: IJGISLayer;
   layerId: string;
   source: VectorSource | any;
   featureValues?: unknown[];
   className?: string;
+  resolutionForZoom?: (zoom: number) => number;
 }): Layer | LayerGroup {
   const parameters = layer.parameters ?? {};
   const state = (parameters.symbologyState ?? {}) as IGrammarSymbologyState;
@@ -116,6 +118,7 @@ export function grammarToOLLayer({
       featureValues,
       className,
       declutter,
+      resolutionForZoom,
     ),
   );
 
@@ -141,6 +144,7 @@ function compileGrammarLayer(
   featureValues: unknown[],
   className: string | undefined,
   declutter: string | false,
+  resolutionForZoom?: (zoom: number) => number,
 ): VectorImageLayer | HeatmapLayer {
   const kdeTransform = grammarLayer.preprocess?.find(
     (t): t is IKDETransform => t.type === 'kde',
@@ -165,6 +169,7 @@ function compileGrammarLayer(
     featureValues,
     className,
     declutter,
+    resolutionForZoom,
   );
 }
 
@@ -320,11 +325,16 @@ function compileVectorLayer(
   featureValues: unknown[],
   className: string | undefined,
   declutter: string | false,
+  resolutionForZoom?: (zoom: number) => number,
 ): VectorImageLayer {
   const singleLayerState: IGrammarSymbologyState = {
     layers: [grammarLayer],
   };
-  const flatStyle = grammarToOLStyle(singleLayerState, featureValues);
+  const flatStyle = grammarToOLStyle(
+    singleLayerState,
+    featureValues,
+    resolutionForZoom,
+  );
   // If no rules produced output (e.g. empty rules list or all expressions dropped),
   // fall back to the default style so the layer is visible rather than invisible.
   const style =

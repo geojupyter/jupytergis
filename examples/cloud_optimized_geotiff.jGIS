@@ -188,7 +188,6 @@
             "url": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/36/Q/WD/2020/7/S2A_36QWD_20200701_0_L2A/TCI.tif"
           }
         ],
-        "useProxy": false,
         "wrapX": false
       },
       "type": "GeoTiffSource"
@@ -203,8 +202,7 @@
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
         "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "urlParameters": {},
-        "useProxy": false
+        "urlParameters": {}
       },
       "type": "RasterSource"
     }

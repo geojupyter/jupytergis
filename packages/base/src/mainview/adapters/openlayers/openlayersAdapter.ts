@@ -151,7 +151,7 @@ import {
   VIEWPORT_SYNC_INTERVAL,
 } from '@/src/mainview/mapAdapter';
 import { markerIcon } from '@/src/shared/icons';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 import { debounce, getCssVarValue, loadFile, throttle } from '@/src/tools';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
@@ -1698,8 +1698,12 @@ export class OpenLayersAdapter implements IMapAdapter {
       source: olSource,
       featureValues,
       className,
+      resolutionForZoom: this._resolutionForZoom,
     }) as OlLayerTypes;
   }
+
+  private _resolutionForZoom = (zoom: number): number =>
+    this._map.getView().getResolutionForZoom(zoom);
 
   // Used by VectorTileLayer (which shares a flat-style API with Grammar output).
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
@@ -1712,6 +1716,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const flatStyle = grammarToOLStyle(
       layerParams.symbologyState as IGrammarSymbologyState,
       [],
+      this._resolutionForZoom,
     );
 
     const layerStyle: Rule = { style: flatStyle };
@@ -2506,51 +2511,15 @@ export class OpenLayersAdapter implements IMapAdapter {
               attributions: sourceParameters.attribution,
               minZoom: sourceParameters.minZoom,
               maxZoom: sourceParameters.maxZoom,
-              url: url,
+              url: await maybeProxied(
+                url,
+                this._model,
+                sourceParameters.httpHeaders,
+              ),
               format: new MVT({
                 featureClass: RenderFeature,
               }),
             };
-
-            if (sourceParameters.useProxy) {
-              vtSourceOptions.tileLoadFunction = (tile, tileUrl) => {
-                const vtTile = tile as VectorTile<RenderFeature>;
-                const proxyUrl = buildProxyUrl(
-                  this._model,
-                  tileUrl,
-                  sourceParameters.useProxy,
-                  sourceParameters.httpHeaders,
-                );
-                vtTile.setLoader((extent, _resolution, projection) => {
-                  return fetch(proxyUrl)
-                    .then(response => {
-                      if (!response.ok) {
-                        throw new Error(
-                          `Tile proxy request failed: ${response.status} ${response.statusText}`,
-                        );
-                      }
-                      return response.arrayBuffer();
-                    })
-                    .then(data => {
-                      const features = vtTile.getFormat().readFeatures(data, {
-                        extent,
-                        featureProjection: projection,
-                      });
-                      vtTile.setFeatures(features);
-                      this._log('debug', `Proxy tile loaded: ${tileUrl}`);
-                      return features;
-                    })
-                    .catch((err: any) => {
-                      this._log(
-                        'error',
-                        `Proxy tile error for ${tileUrl}: ${err.message}`,
-                      );
-                      tile.setState(TileState.ERROR);
-                      return [];
-                    });
-                });
-              };
-            }
 
             newSource = new VectorTileSource(vtSourceOptions);
           } else {
@@ -2692,10 +2661,9 @@ export class OpenLayersAdapter implements IMapAdapter {
               if (isRemote) {
                 return {
                   ...addNoData(sourceInfo),
-                  url: buildProxyUrl(
-                    this._model,
+                  url: await maybeProxied(
                     sourceInfo.url!,
-                    sourceParameters.useProxy,
+                    this._model,
                     sourceParameters.httpHeaders,
                   ),
                 };
@@ -2905,21 +2873,15 @@ export class OpenLayersAdapter implements IMapAdapter {
               LAYERS: selectedLayer,
               TILED: true,
             },
-            ...(sourceParameters.useProxy
-              ? {
-                  tileLoadFunction: (tile, src) => {
-                    loadProxiedWmsTile(
-                      tile as ImageTile,
-                      buildProxyUrl(
-                        this._model,
-                        src,
-                        true,
-                        sourceParameters.httpHeaders,
-                      ),
-                    );
-                  },
-                }
-              : {}),
+            tileLoadFunction: (tile, src) => {
+              void maybeProxied(
+                src,
+                this._model,
+                sourceParameters.httpHeaders,
+              ).then(proxyUrl =>
+                loadProxiedWmsTile(tile as ImageTile, proxyUrl),
+              );
+            },
           });
 
           break;
@@ -3466,6 +3428,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       source,
       featureValues,
       className: comparisonLayerClass(id),
+      resolutionForZoom: this._resolutionForZoom,
     });
 
     if (mapLayer instanceof LayerGroup) {

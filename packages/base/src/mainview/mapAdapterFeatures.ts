@@ -12,14 +12,13 @@ export interface IMapAdapterFeatures {
   readonly name: string;
   readonly sources: Readonly<Record<SourceType, boolean>>;
   readonly layers: Readonly<Record<LayerType, boolean>>;
-  readonly addMarker: boolean;
-  readonly identify: boolean;
   readonly drawTool: boolean;
   readonly storyMaps: boolean;
   readonly geolocation: boolean;
   readonly layerComparison: boolean;
   readonly heatmapSymbology: boolean;
   readonly clusterSymbology: boolean;
+  readonly zoomRangeSymbology: boolean;
   readonly customProjections: boolean;
   readonly requiresVectorTileSourceLayer: boolean;
 }
@@ -38,8 +37,8 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     GeoPackageVectorSource: false,
     GeoPackageRasterSource: false,
     GeoParquetSource: false,
-    MarkerSource: false,
-    WmsTileSource: false,
+    MarkerSource: true,
+    WmsTileSource: true,
     OpenEOTileSource: false,
     FeatureStoreSource: false,
   },
@@ -56,14 +55,13 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     OpenEOTileLayer: false,
     StacLayer: false,
   },
-  addMarker: false,
-  identify: false,
   drawTool: false,
   storyMaps: false,
   geolocation: false,
   layerComparison: false,
   heatmapSymbology: false,
   clusterSymbology: false,
+  zoomRangeSymbology: false,
   customProjections: false,
   requiresVectorTileSourceLayer: true,
 };
@@ -100,14 +98,13 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     OpenEOTileLayer: true,
     StacLayer: true,
   },
-  addMarker: true,
-  identify: true,
   drawTool: true,
   geolocation: true,
   storyMaps: true,
   layerComparison: true,
   heatmapSymbology: true,
   clusterSymbology: true,
+  zoomRangeSymbology: true,
   customProjections: true,
   requiresVectorTileSourceLayer: false,
 };
@@ -192,8 +189,6 @@ const LAYER_ENTRIES: ILayerEntry[] = [
 ];
 
 type ToolKey =
-  | 'addMarker'
-  | 'identify'
   | 'drawTool'
   | 'storyMaps'
   | 'layerComparison'
@@ -201,8 +196,6 @@ type ToolKey =
   | 'customProjections';
 
 const TOOL_LABELS: Record<ToolKey, string> = {
-  addMarker: 'Place markers',
-  identify: 'Identify features',
   drawTool: 'Drawing tools',
   storyMaps: 'Story maps',
   layerComparison: 'Layer swipe comparison',
@@ -210,11 +203,15 @@ const TOOL_LABELS: Record<ToolKey, string> = {
   customProjections: 'Custom projections',
 } as const;
 
-type SymbologyKey = 'heatmapSymbology' | 'clusterSymbology';
+type SymbologyKey =
+  | 'heatmapSymbology'
+  | 'clusterSymbology'
+  | 'zoomRangeSymbology';
 
 const SYMBOLOGY_LABELS: Record<SymbologyKey, string> = {
   heatmapSymbology: 'Heatmap (KDE)',
   clusterSymbology: 'Point Clustring',
+  zoomRangeSymbology: 'Zoom range conditions',
 };
 
 export interface ISupportRow {

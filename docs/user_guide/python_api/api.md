@@ -8,6 +8,16 @@
 .. autoclass:: GISDocument
     :members:
 
+.. autoclass:: jupytergis_lab.notebook.gis_document.JGISLayer
+    :members:
+    :exclude-members: model_config, model_post_init
+
+.. autoclass:: jupytergis_lab.notebook.gis_document.JGISLayerGroup
+
+.. autoclass:: jupytergis_lab.notebook.gis_document.JGISSource
+    :members:
+    :exclude-members: model_config, model_post_init
+
 .. autofunction:: field
 .. autofunction:: constant
 .. autofunction:: when

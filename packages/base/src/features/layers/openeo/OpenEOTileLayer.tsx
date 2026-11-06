@@ -16,13 +16,15 @@ import {
 } from '@openeo/js-client';
 // @ts-expect-error
 import Environment from '@openeo/js-client/src/env';
-import { LoadFunction } from 'ol/Tile';
-import TileLayer from 'ol/layer/Tile';
-import { XYZ as XYZSource } from 'ol/source';
-import { Options as XYZOptions } from 'ol/source/XYZ';
+import { fromArrayBuffer, TypedArray } from 'geotiff';
+import WebGLTileLayer from 'ol/layer/WebGLTile';
+import DataTileSource, {
+  Loader,
+  Options as DataTileOptions,
+} from 'ol/source/DataTile';
 import React from 'react';
 
-import { buildProxyUrl, getProxyEndpoint } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 import { describeConnectionError } from '@/src/tools';
 import { OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
@@ -282,13 +284,7 @@ export async function openEOConnect(
   const serverUrl = url;
 
   // TODO read the proxy setting too, which needs the model down here
-  const proxyPrefix = getProxyEndpoint();
-  // Callers hand back the url we resolved for them, which is already
-  // proxied. Wrapping it again builds a url that misses the connection
-  // cache, so we would open a second, unauthenticated connection.
-  if (proxyPrefix && !url.startsWith(proxyPrefix)) {
-    url = buildProxyUrl(undefined, url, true);
-  }
+  url = await maybeProxied(url);
 
   // Already connected to that server url. Re-insert so the cache stays
   // ordered by recency (last key === most recently used), and reflect the
@@ -323,14 +319,7 @@ export async function openEOConnect(
     });
 
     // @ts-expect-error We monkey patch this when using our proxy
-    const baseUrl: string = connection.baseUrl;
-    // js-client keeps the url we connected with when the server advertises no
-    // separate version url, so it is already proxied. Wrapping it again asks
-    // the proxy to fetch the Jupyter server itself, which answers 403.
-    if (proxyPrefix && !baseUrl.startsWith(proxyPrefix)) {
-      // @ts-expect-error We monkey patch this when using our proxy
-      connection.baseUrl = buildProxyUrl(undefined, baseUrl, true);
-    }
+    connection.baseUrl = await maybeProxied(connection.baseUrl);
 
     if (!connection.isAuthenticated()) {
       connection.setOidcProviderFactory(info =>
@@ -460,11 +449,64 @@ export interface IOpenEOConnectionInfo {
   quiet?: boolean;
 }
 
-export class OpenEOTileLayer extends TileLayer {
+/**
+ * Create the XYZ tile service for `processGraph` and return its url. Needs a
+ * live session on `serverUrl`.
+ */
+export async function createOpenEOTileService(
+  serverUrl: string,
+  processGraph: Process,
+): Promise<string> {
+  const connection = getOpenEOConnection(serverUrl);
+
+  // Inject `save_result` for graphs that omit it (e.g. ESA UDPs).
+  const graph = (await resultIsSavingUserProcess(connection, processGraph))
+    ? processGraph
+    : ensureSaveResult(processGraph);
+
+  let service: Service;
+
+  try {
+    service = await connection.createService(graph, 'XYZ');
+  } catch (e) {
+    throw new Error(`Failed to create the XYZ service ${e}`);
+  }
+
+  if (!service.url) {
+    throw new Error('Failed to connect to XYZ service');
+  }
+
+  return service.url;
+}
+
+async function resultIsSavingUserProcess(
+  connection: Connection,
+  graph: Record<string, any>,
+): Promise<boolean> {
+  const nodes = Object.values(graph);
+  const result = nodes.find((node: any) => node?.result === true);
+  if (
+    !result ||
+    result.process_id === 'save_result' ||
+    (result.namespace && result.namespace !== 'user')
+  ) {
+    return false;
+  }
+  try {
+    const udp = await connection.getUserProcess(result.process_id);
+    return Object.values(udp.processGraph ?? {}).some(
+      (node: any) => node?.process_id === 'save_result',
+    );
+  } catch {
+    return false;
+  }
+}
+
+export class OpenEOTileLayer extends WebGLTileLayer {
   // Just an alias
 }
 
-export interface IOpenEOTileSourceOptions extends XYZOptions {
+export interface IOpenEOTileSourceOptions extends DataTileOptions {
   /**
    * The process graph value.
    */
@@ -482,11 +524,11 @@ export interface IOpenEOTileSourceOptions extends XYZOptions {
   tileServiceURL?: string;
 }
 
-export class OpenEOTileSource extends XYZSource {
+export class OpenEOTileSource extends DataTileSource {
   constructor(options: IOpenEOTileSourceOptions) {
     const tileLoadFunction =
-      (retries: number): LoadFunction =>
-      async (tile: any, _src: string) => {
+      (retries: number): Loader =>
+      async (z, x, y, loaderOptions) => {
         await this._connected.promise;
 
         let url = this._url;
@@ -496,20 +538,18 @@ export class OpenEOTileSource extends XYZSource {
         }
 
         retries -= 1;
-        const retry: LoadFunction = async (tile: any, _src: string) => {
+        const retry = async () => {
           await new Promise(resolve => setTimeout(resolve, TILE_RETRY_RATE));
-          return tileLoadFunction(retries)(tile, _src);
+          return tileLoadFunction(retries)(z, x, y, loaderOptions);
         };
-
-        const [z, x, y] = tile.tileCoord;
 
         // openEO backends vary in how they format XYZ service URLs:
         // some return raw `{z}/{x}/{y}` placeholders, others return them
         // URL-encoded as `%7Bz%7D/...`. Handle both forms so the same
         // code works against either kind of backend.
-        url = url.replace('%7Bz%7D', z).replace('{z}', z);
-        url = url.replace('%7By%7D', y).replace('{y}', y);
-        url = url.replace('%7Bx%7D', x).replace('{x}', x);
+        url = url.replace('%7Bz%7D', String(z)).replace('{z}', String(z));
+        url = url.replace('%7By%7D', String(y)).replace('{y}', String(y));
+        url = url.replace('%7Bx%7D', String(x)).replace('{x}', String(x));
 
         let res: Response;
         try {
@@ -518,12 +558,11 @@ export class OpenEOTileSource extends XYZSource {
           const errorMessage: string = err?.message ?? String(err);
 
           if (errorMessage.toLowerCase().includes('rate limit')) {
-            return retry(tile, _src);
+            return retry();
           }
 
           this._reportTileError(`Tile request failed: ${errorMessage}`);
-          tile.setState(3);
-          return;
+          throw err;
         }
 
         if (!res.ok) {
@@ -545,24 +584,29 @@ export class OpenEOTileSource extends XYZSource {
           }
 
           if (detail.toLowerCase().includes('rate limit')) {
-            return retry(tile, _src);
+            return retry();
           }
 
           this._reportTileError(
             `HTTP ${res.status} from OpenEO tile service${detail ? `: ${detail}` : ''}`,
           );
-          tile.setState(3);
-          return;
+          throw new Error(`HTTP ${res.status}`);
         }
 
-        const blob = await res.blob();
-        tile.getImage().src = URL.createObjectURL(blob);
+        if (res.headers.get('Content-Type')?.includes('tiff')) {
+          const tiff = await fromArrayBuffer(await res.arrayBuffer());
+          const image = await tiff.getImage();
+          const raster = await image.readRasters({ interleave: true });
+          return new Float32Array(raster as TypedArray);
+        }
+
+        return createImageBitmap(await res.blob());
       };
 
     super({
       ...options,
-      url: '{z},{x},{y}',
-      tileLoadFunction: tileLoadFunction(TILE_MAX_RETRY),
+      loader: tileLoadFunction(TILE_MAX_RETRY),
+      wrapX: true,
     });
 
     this.serverUrl = options.serverUrl;
@@ -603,67 +647,26 @@ export class OpenEOTileSource extends XYZSource {
       return;
     }
 
-    // Otherwise, try to create the service URL
+    // Otherwise create the service ourselves, which needs a session.
     try {
-      this._connection = getOpenEOConnection(options.serverUrl);
+      getOpenEOConnection(options.serverUrl);
     } catch {
+      // Signing in makes mainView rebuild this source, so give up here.
       await promptOpenEOLogin(options.serverUrl);
-    }
-
-    if (!this._connection) {
       throw new Error('Failed to get OpenEO service connection');
     }
 
-    // Inject `save_result` for graphs that omit it (e.g. ESA UDPs).
-    const graph = (await this._resultIsSavingUserProcess(options.processGraph))
-      ? options.processGraph
-      : ensureSaveResult(options.processGraph);
-
-    let service: Service | null = null;
-
-    try {
-      service = await this._connection.createService(graph, 'XYZ');
-    } catch (e) {
-      throw new Error(`Failed to create the XYZ service ${e}`);
-    }
-
-    if (!service.url) {
-      throw new Error('Failed to connect to XYZ service');
-    }
-
-    this._url = service.url;
+    this._url = await createOpenEOTileService(
+      options.serverUrl,
+      options.processGraph,
+    );
 
     this._connected.resolve();
 
     this.refresh();
   }
 
-  private async _resultIsSavingUserProcess(
-    graph: Record<string, any>,
-  ): Promise<boolean> {
-    const nodes = Object.values(graph);
-    const result = nodes.find((node: any) => node?.result === true);
-    if (
-      !this._connection ||
-      !result ||
-      result.process_id === 'save_result' ||
-      (result.namespace && result.namespace !== 'user')
-    ) {
-      return false;
-    }
-    try {
-      const udp = await this._connection.getUserProcess(result.process_id);
-      return Object.values(udp.processGraph ?? {}).some(
-        (node: any) => node?.process_id === 'save_result',
-      );
-    } catch {
-      return false;
-    }
-  }
-
   private _url: string | null = null;
-
-  private _connection: Connection | null = null;
 
   private _connected: PromiseDelegate<void> = new PromiseDelegate();
 

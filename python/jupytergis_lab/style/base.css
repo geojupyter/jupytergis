@@ -779,6 +779,10 @@ div.jGIS-toolbar-widget > div.jp-Toolbar-item:last-child {
   cursor: crosshair;
 }
 
+.jGIS-point-selection-tool .maplibregl-canvas {
+  cursor: crosshair;
+}
+
 .jgis-scrollable {
   overflow: auto;
   height: 100%;

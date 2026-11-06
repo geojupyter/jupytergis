@@ -62,6 +62,11 @@ export function toMapLibreExpr(value: any): any {
     if (op === 'band') {
       return undefined;
     }
+    // MapLibre reads the zoom only in a top-level step or interpolate, so a zoom
+    // condition cannot be expressed here. Let it pass so the layer still draws.
+    if (Array.isArray(args[0]) && args[0][0] === 'resolution') {
+      return true;
+    }
     if (
       op === 'case' &&
       args.length === 3 &&

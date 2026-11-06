@@ -23,6 +23,7 @@ import {
   runServerProcessingUrlWithCutline,
 } from './serverProcessing';
 import { getGdal } from '../../gdal';
+import { maybeProxied } from '../../shared/proxy';
 import { getGeoJSONDataFromLayerSource, getUniqueFilePath } from '../../tools';
 import { JupyterGISTracker } from '../../types';
 import { launchFollowable } from '../follow';
@@ -539,9 +540,11 @@ async function getRasterBytes(
     return bytes;
   }
 
-  // Remote URL — fetch directly
+  // Remote URL
   if (url.startsWith('http://') || url.startsWith('https://')) {
-    const response = await fetch(url);
+    const response = await fetch(
+      await maybeProxied(url, model, params.httpHeaders),
+    );
     if (!response.ok) {
       console.error(
         `Failed to fetch raster from ${url}: ${response.statusText}`,
