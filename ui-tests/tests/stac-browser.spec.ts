@@ -69,26 +69,56 @@ test.describe('#stac-browser', () => {
         await route.fulfill({ json: mockStacResponse });
       },
     );
+
     const main = page.locator('.jGIS-Mainview');
     await expect(main).toBeVisible();
 
-    await page.getByText('Stac Browser').click();
+    // STAC lives in the floating right dock; open it from Add Layer.
+    await page.getByTestId('new-entry-button').click();
+    const addStacItem = page
+      .locator('.lm-Menu-item')
+      .filter({ hasText: 'Add STAC Layer' });
+    await expect(addStacItem).toBeVisible();
+    await addStacItem.click();
+
+    // Header keeps title="" even when the label is visually hidden on the chip.
+    const stacHeader = page.locator(
+      '.jgis-floating-right-panel-header[title="STAC Browser"]',
+    );
+    await expect(stacHeader).toBeVisible({ timeout: 15000 });
+
+    const stacPanel = page
+      .locator('.jgis-floating-right-panel')
+      .filter({ has: stacHeader });
+
+    // Auto-open is async (registerOpen effect); click the chip if needed.
+    await expect(async () => {
+      if (await stacPanel.evaluate(el => el.hasAttribute('data-closed'))) {
+        await stacHeader.click();
+      }
+      expect(
+        await stacPanel.evaluate(el => el.hasAttribute('data-open')),
+      ).toBe(true);
+    }).toPass({ timeout: 15000 });
+
+    const filters = stacPanel.locator('.jgis-stac-filter-extension-panel');
+    await expect(filters).toBeVisible({ timeout: 15000 });
 
     // The panel restores saved filters from the state DB asynchronously and
     // overwrites anything selected before that lands, so let it settle first.
     await page.waitForTimeout(2000);
 
-    await page.getByLabel('Provider').selectOption({ label: 'GEODES' });
-    await page.getByRole('button', { name: 'Collection' }).click();
+    await stacPanel.getByLabel('Provider').selectOption({ label: 'GEODES' });
+    await stacPanel.getByRole('button', { name: 'Collection' }).click();
     await page.getByRole('menuitem', { name: 'Sentinel 2' }).hover();
     await page.getByRole('menuitemcheckbox', { name: 'PEPS_S2_L1C' }).click();
     await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
     await expect(page.getByRole('menu')).toHaveCount(0);
 
-    await page.getByRole('tab', { name: /Results/ }).click();
+    await stacPanel.getByRole('tab', { name: /Results/ }).click();
 
-    const resultsList = page.locator('.jgis-stac-browser-results-list');
+    const resultsList = stacPanel.locator('.jgis-stac-browser-results-list');
     await expect(resultsList.locator('button')).toHaveCount(1, {
       timeout: 30000,
     });
