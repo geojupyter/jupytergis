@@ -73,6 +73,7 @@ export const exportGeoJSON = 'jupytergis:exportGeoJSON';
 export const toggleLeftPanel = 'jupytergis:toggleLeftPanel';
 export const toggleRightPanel = 'jupytergis:toggleRightPanel';
 export const togglePanel = 'jupytergis:togglePanel';
+export const toggleStacBrowser = 'jupytergis:toggleStacBrowser';
 
 // Left panel tabs
 export const showLayersTab = 'jupytergis:showLayersTab';

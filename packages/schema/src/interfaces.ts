@@ -74,6 +74,7 @@ export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
   rightPanelOpen?: boolean;
+  stacBrowserOpen?: boolean;
   locationIndicatorActive?: boolean;
 }
 
