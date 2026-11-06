@@ -110,6 +110,7 @@ interface IStates {
   clientPointers: IDict<ClientPointer>;
   viewProjection: { code: string; units: string };
   loadingLayer: boolean;
+  loadingLayerProgress: number | null;
   cursorCoordMode: CursorCoordMode;
   cursorDisplay: ICursorDisplay | null;
   loadingErrors: Array<{ id: string; error: any; index: number }>;
@@ -246,6 +247,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       clientPointers: {},
       viewProjection: { code: '', units: '' },
       loadingLayer: false,
+      loadingLayerProgress: null,
       cursorCoordMode: loadCursorCoordMode(),
       cursorDisplay: null,
       loadingErrors: [],
@@ -518,7 +520,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
             drawGeometryLabel: label,
           })),
         onAllLayersSettled: () => {
-          this.setState(old => ({ ...old, loadingLayer: false }));
+          this._resetLayerLoadProgress();
         },
         onLayerInserted: layerCount => {
           if (
@@ -529,10 +531,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           }
         },
         onLayerAddStarted: () => {
-          this.setState(old => ({ ...old, loadingLayer: true }));
+          this._layerLoadStarted += 1;
+          this._syncLayerLoadProgress();
         },
-        onLayerAddSettled: id => {
-          this.setState(old => ({ ...old, loadingLayer: false }));
+        onLayerAddSettled: () => {
+          this._layerLoadSettled += 1;
+          this._syncLayerLoadProgress();
         },
         onLayerError: (id, message) => {
           // greys the layer out
@@ -1113,11 +1117,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         ...old,
         loading: true,
         loadingLayer: false,
+        loadingLayerProgress: null,
         initialLayersReady: false,
         loadingErrors: [],
         clientPointers: {},
         comparison: null,
       }));
+      this._layerLoadStarted = 0;
+      this._layerLoadSettled = 0;
 
       // Mount again from the saved options
       const options = this._model.getOptions();
@@ -1830,6 +1837,32 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mapAdapter?.onFeatureStoresChanged();
   }
 
+  private _syncLayerLoadProgress(): void {
+    const total = this._layerLoadStarted;
+    const done = this._layerLoadSettled;
+
+    if (total === 0 || done >= total) {
+      this._resetLayerLoadProgress();
+      return;
+    }
+
+    this.setState(old => ({
+      ...old,
+      loadingLayer: true,
+      loadingLayerProgress: Math.round((done / total) * 100),
+    }));
+  }
+
+  private _resetLayerLoadProgress(): void {
+    this._layerLoadStarted = 0;
+    this._layerLoadSettled = 0;
+    this.setState(old => ({
+      ...old,
+      loadingLayer: false,
+      loadingLayerProgress: null,
+    }));
+  }
+
   render(): JSX.Element {
     const {
       clientPointers,
@@ -1847,6 +1880,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       cursorDisplay,
       loading,
       loadingLayer,
+      loadingLayerProgress,
       remoteUser,
       segmentTransition,
       viewProjection,
@@ -1944,6 +1978,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               jgisModel={this._model}
               commands={this._mainViewModel.commands}
               loading={loadingLayer}
+              loadingProgress={loadingLayerProgress}
               projection={viewProjection}
               onProjectionChange={code =>
                 this._model.projectionChangedSignal.emit(code)
@@ -2042,6 +2077,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private _pendingStoryScrollRafId: number | null = null;
   private _initialLayersCount: number;
   private _spectaTouchStartX = 0;
+  private _layerLoadStarted = 0;
+  private _layerLoadSettled = 0;
 }
 
 // ! TODO make mainview a modern react component instead of a class
