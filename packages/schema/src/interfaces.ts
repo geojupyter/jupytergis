@@ -844,3 +844,10 @@ export interface IJupyterGISSettings {
   // Processing
   useServerGdalProcessing?: boolean | null;
 }
+
+/** Saves and loads the openEO OIDC refresh tokens, per issuer and client id. */
+export interface IOpenEOTokensProvider {
+  get(server: string, provider: string): Promise<string | null>;
+  set(server: string, provider: string, token: string): Promise<void>;
+  remove(server: string, provider: string): Promise<void>;
+}

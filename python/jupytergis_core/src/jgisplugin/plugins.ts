@@ -8,6 +8,7 @@ import {
   logoMiniIcon,
   resetServerAvailabilityCache,
   setFeatureStoreAvailable,
+  setOpenEOTokensProvider,
   setServerProcessingEnabled,
   showAboutDialog,
 } from '@jupytergis/base';
@@ -23,6 +24,8 @@ import {
   ProcessingMerge,
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
+  IOpenEOTokensProvider,
+  IOpenEOTokensProviderToken,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -179,6 +182,7 @@ const activate = async (
   settingRegistry: ISettingRegistry,
   formSchemaRegistry: IJGISFormSchemaRegistry,
   state: IStateDB,
+  openEOTokens: IOpenEOTokensProvider,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
   collaborativeContentProvider: ICollaborativeContentProvider | null,
@@ -188,6 +192,8 @@ const activate = async (
 ): Promise<void> => {
   formSchemaRegistry && state;
   const trans = (translator ?? nullTranslator).load('jupyterlab');
+
+  setOpenEOTokensProvider(openEOTokens);
 
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
@@ -444,6 +450,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     ISettingRegistry,
     IJGISFormSchemaRegistryToken,
     IStateDB,
+    IOpenEOTokensProviderToken,
   ],
   optional: [
     ILauncher,

@@ -1,4 +1,7 @@
-import { AnnotationModel } from '@jupytergis/base';
+import {
+  AnnotationModel,
+  LocalStorageOpenEOTokensProvider,
+} from '@jupytergis/base';
 import {
   IAnnotationModel,
   IAnnotationToken,
@@ -11,6 +14,8 @@ import {
   IJupyterGISDocTracker,
   IJupyterGISTracker,
   IJupyterGISWidget,
+  IOpenEOTokensProvider,
+  IOpenEOTokensProviderToken,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -108,3 +113,18 @@ export const annotationPlugin: JupyterFrontEndPlugin<IAnnotationModel> = {
     return annotationModel;
   },
 };
+
+/**
+ * Keeps the openEO sign-in across reloads. A deployment that cannot keep
+ * credentials in the browser disables this plugin and provides its own store.
+ */
+export const openEOTokensPlugin: JupyterFrontEndPlugin<IOpenEOTokensProvider> =
+  {
+    id: 'jupytergis:core:openeo-tokens',
+    autoStart: true,
+    requires: [],
+    provides: IOpenEOTokensProviderToken,
+    activate: (app: JupyterFrontEnd) => {
+      return new LocalStorageOpenEOTokensProvider();
+    },
+  };
