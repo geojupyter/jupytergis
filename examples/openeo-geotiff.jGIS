@@ -1,0 +1,122 @@
+{
+  "annotations": {},
+  "layerTree": [
+    "875503ec-f6f9-478d-a8b9-3ce5ca9df5e8",
+    "7a42308f-d86c-4ba4-b5ca-133150c260ac"
+  ],
+  "layers": {
+    "7a42308f-d86c-4ba4-b5ca-133150c260ac": {
+      "name": "Copernicus DEM (GeoTIFF)",
+      "parameters": {
+        "opacity": 0.9,
+        "source": "85e889b1-c501-40d1-b919-474a112cb3e2"
+      },
+      "type": "OpenEOTileLayer",
+      "visible": true
+    },
+    "875503ec-f6f9-478d-a8b9-3ce5ca9df5e8": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "d47186b1-94f5-4601-9be8-132a5d30092d"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -8452461.133689053,
+      4570005.032401172,
+      -8439692.108892083,
+      4582032.288122799
+    ],
+    "latitude": 37.97587741062135,
+    "longitude": -75.87239719749884,
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 13.113690895728132
+  },
+  "presets": {},
+  "schemaVersion": "0.7.0",
+  "sources": {
+    "85e889b1-c501-40d1-b919-474a112cb3e2": {
+      "name": "Copernicus DEM (GeoTIFF) Source",
+      "parameters": {
+        "processGraph": {
+          "load": {
+            "arguments": {
+              "bands": [
+                "data"
+              ],
+              "id": "cop-dem-glo-30",
+              "spatial_extent": {
+                "east": 7.5,
+                "north": 46.2,
+                "south": 45.5,
+                "west": 6.5
+              },
+              "temporal_extent": [
+                "2021-04-22T00:00:00Z",
+                "2021-04-23T00:00:00Z"
+              ]
+            },
+            "process_id": "load_collection"
+          },
+          "mosaic": {
+            "arguments": {
+              "data": {
+                "from_node": "load"
+              },
+              "dimension": "t",
+              "reducer": {
+                "process_graph": {
+                  "first": {
+                    "arguments": {
+                      "data": {
+                        "from_parameter": "data"
+                      }
+                    },
+                    "process_id": "firstpixel",
+                    "result": true
+                  }
+                }
+              }
+            },
+            "process_id": "reduce_dimension"
+          },
+          "save": {
+            "arguments": {
+              "data": {
+                "from_node": "mosaic"
+              },
+              "format": "GTiff",
+              "options": {}
+            },
+            "process_id": "save_result",
+            "result": true
+          }
+        },
+        "serverUrl": "http://localhost:8082"
+      },
+      "type": "OpenEOTileSource"
+    },
+    "d47186b1-94f5-4601-9be8-132a5d30092d": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "httpHeaders": "",
+        "interpolate": false,
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}
