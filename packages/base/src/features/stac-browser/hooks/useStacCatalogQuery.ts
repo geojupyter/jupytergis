@@ -49,9 +49,7 @@ function toDate(value: string | null): Date | undefined {
 
 /**
  * Search a STAC catalog with collection, bbox, and product time.
- * Product time uses the query extension (`end_datetime` / `start_datetime`),
- * matching the overlap GEODES already sends. The STAC `datetime` parameter
- * is not sent.
+ * Product time uses the query extension (`end_datetime` / `start_datetime`)
  */
 export function useStacCatalogQuery({
   model,
