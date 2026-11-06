@@ -104,7 +104,7 @@ export const ENCODING_LABELS: Partial<Record<Encoding, string>> = {
   'pixel-color': 'pixel-rgba',
   'text-value': 'label text',
   'text-font-size': 'label font size',
-  'text-font-family': 'label font',
+  'text-font-family': 'label font family',
   'text-font': 'label font (CSS shorthand)',
   'text-fill-color': 'label color',
   'text-stroke-color': 'label halo color',
