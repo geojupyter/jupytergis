@@ -84,10 +84,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   return (
     <div className="jgis-status-bar">
       <div
-        className={cn(
-          'jgis-status-bar-progress',
-          !showProgress && 'hidden',
-        )}
+        className={cn('jgis-status-bar-progress', !showProgress && 'hidden')}
         aria-hidden={!showProgress}
       >
         <Progress value={loadingProgress} className="w-full gap-0" />
