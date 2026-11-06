@@ -1,6 +1,5 @@
 import { faLocationDot, faMap } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Progress } from '@jupyter/react-components';
 import { IJupyterGISModel } from '@jupytergis/schema';
 import { CommandRegistry } from '@lumino/commands';
 import React, { useEffect, useState } from 'react';
@@ -15,12 +14,14 @@ import {
 import { MAP_ADAPTER_FEATURES } from '@/src/mainview/mapAdapterFeatures';
 import { wrapToInterval } from '@/src/mainview/utils/wrapToInterval';
 import { Button } from '@/src/shared/components/Button';
+import { Progress } from '@/src/shared/components/Progress';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
 } from '@/src/shared/components/Select';
+import { cn } from '@/src/shared/components/utils';
 import { ProjectionCombobox } from './ProjectionCombobox';
 
 const CURSOR_COORD_MODES: { value: CursorCoordMode; label: string }[] = [
@@ -33,6 +34,8 @@ interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
   commands: CommandRegistry;
   loading?: boolean;
+  /** Layer-add progress 0–100; null while idle. */
+  loadingProgress?: number | null;
   projection?: { code: string; units: string };
   onProjectionChange?: (code: string) => void;
   cursor: ICursorDisplay | null;
@@ -43,6 +46,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   jgisModel,
   commands,
   loading,
+  loadingProgress = null,
   projection,
   onProjectionChange,
   cursor,
@@ -75,13 +79,19 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   const rendererName = activeFeatures.name;
   const canChangeProjection = activeFeatures.customProjections;
 
+  const showProgress = Boolean(loading || loadingProgress !== null);
+
   return (
     <div className="jgis-status-bar">
-      {loading && (
-        <div style={{ width: '16%', padding: '0 6px' }}>
-          <Progress height={14} />
-        </div>
-      )}
+      <div
+        className={cn(
+          'jgis-status-bar-progress',
+          !showProgress && 'hidden',
+        )}
+        aria-hidden={!showProgress}
+      >
+        <Progress value={loadingProgress} className="w-full gap-0" />
+      </div>
       <Select
         value={cursorCoordMode}
         onValueChange={value => {
