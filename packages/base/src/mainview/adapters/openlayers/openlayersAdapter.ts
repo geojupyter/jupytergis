@@ -2127,6 +2127,14 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
   }
 
+  private _reportTileProgress(): void {
+    if (this._tilesLoaded === this._tilesTotal) {
+      this._tilesLoaded = 0;
+      this._tilesTotal = 0;
+    }
+    this._callbacks?.onTileProgress?.(this._tilesLoaded, this._tilesTotal);
+  }
+
   /**
    * Wait for all layers to be loaded.
    */
@@ -2543,6 +2551,14 @@ export class OpenLayersAdapter implements IMapAdapter {
           const sourceParameters = source.parameters as IOpenEOTileSource;
 
           newSource = new OpenEOTileSource(sourceParameters);
+          newSource.on('tileloadstart', () => {
+            this._tilesTotal += 1;
+            this._reportTileProgress();
+          });
+          newSource.on(['tileloadend', 'tileloaderror'], () => {
+            this._tilesLoaded += 1;
+            this._reportTileProgress();
+          });
 
           break;
         }
@@ -3867,6 +3883,8 @@ export class OpenLayersAdapter implements IMapAdapter {
   private _comparisonKey?: EventsKey;
   private _loggerRegistry?: ILoggerRegistry;
   private _loadingLayers: Set<string>;
+  private _tilesLoaded = 0;
+  private _tilesTotal = 0;
   private _highlightLayerRef: {
     current: VectorImageLayer<VectorSource> | null;
   } = { current: null };
