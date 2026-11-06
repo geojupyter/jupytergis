@@ -16,10 +16,12 @@ import {
 } from '@openeo/js-client';
 // @ts-expect-error
 import Environment from '@openeo/js-client/src/env';
-import { LoadFunction } from 'ol/Tile';
-import TileLayer from 'ol/layer/Tile';
-import { XYZ as XYZSource } from 'ol/source';
-import { Options as XYZOptions } from 'ol/source/XYZ';
+import { fromArrayBuffer, TypedArray } from 'geotiff';
+import WebGLTileLayer from 'ol/layer/WebGLTile';
+import DataTileSource, {
+  Loader,
+  Options as DataTileOptions,
+} from 'ol/source/DataTile';
 import React from 'react';
 
 import { maybeProxied } from '@/src/shared/proxy';
@@ -437,11 +439,11 @@ async function resultIsSavingUserProcess(
   }
 }
 
-export class OpenEOTileLayer extends TileLayer {
+export class OpenEOTileLayer extends WebGLTileLayer {
   // Just an alias
 }
 
-export interface IOpenEOTileSourceOptions extends XYZOptions {
+export interface IOpenEOTileSourceOptions extends DataTileOptions {
   /**
    * The process graph value.
    */
@@ -459,11 +461,11 @@ export interface IOpenEOTileSourceOptions extends XYZOptions {
   tileServiceURL?: string;
 }
 
-export class OpenEOTileSource extends XYZSource {
+export class OpenEOTileSource extends DataTileSource {
   constructor(options: IOpenEOTileSourceOptions) {
     const tileLoadFunction =
-      (retries: number): LoadFunction =>
-      async (tile: any, _src: string) => {
+      (retries: number): Loader =>
+      async (z, x, y, loaderOptions) => {
         await this._connected.promise;
 
         let url = this._url;
@@ -473,20 +475,18 @@ export class OpenEOTileSource extends XYZSource {
         }
 
         retries -= 1;
-        const retry: LoadFunction = async (tile: any, _src: string) => {
+        const retry = async () => {
           await new Promise(resolve => setTimeout(resolve, TILE_RETRY_RATE));
-          return tileLoadFunction(retries)(tile, _src);
+          return tileLoadFunction(retries)(z, x, y, loaderOptions);
         };
-
-        const [z, x, y] = tile.tileCoord;
 
         // openEO backends vary in how they format XYZ service URLs:
         // some return raw `{z}/{x}/{y}` placeholders, others return them
         // URL-encoded as `%7Bz%7D/...`. Handle both forms so the same
         // code works against either kind of backend.
-        url = url.replace('%7Bz%7D', z).replace('{z}', z);
-        url = url.replace('%7By%7D', y).replace('{y}', y);
-        url = url.replace('%7Bx%7D', x).replace('{x}', x);
+        url = url.replace('%7Bz%7D', String(z)).replace('{z}', String(z));
+        url = url.replace('%7By%7D', String(y)).replace('{y}', String(y));
+        url = url.replace('%7Bx%7D', String(x)).replace('{x}', String(x));
 
         let res: Response;
         try {
@@ -495,12 +495,11 @@ export class OpenEOTileSource extends XYZSource {
           const errorMessage: string = err?.message ?? String(err);
 
           if (errorMessage.toLowerCase().includes('rate limit')) {
-            return retry(tile, _src);
+            return retry();
           }
 
           this._reportTileError(`Tile request failed: ${errorMessage}`);
-          tile.setState(3);
-          return;
+          throw err;
         }
 
         if (!res.ok) {
@@ -522,24 +521,29 @@ export class OpenEOTileSource extends XYZSource {
           }
 
           if (detail.toLowerCase().includes('rate limit')) {
-            return retry(tile, _src);
+            return retry();
           }
 
           this._reportTileError(
             `HTTP ${res.status} from OpenEO tile service${detail ? `: ${detail}` : ''}`,
           );
-          tile.setState(3);
-          return;
+          throw new Error(`HTTP ${res.status}`);
         }
 
-        const blob = await res.blob();
-        tile.getImage().src = URL.createObjectURL(blob);
+        if (res.headers.get('Content-Type')?.includes('tiff')) {
+          const tiff = await fromArrayBuffer(await res.arrayBuffer());
+          const image = await tiff.getImage();
+          const raster = await image.readRasters({ interleave: true });
+          return new Float32Array(raster as TypedArray);
+        }
+
+        return createImageBitmap(await res.blob());
       };
 
     super({
       ...options,
-      url: '{z},{x},{y}',
-      tileLoadFunction: tileLoadFunction(TILE_MAX_RETRY),
+      loader: tileLoadFunction(TILE_MAX_RETRY),
+      wrapX: true,
     });
 
     this.serverUrl = options.serverUrl;
