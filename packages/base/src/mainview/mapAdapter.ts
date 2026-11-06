@@ -181,6 +181,7 @@ export interface IMapAdapterCallbacks {
   onLayerAddSettled?: (id: string) => void;
   onLayerError?: (id: string, message: string) => void;
   onLayerLoaded?: (id: string) => void;
+  onTileProgress?: (loaded: number, total: number) => void;
   onClientPointerPositionChanged?: () => void;
 }
 
