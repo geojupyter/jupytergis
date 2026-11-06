@@ -263,6 +263,17 @@ function formatPredicate(p: IPredicate): string {
       return `${p.field} ${p.op} ${p.value}`;
     case 'between':
       return `${p.field} between ${p.min} and ${p.max}`;
+    case 'zoomRange':
+      if (p.minZoom !== undefined && p.maxZoom !== undefined) {
+        return `zoom between ${p.minZoom} and ${p.maxZoom}`;
+      }
+      if (p.minZoom !== undefined) {
+        return `zoom >= ${p.minZoom}`;
+      }
+      if (p.maxZoom !== undefined) {
+        return `zoom <= ${p.maxZoom}`;
+      }
+      return 'any zoom';
     default:
       throw new Error(`Invalid predicate type ${p}`);
   }

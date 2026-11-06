@@ -18,6 +18,7 @@ export interface IMapAdapterFeatures {
   readonly layerComparison: boolean;
   readonly heatmapSymbology: boolean;
   readonly clusterSymbology: boolean;
+  readonly zoomRangeSymbology: boolean;
   readonly customProjections: boolean;
   readonly requiresVectorTileSourceLayer: boolean;
 }
@@ -60,6 +61,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
   layerComparison: false,
   heatmapSymbology: false,
   clusterSymbology: false,
+  zoomRangeSymbology: false,
   customProjections: false,
   requiresVectorTileSourceLayer: true,
 };
@@ -102,6 +104,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
   layerComparison: true,
   heatmapSymbology: true,
   clusterSymbology: true,
+  zoomRangeSymbology: true,
   customProjections: true,
   requiresVectorTileSourceLayer: false,
 };
@@ -200,11 +203,15 @@ const TOOL_LABELS: Record<ToolKey, string> = {
   customProjections: 'Custom projections',
 } as const;
 
-type SymbologyKey = 'heatmapSymbology' | 'clusterSymbology';
+type SymbologyKey =
+  | 'heatmapSymbology'
+  | 'clusterSymbology'
+  | 'zoomRangeSymbology';
 
 const SYMBOLOGY_LABELS: Record<SymbologyKey, string> = {
   heatmapSymbology: 'Heatmap (KDE)',
   clusterSymbology: 'Point Clustring',
+  zoomRangeSymbology: 'Zoom range conditions',
 };
 
 export interface ISupportRow {
