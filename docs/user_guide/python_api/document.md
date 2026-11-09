@@ -244,24 +244,23 @@ doc
 
 `center` is a `(longitude, latitude)` pair, and defaults to the current map center. Pass a `[west, south, east, north]` bounding box as `extent` instead if that is what you have. Open the story panel in the map toolbar to present it.
 
-Use `create_story` first when you want to set the title or the presentation colors:
+Use `create_story` first when you want to set the title or how the story is presented:
 
 ```python
 doc.create_story(
     title="A tour of France",
     story_type="Vertical Scroll",
-    presentation_bg_color="#101820",
-    presentation_text_color="#f2f2f2",
+    story_panel_opacity=0.9,
 )
 ```
 
-`update_story` changes those later, and properties you leave out keep their value:
+`doc.story` reads the story back as an object, and setting an attribute writes it back to the document:
 
 ```python
-doc.update_story(title="A short tour of France", story_panel_opacity=0.8)
+doc.story.title = "A short tour of France"
+doc.story.storyPanelOpacity = 0.8
 
-print(doc.story)  # the story properties
-print(doc.story_segments)  # segment ids, in presentation order
+print(doc.story.segments)  # segment layers, in presentation order
 ```
 
 A segment can also override how other layers are drawn while it is on screen:
@@ -277,7 +276,7 @@ doc.add_story_segment(
 )
 ```
 
-Segments are layers, so `doc.remove_layer(segment_id)` removes one and drops it from the story.
+`add_story_segment` returns the segment layer. Segments are layers, so `doc.remove_layer(segment)` removes one and drops it from the story.
 
 ## Remove layers and inspect document content
 
