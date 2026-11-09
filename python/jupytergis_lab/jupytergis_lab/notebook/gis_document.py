@@ -1749,7 +1749,7 @@ class GISDocument(CommWidget):
         :param transition: The animation used to reach this segment.
         :param transition_time: The duration of the transition, in seconds.
         :param enable_identify: Whether to show the identify control while the segment is active.
-        :param layer_overrides: Visibility, opacity and symbology overrides applied to other layers while the segment is active.
+        :param layer_overrides: Visibility, opacity and symbology overrides applied to other layers while the segment is active, each with the layer it applies to as ``targetLayer``.
         """
         self._assert_is_ready()
         self._ensure_qgis_supported(LayerType.StorySegmentLayer)
@@ -1793,7 +1793,10 @@ class GISDocument(CommWidget):
                 "enableIdentify": enable_identify,
                 "transition": {"type": transition, "time": transition_time},
                 "content": content,
-                "layerOverride": layer_overrides or [],
+                "layerOverride": [
+                    {**override, "targetLayer": _layer_id(override["targetLayer"])}
+                    for override in layer_overrides or []
+                ],
             },
         }
 

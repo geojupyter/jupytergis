@@ -624,7 +624,7 @@ class TestStoryMap(TestDocument):
         segment = self.doc.add_story_segment(
             center=(2.0, 47.0),
             zoom=5,
-            layer_overrides=[{"targetLayer": layer._id, "visible": False}],
+            layer_overrides=[{"targetLayer": layer, "visible": False}],
         )
 
         overrides = self.doc._layers[segment._id]["parameters"]["layerOverride"]
