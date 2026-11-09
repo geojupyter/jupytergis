@@ -588,7 +588,7 @@ class TestStoryMap(TestDocument):
                 zoom=5,
             )
 
-    def test_markdown_switches_the_content_mode(self):
+    def test_markdown_keeps_the_map_content_mode(self):
         self.doc._is_ready = True
         segment = self.doc.add_story_segment(
             center=(2.0, 47.0),
@@ -599,7 +599,7 @@ class TestStoryMap(TestDocument):
         )
 
         content = self.doc._layers[segment._id]["parameters"]["content"]
-        assert content["contentMode"] == "markdown"
+        assert content["contentMode"] == "map"
         assert content["markdown"] == "# Title"
         assert content["image"] == "https://example.com/a.png"
         assert content["imageCaption"] == "A caption"

@@ -439,9 +439,11 @@ class GISDocument(CommWidget):
 
         # Listening to options change (assuming that when we receive the options it means the doc is synced)
         loop = self._ready_future.get_loop()
-        self._options_subscription = self._options.observe(
-            lambda _event: loop.call_soon_threadsafe(self._handle_doc_ready),
-        )
+
+        def on_options_change(_event: Any) -> None:
+            loop.call_soon_threadsafe(self._handle_doc_ready)
+
+        self._options_subscription = self._options.observe(on_options_change)
 
         # If it's an untitled doc, trigger doc ready
         if path is None:
@@ -1675,7 +1677,7 @@ class GISDocument(CommWidget):
         markdown: str | None = None,
         image: str | None = None,
         image_caption: str | None = None,
-        content_mode: ContentMode | None = None,
+        content_mode: ContentMode = "map",
         pane_alignment: PaneAlignment | None = None,
         panel_width: str | None = None,
         transition: TransitionType = "linear",
@@ -1712,10 +1714,7 @@ class GISDocument(CommWidget):
                 raise ValueError("A story segment needs either an extent or a center")
             center = cast("tuple[float, float]", (longitude, latitude))
 
-        content: dict[str, Any] = {
-            "contentMode": content_mode
-            or ("markdown" if markdown is not None else "map"),
-        }
+        content: dict[str, Any] = {"contentMode": content_mode}
         if markdown is not None:
             content["markdown"] = markdown
         if image is not None:

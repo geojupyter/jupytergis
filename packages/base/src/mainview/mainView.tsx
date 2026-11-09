@@ -523,7 +523,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         onLayerInserted: layerCount => {
           if (
             !this.state.initialLayersReady &&
-            layerCount === this._initialLayersCount
+            layerCount >= this._initialLayersCount
           ) {
             this.setState(old => ({ ...old, initialLayersReady: true }));
           }
