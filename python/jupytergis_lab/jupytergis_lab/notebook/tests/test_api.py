@@ -1,5 +1,5 @@
 import pytest
-from jupytergis_core.schema import LayerType, SourceType
+from jupytergis_core.schema import LayerType, SourceType, StoryType
 from pycrdt import Map
 from pydantic import ValidationError
 
@@ -535,9 +535,9 @@ class TestStoryMap(TestDocument):
         self.doc._is_ready = True
         segment = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
 
-        assert self.doc.story["title"] == "New Story"
-        assert self.doc.story["storyType"] == "guided"
-        assert self.doc.story_segments == [segment._id]
+        assert self.doc.story.title == "New Story"
+        assert self.doc.story.storyType == StoryType.guided
+        assert self.doc.story.segments == [segment]
         assert segment.type == LayerType.StorySegmentLayer
 
     def test_segments_keep_insertion_order(self):
@@ -545,7 +545,7 @@ class TestStoryMap(TestDocument):
         first = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
         second = self.doc.add_story_segment(center=(3.0, 48.0), zoom=6)
 
-        assert self.doc.story_segments == [first._id, second._id]
+        assert self.doc.story.segments == [first, second]
         assert first.name == "Story Segment"
         assert second.name == "Story Segment 1"
 
@@ -633,18 +633,18 @@ class TestStoryMap(TestDocument):
 
     def test_create_story_then_add_segment(self):
         self.doc._is_ready = True
-        story_id = self.doc.create_story(
+        story = self.doc.create_story(
             title="My story",
             story_type="Vertical Scroll",
             presentation_bg_color="#111111",
         )
         segment = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
 
-        assert self.doc._selected_story()[0] == story_id
-        assert self.doc.story["title"] == "My story"
-        assert self.doc.story["storyType"] == "Vertical Scroll"
-        assert self.doc.story["presentationBgColor"] == "#111111"
-        assert self.doc.story_segments == [segment._id]
+        assert self.doc.story._id == story._id
+        assert self.doc.story.title == "My story"
+        assert self.doc.story.storyType == StoryType.Vertical_Scroll
+        assert self.doc.story.presentationBgColor == "#111111"
+        assert self.doc.story.segments == [segment]
 
     def test_create_story_twice_raises(self):
         self.doc._is_ready = True
@@ -652,20 +652,25 @@ class TestStoryMap(TestDocument):
         with pytest.raises(ValueError, match="already has a story"):
             self.doc.create_story()
 
-    def test_update_story_keeps_untouched_properties(self):
+    def test_setting_a_story_field_updates_the_document(self):
         self.doc._is_ready = True
-        self.doc.create_story(title="My story", story_panel_opacity=0.5)
+        story = self.doc.create_story(title="My story", story_panel_opacity=0.5)
         self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
-        self.doc.update_story(title="Renamed")
 
-        assert self.doc.story["title"] == "Renamed"
-        assert self.doc.story["storyPanelOpacity"] == 0.5
-        assert len(self.doc.story_segments) == 1
+        story.title = "Renamed"
 
-    def test_update_story_without_story_raises(self):
+        assert self.doc.story.title == "Renamed"
+        assert self.doc.story.storyPanelOpacity == 0.5
+        assert len(self.doc.story.segments) == 1
+
+    def test_setting_an_invalid_story_field_raises(self):
         self.doc._is_ready = True
-        with pytest.raises(ValueError, match="has no story"):
-            self.doc.update_story(title="Renamed")
+        story = self.doc.create_story()
+
+        with pytest.raises(ValidationError):
+            story.storyType = "scroll"
+        with pytest.raises(AttributeError):
+            story.nope = 1
 
     def test_invalid_story_type_raises(self):
         self.doc._is_ready = True
@@ -685,7 +690,7 @@ class TestStoryMap(TestDocument):
         self.doc.remove_layer(first)
 
         assert first._id not in self.doc._layers
-        assert self.doc.story_segments == [second._id]
+        assert self.doc.story.segments == [second]
 
     def test_remove_a_layer_while_a_segment_exists(self):
         self.doc._is_ready = True

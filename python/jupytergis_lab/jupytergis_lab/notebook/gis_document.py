@@ -46,7 +46,13 @@ from jupytergis_core.schema import (
     SourceType,
 )
 from pycrdt import Array, Map
-from pydantic import BaseModel, PrivateAttr, ValidationError, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    PrivateAttr,
+    ValidationError,
+    field_validator,
+)
 from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
 
@@ -259,8 +265,8 @@ def _story_segment_name(segment_count: int) -> str:
 def _story_properties(**keywords: Any) -> dict[str, Any]:
     """Validate the story keywords and return them as schema properties.
 
-    Keywords left as ``None`` are dropped, so that creating a story falls back
-    to the schema defaults and updating one leaves the rest untouched.
+    Keywords left as ``None`` are dropped, so that the story falls back to the
+    schema defaults.
     """
     given = {
         STORY_PROPERTIES[keyword]: value
@@ -535,15 +541,11 @@ class GISDocument(CommWidget):
             self._options["mapAdapter"] = value
 
     @property
-    def story(self) -> dict[str, Any] | None:
+    def story(self) -> JGISStory | None:
         """Get the story map of the document, or ``None`` when it has no story."""
-        return self._selected_story()[1]
-
-    @property
-    def story_segments(self) -> list[str]:
-        """Get the ids of the story segments, in presentation order."""
-        story = self.story
-        return list(story.get("storySegments") or []) if story else []
+        for story_id, story in (self._stories.to_py() or {}).items():
+            return JGISStory._build(self, story_id, **story)
+        return None
 
     @property
     def _is_qgis_document(self) -> bool:
@@ -1615,13 +1617,6 @@ class GISDocument(CommWidget):
             zoom_to=zoom_to,
         )
 
-    def _selected_story(self) -> tuple[str | None, dict[str, Any] | None]:
-        """The story the front end presents: a document holds at most one."""
-        stories = self._stories.to_py() or {}
-        for story_id, story in stories.items():
-            return story_id, story
-        return None, None
-
     def create_story(
         self,
         title: str = "New Story",
@@ -1633,11 +1628,11 @@ class GISDocument(CommWidget):
         presentation_bg_color: str | None = None,
         presentation_text_color: str | None = None,
         overlay_content_width: str | None = None,
-    ) -> str:
-        """Create the story map of the document and return its id.
+    ) -> JGISStory:
+        """Create the story map of the document and return it.
 
         A document presents a single story, so this raises when one already
-        exists; use :py:meth:`update_story` to change it.
+        exists; change that one through :py:attr:`story` instead.
 
         :param title: The title shown in the story panel and in presentation mode.
         :param story_type: ``"guided"`` to step through segments, ``"Vertical Scroll"`` to scroll them.
@@ -1652,56 +1647,14 @@ class GISDocument(CommWidget):
         self._assert_is_ready()
         self._ensure_qgis_supported(LayerType.StorySegmentLayer)
 
-        story_id, _ = self._selected_story()
-        if story_id is not None:
+        if self.story is not None:
             raise ValueError(
-                "This document already has a story, use `update_story` to change it.",
+                "This document already has a story, change it through `doc.story`.",
             )
 
-        return self._create_story(
-            _story_properties(
-                title=title,
-                story_type=story_type,
-                show_gradient=show_gradient,
-                markdown_segment_gap=markdown_segment_gap,
-                markdown_segment_opacity=markdown_segment_opacity,
-                story_panel_opacity=story_panel_opacity,
-                presentation_bg_color=presentation_bg_color,
-                presentation_text_color=presentation_text_color,
-                overlay_content_width=overlay_content_width,
-            ),
-        )
-
-    def _create_story(self, properties: dict[str, Any]) -> str:
         story_id = str(uuid4())
-        self._stories[story_id] = {"storySegments": [], **properties}
-        return story_id
-
-    def update_story(
-        self,
-        title: str | None = None,
-        story_type: StoryType | None = None,
-        show_gradient: bool | None = None,
-        markdown_segment_gap: bool | None = None,
-        markdown_segment_opacity: float | None = None,
-        story_panel_opacity: float | None = None,
-        presentation_bg_color: str | None = None,
-        presentation_text_color: str | None = None,
-        overlay_content_width: str | None = None,
-    ) -> None:
-        """Change properties of the story map of the document.
-
-        Properties left out keep their current value. See
-        :py:meth:`create_story` for what each one does.
-        """
-        self._assert_is_ready()
-
-        story_id, story = self._selected_story()
-        if story_id is None or story is None:
-            raise ValueError("This document has no story, create one first.")
-
-        self._stories[story_id] = {
-            **story,
+        story = {
+            "storySegments": [],
             **_story_properties(
                 title=title,
                 story_type=story_type,
@@ -1714,6 +1667,8 @@ class GISDocument(CommWidget):
                 overlay_content_width=overlay_content_width,
             ),
         }
+        self._stories[story_id] = story
+        return JGISStory._build(self, story_id, **story)
 
     def add_story_segment(
         self,
@@ -1776,12 +1731,8 @@ class GISDocument(CommWidget):
         if panel_width is not None:
             content["panelWidth"] = panel_width
 
-        story_id, story = self._selected_story()
-        if story_id is None or story is None:
-            story = {"title": "New Story", "storyType": "guided", "storySegments": []}
-            story_id = self._create_story(story)
-
-        segments = list(story.get("storySegments") or [])
+        story = self.story or self.create_story()
+        segments = story.storySegments or []
 
         layer = {
             "type": LayerType.StorySegmentLayer,
@@ -1801,7 +1752,7 @@ class GISDocument(CommWidget):
         }
 
         segment = self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
-        self._stories[story_id] = {**story, "storySegments": [*segments, segment._id]}
+        story.storySegments = [*segments, _layer_id(segment)]
 
         return segment
 
@@ -1826,18 +1777,15 @@ class GISDocument(CommWidget):
         self._remove_source_if_orphaned(layer["parameters"]["source"])
 
     def _remove_story_segment(self, segment_id: str):
-        story_id, story = self._selected_story()
+        story = self.story
 
-        if story_id is None or story is None:
+        if story is None:
             return
 
-        segments = story.get("storySegments") or []
+        segments = story.storySegments or []
 
         if segment_id in segments:
-            self._stories[story_id] = {
-                **story,
-                "storySegments": [other for other in segments if other != segment_id],
-            }
+            story.storySegments = [other for other in segments if other != segment_id]
 
     def _remove_source_if_orphaned(self, source_id: str):
         source = self._sources.get(source_id)
@@ -2200,6 +2148,48 @@ class JGISLayerGroup(list):
     def __repr__(self) -> str:
         """Show the group name alongside its layers."""
         return f"JGISLayerGroup(name={self.name!r}, {list.__repr__(self)})"
+
+
+class JGISStory(JGISStoryMap):
+    """The story map of a document."""
+
+    model_config = ConfigDict(validate_assignment=True)
+
+    _parent: Any = PrivateAttr(default=None)
+    _id: str | None = PrivateAttr(default=None)
+
+    @classmethod
+    def _build(cls, parent: GISDocument, id: str, **data: Any) -> Self:
+        story = cls(**data)
+        story._parent = parent
+        story._id = id
+        return story
+
+    @property
+    def segments(self) -> list[JGISLayer]:
+        """The story segments, in presentation order."""
+        layers = self._parent._layer_objects()
+        return [
+            layers[segment_id]
+            for segment_id in self.storySegments or []
+            if segment_id in layers
+        ]
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Write field changes through to the document."""
+        if name.startswith("_"):
+            super().__setattr__(name, value)
+            return
+
+        if name not in type(self).model_fields:
+            raise AttributeError(f"JGISStory has no attribute {name!r}")
+
+        super().__setattr__(name, value)
+        stories = self._parent._stories
+        stories[self._id] = {
+            **stories[self._id],
+            name: _as_stored(getattr(self, name)),
+        }
 
 
 class SingletonMeta(type):
