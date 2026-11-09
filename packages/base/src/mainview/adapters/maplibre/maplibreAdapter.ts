@@ -1355,6 +1355,7 @@ export class MapLibreAdapter implements IMapAdapter {
       }
 
       this._insertIntoLayerOrder(id, index);
+      this._applyLayerOrder();
       this._trackLayerViewState(id);
 
       // _buildMapLayer reports failures itself; only a layer that is really
@@ -1770,6 +1771,7 @@ export class MapLibreAdapter implements IMapAdapter {
     }
 
     this._layerOrder = [...layerIds];
+    this._applyLayerOrder();
 
     if (
       this._pendingZoomLayerId &&
@@ -1806,6 +1808,33 @@ export class MapLibreAdapter implements IMapAdapter {
       this._layerOrder.push(id);
     } else {
       this._layerOrder.splice(index, 0, id);
+    }
+  }
+
+  private _applyLayerOrder(): void {
+    const desired = this._layerOrder
+      .flatMap(layerId => this._layerSubIds.get(layerId) ?? [])
+      .filter(subId => this._map.getLayer(subId));
+
+    if (desired.length === 0) {
+      return;
+    }
+
+    const wanted = new Set(desired);
+    const current = this._map
+      .getStyle()
+      .layers.map(styleLayer => styleLayer.id)
+      .filter(styleId => wanted.has(styleId));
+    let start = 0;
+    while (start < desired.length && current[start] === desired[start]) {
+      start++;
+    }
+    if (start === desired.length) {
+      return;
+    }
+
+    for (const subId of desired.slice(start)) {
+      this._map.moveLayer(subId);
     }
   }
 
