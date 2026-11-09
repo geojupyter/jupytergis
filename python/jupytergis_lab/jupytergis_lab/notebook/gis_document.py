@@ -1731,8 +1731,8 @@ class GISDocument(CommWidget):
         transition_time: float = 1,
         enable_identify: bool = False,
         layer_overrides: list[dict[str, Any]] | None = None,
-    ) -> str:
-        """Append a story segment to the story map and return its id.
+    ) -> JGISLayer:
+        """Append a story segment to the story map and return it.
 
         The story is created on the fly when the document has no story yet.
 
@@ -1797,10 +1797,10 @@ class GISDocument(CommWidget):
             },
         }
 
-        segment_id = self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
-        self._stories[story_id] = {**story, "storySegments": [*segments, segment_id]}
+        segment = self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        self._stories[story_id] = {**story, "storySegments": [*segments, segment._id]}
 
-        return segment_id
+        return segment
 
     def remove_layer(self, layer_id: str | JGISLayer):
         """Remove a layer from the GIS document.

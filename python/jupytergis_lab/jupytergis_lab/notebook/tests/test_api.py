@@ -533,27 +533,27 @@ class TestLayerManipulation(TestDocument):
 class TestStoryMap(TestDocument):
     def test_add_segment_creates_the_story(self):
         self.doc._is_ready = True
-        segment_id = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
+        segment = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
 
         assert self.doc.story["title"] == "New Story"
         assert self.doc.story["storyType"] == "guided"
-        assert self.doc.story_segments == [segment_id]
-        assert self.doc.layers[segment_id]["type"] == "StorySegmentLayer"
+        assert self.doc.story_segments == [segment._id]
+        assert segment.type == LayerType.StorySegmentLayer
 
     def test_segments_keep_insertion_order(self):
         self.doc._is_ready = True
         first = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
         second = self.doc.add_story_segment(center=(3.0, 48.0), zoom=6)
 
-        assert self.doc.story_segments == [first, second]
-        assert self.doc.layers[first]["name"] == "Story Segment"
-        assert self.doc.layers[second]["name"] == "Story Segment 1"
+        assert self.doc.story_segments == [first._id, second._id]
+        assert first.name == "Story Segment"
+        assert second.name == "Story Segment 1"
 
     def test_center_is_projected_to_the_view_projection(self):
         self.doc._is_ready = True
-        segment_id = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
+        segment = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
 
-        extent = self.doc.layers[segment_id]["parameters"]["extent"]
+        extent = self.doc._layers[segment._id]["parameters"]["extent"]
         assert extent[0] == pytest.approx(222638.98, abs=0.01)
         assert extent[1] == pytest.approx(5942074.07, abs=0.01)
         assert extent[0] == extent[2]
@@ -561,21 +561,21 @@ class TestStoryMap(TestDocument):
 
     def test_extent_is_projected_to_the_view_projection(self):
         self.doc._is_ready = True
-        segment_id = self.doc.add_story_segment(
+        segment = self.doc.add_story_segment(
             extent=[2.0, 47.0, 3.0, 48.0],
             zoom=5,
         )
 
-        extent = self.doc.layers[segment_id]["parameters"]["extent"]
+        extent = self.doc._layers[segment._id]["parameters"]["extent"]
         assert extent[0] == pytest.approx(222638.98, abs=0.01)
         assert extent[2] == pytest.approx(333958.47, abs=0.01)
 
     def test_center_defaults_to_the_map_center(self):
         doc = GISDocument(latitude=47.0, longitude=2.0, zoom=5)
         doc._is_ready = True
-        segment_id = doc.add_story_segment()
+        segment = doc.add_story_segment()
 
-        parameters = doc.layers[segment_id]["parameters"]
+        parameters = doc._layers[segment._id]["parameters"]
         assert parameters["zoom"] == 5
         assert parameters["extent"][0] == pytest.approx(222638.98, abs=0.01)
 
@@ -590,7 +590,7 @@ class TestStoryMap(TestDocument):
 
     def test_markdown_switches_the_content_mode(self):
         self.doc._is_ready = True
-        segment_id = self.doc.add_story_segment(
+        segment = self.doc.add_story_segment(
             center=(2.0, 47.0),
             zoom=5,
             markdown="# Title",
@@ -598,7 +598,7 @@ class TestStoryMap(TestDocument):
             image_caption="A caption",
         )
 
-        content = self.doc.layers[segment_id]["parameters"]["content"]
+        content = self.doc._layers[segment._id]["parameters"]["content"]
         assert content["contentMode"] == "markdown"
         assert content["markdown"] == "# Title"
         assert content["image"] == "https://example.com/a.png"
@@ -606,7 +606,7 @@ class TestStoryMap(TestDocument):
 
     def test_transition_and_identify_are_persisted(self):
         self.doc._is_ready = True
-        segment_id = self.doc.add_story_segment(
+        segment = self.doc.add_story_segment(
             center=(2.0, 47.0),
             zoom=5,
             transition="smooth",
@@ -614,21 +614,21 @@ class TestStoryMap(TestDocument):
             enable_identify=True,
         )
 
-        parameters = self.doc.layers[segment_id]["parameters"]
+        parameters = self.doc._layers[segment._id]["parameters"]
         assert parameters["transition"] == {"type": "smooth", "time": 2.5}
         assert parameters["enableIdentify"] is True
 
     def test_layer_overrides_are_persisted(self):
         self.doc._is_ready = True
-        layer_id = self.doc.add_geojson_layer(data=SAMPLE_GEOJSON, name="Quakes")
-        segment_id = self.doc.add_story_segment(
+        layer = self.doc.add_geojson_layer(data=SAMPLE_GEOJSON, name="Quakes")
+        segment = self.doc.add_story_segment(
             center=(2.0, 47.0),
             zoom=5,
-            layer_overrides=[{"targetLayer": layer_id, "visible": False}],
+            layer_overrides=[{"targetLayer": layer._id, "visible": False}],
         )
 
-        overrides = self.doc.layers[segment_id]["parameters"]["layerOverride"]
-        assert overrides[0]["targetLayer"] == layer_id
+        overrides = self.doc._layers[segment._id]["parameters"]["layerOverride"]
+        assert overrides[0]["targetLayer"] == layer._id
         assert overrides[0]["visible"] is False
 
     def test_create_story_then_add_segment(self):
@@ -638,13 +638,13 @@ class TestStoryMap(TestDocument):
             story_type="Vertical Scroll",
             presentation_bg_color="#111111",
         )
-        segment_id = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
+        segment = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
 
         assert self.doc._selected_story()[0] == story_id
         assert self.doc.story["title"] == "My story"
         assert self.doc.story["storyType"] == "Vertical Scroll"
         assert self.doc.story["presentationBgColor"] == "#111111"
-        assert self.doc.story_segments == [segment_id]
+        assert self.doc.story_segments == [segment._id]
 
     def test_create_story_twice_raises(self):
         self.doc._is_ready = True
@@ -684,8 +684,8 @@ class TestStoryMap(TestDocument):
 
         self.doc.remove_layer(first)
 
-        assert first not in self.doc.layers
-        assert self.doc.story_segments == [second]
+        assert first._id not in self.doc._layers
+        assert self.doc.story_segments == [second._id]
 
     def test_remove_a_layer_while_a_segment_exists(self):
         self.doc._is_ready = True
