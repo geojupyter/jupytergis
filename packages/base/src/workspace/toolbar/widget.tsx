@@ -119,6 +119,10 @@ export class ToolbarWidget extends ReactiveToolbar {
         type: 'submenu',
         submenu: vectorSubMenu(options.commands),
       });
+      NewSubMenu.addItem({
+        type: 'command',
+        command: CommandIDs.openNewDeckGLDialog,
+      });
 
       this._updateStorySegmentMenuItem();
 

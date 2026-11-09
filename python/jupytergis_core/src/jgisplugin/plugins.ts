@@ -373,6 +373,11 @@ const activate = async (
     });
 
     palette.addItem({
+      command: CommandIDs.openNewDeckGLDialog,
+      category: 'JupyterGIS',
+    });
+
+    palette.addItem({
       command: CommandIDs.openNewHillshadeDialog,
       category: 'JupyterGIS',
     });

@@ -9,7 +9,9 @@ import {
   getSupportTable,
 } from '@/src/mainview/mapAdapterFeatures';
 
-const RENDERERS = Object.keys(MAP_ADAPTER_FEATURES) as IMapAdapterType[];
+const RENDERERS = (Object.keys(MAP_ADAPTER_FEATURES) as IMapAdapterType[]).filter(
+  type => type !== 'deckgl',
+);
 
 interface IMapRendererProps {
   model: IJupyterGISModel;

@@ -48,10 +48,17 @@ import type { IDrawToolAdapter } from '@/src/features/draw-tool';
 import { debounce, fetchWithProxies, throttle } from '@/src/tools';
 import { animate, type AnimationControls } from './animate';
 import {
-  deckGeometryBinding,
-  grammarToDeckAccessors,
-  type DeckNumberAccessor,
-} from './grammarToDeckAccessors';
+  clearTripTimingForSource,
+  compileGetter,
+  computeTripTiming,
+  createGeoJsonLayer,
+  createPolygonLayer,
+  createTripsLayer,
+  JSON_RECORD_SOURCES,
+  makeCachedGetter,
+  type RecordGetter,
+  type TripTiming,
+} from './createDeckLayers';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
   IMapAdapter,
@@ -62,6 +69,8 @@ import {
   VIEWPORT_SYNC_INTERVAL,
 } from '../../mapAdapter';
 import { MAP_ADAPTER_FEATURES } from '../../mapAdapterFeatures';
+
+export { compileGetter };
 
 const noop = (): void => {
   // deck.gl adapter is not implemented yet.
@@ -101,124 +110,11 @@ const INCHES_PER_METER = 1000 / MM_PER_INCH;
 const EARTH_CIRCUMFERENCE_M = 40075016.686;
 const WEB_MERCATOR_TILE_SIZE = 512;
 const MS_PER_TIMESTAMP_UNIT = 60;
-const DEFAULT_PATH_FIELD = 'path';
-const DEFAULT_TIMESTAMPS_FIELD = 'timestamps';
-const DEFAULT_POLYGON_FIELD = 'polygon';
-
-/** Source types that fetch/store a JSON array of records. */
-const JSON_RECORD_SOURCES = new Set(['TripsSource', 'PolygonSource']);
 
 type DeckGl = Deck<MapView | GlobeView>;
 type DeckGlWidgets = DeckGl['props']['widgets'];
 
 type LngLat = [longitude: number, latitude: number];
-
-type RecordGetter = (record: unknown) => unknown;
-
-type TripTiming = {
-  origin: number;
-  from: number;
-  to: number;
-};
-
-const IDENTIFIER = /^[A-Za-z_$][\w$]*$/;
-const MEMBER_PATH = /^[A-Za-z_$][\w$]*(\.[A-Za-z_$][\w$]*)*$/;
-
-/**
- * Reads a property path from a record.
- *
- * `name` and `name.a.b` walk the record. `param => param.a.b` walks from
- * the parameter, which stands for the record. Parentheses around the
- * parameter are optional. Anything else is rejected.
- */
-export function compileGetter(expression: string): RecordGetter {
-  const keys = propertyKeys(expression.trim());
-  if (!keys) {
-    throw new Error(`Unsupported getter "${expression.trim()}"`);
-  }
-
-  return readProperties(keys);
-}
-
-function propertyKeys(expression: string): string[] | null {
-  const arrowAt = expression.indexOf('=>');
-  if (arrowAt === -1) {
-    return MEMBER_PATH.test(expression) ? expression.split('.') : null;
-  }
-
-  let parameter = expression.slice(0, arrowAt).trim();
-  if (parameter.startsWith('(') && parameter.endsWith(')')) {
-    parameter = parameter.slice(1, -1).trim();
-  }
-  if (!IDENTIFIER.test(parameter)) {
-    return null;
-  }
-
-  const body = expression.slice(arrowAt + 2).trim();
-  if (!body.startsWith(`${parameter}.`) || !MEMBER_PATH.test(body)) {
-    return null;
-  }
-
-  return body.split('.').slice(1);
-}
-
-function elevationAccessor(
-  elevation: DeckNumberAccessor | null,
-): DeckNumberAccessor | undefined {
-  if (elevation === null) {
-    return undefined;
-  }
-
-  if (typeof elevation === 'number') {
-    return elevation;
-  }
-
-  return feature => {
-    const height = elevation(feature);
-    return height;
-  };
-}
-
-function geometryField(value: string | undefined, fallback: string): string {
-  const trimmed = value?.trim();
-  return trimmed ? trimmed : fallback;
-}
-
-function readProperties(keys: string[]): RecordGetter {
-  return record => {
-    let value = record;
-    for (const key of keys) {
-      if (value === null || typeof value !== 'object') {
-        return undefined;
-      }
-      value = (value as Record<string, unknown>)[key];
-    }
-
-    return value;
-  };
-}
-
-/**
- * TripsLayer stores timestamps as float32. When a value would lose precision
- * we shift by an origin (earliest timestamp)
- * Same trick as the deck.gl TripsLayer docs.
- * `origin` is 0 when no shift is needed.
- *
- * @see https://deck.gl/docs/api-reference/geo-layers/trips-layer
- */
-function shiftTimestamps(timestamps: unknown, origin: number): number[] {
-  if (!Array.isArray(timestamps)) {
-    return [];
-  }
-
-  return timestamps.map(stamp =>
-    typeof stamp === 'number' ? stamp - origin : 0,
-  );
-}
-
-function losesFloat32Precision(stamp: number): boolean {
-  return Math.fround(stamp) !== stamp;
-}
 
 /**
  * deck.gl implementation of {@link IMapAdapter}.
@@ -981,203 +877,35 @@ export class DeckGlAdapter implements IMapAdapter {
     to: number;
     animationSpeed?: number;
   } | null {
-    const parameters = layer.parameters as ITripsLayer | undefined;
-    const records = parameters?.source
-      ? this._jsonRecords.get(parameters.source)
-      : undefined;
-
-    if (!records || records.length === 0) {
-      return null;
-    }
-
-    const geometry = deckGeometryBinding(parameters?.symbologyState);
-    const pathField = geometryField(geometry.path, DEFAULT_PATH_FIELD);
-    const stampField = geometryField(
-      geometry.timestamps,
-      DEFAULT_TIMESTAMPS_FIELD,
-    );
-    const getPath = this._getter(pathField);
-    const getTimestamps = this._getter(stampField);
-    const trips = records.filter(record =>
-      this._isTrip(getPath(record), getTimestamps(record)),
-    );
-    if (trips.length === 0) {
-      this._log(
-        'warning',
-        `DeckGlAdapter: trips layer "${layer.name ?? id}" has no trips for ${pathField}.`,
-      );
-
-      return null;
-    }
-
-    const timing = this._tripTiming(
-      parameters?.source ?? id,
-      stampField,
-      records,
-      getTimestamps,
-    );
-
-    const style = grammarToDeckAccessors(parameters?.symbologyState, trips);
-    const symbologyKey = JSON.stringify(parameters?.symbologyState ?? null);
-    const trailColor = style.getFillColor ?? style.getLineColor;
-    const trailWidth = style.getLineWidth ?? style.getPointRadius;
-
-    const end = parameters?.loopLength ?? timing.to + timing.origin;
-
-    return {
-      from: timing.from,
-      to: end - timing.origin,
-      animationSpeed: parameters?.animationSpeed,
-      layer: new TripsLayer({
-        id,
-        data: trips,
-        getPath: record => getPath(record) as LngLat[],
-        getTimestamps: record =>
-          shiftTimestamps(getTimestamps(record), timing.origin),
-        ...(trailColor !== null ? { getColor: trailColor } : {}),
-        currentTime: this._tripTime,
-        trailLength: parameters?.trailLength,
-        fadeTrail: parameters?.fadeTrail,
-        ...(trailWidth !== null
-          ? {
-              getWidth: trailWidth,
-              widthUnits: 'pixels' as const,
-              widthMinPixels: typeof trailWidth === 'number' ? trailWidth : 0,
-            }
-          : { widthMinPixels: parameters?.widthMinPixels }),
-        capRounded: parameters?.capRounded,
-        jointRounded: parameters?.jointRounded,
-        opacity: parameters?.opacity,
-        visible: layer.visible ?? true,
-        updateTriggers: {
-          getColor: symbologyKey,
-          getWidth: symbologyKey,
-        },
-      }),
-    };
+    return createTripsLayer(id, layer, this._deckBuildContext());
   }
 
   private _createPolygonLayer(
     id: string,
     layer: IJGISLayer,
   ): PolygonLayer | undefined {
-    const parameters = layer.parameters as IPolygonLayer | undefined;
-    const records = parameters?.source
-      ? this._jsonRecords.get(parameters.source)
-      : undefined;
-    if (!records || records.length === 0) {
-      return undefined;
-    }
-
-    const geometry = deckGeometryBinding(parameters?.symbologyState);
-    const polygonField = geometryField(geometry.polygon, DEFAULT_POLYGON_FIELD);
-    const getPolygon = this._getter(polygonField);
-    const polygons = records.filter(record =>
-      this._isRing(getPolygon(record), 3),
-    );
-    if (polygons.length === 0) {
-      this._log(
-        'warning',
-        `DeckGlAdapter: polygon layer "${layer.name ?? id}" has no polygons for ${polygonField}.`,
-      );
-      return undefined;
-    }
-
-    const style = grammarToDeckAccessors(parameters?.symbologyState, polygons);
-    const symbologyKey = JSON.stringify(parameters?.symbologyState ?? null);
-    const getElevation = elevationAccessor(style.getElevation);
-
-    return new PolygonLayer({
-      id,
-      data: polygons,
-      getPolygon: record => getPolygon(record) as LngLat[],
-      ...(getElevation !== undefined ? { getElevation } : {}),
-      filled: parameters?.filled,
-      stroked: parameters?.stroked,
-      extruded: parameters?.extruded,
-      getFillColor: style.getFillColor ?? parameters?.fillColor,
-      getLineColor: style.getLineColor ?? parameters?.lineColor,
-      ...(style.getLineWidth !== null
-        ? {
-            getLineWidth: style.getLineWidth,
-            lineWidthUnits: 'pixels' as const,
-            lineWidthMinPixels:
-              typeof style.getLineWidth === 'number' ? style.getLineWidth : 0,
-          }
-        : {
-            lineWidthUnits: 'pixels' as const,
-            lineWidthMinPixels: parameters?.lineWidthMinPixels,
-          }),
-      opacity: parameters?.opacity,
-      visible: layer.visible ?? true,
-      pickable: true,
-      updateTriggers: {
-        getFillColor: symbologyKey,
-        getLineColor: symbologyKey,
-        getLineWidth: symbologyKey,
-        getElevation: symbologyKey,
-        getPolygon: polygonField,
-      },
-    });
+    return createPolygonLayer(id, layer, this._deckBuildContext());
   }
 
   private _createGeoJsonLayer(
     id: string,
     layer: IJGISLayer,
   ): GeoJsonLayer | undefined {
-    const parameters = layer.parameters as IGeoJsonLayer | undefined;
-    const data = parameters?.source
-      ? this._geoJsonData.get(parameters.source)
-      : undefined;
-    if (!data) {
-      return undefined;
-    }
+    return createGeoJsonLayer(id, layer, this._deckBuildContext());
+  }
 
-    const style = grammarToDeckAccessors(parameters?.symbologyState, data);
-    const getElevation = elevationAccessor(style.getElevation);
-    // deck.gl keeps attribute buffers while `data` is the same object.
-    // Accessor functions are not compared, so the grammar string is the trigger.
-    const symbologyKey = JSON.stringify(parameters?.symbologyState ?? null);
-
-    return new GeoJsonLayer({
-      id,
-      data: data as GeoJsonLayerProps['data'],
-      filled: parameters?.filled,
-      stroked: parameters?.stroked,
-      extruded: parameters?.extruded,
-      wireframe: parameters?.wireframe,
-      ...(style.getFillColor !== null
-        ? { getFillColor: style.getFillColor }
-        : {}),
-      ...(style.getLineColor !== null
-        ? { getLineColor: style.getLineColor }
-        : {}),
-      ...(style.getLineWidth !== null
-        ? {
-            getLineWidth: style.getLineWidth,
-            lineWidthUnits: 'pixels' as const,
-            lineWidthMinPixels:
-              typeof style.getLineWidth === 'number' ? style.getLineWidth : 0,
-          }
-        : {}),
-      ...(style.getPointRadius !== null
-        ? {
-            getPointRadius: style.getPointRadius,
-            pointRadiusUnits: 'pixels' as const,
-          }
-        : {}),
-      ...(getElevation !== undefined ? { getElevation } : {}),
-      opacity: parameters?.opacity,
-      visible: layer.visible ?? true,
-      pickable: true,
-      updateTriggers: {
-        getFillColor: symbologyKey,
-        getLineColor: symbologyKey,
-        getLineWidth: symbologyKey,
-        getPointRadius: symbologyKey,
-        getElevation: symbologyKey,
-      },
-    });
+  private _deckBuildContext() {
+    return {
+      jsonRecords: this._jsonRecords,
+      geoJsonData: this._geoJsonData,
+      tripTime: this._tripTime,
+      getter: this._getter.bind(this),
+      tripTiming: this._tripTiming.bind(this),
+      log: (
+        level: 'debug' | 'info' | 'warning' | 'error' | 'critical',
+        message: string,
+      ) => this._log(level, `DeckGlAdapter: ${message}`),
+    };
   }
 
   private _createRasterTileLayer(
@@ -1349,54 +1077,11 @@ export class DeckGlAdapter implements IMapAdapter {
   }
 
   private _getter(expression: string): RecordGetter {
-    const cached = this._getters.get(expression);
-    if (cached) {
-      return cached;
-    }
-
-    let getter: RecordGetter;
-    try {
-      const compiled = compileGetter(expression);
-      let logged = false;
-      getter = record => {
-        try {
-          return compiled(record);
-        } catch (error) {
-          if (!logged) {
-            logged = true;
-            this._log(
-              'error',
-              `DeckGlAdapter: getter "${expression}" failed: ${error}`,
-            );
-          }
-          return undefined;
-        }
-      };
-    } catch (error) {
-      this._log(
-        'error',
-        `DeckGlAdapter: getter "${expression}" is not a function: ${error}`,
-      );
-      getter = () => undefined;
-    }
-
-    this._getters.set(expression, getter);
-    return getter;
-  }
-
-  private _isTrip(path: unknown, timestamps: unknown): boolean {
-    return (
-      this._isRing(path) &&
-      Array.isArray(timestamps) &&
-      timestamps.length === path.length &&
-      timestamps.every(
-        stamp => typeof stamp === 'number' && Number.isFinite(stamp),
-      )
-    );
-  }
-
-  private _isRing(value: unknown, minLength = 2): value is unknown[] {
-    return Array.isArray(value) && value.length >= minLength;
+    return makeCachedGetter(
+      this._getters,
+      (level, message) => this._log(level, message),
+      'DeckGlAdapter',
+    )(expression);
   }
 
   private _tripTiming(
@@ -1405,51 +1090,17 @@ export class DeckGlAdapter implements IMapAdapter {
     records: unknown[],
     getTimestamps: RecordGetter,
   ): TripTiming {
-    const key = `${sourceId}\0${expression}`;
-    const cached = this._tripTimingCache.get(key);
-    if (cached) {
-      return cached;
-    }
-
-    let earliest = Number.POSITIVE_INFINITY;
-    let latest = Number.NEGATIVE_INFINITY;
-    let needsShift = false;
-    for (const record of records) {
-      const stamps = getTimestamps(record);
-      if (!Array.isArray(stamps)) {
-        continue;
-      }
-
-      for (const stamp of stamps) {
-        if (typeof stamp !== 'number' || !Number.isFinite(stamp)) {
-          continue;
-        }
-        earliest = Math.min(earliest, stamp);
-        latest = Math.max(latest, stamp);
-
-        if (!needsShift && losesFloat32Precision(stamp)) {
-          needsShift = true;
-        }
-      }
-    }
-
-    const timing = Number.isFinite(earliest)
-      ? needsShift
-        ? { origin: earliest, from: 0, to: latest - earliest }
-        : { origin: 0, from: earliest, to: latest }
-      : { origin: 0, from: 0, to: 0 };
-    this._tripTimingCache.set(key, timing);
-
-    return timing;
+    return computeTripTiming(
+      this._tripTimingCache,
+      sourceId,
+      expression,
+      records,
+      getTimestamps,
+    );
   }
 
   private _clearTripTiming(sourceId: string): void {
-    const prefix = `${sourceId}\0`;
-    for (const key of this._tripTimingCache.keys()) {
-      if (key.startsWith(prefix)) {
-        this._tripTimingCache.delete(key);
-      }
-    }
+    clearTripTimingForSource(this._tripTimingCache, sourceId);
   }
 
   // this shouldnt be in each adapter

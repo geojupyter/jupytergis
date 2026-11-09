@@ -32,6 +32,7 @@ export const openNewGeoJSONDialog = 'jupytergis:openNewGeoJSONDialog';
 export const openNewTripsDialog = 'jupytergis:openNewTripsDialog';
 export const openNewPolygonDialog = 'jupytergis:openNewPolygonDialog';
 export const openNewGeoJsonLayerDialog = 'jupytergis:openNewGeoJsonLayerDialog';
+export const openNewDeckGLDialog = 'jupytergis:openNewDeckGLDialog';
 export const openNewHillshadeDialog = 'jupytergis:openNewHillshadeDialog';
 export const openNewTerrainDialog = 'jupytergis:openNewTerrainDialog';
 export const openNewImageDialog = 'jupytergis:openNewImageDialog';

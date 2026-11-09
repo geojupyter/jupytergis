@@ -230,6 +230,10 @@ function createContextMenu(
     type: 'submenu',
     submenu: vectorSubMenu(commands),
   });
+  newLayerSubMenu.addItem({
+    type: 'command',
+    command: CommandIDs.openNewDeckGLDialog,
+  });
 
   // Separator
   gisContextMenu.addItem({
