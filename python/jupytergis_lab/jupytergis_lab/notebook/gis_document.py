@@ -119,8 +119,6 @@ STORY_PROPERTIES = {
     "markdown_segment_gap": "markdownSegmentGap",
     "markdown_segment_opacity": "markdownSegmentOpacity",
     "story_panel_opacity": "storyPanelOpacity",
-    "presentation_bg_color": "presentationBgColor",
-    "presentation_text_color": "presentationTextColor",
     "overlay_content_width": "overlayContentWidth",
 }
 
@@ -1625,8 +1623,6 @@ class GISDocument(CommWidget):
         markdown_segment_gap: bool | None = None,
         markdown_segment_opacity: float | None = None,
         story_panel_opacity: float | None = None,
-        presentation_bg_color: str | None = None,
-        presentation_text_color: str | None = None,
         overlay_content_width: str | None = None,
     ) -> JGISStory:
         """Create the story map of the document and return it.
@@ -1640,8 +1636,6 @@ class GISDocument(CommWidget):
         :param markdown_segment_gap: Whether to insert a full-stage gap between consecutive markdown segments.
         :param markdown_segment_opacity: The opacity of markdown segment backgrounds, between 0 and 1.
         :param story_panel_opacity: The opacity of story panels over the map, between 0 and 1.
-        :param presentation_bg_color: The CSS background color used in presentation mode.
-        :param presentation_text_color: The CSS text color used in presentation mode.
         :param overlay_content_width: The CSS width of vertical scroll markdown overlays.
         """
         self._assert_is_ready()
@@ -1662,8 +1656,6 @@ class GISDocument(CommWidget):
                 markdown_segment_gap=markdown_segment_gap,
                 markdown_segment_opacity=markdown_segment_opacity,
                 story_panel_opacity=story_panel_opacity,
-                presentation_bg_color=presentation_bg_color,
-                presentation_text_color=presentation_text_color,
                 overlay_content_width=overlay_content_width,
             ),
         }

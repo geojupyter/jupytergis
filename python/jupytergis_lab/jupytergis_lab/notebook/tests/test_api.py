@@ -636,14 +636,14 @@ class TestStoryMap(TestDocument):
         story = self.doc.create_story(
             title="My story",
             story_type="Vertical Scroll",
-            presentation_bg_color="#111111",
+            show_gradient=False,
         )
         segment = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
 
         assert self.doc.story._id == story._id
         assert self.doc.story.title == "My story"
         assert self.doc.story.storyType == StoryType.Vertical_Scroll
-        assert self.doc.story.presentationBgColor == "#111111"
+        assert self.doc.story.showGradient is False
         assert self.doc.story.segments == [segment]
 
     def test_create_story_twice_raises(self):
