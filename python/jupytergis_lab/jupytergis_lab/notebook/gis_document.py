@@ -411,9 +411,10 @@ class GISDocument(CommWidget):
             AWAIT_WARN_DONE = True
 
         def handle_doc_ready(self, *args, **kwargs):
-            if not self._ready_future.done():
-                self._ready_future.set_result(None)
-                self._is_ready = True
+            if self._ready_future.done():
+                return
+            self._ready_future.set_result(None)
+            self._is_ready = True
 
             self._options.unobserve(self._options_subscription)
 
@@ -437,7 +438,10 @@ class GISDocument(CommWidget):
         self._handle_doc_ready = types.MethodType(handle_doc_ready, self)
 
         # Listening to options change (assuming that when we receive the options it means the doc is synced)
-        self._options_subscription = self._options.observe(self._handle_doc_ready)
+        loop = self._ready_future.get_loop()
+        self._options_subscription = self._options.observe(
+            lambda _event: loop.call_soon_threadsafe(self._handle_doc_ready),
+        )
 
         # If it's an untitled doc, trigger doc ready
         if path is None:
