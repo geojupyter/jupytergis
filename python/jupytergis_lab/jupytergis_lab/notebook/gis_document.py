@@ -44,6 +44,14 @@ from jupytergis_core.schema import (
     JGISStoryMap,
     LayerType,
     SourceType,
+    StoryType,
+)
+from jupytergis_core.schema.interfaces.project.layers.storySegmentLayer import (
+    ContentMode,
+    PaneAlignment,
+)
+from jupytergis_core.schema.interfaces.project.layers.storySegmentLayer import (
+    Type as TransitionType,
 )
 from pycrdt import Array, Map
 from pydantic import (
@@ -105,22 +113,6 @@ def _validate_map_adapter(map_adapter: str | None) -> MapAdapterName | None:
             f"Expected one of: {', '.join(MAP_ADAPTERS)}.",
         )
     return cast("MapAdapterName", value)
-
-
-StoryType = Literal["guided", "Vertical Scroll"]
-ContentMode = Literal["map", "markdown"]
-PaneAlignment = Literal["start", "center", "end"]
-TransitionType = Literal["linear", "immediate", "smooth"]
-
-STORY_PROPERTIES = {
-    "title": "title",
-    "story_type": "storyType",
-    "show_gradient": "showGradient",
-    "markdown_segment_gap": "markdownSegmentGap",
-    "markdown_segment_opacity": "markdownSegmentOpacity",
-    "story_panel_opacity": "storyPanelOpacity",
-    "overlay_content_width": "overlayContentWidth",
-}
 
 
 def reversed_tree(root):
@@ -258,21 +250,6 @@ def _layer_id(layer: str | JGISLayer) -> str:
 
 def _story_segment_name(segment_count: int) -> str:
     return "Story Segment" if segment_count == 0 else f"Story Segment {segment_count}"
-
-
-def _story_properties(**keywords: Any) -> dict[str, Any]:
-    """Validate the story keywords and return them as schema properties.
-
-    Keywords left as ``None`` are dropped, so that the story falls back to the
-    schema defaults.
-    """
-    given = {
-        STORY_PROPERTIES[keyword]: value
-        for keyword, value in keywords.items()
-        if value is not None
-    }
-    story = JGISStoryMap(**given)
-    return story.model_dump(mode="json", include=set(given))
 
 
 def _story_segment_extent(
@@ -1624,7 +1601,7 @@ class GISDocument(CommWidget):
     def create_story(
         self,
         title: str = "New Story",
-        story_type: StoryType = "guided",
+        story_type: StoryType = StoryType.guided,
         show_gradient: bool | None = None,
         markdown_segment_gap: bool | None = None,
         markdown_segment_opacity: float | None = None,
@@ -1653,18 +1630,16 @@ class GISDocument(CommWidget):
             )
 
         story_id = str(uuid4())
-        story = {
-            "storySegments": [],
-            **_story_properties(
-                title=title,
-                story_type=story_type,
-                show_gradient=show_gradient,
-                markdown_segment_gap=markdown_segment_gap,
-                markdown_segment_opacity=markdown_segment_opacity,
-                story_panel_opacity=story_panel_opacity,
-                overlay_content_width=overlay_content_width,
-            ),
-        }
+        story = JGISStoryMap(
+            title=title,
+            storyType=story_type,
+            storySegments=[],
+            showGradient=show_gradient,
+            markdownSegmentGap=markdown_segment_gap,
+            markdownSegmentOpacity=markdown_segment_opacity,
+            storyPanelOpacity=story_panel_opacity,
+            overlayContentWidth=overlay_content_width,
+        ).model_dump(mode="json", exclude_none=True)
         self._stories[story_id] = story
         return JGISStory._build(self, story_id, **story)
 
@@ -1677,10 +1652,10 @@ class GISDocument(CommWidget):
         markdown: str | None = None,
         image: str | None = None,
         image_caption: str | None = None,
-        content_mode: ContentMode = "map",
+        content_mode: ContentMode = ContentMode.map,
         pane_alignment: PaneAlignment | None = None,
         panel_width: str | None = None,
-        transition: TransitionType = "linear",
+        transition: TransitionType = TransitionType.linear,
         transition_time: float = 1,
         enable_identify: bool = False,
         layer_overrides: list[dict[str, Any]] | None = None,
