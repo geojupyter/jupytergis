@@ -1837,22 +1837,6 @@ class JGISLayer(JGISObject):
         | ITripsLayer
         | IPolygonLayer
         | IGeoJsonLayer
-    )
-    _parent = GISDocument | None
-
-    def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
-        super().__init__(**data)
-        __pydantic_self__._parent = parent
-
-
-class JGISSource(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        extra = "allow"
-
-    name: str
-    type: SourceType
-    parameters: (
         | dict[str, Any]
     ) = PrivateAttr(default_factory=dict)
 
@@ -1904,12 +1888,6 @@ class JGISSource(JGISObject):
         | IOpenEOTileSource
         | ITripsSource
         | IPolygonSource
-    )
-    _parent = GISDocument | None
-
-    def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
-        super().__init__(**data)
-        __pydantic_self__._parent = parent
         | dict[str, Any]
     ) = PrivateAttr(default_factory=dict)
 

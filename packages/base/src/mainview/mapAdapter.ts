@@ -150,7 +150,6 @@ export interface IMapAdapterOptions {
   lonLat?: [number, number];
   zoom?: number;
   rotation?: number;
-  /** MapLibre pitch in degrees. OpenLayers ignores it. */
   pitch?: number;
   layers?: IJGISLayers;
   sources?: IJGISSources;

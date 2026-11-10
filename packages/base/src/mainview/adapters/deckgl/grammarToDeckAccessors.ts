@@ -145,6 +145,7 @@ export function grammarToDeckAccessors(
       if (rule.when?.length) {
         continue;
       }
+
       applyRule(rule, accessors, data);
     }
   }
