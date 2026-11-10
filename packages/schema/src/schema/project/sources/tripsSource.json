@@ -17,6 +17,16 @@
         "additionalProperties": true
       }
     },
+    "pathField": {
+      "type": "string",
+      "description": "Property on each record that holds the trip positions. Defaults to path.",
+      "default": "path"
+    },
+    "timestampsField": {
+      "type": "string",
+      "description": "Property on each record that holds one timestamp per path position. Defaults to timestamps.",
+      "default": "timestamps"
+    },
     "useProxy": {
       "type": "boolean",
       "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",

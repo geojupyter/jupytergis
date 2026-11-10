@@ -32,32 +32,6 @@
       "description": "Extrude the polygon using the elevation encoding. Prefer disabling extrusion over a constant elevation of 0.",
       "default": false
     },
-    "fillColor": {
-      "type": "array",
-      "description": "Fill color as RGB or RGBA, channels 0-255.",
-      "items": {
-        "type": "number"
-      },
-      "minItems": 3,
-      "maxItems": 4,
-      "default": [0, 128, 255, 160]
-    },
-    "lineColor": {
-      "type": "array",
-      "description": "Outline color as RGB or RGBA, channels 0-255.",
-      "items": {
-        "type": "number"
-      },
-      "minItems": 3,
-      "maxItems": 4,
-      "default": [80, 80, 80]
-    },
-    "lineWidthMinPixels": {
-      "type": "number",
-      "description": "Outline width in pixels.",
-      "default": 1,
-      "minimum": 0
-    },
     "symbologyState": {
       "type": "object",
       "description": "Grammar symbology for fill, stroke, line width, and elevation. Deck.gl accessors are derived at render time.",

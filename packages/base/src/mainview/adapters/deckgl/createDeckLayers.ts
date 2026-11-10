@@ -7,12 +7,14 @@ import {
 import type {
   IGeoJsonLayer,
   IJGISLayer,
+  IJGISSource,
   IPolygonLayer,
+  IPolygonSource,
   ITripsLayer,
+  ITripsSource,
 } from '@jupytergis/schema';
 
 import {
-  deckGeometryBinding,
   grammarToDeckAccessors,
   type DeckNumberAccessor,
 } from './grammarToDeckAccessors';
@@ -48,6 +50,7 @@ export interface IDeckLayerBuildContext {
   jsonRecords: Map<string, unknown[]>;
   geoJsonData: Map<string, unknown>;
   tripTime: number;
+  getSource: (id: string) => IJGISSource | undefined;
   getter: (expression: string) => RecordGetter;
   tripTiming: (
     sourceId: string,
@@ -129,6 +132,17 @@ function geometryField(value: string | undefined, fallback: string): string {
   return trimmed ? trimmed : fallback;
 }
 
+function sourceParameters<T>(
+  ctx: IDeckLayerBuildContext,
+  sourceId: string | undefined,
+): T | undefined {
+  if (!sourceId) {
+    return undefined;
+  }
+
+  return ctx.getSource(sourceId)?.parameters as T | undefined;
+}
+
 function readProperties(keys: string[]): RecordGetter {
   return record => {
     let value = record;
@@ -199,10 +213,10 @@ export function createTripsLayer(
     return null;
   }
 
-  const geometry = deckGeometryBinding(parameters?.symbologyState);
-  const pathField = geometryField(geometry.path, DEFAULT_PATH_FIELD);
+  const sourceParams = sourceParameters<ITripsSource>(ctx, parameters?.source);
+  const pathField = geometryField(sourceParams?.pathField, DEFAULT_PATH_FIELD);
   const stampField = geometryField(
-    geometry.timestamps,
+    sourceParams?.timestampsField,
     DEFAULT_TIMESTAMPS_FIELD,
   );
   const getPath = ctx.getter(pathField);
@@ -254,7 +268,7 @@ export function createTripsLayer(
             widthUnits: 'pixels' as const,
             widthMinPixels: typeof trailWidth === 'number' ? trailWidth : 0,
           }
-        : { widthMinPixels: parameters?.widthMinPixels }),
+        : {}),
       capRounded: parameters?.capRounded,
       jointRounded: parameters?.jointRounded,
       opacity: parameters?.opacity,
@@ -280,8 +294,14 @@ export function createPolygonLayer(
     return undefined;
   }
 
-  const geometry = deckGeometryBinding(parameters?.symbologyState);
-  const polygonField = geometryField(geometry.polygon, DEFAULT_POLYGON_FIELD);
+  const sourceParams = sourceParameters<IPolygonSource>(
+    ctx,
+    parameters?.source,
+  );
+  const polygonField = geometryField(
+    sourceParams?.polygonField,
+    DEFAULT_POLYGON_FIELD,
+  );
   const getPolygon = ctx.getter(polygonField);
   const polygons = records.filter(record => isRing(getPolygon(record), 3));
   if (polygons.length === 0) {
@@ -304,8 +324,12 @@ export function createPolygonLayer(
     filled: parameters?.filled,
     stroked: parameters?.stroked,
     extruded: parameters?.extruded,
-    getFillColor: style.getFillColor ?? parameters?.fillColor,
-    getLineColor: style.getLineColor ?? parameters?.lineColor,
+    ...(style.getFillColor !== null
+      ? { getFillColor: style.getFillColor }
+      : {}),
+    ...(style.getLineColor !== null
+      ? { getLineColor: style.getLineColor }
+      : {}),
     ...(style.getLineWidth !== null
       ? {
           getLineWidth: style.getLineWidth,
@@ -313,10 +337,7 @@ export function createPolygonLayer(
           lineWidthMinPixels:
             typeof style.getLineWidth === 'number' ? style.getLineWidth : 0,
         }
-      : {
-          lineWidthUnits: 'pixels' as const,
-          lineWidthMinPixels: parameters?.lineWidthMinPixels,
-        }),
+      : {}),
     opacity: parameters?.opacity,
     visible: layer.visible ?? true,
     pickable: true,

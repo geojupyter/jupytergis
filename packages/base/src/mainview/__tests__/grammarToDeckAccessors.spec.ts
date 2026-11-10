@@ -521,7 +521,6 @@ describe('grammarToDeckAccessors', () => {
       getLineWidth: null,
       getPointRadius: null,
       getElevation: null,
-      geometry: {},
     };
     expect(grammarToDeckAccessors(undefined)).toEqual(empty);
     expect(grammarToDeckAccessors({ layers: [] })).toEqual(empty);
@@ -549,28 +548,5 @@ describe('grammarToDeckAccessors', () => {
       }),
     );
     expect(constant.getElevation).toBe(40);
-  });
-
-  it('uses the first grammar layer that sets a geometry binding', () => {
-    const accessors = grammarToDeckAccessors({
-      layers: [
-        { id: 'empty', rules: [] },
-        {
-          id: 'first',
-          geometry: { path: 'route', timestamps: 'times' },
-          rules: [],
-        },
-        {
-          id: 'second',
-          geometry: { path: 'other', polygon: 'ring' },
-          rules: [],
-        },
-      ],
-    });
-
-    expect(accessors.geometry).toEqual({
-      path: 'route',
-      timestamps: 'times',
-    });
   });
 });

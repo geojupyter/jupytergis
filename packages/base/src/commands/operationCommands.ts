@@ -350,7 +350,6 @@ export function addLayerCreationCommands(options: {
         opacity: { type: 'number', default: 1 },
         trailLength: { type: 'number', default: 120 },
         fadeTrail: { type: 'boolean', default: true },
-        widthMinPixels: { type: 'number', default: 1 },
         capRounded: { type: 'boolean', default: false },
         jointRounded: { type: 'boolean', default: false },
         loopLength: { type: 'number' },
@@ -361,7 +360,6 @@ export function addLayerCreationCommands(options: {
         opacity: p.opacity ?? 1,
         trailLength: p.trailLength ?? 120,
         fadeTrail: p.fadeTrail ?? true,
-        widthMinPixels: p.widthMinPixels ?? 1,
         capRounded: p.capRounded ?? false,
         jointRounded: p.jointRounded ?? false,
         ...(p.loopLength !== undefined ? { loopLength: p.loopLength } : {}),
@@ -385,17 +383,6 @@ export function addLayerCreationCommands(options: {
         filled: { type: 'boolean', default: true },
         stroked: { type: 'boolean', default: true },
         extruded: { type: 'boolean', default: false },
-        fillColor: {
-          type: 'array',
-          items: { type: 'number' },
-          default: [0, 128, 255, 160],
-        },
-        lineColor: {
-          type: 'array',
-          items: { type: 'number' },
-          default: [80, 80, 80],
-        },
-        lineWidthMinPixels: { type: 'number', default: 1 },
       },
       buildParameters: (p, id) => ({
         source: id,
@@ -403,9 +390,6 @@ export function addLayerCreationCommands(options: {
         filled: p.filled ?? true,
         stroked: p.stroked ?? true,
         extruded: p.extruded ?? false,
-        fillColor: p.fillColor ?? [0, 128, 255, 160],
-        lineColor: p.lineColor ?? [80, 80, 80],
-        lineWidthMinPixels: p.lineWidthMinPixels ?? 1,
       }),
     },
     {

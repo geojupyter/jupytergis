@@ -139,6 +139,7 @@ export class DeckOverlayHost {
       jsonRecords: this._jsonRecords,
       geoJsonData: this._geoJsonData,
       tripTime: this._tripTime,
+      getSource: (id: string) => this._model.getSource(id),
       getter: this._getter,
       tripTiming: (
         sourceId: string,

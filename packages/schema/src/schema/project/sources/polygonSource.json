@@ -17,6 +17,11 @@
         "additionalProperties": true
       }
     },
+    "polygonField": {
+      "type": "string",
+      "description": "Property on each record that holds a polygon ring. Defaults to polygon.",
+      "default": "polygon"
+    },
     "useProxy": {
       "type": "boolean",
       "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",

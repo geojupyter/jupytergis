@@ -4,7 +4,6 @@ import type {
   IColorMapScale,
   IEncodingRule,
   IExpressionScale,
-  IGeometryBinding,
   IGrammarLayer,
   IGrammarSymbologyState,
   IScalarScale,
@@ -42,7 +41,6 @@ export interface IDeckSymbologyAccessors {
   getLineWidth: DeckNumberAccessor | null;
   getPointRadius: DeckNumberAccessor | null;
   getElevation: DeckNumberAccessor | null;
-  geometry: IGeometryBinding;
 }
 
 const EMPTY_ACCESSORS = (): IDeckSymbologyAccessors => ({
@@ -51,7 +49,6 @@ const EMPTY_ACCESSORS = (): IDeckSymbologyAccessors => ({
   getLineWidth: null,
   getPointRadius: null,
   getElevation: null,
-  geometry: {},
 });
 
 const FILL_ENCODINGS = new Set<Encoding>(['fill-color', 'circle-fill-color']);
@@ -82,42 +79,6 @@ const EMPTY_GLOBAL = Object.freeze({});
 const expressionCache = new Map<string, VegaFn | null>();
 
 /**
- * The first grammar layer that sets a geometry binding supplies every name.
- * Later bindings are ignored so path and timestamps stay a pair.
- */
-export function deckGeometryBinding(
-  state: IGrammarSymbologyState | undefined,
-): IGeometryBinding {
-  for (const layer of state?.layers ?? []) {
-    const binding = layer.geometry;
-    if (!binding) {
-      continue;
-    }
-
-    const geometry: IGeometryBinding = {};
-    if (binding.path) {
-      geometry.path = binding.path;
-    }
-    if (binding.timestamps) {
-      geometry.timestamps = binding.timestamps;
-    }
-    if (binding.polygon) {
-      geometry.polygon = binding.polygon;
-    }
-
-    if (
-      geometry.path !== undefined ||
-      geometry.timestamps !== undefined ||
-      geometry.polygon !== undefined
-    ) {
-      return geometry;
-    }
-  }
-
-  return {};
-}
-
-/**
  * Compile grammar scales into deck.gl accessor values.
  *
  * Walks grammar layers and rules in document order. The first scale for each
@@ -131,7 +92,6 @@ export function grammarToDeckAccessors(
   data?: unknown,
 ): IDeckSymbologyAccessors {
   const accessors = EMPTY_ACCESSORS();
-  accessors.geometry = deckGeometryBinding(state);
   if (!state?.layers?.length) {
     return accessors;
   }

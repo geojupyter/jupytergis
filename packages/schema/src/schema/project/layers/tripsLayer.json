@@ -28,12 +28,6 @@
       "description": "Fade the path out behind the playhead. When false, trailLength has no effect.",
       "default": true
     },
-    "widthMinPixels": {
-      "type": "number",
-      "description": "Minimum path width in pixels.",
-      "default": 1,
-      "minimum": 0
-    },
     "capRounded": {
       "type": "boolean",
       "description": "Round the ends of the path.",
@@ -57,7 +51,7 @@
     },
     "symbologyState": {
       "type": "object",
-      "description": "Grammar symbology for trail color and width, plus geometry property names. Fill or stroke color becomes getColor; stroke width or circle radius becomes getWidth. widthMinPixels applies when width is unset. With no color rule, deck.gl uses black. geometry.path and geometry.timestamps name the record properties; they default to path and timestamps.",
+      "description": "Grammar symbology for trail color and width. Fill or stroke color becomes getColor; stroke width or circle radius becomes getWidth. With no color rule, deck.gl uses black.",
       "additionalProperties": false,
       "required": ["layers"],
       "properties": {

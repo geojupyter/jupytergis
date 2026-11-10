@@ -72,7 +72,6 @@ interface ILayerUIState {
   id: string;
   transforms: ITransform[];
   rows: IGrammarRow[];
-  geometry?: IGrammarLayer['geometry'];
   when?: IPredicate[];
   whenOp?: 'all' | 'any';
 }
@@ -691,7 +690,6 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
       state.layers.map(grammarLayer => ({
         id: grammarLayer.id,
         transforms: grammarLayer.preprocess ?? [],
-        ...(grammarLayer.geometry ? { geometry: grammarLayer.geometry } : {}),
         ...(grammarLayer.when?.length ? { when: grammarLayer.when } : {}),
         ...(grammarLayer.whenOp ? { whenOp: grammarLayer.whenOp } : {}),
         rows: rulesToRows(grammarLayer.rules),
@@ -713,7 +711,6 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
       return {
         id: uiLayer.id,
         rules: rowsToRules(uiLayer.rows),
-        ...(uiLayer.geometry ? { geometry: uiLayer.geometry } : {}),
         ...(uiLayer.transforms.length
           ? { preprocess: uiLayer.transforms }
           : {}),
