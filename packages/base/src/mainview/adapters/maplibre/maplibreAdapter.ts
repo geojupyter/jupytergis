@@ -11,6 +11,7 @@ import type {
   IJGISLayer,
   IJGISOptions,
   IJGISSource,
+  IJGISUIState,
   IJupyterGISModel,
   IGeoTiffSource,
   IGeoTiffLayer,
@@ -220,10 +221,13 @@ export class MapLibreAdapter implements IMapAdapter {
       this._log(level, message),
     );
     this._deckOverlay.attach(this._map);
+    this._model.uiStateChanged.connect(this._onMapViewChanged);
+    this._applyMapView(this._model.getUIState().mapView);
   }
 
   destroy(): void {
     this.unregisterMap();
+    this._model.uiStateChanged.disconnect(this._onMapViewChanged);
 
     this._deckOverlay?.detach(this._map);
     this._deckOverlay = undefined;
@@ -1558,6 +1562,25 @@ export class MapLibreAdapter implements IMapAdapter {
 
   getProjection(): IMapProjection {
     return { code: 'EPSG:3857', units: 'm' };
+  }
+
+  private _onMapViewChanged = (
+    _sender: IJupyterGISModel,
+    state: IJGISUIState,
+  ): void => {
+    this._applyMapView(state.mapView);
+  };
+
+  /**
+   * Switches the MapLibre view between mercator and globe. Coordinates stay
+   * EPSG:3857. The deck.gl overlay follows this projection.
+   */
+  private _applyMapView(mode: IJGISUIState['mapView']): void {
+    const next = mode === 'globe' ? 'globe' : 'mercator';
+    if (this._map.getProjection()?.type === next) {
+      return;
+    }
+    this._map.setProjection({ type: next });
   }
 
   setProjection(code: string): IMapProjection | undefined {

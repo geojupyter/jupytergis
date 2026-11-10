@@ -1,14 +1,10 @@
-import {
-  faGlobe,
-  faLocationDot,
-  faMap,
-} from '@fortawesome/free-solid-svg-icons';
+import { faGlobe, faLocationDot, faMap } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
 import {
-  type DeckView,
   type IJGISUIState,
-  IJupyterGISModel,
+  type IJupyterGISModel,
+  type MapViewMode,
 } from '@jupytergis/schema';
 import { CommandRegistry } from '@lumino/commands';
 import React, { useEffect, useState } from 'react';
@@ -59,8 +55,8 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   onCursorCoordModeChange,
 }) => {
   const [projectionCode, setProjectionCode] = useState(projection?.code);
-  const [deckView, setDeckView] = useState<DeckView>(() =>
-    readDeckView(jgisModel.getUIState()),
+  const [mapView, setMapView] = useState<MapViewMode>(() =>
+    readMapView(jgisModel.getUIState()),
   );
 
   useEffect(() => {
@@ -70,9 +66,9 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   }, [projection?.code]);
 
   useEffect(() => {
-    setDeckView(readDeckView(jgisModel.getUIState()));
+    setMapView(readMapView(jgisModel.getUIState()));
     const handleUIState = (_: IJupyterGISModel, state: IJGISUIState): void => {
-      setDeckView(readDeckView(state));
+      setMapView(readMapView(state));
     };
     jgisModel.uiStateChanged.connect(handleUIState);
     return () => {
@@ -147,27 +143,27 @@ const StatusBar: React.FC<IStatusBarProps> = ({
           </span>
         )}
       </div>
-      {rendererName === 'DeckGL' ? (
+      {rendererName === 'MapLibre' ? (
         <Select
-          value={deckView}
+          value={mapView}
           onValueChange={value => {
-            if (value !== 'map' && value !== 'globe') {
+            if (value !== 'mercator' && value !== 'globe') {
               return;
             }
-            jgisModel.setUIState({ deckView: value });
+            jgisModel.setUIState({ mapView: value });
           }}
         >
           <SelectTrigger
             className="jgis-status-bar-item justify-start gap-1 border-0 bg-transparent px-1 text-inherit shadow-none focus-visible:border-0 focus-visible:ring-0"
-            title="Deck.gl view"
-            aria-label={`View: ${deckView === 'globe' ? 'Globe' : 'Map'}. Click to change.`}
+            title="MapLibre view"
+            aria-label={`View: ${mapView === 'globe' ? 'Globe' : 'Map'}. Click to change.`}
             render={<Button variant="ghost" size="xs" />}
           >
             <FontAwesomeIcon icon={faGlobe} />
-            <span>{deckView === 'globe' ? 'Globe' : 'Map'}</span>
+            <span>{mapView === 'globe' ? 'Globe' : 'Map'}</span>
           </SelectTrigger>
           <SelectContent side="top" align="center" className="w-auto min-w-44">
-            <SelectItem value="map">Map</SelectItem>
+            <SelectItem value="mercator">Map</SelectItem>
             <SelectItem value="globe">Globe</SelectItem>
           </SelectContent>
         </Select>
@@ -190,8 +186,8 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   );
 };
 
-function readDeckView(state: IJGISUIState): DeckView {
-  return state.deckView === 'globe' ? 'globe' : 'map';
+function readMapView(state: IJGISUIState): MapViewMode {
+  return state.mapView === 'globe' ? 'globe' : 'mercator';
 }
 
 function formatCursor(cursor: ICursorDisplay | null): string {
