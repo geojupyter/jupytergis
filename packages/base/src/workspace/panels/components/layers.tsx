@@ -15,6 +15,7 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 import {
   Button,
+  CommandToolbarButtonComponent,
   ContextMenuSvg,
   LabIcon,
   caretDownIcon,
@@ -83,6 +84,12 @@ function createContextMenu(
     command: CommandIDs.symbology,
     selector: GIS_LAYER_ITEM,
     rank: 1,
+  });
+
+  gisContextMenu.addItem({
+    command: CommandIDs.toggleDeclutter,
+    selector: GIS_LAYER_ITEM,
+    rank: 1.2,
   });
 
   // Separator
@@ -533,6 +540,7 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
           <LayerComponent
             key={layer}
             gisModel={model}
+            commands={commands}
             layerId={layer}
             onClick={onItemClick}
           />
@@ -540,6 +548,7 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
           <LayerGroupComponent
             key={layer.name}
             gisModel={model}
+            commands={commands}
             group={layer}
             onClick={onItemClick}
             state={props.state}
@@ -555,6 +564,7 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
  */
 interface ILayerGroupProps {
   gisModel: IJupyterGISModel | undefined;
+  commands: CommandRegistry;
   group: IJGISLayerGroup | undefined;
   state: IStateDB;
   onClick: ({ type, item }: ILeftPanelClickHandlerParams) => void;
@@ -564,7 +574,7 @@ interface ILayerGroupProps {
  * The component to handle group of layers.
  */
 const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
-  const { group, gisModel, onClick, state } = props;
+  const { group, gisModel, commands, onClick, state } = props;
 
   if (group === undefined) {
     return <></>;
@@ -753,6 +763,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
                 <LayerComponent
                   key={layer}
                   gisModel={gisModel}
+                  commands={commands}
                   layerId={layer}
                   onClick={onClick}
                 />
@@ -760,6 +771,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
                 <LayerGroupComponent
                   key={layer.name}
                   gisModel={gisModel}
+                  commands={commands}
                   group={layer}
                   onClick={onClick}
                   state={props.state}
@@ -778,6 +790,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
 interface ILayerProps {
   // ! todo this should never be undefined, like it's not possible in the parent, it will never be undef here
   gisModel: IJupyterGISModel | undefined;
+  commands: CommandRegistry;
   layerId: string;
   onClick: ({ type, item }: ILeftPanelClickHandlerParams) => void;
 }
@@ -815,7 +828,7 @@ function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
  * The component to display a single layer.
  */
 const LayerComponent: React.FC<ILayerProps> = props => {
-  const { layerId, gisModel, onClick } = props;
+  const { layerId, gisModel, commands, onClick } = props;
   const layer = gisModel?.getLayer(layerId);
   if (layer === undefined) {
     return <></>;
@@ -856,6 +869,8 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   // Every layer type applies opacity on the map except story segments, which
   // have no associated OpenLayers layer.
   const supportsOpacity = !isStorySegmentLayer;
+
+  const declutterArgs = gisModel && { filePath: gisModel.filePath, layerId };
 
   const sourceId = layer.parameters?.source as string | undefined;
   const sourceType = sourceId ? gisModel?.getSource(sourceId)?.type : undefined;
@@ -1154,6 +1169,16 @@ const LayerComponent: React.FC<ILayerProps> = props => {
             {name}
           </span>
         )}
+
+        {declutterArgs &&
+          commands.isVisible(CommandIDs.toggleDeclutter, declutterArgs) && (
+            <CommandToolbarButtonComponent
+              commands={commands}
+              id={CommandIDs.toggleDeclutter}
+              args={declutterArgs}
+              label=""
+            />
+          )}
 
         {supportsOpacity && (
           <span
