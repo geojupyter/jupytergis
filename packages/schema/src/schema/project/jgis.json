@@ -6,7 +6,7 @@
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "default": "0.7.1"
+      "default": "0.7.2"
     },
     "layers": {
       "$ref": "#/definitions/jGISLayers"

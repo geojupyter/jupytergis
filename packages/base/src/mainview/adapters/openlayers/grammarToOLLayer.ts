@@ -74,7 +74,9 @@ export function grammarToOLLayer({
   const opacity = parameters.opacity ?? 1;
   const visible = layer.visible ?? true;
   const isRaster =
-    layer.type === 'GeoTiffLayer' || layer.type === 'GeoZarrLayer';
+    layer.type === 'GeoTiffLayer' ||
+    layer.type === 'GeoZarrLayer' ||
+    layer.type === 'OpenEOTileLayer';
   const declutter = parameters.declutter ? layerId : false;
   const grammarLayers = state.layers ?? [];
 

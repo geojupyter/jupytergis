@@ -107,6 +107,7 @@ export const SymbologyDialog: React.FC<ISymbologyDialogProps> = ({
       case 'VectorTileLayer':
       case 'GeoTiffLayer':
       case 'GeoZarrLayer':
+      case 'OpenEOTileLayer':
         LayerSymbology = (
           <Grammar
             model={model}
