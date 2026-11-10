@@ -85,9 +85,9 @@ QGIS_UNSUPPORTED_TYPES = {
     SourceType.GeoZarrSource,
 }
 
-MapAdapterName = Literal["openlayers", "maplibre", "deckgl"]
+MapAdapterName = Literal["openlayers", "maplibre"]
 
-MAP_ADAPTERS: tuple[str, ...] = ("openlayers", "maplibre", "deckgl")
+MAP_ADAPTERS: tuple[str, ...] = ("openlayers", "maplibre")
 
 
 def _validate_map_adapter(map_adapter: str | None) -> MapAdapterName | None:
@@ -185,7 +185,7 @@ class GISDocument(CommWidget):
     :param path: the path to the file that you would like to open. If not provided, a new ephemeral widget will be created.
 
     :param map_adapter: the map renderer used to display this document,
-        ``"openlayers"``, ``"maplibre"``, or ``"deckgl"``. When omitted, the front end's default is used
+        ``"openlayers"`` or ``"maplibre"``. When omitted, the front end's default is used
         (or the value already saved in the file).
 
     Collaborative client state from the front end is mirrored into :mod:`ypywidgets`

@@ -73,55 +73,6 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
   requiresVectorTileSourceLayer: true,
 };
 
-const DECKGL_FEATURES: IMapAdapterFeatures = {
-  name: 'DeckGL',
-  sources: {
-    RasterSource: true,
-    RasterDemSource: false,
-    VectorTileSource: false,
-    GeoJSONSource: true,
-    ImageSource: false,
-    ShapefileSource: false,
-    GeoTiffSource: false,
-    GeoZarrSource: false,
-    GeoPackageVectorSource: false,
-    GeoPackageRasterSource: false,
-    GeoParquetSource: false,
-    MarkerSource: false,
-    WmsTileSource: false,
-    OpenEOTileSource: false,
-    FeatureStoreSource: false,
-    TripsSource: true,
-    PolygonSource: true,
-  },
-  layers: {
-    RasterLayer: true,
-    VectorLayer: false,
-    VectorTileLayer: false,
-    HillshadeLayer: false,
-    TerrainLayer: false,
-    StorySegmentLayer: false,
-    ImageLayer: false,
-    GeoTiffLayer: false,
-    GeoZarrLayer: false,
-    OpenEOTileLayer: false,
-    StacLayer: false,
-    TripsLayer: true,
-    PolygonLayer: true,
-    GeoJsonLayer: true,
-  },
-  addMarker: false,
-  identify: false,
-  drawTool: false,
-  storyMaps: false,
-  geolocation: false,
-  layerComparison: false,
-  heatmapSymbology: false,
-  clusterSymbology: false,
-  customProjections: false,
-  requiresVectorTileSourceLayer: false,
-};
-
 const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
   name: 'OpenLayers',
   sources: {
@@ -176,7 +127,6 @@ export const MAP_ADAPTER_FEATURES: Readonly<
 > = {
   maplibre: MAPLIBRE_FEATURES,
   openlayers: OPENLAYERS_FEATURES,
-  deckgl: DECKGL_FEATURES,
 };
 
 /**

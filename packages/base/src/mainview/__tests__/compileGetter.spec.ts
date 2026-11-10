@@ -1,8 +1,3 @@
-jest.mock('@deck.gl/core', () => ({
-  Deck: class {},
-  MapView: class {},
-  _GlobeView: class {},
-}));
 jest.mock('@deck.gl/geo-layers', () => ({
   TileLayer: class {},
   TripsLayer: class {},
@@ -11,11 +6,6 @@ jest.mock('@deck.gl/layers', () => ({
   BitmapLayer: class {},
   GeoJsonLayer: class {},
   PolygonLayer: class {},
-}));
-jest.mock('@deck.gl/widgets', () => ({
-  FullscreenWidget: class {},
-  ZoomWidget: class {},
-  _ScaleWidget: class {},
 }));
 jest.mock('geotiff', () => ({ Pool: class {}, fromUrl: jest.fn() }));
 jest.mock('ol/style/flat', () => ({}));
@@ -26,7 +16,7 @@ jest.mock('@/src/tools', () => ({
 }));
 jest.mock('../CollaboratorPointers', () => ({}));
 
-import { compileGetter } from '../adapters/deckgl/deckGlAdapter';
+import { compileGetter } from '../adapters/deckgl/createDeckLayers';
 
 const record = {
   path: [
