@@ -93,9 +93,7 @@ export function DeckGlCreationForm(
         <select
           id="jgis-deckgl-layer-type"
           value={choice}
-          onChange={event =>
-            setChoice(event.target.value as DeckGlLayerChoice)
-          }
+          onChange={event => setChoice(event.target.value as DeckGlLayerChoice)}
           style={{ minWidth: 200 }}
         >
           {DECK_GL_LAYER_PRESETS.map(item => (

@@ -1,4 +1,8 @@
-import { faGlobe, faLocationDot, faMap } from '@fortawesome/free-solid-svg-icons';
+import {
+  faGlobe,
+  faLocationDot,
+  faMap,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
 import {

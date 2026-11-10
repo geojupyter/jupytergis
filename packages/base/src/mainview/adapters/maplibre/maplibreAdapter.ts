@@ -70,12 +70,12 @@ import {
   getUnsupportedReason,
 } from '../../mapAdapterFeatures';
 import { isValidExtent } from '../../utils/olLayerZoomExtent';
+import { JSON_RECORD_SOURCES } from '../deckgl/createDeckLayers';
+import { DeckOverlayHost } from '../deckgl/deckOverlayHost';
 import {
   compileCogColorExpression,
   compileCogColorFunction,
 } from '../maplibre/cogColorFunction';
-import { DeckOverlayHost } from '../deckgl/deckOverlayHost';
-import { JSON_RECORD_SOURCES } from '../deckgl/createDeckLayers';
 
 const WORLD_EXTENT = [-180, -85.051129, 180, 85.051129];
 type MLCoordinates = [number, number];

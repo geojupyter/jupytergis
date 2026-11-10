@@ -1,5 +1,5 @@
+import { MapLibreOverlay } from '@deck.gl/maplibre';
 import type {
-  IJGISLayer,
   IJGISSource,
   IJupyterGISModel,
   IPolygonSource,
@@ -7,7 +7,6 @@ import type {
   IGeoJSONSource,
 } from '@jupytergis/schema';
 import { PathExt } from '@jupyterlab/coreutils';
-import { MapLibreOverlay } from '@deck.gl/maplibre';
 import type { Map as MlMap } from 'maplibre-gl';
 
 import { fetchWithProxies } from '@/src/tools';
