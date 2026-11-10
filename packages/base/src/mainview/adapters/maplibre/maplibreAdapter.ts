@@ -156,6 +156,7 @@ export class MapLibreAdapter implements IMapAdapter {
       lonLat,
       zoom = 1,
       rotation = 0,
+      pitch = 0,
       controlsTarget,
       zoomButtonsEnabled = false,
       mainViewId,
@@ -202,7 +203,7 @@ export class MapLibreAdapter implements IMapAdapter {
       center: lonLat ?? center,
       zoom,
       bearing: rotation,
-      pitch: 0,
+      pitch,
       maxPitch: 85,
     });
     (window as any).mapDebug = this._map;
