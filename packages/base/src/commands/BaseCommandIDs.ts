@@ -56,6 +56,7 @@ export const moveSelectedToGroup = 'jupytergis:moveSelectedToGroup';
 export const moveSelectedToNewGroup = 'jupytergis:moveSelectedToNewGroup';
 export const compareLayers = 'jupytergis:compareLayers';
 export const stopComparing = 'jupytergis:stopComparing';
+export const toggleDeclutter = 'jupytergis:toggleDeclutter';
 
 // Console commands
 export const toggleConsole = 'jupytergis:toggleConsole';
