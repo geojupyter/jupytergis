@@ -24,7 +24,7 @@ import {
   IOpenEOConnectionInfo,
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
 import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 import { getGdal } from './gdal';
 
 export const debounce = (
@@ -444,22 +444,17 @@ export const fetchWithProxies = async <T>(
   parseResponse: (response: Response) => Promise<T>,
   options?: RequestInit,
 ): Promise<T | null> => {
-  const proxiedUrl = buildProxyUrl(model, url, true);
-  const strategies = proxiedUrl === url ? [url] : [url, proxiedUrl];
+  const tryUrl = await maybeProxied(url, model);
 
-  // TODO reconsider this decision?
-  // Try direct url first
-  for (const tryUrl of strategies) {
-    try {
-      const response = await fetch(tryUrl, options);
-      if (!response.ok) {
-        console.warn(`Failed to fetch from ${tryUrl}: ${response.statusText}`);
-        continue;
-      }
-      return await parseResponse(response);
-    } catch (error) {
-      console.warn(`Error fetching from ${tryUrl}:`, error);
+  try {
+    const response = await fetch(tryUrl, options);
+    if (!response.ok) {
+      console.warn(`Failed to fetch from ${tryUrl}: ${response.statusText}`);
+      return null;
     }
+    return await parseResponse(response);
+  } catch (error) {
+    console.warn(`Error fetching from ${tryUrl}:`, error);
   }
 
   return null;
@@ -654,16 +649,25 @@ async function loadGkpgFromUrl(
 export async function getGeoPackageTableNames(
   filepath: string,
   type: 'GeoPackageVectorSource' | 'GeoPackageRasterSource',
+  model: IJupyterGISModel,
 ) {
   const cacheKey =
     filepath + (type === 'GeoPackageRasterSource' ? 'Raster' : 'Vector');
 
-  const tableMap = await geoPackageCache.get(cacheKey);
-  if (!tableMap) {
+  try {
+    if (!geoPackageCache.has(cacheKey)) {
+      await loadFile({ filepath, type, model });
+    }
+
+    const tableMap = await geoPackageCache.get(cacheKey);
+    if (!tableMap) {
+      return [];
+    }
+
+    return Object.keys(tableMap);
+  } catch {
     return [];
   }
-
-  return Object.keys(tableMap);
 }
 
 /**
@@ -687,7 +691,8 @@ export const loadFile = async (fileInfo: {
     switch (type) {
       case 'ImageSource': {
         try {
-          const response = await fetch(filepath);
+          const imageUrl = await maybeProxied(filepath, model);
+          const response = await fetch(imageUrl);
           if (!response.ok) {
             throw new Error(`Failed to fetch image from URL: ${filepath}`);
           }
@@ -699,7 +704,7 @@ export const loadFile = async (fileInfo: {
 
           // load the image to verify it's not corrupted
           await validateImage(await response.blob());
-          return filepath;
+          return imageUrl;
         } catch (error) {
           console.error('Error validating remote image:', error);
           throw error;

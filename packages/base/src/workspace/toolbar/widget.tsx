@@ -121,6 +121,10 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
       NewSubMenu.addItem({
         type: 'command',
+        command: CommandIDs.toggleStacBrowser,
+      });
+      NewSubMenu.addItem({
+        type: 'command',
         command: CommandIDs.openNewDeckGLDialog,
       });
 

@@ -215,17 +215,42 @@ doc
 ## Remove layers and inspect document content
 
 ```python
-layer_id = doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+layer = doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 
-doc.remove_layer(layer_id)
+doc.remove_layer(layer)
 ```
 
 You can also inspect convenience properties:
 
 ```python
-print(doc.layers)  # dict keyed by layer id
+print(doc.layers)  # layer objects in layer tree order, groups as sub-lists
+print(doc.sources)  # source objects
 print(doc.layer_tree)  # ordered layer ids / groups
 ```
+
+Layers and sources read back as objects rather than nested dictionaries, and a layer reaches its own source:
+
+```python
+layer = doc.get_layer("Open Street Map")
+
+layer.name
+layer.visible
+layer.opacity
+layer.source.url
+```
+
+The `add_*_layer` methods return the new layer object. `remove_layer`, `zoom_to_layer` and `apply_symbology` take a layer object.
+
+Setting an attribute writes it back to the document, so the map updates:
+
+```python
+layer.visible = False
+layer.source.url = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+```
+
+`get_layer` and `get_source` look a layer or source up by name. Looking a name up that several layers share raises a `ValueError`.
+
+Parameters read and write as attributes for every layer and source type, so a document written by a newer version still reads.
 
 ## Open in a sidecar
 

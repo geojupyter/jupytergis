@@ -8,7 +8,9 @@ import {
   logoMiniIcon,
   resetServerAvailabilityCache,
   setFeatureStoreAvailable,
+  setOpenEOTokensProvider,
   setServerProcessingEnabled,
+  showAboutDialog,
 } from '@jupytergis/base';
 import {
   IAnnotationModel,
@@ -22,6 +24,8 @@ import {
   ProcessingMerge,
   IJGISFormSchemaRegistry,
   IJGISFormSchemaRegistryToken,
+  IOpenEOTokensProvider,
+  IOpenEOTokensProviderToken,
 } from '@jupytergis/schema';
 import {
   JupyterFrontEnd,
@@ -47,6 +51,7 @@ import {
 import { SharedDocumentFactory } from '@jupyterlab/services';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { IStateDB } from '@jupyterlab/statedb';
+import { ITranslator, nullTranslator } from '@jupyterlab/translation';
 
 import { JupyterGISDocumentWidgetFactory } from '../factory';
 import { JupyterGISModelFactory } from './modelfactory';
@@ -177,13 +182,19 @@ const activate = async (
   settingRegistry: ISettingRegistry,
   formSchemaRegistry: IJGISFormSchemaRegistry,
   state: IStateDB,
+  openEOTokens: IOpenEOTokensProvider,
   launcher: ILauncher | null,
   palette: ICommandPalette | null,
   collaborativeContentProvider: ICollaborativeContentProvider | null,
   loggerRegistry: ILoggerRegistry | null,
   urlResolverFactory: IUrlResolverFactory | null,
+  translator: ITranslator | null,
 ): Promise<void> => {
   formSchemaRegistry && state;
+  const trans = (translator ?? nullTranslator).load('jupyterlab');
+
+  setOpenEOTokensProvider(openEOTokens);
+
   if (PageConfig.getOption('jgis_expose_maps')) {
     window.jupytergisMaps = {};
   }
@@ -324,6 +335,11 @@ const activate = async (
     },
   });
 
+  app.commands.addCommand(CommandIDs.about, {
+    label: trans.__('About JupyterGIS'),
+    execute: () => showAboutDialog(trans),
+  });
+
   // Add the command to the launcher
   if (launcher) {
     launcher.add({
@@ -339,6 +355,11 @@ const activate = async (
       command: CommandIDs.createNew,
       args: { isPalette: true },
       category: PALETTE_CATEGORY,
+    });
+
+    palette.addItem({
+      command: CommandIDs.about,
+      category: trans.__('Help'),
     });
 
     palette.addItem({
@@ -444,6 +465,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     ISettingRegistry,
     IJGISFormSchemaRegistryToken,
     IStateDB,
+    IOpenEOTokensProviderToken,
   ],
   optional: [
     ILauncher,
@@ -451,6 +473,7 @@ const jGISPlugin: JupyterFrontEndPlugin<void> = {
     ICollaborativeContentProvider,
     ILoggerRegistry,
     IUrlResolverFactory,
+    ITranslator,
   ],
   autoStart: true,
   activate,

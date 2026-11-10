@@ -192,8 +192,7 @@
       "name": "Custom GeoJSON Layer Source",
       "parameters": {
         "httpHeaders": "",
-        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson",
-        "useProxy": false
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_10m_roads.geojson"
       },
       "type": "GeoJSONSource"
     }

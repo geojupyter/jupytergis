@@ -58,6 +58,24 @@ function fieldExpr(field: string): ExpressionValue {
   return ['get', field];
 }
 
+/**
+ * Read a feature property as a string, whatever type it is stored as.
+ *
+ * Missing and null values coalesce to the empty string, so they render no
+ * label rather than break the style.
+ */
+function stringFieldExpr(field: string): ExpressionValue {
+  return ['to-string', ['coalesce', fieldExpr(field), '']] as ExpressionValue;
+}
+
+/**
+ * Metres per pixel at a web-map zoom level in Web Mercator (EPSG:3857, 256px
+ * tiles), for callers that have no map view to ask.
+ */
+function webMercatorResolutionForZoom(zoom: number): number {
+  return 156543.03392804097 / Math.pow(2, zoom);
+}
+
 /** Band pseudo-fields always exist; vector feature properties may not. */
 function fieldAlwaysPresent(field: string): boolean {
   return /^band_\d+$/.test(field) || field === DENSITY_FIELD;
@@ -106,10 +124,14 @@ interface IEncodingEntry {
  *   Required for categorical and colorRamp scales so the compiler can
  *   enumerate unique values / compute classification breaks at render time,
  *   mirroring how buildVectorFlatStyle works.
+ * @param resolutionForZoom  Turns a zoom guard into the view resolution it
+ *   compares against. Pass the map view's getResolutionForZoom so the guard
+ *   follows the document's projection.
  */
 export function grammarToOLStyle(
   state: IGrammarSymbologyState,
   featureValues: unknown[] = [],
+  resolutionForZoom: (zoom: number) => number = webMercatorResolutionForZoom,
 ): Record<string, ExpressionValue> {
   // Accumulate per-encoding entries from all layers and their rules.
   // Layers with a kde/cluster preprocess are handled at the renderer level;
@@ -128,16 +150,16 @@ export function grammarToOLStyle(
     // Layer-level guard: compiled separately then AND-ed with the rule guard.
     const layerGuard =
       layer.when && layer.when.length > 0
-        ? compileGuard(layer.when, layer.whenOp ?? 'all')
+        ? compileGuard(layer.when, layer.whenOp ?? 'all', resolutionForZoom)
         : undefined;
 
     for (const rule of layer.rules) {
-      // For now use the first field; multi-field assembly is handled via
-      // sub-encoding mappings (pixel-red/green/blue) or expression scales.
-      const field = rule.fields?.[0];
+      // Rule-level default; a mapping may name its own input instead, so that
+      // channels of one rule can read different columns.
+      const ruleField = rule.fields?.[0];
       const ruleGuard =
         rule.when && rule.when.length > 0
-          ? compileGuard(rule.when, rule.whenOp ?? 'all')
+          ? compileGuard(rule.when, rule.whenOp ?? 'all', resolutionForZoom)
           : undefined;
       const guard =
         layerGuard && ruleGuard
@@ -145,6 +167,9 @@ export function grammarToOLStyle(
           : (layerGuard ?? ruleGuard);
 
       for (const mapping of rule.mappings) {
+        // For now use the first field; multi-field assembly is handled via
+        // sub-encoding mappings (pixel-red/green/blue) or expression scales.
+        const field = mapping.fields?.[0] ?? ruleField;
         for (const encoding of mapping.encodings) {
           if (encoding === 'pixel-rgb') {
             // Virtual encoding: fan out to pixel-red/green/blue so assembleStyle
@@ -268,19 +293,52 @@ function buildEncodingExpr(
 
 /** Typed zero for encodings with no unconditional rule. */
 function encodingZero(encoding: Encoding): ExpressionValue {
-  const rgbaEncodings = new Set<Encoding>([
-    'fill-color',
-    'stroke-color',
-    'circle-fill-color',
-    'circle-stroke-color',
-    'pixel-color',
-  ]);
-  return rgbaEncodings.has(encoding) ? 'rgba(0,0,0,0)' : 0;
+  if (RGBA_ENCODINGS.has(encoding)) {
+    return 'rgba(0,0,0,0)';
+  }
+  // A text encoding with nothing to say must produce the empty string; a
+  // numeric zero would render the label "0" on every feature.
+  if (STRING_ENCODINGS.has(encoding)) {
+    return '';
+  }
+  return 0;
 }
 
 // ---------------------------------------------------------------------------
 // Sub-encoding assembly
 // ---------------------------------------------------------------------------
+
+/** Encodings whose value is a colour. */
+const RGBA_ENCODINGS = new Set<Encoding>([
+  'fill-color',
+  'stroke-color',
+  'circle-fill-color',
+  'circle-stroke-color',
+  'pixel-color',
+  'text-fill-color',
+  'text-stroke-color',
+]);
+
+/** Encodings whose value is a string. */
+const STRING_ENCODINGS = new Set<Encoding>([
+  'text-value',
+  'text-font',
+  'text-font-family',
+  'text-placement',
+  'text-align',
+  'text-baseline',
+]);
+
+/** Encodings composed into the `text-font` CSS shorthand. */
+const FONT_SUB: Encoding[] = ['text-font-size', 'text-font-family'];
+
+/** OL's own text-font default, used when only one half of it is mapped. */
+const DEFAULT_FONT_SIZE = 10;
+const DEFAULT_FONT_FAMILY = 'sans-serif';
+
+/** Halo drawn behind label text when the user has not styled one. */
+const DEFAULT_HALO_COLOR = 'rgba(255,255,255,1)';
+const DEFAULT_HALO_WIDTH = 3;
 
 const FILL_SUB: UInt8Encoding[] = ['fill-red', 'fill-green', 'fill-blue'];
 const FILL_ALPHA_SUB: UNormEncoding[] = ['fill-alpha'];
@@ -304,12 +362,37 @@ function assembleStyle(
     ...FILL_ALPHA_SUB,
     ...PIXEL_SUB,
     ...PIXEL_ALPHA_SUB,
+    ...FONT_SUB,
     'elevation',
   ]);
 
   for (const [encoding, expr] of encodingExprs) {
     if (!skip.has(encoding)) {
       style[encoding] = expr;
+    }
+  }
+
+  // Assemble text-font from its parts. Either part on its own wins over a
+  // whole-shorthand rule, falling back to OL's own default for the other half.
+  if (FONT_SUB.some(c => encodingExprs.has(c))) {
+    const size = encodingExprs.get('text-font-size') ?? DEFAULT_FONT_SIZE;
+    const family = encodingExprs.get('text-font-family') ?? DEFAULT_FONT_FAMILY;
+    style['text-font'] = [
+      'concat',
+      ['to-string', size],
+      'px ',
+      family,
+    ] as ExpressionValue;
+  }
+
+  // A label with no halo rules is unreadable over an aerial or a dark basemap,
+  // so give it a white one until the user says otherwise.
+  if (encodingExprs.has('text-value')) {
+    if (!encodingExprs.has('text-stroke-color')) {
+      style['text-stroke-color'] = DEFAULT_HALO_COLOR;
+    }
+    if (!encodingExprs.has('text-stroke-width')) {
+      style['text-stroke-width'] = DEFAULT_HALO_WIDTH;
     }
   }
 
@@ -352,13 +435,19 @@ function assembleStyle(
 
 function compileGuard(
   predicates: IPredicate[],
-  op: 'all' | 'any' = 'all',
+  op: 'all' | 'any',
+  resolutionForZoom: (zoom: number) => number,
 ): ExpressionValue {
-  const conditions = predicates.map(compilePredicate);
+  const conditions = predicates.map(p =>
+    compilePredicate(p, resolutionForZoom),
+  );
   return conditions.length === 1 ? conditions[0] : [op, ...conditions];
 }
 
-function compilePredicate(predicate: IPredicate): ExpressionValue {
+function compilePredicate(
+  predicate: IPredicate,
+  resolutionForZoom: (zoom: number) => number,
+): ExpressionValue {
   switch (predicate.type) {
     case 'geometryType':
       return ['==', ['geometry-type'], predicate.value];
@@ -377,6 +466,31 @@ function compilePredicate(predicate: IPredicate): ExpressionValue {
         ['>=', fieldExpr(predicate.field), predicate.min],
         ['<=', fieldExpr(predicate.field), predicate.max],
       ];
+    case 'zoomRange': {
+      // ['zoom'] is WebGL-only, so vector styles have to compare resolutions.
+      // Resolution shrinks as zoom grows, hence the flipped comparisons.
+      const bounds: ExpressionValue[] = [];
+      if (predicate.minZoom !== undefined) {
+        bounds.push([
+          '<=',
+          ['resolution'],
+          resolutionForZoom(predicate.minZoom),
+        ]);
+      }
+      if (predicate.maxZoom !== undefined) {
+        bounds.push([
+          '>=',
+          ['resolution'],
+          resolutionForZoom(predicate.maxZoom),
+        ]);
+      }
+      if (bounds.length === 0) {
+        return true;
+      }
+      return bounds.length === 1
+        ? bounds[0]
+        : (['all', ...bounds] as ExpressionValue);
+    }
     default:
       throw new Error(`Invalid predicate type ${predicate}`);
   }
@@ -445,12 +559,18 @@ function compileMapping(
       }
     case 'constant_rgba':
     case 'constant_num':
+    case 'constant_str':
       return scale.params.value as ExpressionValue;
     case 'scalar':
       return field ? compileScalar(field, scale) : scale.params.fallback;
     case 'identity': {
       if (!field) {
         return encodingZero(mapping.encodings[0]);
+      }
+      // Text encodings need a string, and the attribute driving a label is
+      // just as often numeric as textual, so coerce rather than assume.
+      if (STRING_ENCODINGS.has(encoding)) {
+        return stringFieldExpr(field);
       }
       // Wrap with coalesce so OL's expression type system infers the correct
       // output type (color vs number). Bare ['get', field] has type 'any'

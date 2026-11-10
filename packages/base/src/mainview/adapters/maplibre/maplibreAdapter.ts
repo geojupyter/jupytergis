@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import {
   cogProtocol,
+  getCogMetadata,
+  locationValues,
   setColorFunction,
 } from '@geomatico/maplibre-cog-protocol';
 import type {
@@ -8,6 +10,7 @@ import type {
   IGrammarSymbologyState,
   IHillshadeLayer,
   IIdentifiedFeature,
+  IIdentifiedFeatureEntry,
   IJGISLayer,
   IJGISOptions,
   IJGISSource,
@@ -15,6 +18,7 @@ import type {
   IJupyterGISModel,
   IGeoTiffSource,
   IGeoTiffLayer,
+  IMarkerSource,
   IRasterLayer,
   IRasterSource,
   IRasterDemSource,
@@ -23,10 +27,12 @@ import type {
   IVectorTileLayer,
   IVectorTileSource,
   IViewState,
+  IWmsTileSource,
   JgisCoordinates,
 } from '@jupytergis/schema';
 import { PageConfig } from '@jupyterlab/coreutils';
 import { ILoggerRegistry } from '@jupyterlab/logconsole';
+import { UUID } from '@lumino/coreutils';
 import type {
   Feature as GeoJSONFeature,
   FeatureCollection,
@@ -56,8 +62,10 @@ import {
   MapLibreSubLayerType,
 } from '@/src/mainview/adapters/maplibre/grammerToMLStyle';
 import { extractEncodingFieldValues } from '@/src/mainview/adapters/openlayers/grammarToOLStyle';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { markerIcon } from '@/src/shared/icons';
+import { maybeProxied } from '@/src/shared/proxy';
 import { debounce, loadFile, throttle } from '@/src/tools';
+import { MapLibreHighlight } from './maplibreHighlight';
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
   IMapAdapter,
@@ -114,6 +122,13 @@ const NOOP_DRAW_TOOL: IDrawToolAdapter = {
   setDrawLayerId: noop,
   handleViewProjectionChanged: noop,
 };
+
+const IDENTIFY_HIT_TOLERANCE = 5;
+
+interface IMapClickEvent {
+  point: { x: number; y: number };
+  lngLat: { lng: number; lat: number };
+}
 
 interface ICogSourceInfo {
   /** URL as handed to the protocol, without the `cog://` prefix. */
@@ -347,11 +362,11 @@ export class MapLibreAdapter implements IMapAdapter {
     });
 
     this._map.on('click', event => {
-      //   this._identifyFeature(event);     TODO
+      this._identifyFeature(event);
     });
 
     this._map.on('click', event => {
-      //   this._addMarker(event);           TODO
+      this._addMarker(event);
     });
 
     this._map.on('contextmenu', event => {
@@ -451,6 +466,25 @@ export class MapLibreAdapter implements IMapAdapter {
           break;
         }
 
+        case 'MarkerSource': {
+          const sourceParameters = source.parameters as IMarkerSource;
+          const [lng, lat] = sourceParameters.feature.coords;
+
+          this._map.addSource(id, {
+            type: 'geojson',
+            data: {
+              type: 'Feature',
+              geometry: {
+                type: 'Point',
+                coordinates: [lng, lat],
+              },
+              properties: sourceParameters.feature.properties ?? {},
+            },
+          });
+
+          break;
+        }
+
         case 'TripsSource':
         case 'PolygonSource': {
           const ok = await this._deckOverlay?.ensureSource(id, source);
@@ -526,6 +560,24 @@ export class MapLibreAdapter implements IMapAdapter {
             tileSize: 256,
             minzoom: sourceParameters.minZoom,
             maxzoom: sourceParameters.maxZoom,
+            attribution: sourceParameters.attribution,
+          });
+          break;
+        }
+
+        case 'WmsTileSource': {
+          const sourceParameters = source.parameters as IWmsTileSource;
+
+          this._map.addSource(id, {
+            type: 'raster',
+            tiles: [
+              await maybeProxied(
+                this._computeWmsTileUrl(sourceParameters),
+                this._model,
+                sourceParameters.httpHeaders,
+              ),
+            ],
+            tileSize: 256,
             attribution: sourceParameters.attribution,
           });
           break;
@@ -652,19 +704,22 @@ export class MapLibreAdapter implements IMapAdapter {
     }
   }
 
-  private async _replaceSource(id: string, source: IJGISSource): Promise<void> {
+  private async _replaceSource(
+    sourceId: string,
+    source: IJGISSource,
+  ): Promise<void> {
     const layers = this._model.getLayers();
 
     // Every JGIS layer currently drawn from this source.
     const dependentIds = Object.keys(layers).filter(
       layerId =>
-        layers[layerId].parameters?.source === id &&
+        layers[layerId].parameters?.source === sourceId &&
         this._layerSubIds.has(layerId),
     );
 
     if (dependentIds.length === 0) {
-      this.removeSource(id);
-      await this.addSource(id, source);
+      this.removeSource(sourceId);
+      await this.addSource(sourceId, source);
       return;
     }
 
@@ -694,17 +749,17 @@ export class MapLibreAdapter implements IMapAdapter {
       this._removeStyleLayers(layerId);
     }
 
-    this.removeSource(id);
-    await this.addSource(id, source);
+    this.removeSource(sourceId);
+    await this.addSource(sourceId, source);
 
     const deckOnlySource = JSON_RECORD_SOURCES.has(source.type);
-    if (!deckOnlySource && !this._map.getSource(id)) {
+    if (!deckOnlySource && !this._map.getSource(sourceId)) {
       for (const { layerId } of placements) {
         this.removeLayer(layerId);
         this._callbacks?.onLayerError?.(
           layerId,
-          this._sourceErrors.get(id) ??
-            `Source "${source.name ?? id}" could not be reloaded.`,
+          this._sourceErrors.get(sourceId) ??
+            `Source "${source.name ?? sourceId}" could not be reloaded.`,
         );
       }
       return;
@@ -755,8 +810,14 @@ export class MapLibreAdapter implements IMapAdapter {
         }
       }
 
-      this._sourceToLayerMap.set(id, layerId);
+      this._sourceToLayerMap.set(sourceId, layerId);
       this._trackLayerViewState(layerId); // extent may have changed
+
+      // _buildMapLayer can fail quietly and just return, so only report the
+      // layer as loaded when it really was built.
+      if (this._isLayerBuilt(layerId)) {
+        this._callbacks?.onLayerLoaded?.(layerId);
+      }
     }
   }
 
@@ -780,10 +841,9 @@ export class MapLibreAdapter implements IMapAdapter {
     parameters: IGeoTiffSource,
   ): Promise<string> {
     if (url.startsWith('http://') || url.startsWith('https://')) {
-      const proxied = buildProxyUrl(
-        this._model,
+      const proxied = await maybeProxied(
         url,
-        parameters.useProxy,
+        this._model,
         parameters.httpHeaders,
       );
       return new URL(proxied, window.location.href).href;
@@ -958,6 +1018,287 @@ export class MapLibreAdapter implements IMapAdapter {
     return url;
   }
 
+  /**
+   * Builds the GetMap tile URL template for a WMS source. MapLibre fills in
+   * `{bbox-epsg-3857}` per tile, so this is a plain XYZ-style raster source
+   * that asks the WMS server for 256px images in Web Mercator. The request
+   * parameters match what OpenLayers' TileWMS sends for the same source.
+   */
+  private _computeWmsTileUrl(parameters: IWmsTileSource): string {
+    const baseUrl = parameters.url;
+    const layers = parameters.params?.layers;
+
+    if (!baseUrl) {
+      throw new Error('WMS source has no URL.');
+    }
+    if (!layers) {
+      throw new Error('WMS source has no layers selected.');
+    }
+
+    const query = [
+      'SERVICE=WMS',
+      'VERSION=1.3.0',
+      'REQUEST=GetMap',
+      'FORMAT=image/png',
+      'TRANSPARENT=true',
+      'STYLES=',
+      `LAYERS=${encodeURIComponent(layers)}`,
+      'TILED=true',
+      'CRS=EPSG:3857',
+      'WIDTH=256',
+      'HEIGHT=256',
+      // Must stay unencoded: MapLibre substitutes it for every tile.aditya
+      'BBOX={bbox-epsg-3857}',
+    ].join('&');
+
+    const seperator = !baseUrl.includes('?')
+      ? '?'
+      : /[?&]$/.test(baseUrl)
+        ? ''
+        : '&';
+
+    return `${baseUrl}${seperator}${query}`;
+  }
+
+  /**
+   * Registers the marker pin for a color as a map image.
+   */
+  private async _ensureMarkerImage(color: string): Promise<string> {
+    const imageId = `jgis-marker-${color}`;
+
+    if (this._map.hasImage(imageId)) {
+      return imageId;
+    }
+
+    const svg = markerIcon.svgstr
+      .split('{{COLOR}}')
+      .join(color)
+      .replace('<svg', '<svg width="128" height="128"');
+
+    const image = new Image(128, 128);
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error('Failed to render marker icon.'));
+      image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+    });
+
+    if (!this._map.hasImage(imageId)) {
+      this._map.addImage(imageId, image, { pixelRatio: 4 });
+    }
+    return imageId;
+  }
+
+  private _getHighlight(): MapLibreHighlight {
+    this._highlight ??= new MapLibreHighlight(this._map);
+    return this._highlight;
+  }
+
+  private async _identifyFeature(event: IMapClickEvent): Promise<void> {
+    if (this._model.currentMode !== 'identifying') {
+      return;
+    }
+
+    const localState = this._model.sharedModel.awareness.getLocalState();
+    const selectedLayer = localState?.selected?.value;
+
+    const layerId = selectedLayer ? Object.keys(selectedLayer)[0] : undefined;
+
+    if (!layerId) {
+      this._log('warning', 'Layer must be selected to use identify tool');
+      return;
+    }
+
+    switch (this._model.getLayer(layerId)?.type) {
+      case 'VectorLayer':
+      case 'VectorTileLayer':
+        this._identifyVectorFeatures(layerId, event);
+        break;
+      case 'GeoTiffLayer':
+        await this._identifyGeoTiffValues(layerId, event);
+        break;
+    }
+  }
+
+  private _identifyVectorFeatures(
+    layerId: string,
+    event: IMapClickEvent,
+  ): void {
+    // A layer that failed to build has no style layers to query.
+    const subIds = (this._layerSubIds.get(layerId) ?? []).filter(subId =>
+      this._map.getLayer(subId),
+    );
+    if (subIds.length === 0) {
+      return;
+    }
+
+    const { x, y } = event.point;
+    const hits = this._map.queryRenderedFeatures(
+      [
+        [x - IDENTIFY_HIT_TOLERANCE, y - IDENTIFY_HIT_TOLERANCE],
+        [x + IDENTIFY_HIT_TOLERANCE, y + IDENTIFY_HIT_TOLERANCE],
+      ],
+      { layers: subIds },
+    );
+
+    // One feature is returned once per style layer that draws it (a polygon
+    // has a fill and a line), and again for each tile it spans.
+    const seen = new Set<string>();
+    const features: GeoJSONFeature[] = [];
+    const entries: IIdentifiedFeatureEntry[] = [];
+
+    for (const hit of hits) {
+      const key =
+        hit.id !== undefined
+          ? `${hit.sourceLayer ?? ''}:${hit.id}`
+          : JSON.stringify([hit.properties, hit.geometry]);
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+
+      features.push({
+        type: 'Feature',
+        geometry: hit.geometry,
+        properties: hit.properties ?? {},
+      });
+      if (hit.properties && Object.keys(hit.properties).length > 0) {
+        entries.push({
+          feature: { ...hit.properties },
+          // Specta has no IdentifyPanel to open floaters so we show them on identify.
+          floaterOpen: this._model.isStoryPresentationActive(),
+        });
+      }
+    }
+
+    this._publishIdentified(entries);
+    if (features.length > 0) {
+      this._getHighlight().set(features);
+    } else {
+      this._highlight?.clear();
+    }
+  }
+
+  /** Band values under the click, read straight from the COG. */
+  private async _identifyGeoTiffValues(
+    layerId: string,
+    event: IMapClickEvent,
+  ): Promise<void> {
+    const sourceId = this._sourceIdForLayer(layerId);
+    const info = sourceId ? this._cogSources.get(sourceId) : undefined;
+    if (!info) {
+      return;
+    }
+
+    const { lng, lat } = event.lngLat;
+    let values: number[];
+    let alphaValue: number | undefined;
+    try {
+      const [bandValues, metadata] = await Promise.all([
+        locationValues(
+          info.url,
+          { latitude: lat, longitude: lng },
+          this._map.getZoom(),
+        ),
+        getCogMetadata(info.url).catch(() => undefined),
+      ]);
+
+      values = bandValues;
+      // `alphaBand` is the sample the COG declares as alpha, if any.
+      const declared = (metadata as { alphaBand?: number } | undefined)
+        ?.alphaBand;
+      alphaValue =
+        declared !== undefined && declared < values.length
+          ? declared
+          : undefined;
+    } catch (error) {
+      this._log(
+        'warning',
+        `MapLibreAdapter: could not read GeoTIFF values: ${(error as Error)?.message}`,
+      );
+      return;
+    }
+
+    // Every band is NaN where nothing is drawn (outside the file, nodata).
+    if (values.length === 0 || values.every(v => Number.isNaN(v))) {
+      this._publishIdentified([]);
+      this._highlight?.clear();
+      return;
+    }
+
+    const bandValues: IDict<number> = {};
+    let bandNumber = 1;
+    values.forEach((value, i) => {
+      if (i !== alphaValue) {
+        bandValues[`Band ${bandNumber++}`] = value;
+      }
+    });
+    bandValues['Alpha'] = alphaValue !== undefined ? values[alphaValue] : 255;
+
+    values.forEach((value, i) => {
+      bandValues[`Band ${i + 1}`] = value;
+    });
+
+    this._publishIdentified([
+      {
+        feature: bandValues,
+        floaterOpen: this._model.isStoryPresentationActive(),
+      },
+    ]);
+    this._getHighlight().set([
+      {
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [lng, lat] },
+        properties: {},
+      },
+    ]);
+  }
+
+  private _publishIdentified(entries: IIdentifiedFeatureEntry[]): void {
+    this._model.syncIdentifiedFeatures(
+      entries,
+      this._mainViewId ?? this._model.getClientId().toString(),
+    );
+  }
+
+  private async _addMarker(event: {
+    lngLat: { lng: number; lat: number };
+  }): Promise<void> {
+    if (this._model.currentMode !== 'marking') {
+      return;
+    }
+
+    const { lng, lat } = event.lngLat;
+    const sourceId = UUID.uuid4();
+    const layerId = UUID.uuid4();
+
+    const sourceParameters: IMarkerSource = {
+      feature: { coords: [lng, lat] },
+    };
+    const layerParameters: IVectorLayer = {
+      opacity: 1.0,
+      source: sourceId,
+      symbologyState: { layers: [] },
+    };
+
+    const sourceModel: IJGISSource = {
+      type: 'MarkerSource',
+      name: 'Marker',
+      parameters: sourceParameters,
+    };
+    const layerModel: IJGISLayer = {
+      type: 'VectorLayer',
+      visible: true,
+      name: 'Marker',
+      parameters: layerParameters,
+    };
+
+    this._model.sharedModel.addSource(sourceId, sourceModel);
+    await this.addSource(sourceId, sourceModel);
+
+    this._model.addLayer(layerId, layerModel);
+    await this.addLayer(layerId, layerModel, this._layerOrder.length);
+  }
+
   private _resolveVectorSourceLayer(sourceId: string): string | undefined {
     const source = this._model.getSource(sourceId);
 
@@ -1010,6 +1351,10 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   async addLayer(id: string, layer: IJGISLayer, index?: number): Promise<void> {
+    if (this._layerSubIds.has(id) || this._loadingLayers.has(id)) {
+      return;
+    }
+
     this._callbacks?.onLayerAddStarted?.();
     this._loadingLayers.add(id);
 
@@ -1040,7 +1385,14 @@ export class MapLibreAdapter implements IMapAdapter {
       }
 
       this._insertIntoLayerOrder(id, index);
+      this._applyLayerOrder();
       this._trackLayerViewState(id);
+
+      // _buildMapLayer reports failures itself; only a layer that is really
+      // built counts as loaded (lets the UI clear its error state).
+      if (this._isLayerBuilt(id)) {
+        this._callbacks?.onLayerLoaded?.(id);
+      }
 
       this._settledLayers.add(id);
       this._callbacks?.onLayerInserted?.(this._settledLayers.size);
@@ -1154,6 +1506,32 @@ export class MapLibreAdapter implements IMapAdapter {
         case 'VectorLayer': {
           const parameters = layer.parameters as IVectorLayer;
 
+          if (source.type === 'MarkerSource') {
+            const markerSource = source.parameters as IMarkerSource;
+            const imageId = await this._ensureMarkerImage(
+              markerSource.color || '#3463a0',
+            );
+
+            this._map.addLayer({
+              id,
+              type: 'symbol',
+              source: sourceId,
+              layout: {
+                'icon-image': imageId,
+                'icon-anchor': 'bottom',
+                'icon-allow-overlap': true,
+                'icon-ignore-placement': true,
+                visibility: visible ? 'visible' : 'none',
+              },
+              paint: {
+                'icon-opacity': parameters.opacity ?? 1,
+              },
+            });
+
+            this._layerSubIds.set(id, [id]);
+            break;
+          }
+
           this._addVectorLayerGroup(
             id,
             sourceId,
@@ -1246,6 +1624,17 @@ export class MapLibreAdapter implements IMapAdapter {
     }
 
     this._layerVisibility.set(id, visible);
+  }
+
+  /*
+   * True when a layer was built and everything it added is on the map.
+   */
+  private _isLayerBuilt(id: string): boolean {
+    const subIds = this._layerSubIds.get(id);
+
+    return (
+      subIds !== undefined && subIds.every(subId => this._map.getLayer(subId))
+    );
   }
 
   /** Removes the layer's MapLibre style layers but keeps its order/visibility. */
@@ -1366,6 +1755,15 @@ export class MapLibreAdapter implements IMapAdapter {
         const params = layer.parameters as IVectorLayer;
         const opacity = params.opacity ?? 1;
 
+        if (this._model.getSource(params.source)?.type === 'MarkerSource') {
+          // A marker is a single symbol layer with no symbology to recompile.
+          for (const subId of subIds) {
+            this._map.setPaintProperty(subId, 'icon-opacity', opacity);
+            this._map.setLayoutProperty(subId, 'visibility', visibility);
+          }
+          break;
+        }
+
         if (Array.isArray(params.symbologyState?.layers)) {
           // Same as OL's _syncGrammarSubLayers: recompile and swap, keep z-position.
           const ids = this._map.getStyle().layers.map(l => l.id);
@@ -1447,6 +1845,7 @@ export class MapLibreAdapter implements IMapAdapter {
     }
 
     this._layerOrder = [...layerIds];
+    this._applyLayerOrder();
     this._syncDeckOverlay();
 
     if (
@@ -1488,6 +1887,33 @@ export class MapLibreAdapter implements IMapAdapter {
       this._layerOrder.push(id);
     } else {
       this._layerOrder.splice(index, 0, id);
+    }
+  }
+
+  private _applyLayerOrder(): void {
+    const desired = this._layerOrder
+      .flatMap(layerId => this._layerSubIds.get(layerId) ?? [])
+      .filter(subId => this._map.getLayer(subId));
+
+    if (desired.length === 0) {
+      return;
+    }
+
+    const wanted = new Set(desired);
+    const current = this._map
+      .getStyle()
+      .layers.map(styleLayer => styleLayer.id)
+      .filter(styleId => wanted.has(styleId));
+    let start = 0;
+    while (start < desired.length && current[start] === desired[start]) {
+      start++;
+    }
+    if (start === desired.length) {
+      return;
+    }
+
+    for (const subId of desired.slice(start)) {
+      this._map.moveLayer(subId);
     }
   }
 
@@ -1837,8 +2263,29 @@ export class MapLibreAdapter implements IMapAdapter {
         return this._computeGeoJsonExtent(sourceId);
 
       case 'RasterSource':
+      case 'WmsTileSource':
       case 'VectorTileSource':
         return [...WORLD_EXTENT];
+
+      case 'MarkerSource': {
+        const coords = (
+          this._model.getSource(sourceId)?.parameters as
+            | IMarkerSource
+            | undefined
+        )?.feature?.coords;
+        if (!coords) {
+          return undefined;
+        }
+        // A point has no size; pad it so "zoom to layer" lands on a sensible
+        // zoom instead of the maximum.
+        const pad = 0.01;
+        return [
+          coords[0] - pad,
+          coords[1] - pad,
+          coords[0] + pad,
+          coords[1] + pad,
+        ];
+      }
 
       case 'GeoTiffSource': {
         // Bounds come from the COG's TileJSON, captured when the source loaded.
@@ -1994,7 +2441,16 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   highlightFeatureOnMap(featureOrGeometry: GeoJSONFeature | Geometry): void {
-    this._notImplemented('highlightFeatureOnMap', featureOrGeometry);
+    const feature: GeoJSONFeature =
+      featureOrGeometry.type === 'Feature'
+        ? featureOrGeometry
+        : { type: 'Feature', geometry: featureOrGeometry, properties: {} };
+
+    if (!feature.geometry) {
+      this._log('warning', 'No geometry found in feature to highlight');
+      return;
+    }
+    this._getHighlight().set([feature]);
   }
 
   handleGeolocationChanged(newPosition: JgisCoordinates): void {
@@ -2021,10 +2477,9 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   clearHighlightIfNotIdentifying(): void {
-    // No-op: no highlight layer exists yet in this adapter, so there is
-    // nothing to clear. Deliberately silent (unlike the other stubs)
-    // since MainView calls this unconditionally on every identify-state
-    // change, and warning on every call would be noise, not signal.
+    if (this._model.currentMode !== 'identifying') {
+      this._highlight?.clear();
+    }
   }
 
   get drawTool(): IDrawToolAdapter {
@@ -2099,6 +2554,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _callbacks?: IMapAdapterOptions['callbacks'];
   private _controlsTarget?: HTMLElement;
   private _scaleControl?: ScaleControl;
+  private _highlight?: MapLibreHighlight;
   private _fullscreenControl?: FullscreenControl;
   private _sourceDataHandlers = new Map<
     string,

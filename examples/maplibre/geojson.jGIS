@@ -213,8 +213,7 @@
       "name": "france_regions Source",
       "parameters": {
         "httpHeaders": "",
-        "path": "../data/france_regions.geojson",
-        "useProxy": false
+        "path": "../data/france_regions.geojson"
       },
       "type": "GeoJSONSource"
     }

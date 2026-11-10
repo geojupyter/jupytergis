@@ -16,6 +16,20 @@
       "multipleOf": 0.1,
       "minimum": 0,
       "maximum": 1
+    },
+    "symbologyState": {
+      "type": "object",
+      "description": "The state of the symbology panel options.",
+      "properties": {
+        "layers": {
+          "type": "array",
+          "description": "Grammar rendering layers.",
+          "items": {
+            "$ref": "project/symbology.json#/definitions/IGrammarLayer"
+          }
+        }
+      },
+      "additionalProperties": false
     }
   }
 }

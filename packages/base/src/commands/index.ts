@@ -50,6 +50,7 @@ import {
 } from '../features/layers/openeo';
 import {
   getLatestOpenEOConnection,
+  lastUsedOpenEOServer,
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
@@ -222,12 +223,7 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.storyNext,
 ]);
 
-type AdapterFlag =
-  | 'identify'
-  | 'drawTool'
-  | 'storyMaps'
-  | 'layerComparison'
-  | 'geolocation';
+type AdapterFlag = 'drawTool' | 'storyMaps' | 'layerComparison' | 'geolocation';
 
 interface IAdapterRequirement {
   source?: SourceType;
@@ -365,8 +361,6 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   },
 
   // Interaction features
-  [CommandIDs.addMarker]: { source: 'MarkerSource' },
-  [CommandIDs.identify]: { flag: 'identify' },
   [CommandIDs.drawFeaturesOnSelectedLayer]: { flag: 'drawTool' },
   [CommandIDs.drawFeaturesOnNewLayer]: { flag: 'drawTool' },
   [CommandIDs.addStorySegment]: { flag: 'storyMaps' },
@@ -1336,15 +1330,15 @@ export function addCommands(
       }
       // Seed the dialog from the global pool of live OpenEO connections
       // (shared across all documents): pre-fill with the most recently
-      // used server and offer the rest in the picker. The user
-      // picks/connects inside the dialog itself, so we don't
-      // pre-authenticate here.
+      // used server and offer the rest in the picker. With nothing live we
+      // suggest the server used last; the dialog opens right away and
+      // signs back in to it from the stored token.
       // Capture the current map viewport so the Code tab's exported
       // snippet opens on exactly what the user is looking at, rather than
       // the graph's (often arbitrary) spatial_extent.
       const viewOptions = current.model.getOptions();
       const result = await showAddOpenEOLayerDialog({
-        connectionInfo: getLatestOpenEOConnection(),
+        connectionInfo: getLatestOpenEOConnection() ?? lastUsedOpenEOServer(),
         knownServers: listOpenEOConnections(),
         mapView: {
           latitude: viewOptions.latitude,
@@ -1358,15 +1352,17 @@ export function addCommands(
       const model = current.model;
       const sourceId = UUID.uuid4();
       const layerId = UUID.uuid4();
-      // Persist the bearer alongside the server url so the layer can
-      // re-establish its connection after a reload (or when the document
-      // is reopened) without forcing the user to sign in again.
+      // The saved tile service url is what lets the layer render without an
+      // OpenEO session, for us after a reload and for anyone we share with.
       model.sharedModel.addSource(sourceId, {
         name: `${result.layerName} Source`,
         type: 'OpenEOTileSource',
         parameters: {
           serverUrl: result.serverUrl,
           processGraph: result.processGraph,
+          ...(result.tileServiceURL
+            ? { tileServiceURL: result.tileServiceURL }
+            : {}),
         },
       });
       model.addLayer(layerId, {
@@ -2354,6 +2350,47 @@ export function addCommands(
     },
   });
 
+  commands.addCommand(CommandIDs.toggleStacBrowser, {
+    label: trans.__('Add STAC Layer'),
+    caption:
+      'Toggle the STAC browser panel in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      const { stacBrowserDisabled, rightPanelDisabled } =
+        current.model.jgisSettings;
+
+      return !stacBrowserDisabled && !rightPanelDisabled;
+    },
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      return current.model.getUIState().stacBrowserOpen === true;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const open = current.model.getUIState().stacBrowserOpen === true;
+      current.model.setUIState({ stacBrowserOpen: !open });
+      commands.notifyCommandChanged(CommandIDs.toggleStacBrowser);
+    },
+  });
+
   commands.addCommand(CommandIDs.togglePanel, {
     label: trans.__('Toggle Panel'),
     caption: () => {
@@ -2441,6 +2478,7 @@ export function addCommands(
         false;
       await settings?.set('stacBrowserDisabled', !currentValue);
       commands.notifyCommandChanged(CommandIDs.showStacBrowserTab);
+      commands.notifyCommandChanged(CommandIDs.toggleStacBrowser);
     },
   });
 

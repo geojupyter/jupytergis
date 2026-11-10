@@ -13,7 +13,6 @@ import { ITabConfig, TabbedPanel } from './components/TabbedPanel';
 import { LayersBodyComponent } from './components/layers';
 import { useLayerTree } from './hooks/useLayerTree';
 import { useUIState } from './hooks/useUIState';
-import StacPanel from '../../features/stac-browser/components/StacPanel';
 
 export interface ILeftPanelClickHandlerParams {
   type: SelectionType;
@@ -63,20 +62,11 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
     window.addEventListener('pointerup', handleUp);
   };
 
-  const [curTab, setCurTab] = React.useState<string>(() => {
-    if (!props.settings.layersDisabled) {
-      return 'layers';
-    }
-    if (!props.settings.stacBrowserDisabled) {
-      return 'stac';
-    }
-    return '';
-  });
+  const [curTab, setCurTab] = React.useState<string>(() =>
+    props.settings.layersDisabled ? '' : 'layers',
+  );
 
   const { layerTree } = useLayerTree(props.model);
-
-  const allLeftTabsDisabled =
-    props.settings.layersDisabled && props.settings.stacBrowserDisabled;
 
   const tabs: ITabConfig[] = [
     {
@@ -92,13 +82,6 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
           layerTree={layerTree}
         />
       ),
-    },
-    {
-      name: 'stac',
-      title: 'Stac Browser',
-      enabled: !props.settings.stacBrowserDisabled,
-      contentClassName: 'jgis-panel-tab-content-stac-panel',
-      content: <StacPanel model={props.model} />,
     },
   ];
 
@@ -116,7 +99,7 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
           width: panelWidth,
           display:
             props.settings.leftPanelDisabled ||
-            allLeftTabsDisabled ||
+            props.settings.layersDisabled ||
             leftPanelOpen === false
               ? 'none'
               : 'block',

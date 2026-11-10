@@ -64,6 +64,7 @@ export const SYMBOLOGY_VALID_LAYER_TYPES = [
   'TripsLayer',
   'GeoTiffLayer',
   'GeoZarrLayer',
+  'OpenEOTileLayer',
 ];
 
 export const STORY_TYPE = {

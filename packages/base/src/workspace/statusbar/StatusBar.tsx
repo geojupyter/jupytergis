@@ -13,7 +13,6 @@ import {
 import { CommandRegistry } from '@lumino/commands';
 import React, { useEffect, useState } from 'react';
 
-import { version } from '@/package.json';
 import { CommandIDs } from '@/src/constants';
 import { useMapFeatures } from '@/src/mainview/hooks/useMapFeatures';
 import {
@@ -105,9 +104,6 @@ const StatusBar: React.FC<IStatusBarProps> = ({
           <Progress height={14} />
         </div>
       )}
-      <div className="jgis-status-bar-item">
-        <span>jgis: {version}</span>
-      </div>
       <Select
         value={cursorCoordMode}
         onValueChange={value => {

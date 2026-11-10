@@ -31,6 +31,7 @@ import React, {
 
 import { CommandIDs, icons } from '@/src/constants';
 import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
+import { useLayerError } from '@/src/mainview/layersErrorRegistry';
 import { Slider } from '@/src/shared/components/Slider';
 import {
   columns2Icon,
@@ -229,6 +230,10 @@ function createContextMenu(
   newLayerSubMenu.addItem({
     type: 'submenu',
     submenu: vectorSubMenu(commands),
+  });
+  newLayerSubMenu.addItem({
+    type: 'command',
+    command: CommandIDs.toggleStacBrowser,
   });
   newLayerSubMenu.addItem({
     type: 'command',
@@ -828,6 +833,11 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   const [comparedSide, setComparedSide] = useState<ComparedSide>(
     getComparedSide(layerId, gisModel),
   );
+  // Set when the active map could not render this layer (unsupported type,
+  // failed source, unsupported projection, ...). The layer stays in the
+  // document and in the panel; it just can't be shown on this map.
+  const loadError = useLayerError(gisModel, layerId);
+  const showVisible = layer.visible && !loadError;
   const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
@@ -1044,7 +1054,8 @@ const LayerComponent: React.FC<ILayerProps> = props => {
         className={LAYER_TITLE_CLASS}
         onClick={setSelection}
         onContextMenu={setSelection}
-        style={{ display: 'flex' }}
+        style={{ display: 'flex', ...(loadError ? { opacity: 0.5 } : {}) }}
+        title={loadError ? `Not shown on this map. ${loadError}` : undefined}
       >
         {/* Expand/collapse legend button — always rendered to preserve alignment */}
         <Button
@@ -1079,13 +1090,20 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           </span>
         ) : (
           <Button
-            title={layer.visible ? 'Hide layer' : 'Show layer'}
+            title={
+              loadError
+                ? 'This layer cannot be shown on this map'
+                : layer.visible
+                  ? 'Hide layer'
+                  : 'Show layer'
+            }
             onClick={toggleVisibility}
+            disabled={!!loadError}
             minimal
           >
             <LabIcon.resolveReact
-              icon={layer.visible ? visibilityIcon : nonVisibilityIcon}
-              className={`${LAYER_ICON_CLASS}${layer.visible ? '' : ' jp-gis-mod-hidden'}`}
+              icon={showVisible ? visibilityIcon : nonVisibilityIcon}
+              className={`${LAYER_ICON_CLASS}${showVisible ? '' : ' jp-gis-mod-hidden'}`}
               tag="span"
             />
           </Button>
@@ -1166,6 +1184,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
                 const next = Array.isArray(value) ? value[0] : value;
                 handleOpacityChange(next / 100);
               }}
+              disabled={!!loadError}
             />
           </span>
         )}
@@ -1174,6 +1193,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           title={'Move map to the extent of the layer'}
           onClick={moveToExtent}
           minimal
+          disabled={!!loadError}
         >
           <LabIcon.resolveReact
             icon={targetWithCenterIcon}

@@ -89,8 +89,7 @@
         "minZoom": 0.0,
         "provider": "",
         "sourceLayer": "units",
-        "url": "https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.mvt",
-        "useProxy": false
+        "url": "https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.mvt"
       },
       "type": "VectorTileSource"
     }

@@ -19,6 +19,7 @@ interface INumericInputProps {
   placeholder?: string;
   className?: string;
   style?: React.CSSProperties;
+  disabled?: boolean;
 }
 
 export const NumericInput: React.FC<INumericInputProps> = ({
@@ -27,6 +28,7 @@ export const NumericInput: React.FC<INumericInputProps> = ({
   placeholder,
   className,
   style,
+  disabled,
 }) => {
   const [raw, setRaw] = useState(() => String(value));
   const focused = useRef(false);
@@ -65,6 +67,7 @@ export const NumericInput: React.FC<INumericInputProps> = ({
       style={style}
       type="text"
       placeholder={placeholder}
+      disabled={disabled}
       value={raw}
       aria-invalid={!isValid}
       onChange={e => setRaw(e.target.value)}

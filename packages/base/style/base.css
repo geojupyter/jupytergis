@@ -27,6 +27,14 @@
 @import url('./shared/errorTip.css');
 @import url('maplibre-gl/dist/maplibre-gl.css');
 
+.jp-About-header-wordmark {
+  font-size: var(--jp-ui-font-size3);
+  font-weight: 600;
+  color: var(--jp-ui-font-color0);
+  letter-spacing: 0.2px;
+  line-height: 1.2;
+}
+
 /* JupyterLab modal dialogs (.jp-Dialog) use z-index: 10000, which sits above
    the notification toast container (react-toastify default: 9999). Without this
    override, error/info toasts are hidden behind the dialog backdrop while a
@@ -165,6 +173,176 @@ button.jp-mod-styled.jp-mod-reject {
 .jgis-right-panel-container {
   width: 330px;
   right: 0;
+}
+
+/*
+ * Floating right dock: only vertical scroller for the panel stack.
+ * Tokens keep expanded width / chip size in sync (panel, content measure, TW).
+ */
+.jgis-floating-panel-dock {
+  --jgis-floating-panel-width: 330px;
+  --jgis-floating-panel-chip-size: 36px;
+
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  z-index: 40;
+  display: flex;
+  width: auto;
+  max-width: var(--jgis-floating-panel-width);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  max-height: calc(100% - 0.5rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  pointer-events: none;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.jgis-floating-panel-dock::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.jgis-floating-panel-dock > * {
+  pointer-events: auto;
+}
+
+.jgis-floating-panel-dock > [data-slot='accordion-item'],
+.jgis-floating-right-panel {
+  flex-shrink: 0;
+}
+
+.jgis-floating-right-panel {
+  position: relative;
+  width: var(--jgis-floating-panel-width);
+  max-height: none;
+  border: none;
+  transition: width 200ms ease-in-out;
+}
+
+/* Accordion.Header is an h3; kill UA margins only in this chrome. */
+.jgis-floating-right-panel h3 {
+  margin: 0;
+  width: 100%;
+}
+
+.jgis-floating-right-panel-shell {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: var(--jp-layout-color0);
+  box-shadow:
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.19);
+  transition:
+    background-color 200ms ease-in-out,
+    box-shadow 200ms ease-in-out,
+    border-radius 200ms ease-in-out;
+}
+
+/*
+ * Beat `.jp-ThemedContainer button[data-slot] { border-radius: revert-layer }`
+ * so floating chrome owns radius (accordion trigger is button[data-slot]).
+ */
+.jp-ThemedContainer .jgis-floating-right-panel-header {
+  width: 100%;
+  justify-content: center;
+  height: var(--jgis-floating-panel-chip-size);
+  border-bottom: 1px solid var(--jp-border-color1);
+  font-weight: 600;
+  cursor: pointer;
+  background-color: var(--jp-layout-color2);
+  transition:
+    border-color 200ms ease-in-out,
+    border-radius 200ms ease-in-out,
+    background-color 200ms ease-in-out,
+    box-shadow 200ms ease-in-out,
+    width 200ms ease-in-out;
+}
+
+.jp-ThemedContainer .jgis-floating-right-panel-header:hover {
+  text-decoration: none;
+}
+
+.jgis-floating-right-panel-icon,
+.jgis-floating-right-panel-icon svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.jgis-floating-right-panel[data-open] .jgis-floating-right-panel-icon {
+  display: none;
+}
+
+.jgis-floating-right-panel-title {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--jp-ui-font-size1);
+  font-weight: 500;
+  transition:
+    opacity 150ms ease-in-out,
+    max-width 200ms ease-in-out;
+}
+
+.jgis-floating-right-panel-body {
+  font-size: var(--jp-ui-font-size0);
+  padding-bottom: 0.5rem;
+}
+
+.jgis-floating-right-panel[data-closed] {
+  width: var(--jgis-floating-panel-chip-size);
+  max-height: none;
+  overflow: hidden;
+}
+
+/*
+ * Accordion measures panel height while the chip is still chip-sized. Keep
+ * content laid out at full panel width so text does not wrap tall, then
+ * shrink after the width transition.
+ */
+.jgis-floating-right-panel [data-slot='accordion-content'] {
+  width: var(--jgis-floating-panel-width);
+  max-width: var(--jgis-floating-panel-width);
+  box-sizing: border-box;
+}
+
+.jgis-floating-right-panel[data-closed] .jgis-floating-right-panel-shell {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 8px;
+}
+
+.jp-ThemedContainer
+  .jgis-floating-right-panel[data-closed]
+  .jgis-floating-right-panel-header {
+  width: var(--jgis-floating-panel-chip-size);
+  border: 1px solid var(--jp-border-color1);
+  border-radius: 8px;
+  background-color: var(--jp-layout-color0);
+  box-shadow:
+    0 4px 8px 0 rgba(0, 0, 0, 0.2),
+    0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
+
+.jp-ThemedContainer
+  .jgis-floating-right-panel[data-closed]
+  .jgis-floating-right-panel-header:hover {
+  background-color: var(--jp-layout-color2);
+}
+
+.jgis-floating-right-panel[data-closed] .jgis-floating-right-panel-title {
+  max-width: 0;
+  opacity: 0;
 }
 
 .jgis-left-panel-container {
