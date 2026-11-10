@@ -1514,11 +1514,22 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
       case 'OpenEOTileLayer': {
         layerParameters = layer.parameters as IOpenEOTileLayer;
+        const openEOSource = this._sources.get(layerParameters.source);
+
+        if (Array.isArray(layerParameters.symbologyState?.layers)) {
+          newMapLayer = grammarToOLLayer({
+            layer,
+            layerId: id,
+            source: openEOSource,
+            className,
+          }) as OlLayerTypes;
+          break;
+        }
 
         newMapLayer = new OpenEOTileLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
-          source: this._sources.get(layerParameters.source),
+          source: openEOSource,
           className,
         });
         break;
@@ -2367,6 +2378,11 @@ export class OpenLayersAdapter implements IMapAdapter {
         break;
       }
       case 'OpenEOTileLayer': {
+        if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
+          this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
+          break;
+        }
+
         const layerParams = layer.parameters as IOpenEOTileLayer;
         const openeoLayer = mapLayer as OpenEOTileLayer;
 

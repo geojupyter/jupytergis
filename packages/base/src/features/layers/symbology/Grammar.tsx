@@ -609,7 +609,9 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
   const layer = layerId !== undefined ? model.getLayer(layerId) : null;
   const zoomRangeSupported = useMapFeatures(model)?.zoomRangeSymbology;
   const isRasterLayer =
-    layer?.type === 'GeoTiffLayer' || layer?.type === 'GeoZarrLayer';
+    layer?.type === 'GeoTiffLayer' ||
+    layer?.type === 'GeoZarrLayer' ||
+    layer?.type === 'OpenEOTileLayer';
 
   const { featureProperties: selectableAttributesAndValues } = useGetProperties(
     { layerId, model },
@@ -634,6 +636,9 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
   // Whether the raster source normalizes band values to [0, 1]. This governs
   // which value space the auto-filled symbology domain must live in.
   const normalize = React.useMemo(() => {
+    if (layer?.type === 'OpenEOTileLayer') {
+      return false;
+    }
     const source = model.getSource(layer?.parameters?.source);
     return (source?.parameters?.normalize as boolean | undefined) ?? true;
   }, [model, layer]);

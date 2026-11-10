@@ -502,6 +502,26 @@ async function resultIsSavingUserProcess(
   }
 }
 
+/**
+ * openEO backends vary in how they format XYZ service URLs: some return raw
+ * `{z}/{x}/{y}` placeholders, others return them URL-encoded as `%7Bz%7D/...`.
+ * Handle both forms so the same code works against either kind of backend.
+ */
+export function openEOTileUrl(
+  url: string,
+  z: number,
+  x: number,
+  y: number,
+): string {
+  return url
+    .replace('%7Bz%7D', String(z))
+    .replace('{z}', String(z))
+    .replace('%7By%7D', String(y))
+    .replace('{y}', String(y))
+    .replace('%7Bx%7D', String(x))
+    .replace('{x}', String(x));
+}
+
 export class OpenEOTileLayer extends WebGLTileLayer {
   // Just an alias
 }
@@ -531,7 +551,7 @@ export class OpenEOTileSource extends DataTileSource {
       async (z, x, y, loaderOptions) => {
         await this._connected.promise;
 
-        let url = this._url;
+        const url = this._url;
 
         if (!url) {
           throw new Error('XYZ URL undefined');
@@ -543,17 +563,9 @@ export class OpenEOTileSource extends DataTileSource {
           return tileLoadFunction(retries)(z, x, y, loaderOptions);
         };
 
-        // openEO backends vary in how they format XYZ service URLs:
-        // some return raw `{z}/{x}/{y}` placeholders, others return them
-        // URL-encoded as `%7Bz%7D/...`. Handle both forms so the same
-        // code works against either kind of backend.
-        url = url.replace('%7Bz%7D', String(z)).replace('{z}', String(z));
-        url = url.replace('%7By%7D', String(y)).replace('{y}', String(y));
-        url = url.replace('%7Bx%7D', String(x)).replace('{x}', String(x));
-
         let res: Response;
         try {
-          res = await fetch(url, { method: 'GET' });
+          res = await fetch(openEOTileUrl(url, z, x, y), { method: 'GET' });
         } catch (err: any) {
           const errorMessage: string = err?.message ?? String(err);
 
