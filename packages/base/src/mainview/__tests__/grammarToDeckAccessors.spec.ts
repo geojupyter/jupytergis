@@ -551,9 +551,10 @@ describe('grammarToDeckAccessors', () => {
     expect(constant.getElevation).toBe(40);
   });
 
-  it('collects geometry property names, first value wins', () => {
+  it('uses the first grammar layer that sets a geometry binding', () => {
     const accessors = grammarToDeckAccessors({
       layers: [
+        { id: 'empty', rules: [] },
         {
           id: 'first',
           geometry: { path: 'route', timestamps: 'times' },
@@ -570,7 +571,6 @@ describe('grammarToDeckAccessors', () => {
     expect(accessors.geometry).toEqual({
       path: 'route',
       timestamps: 'times',
-      polygon: 'ring',
     });
   });
 });

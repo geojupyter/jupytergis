@@ -889,6 +889,7 @@ interface IMappingRowProps {
   normalize?: boolean;
   zoomRangeSupported?: boolean;
   hideWhen?: boolean;
+  whenDisabled?: boolean;
   shadowed?: Set<Encoding>;
   onChange: (row: IGrammarRow) => void;
   onDelete: () => void;
@@ -916,6 +917,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   normalize = true,
   zoomRangeSupported,
   hideWhen = false,
+  whenDisabled = false,
   shadowed,
   onChange,
   onDelete,
@@ -1252,6 +1254,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               variant="ghost"
               size="xs"
               className="jp-gis-grammar-when-op"
+              disabled={whenDisabled}
               onClick={() =>
                 onChange({
                   ...row,
@@ -1277,8 +1280,13 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             variant="outline"
             size="icon-xs"
             className="rounded-[10px] border-dashed hover:border-primary hover:text-primary"
+            disabled={whenDisabled}
             onClick={addPredicate}
-            title="Add condition"
+            title={
+              whenDisabled
+                ? 'Deck.gl layers ignore conditions'
+                : 'Add condition'
+            }
           >
             <FontAwesomeIcon icon={faPlus} />
           </Button>

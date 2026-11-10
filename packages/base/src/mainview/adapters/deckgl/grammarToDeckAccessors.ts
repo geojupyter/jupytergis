@@ -82,6 +82,42 @@ const EMPTY_GLOBAL = Object.freeze({});
 const expressionCache = new Map<string, VegaFn | null>();
 
 /**
+ * The first grammar layer that sets a geometry binding supplies every name.
+ * Later bindings are ignored so path and timestamps stay a pair.
+ */
+export function deckGeometryBinding(
+  state: IGrammarSymbologyState | undefined,
+): IGeometryBinding {
+  for (const layer of state?.layers ?? []) {
+    const binding = layer.geometry;
+    if (!binding) {
+      continue;
+    }
+
+    const geometry: IGeometryBinding = {};
+    if (binding.path) {
+      geometry.path = binding.path;
+    }
+    if (binding.timestamps) {
+      geometry.timestamps = binding.timestamps;
+    }
+    if (binding.polygon) {
+      geometry.polygon = binding.polygon;
+    }
+
+    if (
+      geometry.path !== undefined ||
+      geometry.timestamps !== undefined ||
+      geometry.polygon !== undefined
+    ) {
+      return geometry;
+    }
+  }
+
+  return {};
+}
+
+/**
  * Compile grammar scales into deck.gl accessor values.
  *
  * Walks grammar layers and rules in document order. The first scale for each
@@ -90,36 +126,6 @@ const expressionCache = new Map<string, VegaFn | null>();
  * vega-expression. `data` supplies attribute values for colorMap and
  * categorical classification.
  */
-/**
- * First geometry property name in document order wins.
- * Later grammar layers fill only the names that are still unset.
- */
-export function deckGeometryBinding(
-  state: IGrammarSymbologyState | undefined,
-): IGeometryBinding {
-  const geometry: IGeometryBinding = {};
-  for (const layer of state?.layers ?? []) {
-    const binding = layer.geometry;
-    if (!binding) {
-      continue;
-    }
-
-    if (geometry.path === undefined && binding.path) {
-      geometry.path = binding.path;
-    }
-
-    if (geometry.timestamps === undefined && binding.timestamps) {
-      geometry.timestamps = binding.timestamps;
-    }
-
-    if (geometry.polygon === undefined && binding.polygon) {
-      geometry.polygon = binding.polygon;
-    }
-  }
-
-  return geometry;
-}
-
 export function grammarToDeckAccessors(
   state: IGrammarSymbologyState | undefined,
   data?: unknown,
