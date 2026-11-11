@@ -61,6 +61,11 @@ import type {
   IGeoZarrLayer,
   Modes,
   ITerrainLayer,
+  ITripsLayer,
+  ITripsSource,
+  IPolygonLayer,
+  IPolygonSource,
+  IGeoJsonLayer,
   IJGISFeatureStores,
   IFeatureStoreFeature,
   IFeatureStoreGeometry,
@@ -71,11 +76,15 @@ import type {
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
 
+/** MapLibre view projection. Local UI state, not stored in the document. */
+export type MapViewMode = 'mercator' | 'globe';
+
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
   rightPanelOpen?: boolean;
   stacBrowserOpen?: boolean;
   locationIndicatorActive?: boolean;
+  mapView?: MapViewMode;
 }
 
 export interface IJGISStoryMaps {
@@ -759,7 +768,10 @@ export type ILayerGalleryEntry = {
     | IGeoTiffLayer
     | IGeoZarrLayer
     | IOpenEOTileLayer
-    | ITerrainLayer;
+    | ITerrainLayer
+    | ITripsLayer
+    | IPolygonLayer
+    | IGeoJsonLayer;
   sourceType: SourceType;
   sourceParameters:
     | IGeoJSONSource
@@ -773,7 +785,9 @@ export type ILayerGalleryEntry = {
     | IRasterSource
     | IShapefileSource
     | IVectorTileSource
-    | IOpenEOTileSource;
+    | IOpenEOTileSource
+    | ITripsSource
+    | IPolygonSource;
   provider: string;
   description: string;
 };

@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "description": "TripsSource",
+  "title": "ITripsSource",
+  "required": [],
+  "additionalProperties": false,
+  "properties": {
+    "path": {
+      "type": ["string", "null"],
+      "description": "Local path or URL of a JSON array of records."
+    },
+    "data": {
+      "type": "array",
+      "description": "Inline records. Used when path is empty.",
+      "items": {
+        "type": "object",
+        "additionalProperties": true
+      }
+    },
+    "pathField": {
+      "type": "string",
+      "description": "Property on each record that holds the trip positions. Defaults to path.",
+      "default": "path"
+    },
+    "timestampsField": {
+      "type": "string",
+      "description": "Property on each record that holds one timestamp per path position. Defaults to timestamps.",
+      "default": "timestamps"
+    },
+    "useProxy": {
+      "type": "boolean",
+      "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
+      "default": false
+    },
+    "httpHeaders": {
+      "type": "string",
+      "description": "HTTP headers forwarded to the upstream server when useProxy is true.",
+      "default": ""
+    }
+  }
+}

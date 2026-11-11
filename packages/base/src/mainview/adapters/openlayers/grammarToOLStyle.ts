@@ -363,6 +363,7 @@ function assembleStyle(
     ...PIXEL_SUB,
     ...PIXEL_ALPHA_SUB,
     ...FONT_SUB,
+    'elevation',
   ]);
 
   for (const [encoding, expr] of encodingExprs) {

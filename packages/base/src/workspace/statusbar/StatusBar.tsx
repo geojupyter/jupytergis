@@ -1,7 +1,15 @@
-import { faLocationDot, faMap } from '@fortawesome/free-solid-svg-icons';
+import {
+  faGlobe,
+  faLocationDot,
+  faMap,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Progress } from '@jupyter/react-components';
-import { IJupyterGISModel } from '@jupytergis/schema';
+import {
+  type IJGISUIState,
+  type IJupyterGISModel,
+  type MapViewMode,
+} from '@jupytergis/schema';
 import { CommandRegistry } from '@lumino/commands';
 import React, { useEffect, useState } from 'react';
 
@@ -50,12 +58,26 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   onCursorCoordModeChange,
 }) => {
   const [projectionCode, setProjectionCode] = useState(projection?.code);
+  const [mapView, setMapView] = useState<MapViewMode>(() =>
+    readMapView(jgisModel.getUIState()),
+  );
 
   useEffect(() => {
     if (projection?.code) {
       setProjectionCode(projection.code);
     }
   }, [projection?.code]);
+
+  useEffect(() => {
+    setMapView(readMapView(jgisModel.getUIState()));
+    const handleUIState = (_: IJupyterGISModel, state: IJGISUIState): void => {
+      setMapView(readMapView(state));
+    };
+    jgisModel.uiStateChanged.connect(handleUIState);
+    return () => {
+      jgisModel.uiStateChanged.disconnect(handleUIState);
+    };
+  }, [jgisModel]);
 
   const handleProjectionChange = (nextCode: string): void => {
     if (!canChangeProjection) {
@@ -121,6 +143,31 @@ const StatusBar: React.FC<IStatusBarProps> = ({
           </span>
         )}
       </div>
+      {rendererName === 'MapLibre' ? (
+        <Select
+          value={mapView}
+          onValueChange={value => {
+            if (value !== 'mercator' && value !== 'globe') {
+              return;
+            }
+            jgisModel.setUIState({ mapView: value });
+          }}
+        >
+          <SelectTrigger
+            className="jgis-status-bar-item justify-start gap-1 border-0 bg-transparent px-1 text-inherit shadow-none focus-visible:border-0 focus-visible:ring-0"
+            title="MapLibre view"
+            aria-label={`View: ${mapView === 'globe' ? 'Globe' : 'Map'}. Click to change.`}
+            render={<Button variant="ghost" size="xs" />}
+          >
+            <FontAwesomeIcon icon={faGlobe} />
+            <span>{mapView === 'globe' ? 'Globe' : 'Map'}</span>
+          </SelectTrigger>
+          <SelectContent side="top" align="center" className="w-auto min-w-44">
+            <SelectItem value="mercator">Map</SelectItem>
+            <SelectItem value="globe">Globe</SelectItem>
+          </SelectContent>
+        </Select>
+      ) : null}
       <button
         type="button"
         className="jgis-status-bar-item jgis-status-bar-button"
@@ -138,6 +185,10 @@ const StatusBar: React.FC<IStatusBarProps> = ({
     </div>
   );
 };
+
+function readMapView(state: IJGISUIState): MapViewMode {
+  return state.mapView === 'globe' ? 'globe' : 'mercator';
+}
 
 function formatCursor(cursor: ICursorDisplay | null): string {
   if (!cursor) {

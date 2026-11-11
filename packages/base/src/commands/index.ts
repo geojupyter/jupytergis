@@ -42,6 +42,7 @@ import { CommandIDs, icons } from '../constants';
 import { isFeatureStoreAvailable } from '../features/feature-store/availability';
 import { launchFollowable, registerFollowDialogs } from '../features/follow';
 import { LayerBrowserWidget } from '../features/layer-browser';
+import { DeckGlLayerCreationFormDialog } from '../features/layers/deckgl/deckGlCreationForm';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
 import {
   editOpenEOLayer,
@@ -206,6 +207,11 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.openNewGeoZarrDialog,
   // 3D terrain layers
   CommandIDs.openNewTerrainDialog,
+  // DeckGL layers
+  CommandIDs.openNewTripsDialog,
+  CommandIDs.openNewPolygonDialog,
+  CommandIDs.openNewGeoJsonLayerDialog,
+  CommandIDs.openNewDeckGLDialog,
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
@@ -242,6 +248,22 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   [CommandIDs.openNewGeoJSONDialog]: {
     source: 'GeoJSONSource',
     layer: 'VectorLayer',
+  },
+  [CommandIDs.openNewTripsDialog]: {
+    source: 'TripsSource',
+    layer: 'TripsLayer',
+  },
+  [CommandIDs.openNewPolygonDialog]: {
+    source: 'PolygonSource',
+    layer: 'PolygonLayer',
+  },
+  [CommandIDs.openNewGeoJsonLayerDialog]: {
+    source: 'GeoJSONSource',
+    layer: 'GeoJsonLayer',
+  },
+  [CommandIDs.openNewDeckGLDialog]: {
+    source: 'TripsSource',
+    layer: 'TripsLayer',
   },
   [CommandIDs.openNewShapefileDialog]: {
     source: 'ShapefileSource',
@@ -324,6 +346,18 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   [LayerCreationCommandIDs.newShapefileWithParams]: {
     source: 'ShapefileSource',
     layer: 'VectorLayer',
+  },
+  [LayerCreationCommandIDs.newTripsWithParams]: {
+    source: 'TripsSource',
+    layer: 'TripsLayer',
+  },
+  [LayerCreationCommandIDs.newPolygonWithParams]: {
+    source: 'PolygonSource',
+    layer: 'PolygonLayer',
+  },
+  [LayerCreationCommandIDs.newGeoJsonLayerWithParams]: {
+    source: 'GeoJSONSource',
+    layer: 'GeoJsonLayer',
   },
 
   // Interaction features
@@ -1049,6 +1083,135 @@ export function addCommands(
       layerType: 'VectorLayer',
     }),
     ...icons.get(CommandIDs.openNewGeoJSONDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewTripsDialog, {
+    label: trans.__('Trips'),
+    caption:
+      'Open a dialog to create a new trips layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Trips Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom Trips Layer' },
+      sourceType: 'TripsSource',
+      layerType: 'TripsLayer',
+    }),
+    ...icons.get(CommandIDs.openNewTripsDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewPolygonDialog, {
+    label: trans.__('Polygon'),
+    caption:
+      'Open a dialog to create a new polygon layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Polygon Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom Polygon Layer' },
+      sourceType: 'PolygonSource',
+      layerType: 'PolygonLayer',
+    }),
+    ...icons.get(CommandIDs.openNewPolygonDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewGeoJsonLayerDialog, {
+    label: trans.__('GeoJSON (Deck.gl)'),
+    caption:
+      'Open a dialog to create a new deck.gl GeoJSON layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoJSON Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom GeoJSON Layer' },
+      sourceType: 'GeoJSONSource',
+      layerType: 'GeoJsonLayer',
+    }),
+    ...icons.get(CommandIDs.openNewGeoJsonLayerDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewDeckGLDialog, {
+    label: trans.__('DeckGL'),
+    caption:
+      'Open a dialog to create a new DeckGL layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: async () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const dialog = new DeckGlLayerCreationFormDialog({
+        model: current.model,
+        formSchemaRegistry,
+        title: 'Create DeckGL Layer',
+      });
+      await launchFollowable(
+        current.model,
+        {
+          kind: 'layerCreation',
+          params: {
+            title: 'Create DeckGL Layer',
+            createLayer: true,
+            createSource: true,
+            sourceType: 'TripsSource',
+            layerType: 'TripsLayer',
+            layerData: { name: 'Custom Trips Layer' },
+          },
+        },
+        dialog,
+      );
+    },
+    ...icons.get(CommandIDs.openNewDeckGLDialog),
   });
 
   commands.addCommand(CommandIDs.openNewWmsDialog, {

@@ -735,7 +735,9 @@ export const loadFile = async (fileInfo: {
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
-      case 'GeoJSONSource': {
+      case 'GeoJSONSource':
+      case 'TripsSource':
+      case 'PolygonSource': {
         const cached = await getFromIndexedDB(filepath);
         if (cached) {
           return cached.file;
@@ -829,7 +831,9 @@ export const loadFile = async (fileInfo: {
     }
 
     switch (type) {
-      case 'GeoJSONSource': {
+      case 'GeoJSONSource':
+      case 'TripsSource':
+      case 'PolygonSource': {
         switch (file.format) {
           case 'base64': {
             return JSON.parse(atob(file.content));

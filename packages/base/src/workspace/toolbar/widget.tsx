@@ -123,6 +123,10 @@ export class ToolbarWidget extends ReactiveToolbar {
         type: 'command',
         command: CommandIDs.toggleStacBrowser,
       });
+      NewSubMenu.addItem({
+        type: 'command',
+        command: CommandIDs.openNewDeckGLDialog,
+      });
 
       this._updateStorySegmentMenuItem();
 

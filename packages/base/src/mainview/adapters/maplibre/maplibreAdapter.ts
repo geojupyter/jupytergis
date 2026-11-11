@@ -14,6 +14,7 @@ import type {
   IJGISLayer,
   IJGISOptions,
   IJGISSource,
+  IJGISUIState,
   IJupyterGISModel,
   IGeoTiffSource,
   IGeoTiffLayer,
@@ -77,6 +78,8 @@ import {
   getUnsupportedReason,
 } from '../../mapAdapterFeatures';
 import { isValidExtent } from '../../utils/olLayerZoomExtent';
+import { JSON_RECORD_SOURCES } from '../deckgl/createDeckLayers';
+import { DeckOverlayHost } from '../deckgl/deckOverlayHost';
 import {
   compileCogColorExpression,
   compileCogColorFunction,
@@ -153,6 +156,7 @@ export class MapLibreAdapter implements IMapAdapter {
       lonLat,
       zoom = 1,
       rotation = 0,
+      pitch = 0,
       controlsTarget,
       zoomButtonsEnabled = false,
       mainViewId,
@@ -199,7 +203,7 @@ export class MapLibreAdapter implements IMapAdapter {
       center: lonLat ?? center,
       zoom,
       bearing: rotation,
-      pitch: 0,
+      pitch,
       maxPitch: 85,
     });
     (window as any).mapDebug = this._map;
@@ -228,10 +232,21 @@ export class MapLibreAdapter implements IMapAdapter {
     });
 
     this._map.resize();
+
+    this._deckOverlay = new DeckOverlayHost(this._model, (level, message) =>
+      this._log(level, message),
+    );
+    this._deckOverlay.attach(this._map);
+    this._model.uiStateChanged.connect(this._onMapViewChanged);
+    this._applyMapView(this._model.getUIState().mapView);
   }
 
   destroy(): void {
     this.unregisterMap();
+    this._model.uiStateChanged.disconnect(this._onMapViewChanged);
+
+    this._deckOverlay?.detach(this._map);
+    this._deckOverlay = undefined;
 
     const controls: Array<IControl | undefined> = [
       this._scaleControl,
@@ -442,6 +457,7 @@ export class MapLibreAdapter implements IMapAdapter {
           }
 
           this._geojsonData.set(id, data as GeoJSONFeature | FeatureCollection);
+          this._deckOverlay?.setGeoJsonData(id, data);
 
           this._map.addSource(id, {
             type: 'geojson',
@@ -467,6 +483,17 @@ export class MapLibreAdapter implements IMapAdapter {
             },
           });
 
+          break;
+        }
+
+        case 'TripsSource':
+        case 'PolygonSource': {
+          const ok = await this._deckOverlay?.ensureSource(id, source);
+          if (!ok) {
+            throw new Error(
+              `Deck source "${source.name ?? id}" could not be loaded.`,
+            );
+          }
           break;
         }
 
@@ -635,7 +662,9 @@ export class MapLibreAdapter implements IMapAdapter {
       return;
     }
 
-    this._trackSourceExtZoom(id, source.type);
+    if (!JSON_RECORD_SOURCES.has(source.type)) {
+      this._trackSourceExtZoom(id, source.type);
+    }
   }
 
   removeSource(id: string): void {
@@ -652,6 +681,7 @@ export class MapLibreAdapter implements IMapAdapter {
       this._map.removeSource(id);
     }
     this._geojsonData.delete(id);
+    this._deckOverlay?.removeSource(id);
     this._sourceBounds.delete(id);
     this._revokeObjectUrls(id);
     this._forgetCogSource(id);
@@ -723,7 +753,8 @@ export class MapLibreAdapter implements IMapAdapter {
     this.removeSource(sourceId);
     await this.addSource(sourceId, source);
 
-    if (!this._map.getSource(sourceId)) {
+    const deckOnlySource = JSON_RECORD_SOURCES.has(source.type);
+    if (!deckOnlySource && !this._map.getSource(sourceId)) {
       for (const { layerId } of placements) {
         this.removeLayer(layerId);
         this._callbacks?.onLayerError?.(
@@ -1397,6 +1428,36 @@ export class MapLibreAdapter implements IMapAdapter {
       return;
     }
 
+    if (this._deckOverlay?.isDeckLayerType(layer.type)) {
+      const ok = await this._deckOverlay.ensureSource(sourceId, source);
+      if (!ok) {
+        this._log(
+          'error',
+          `MapLibreAdapter: deck source "${sourceId}" could not be added.`,
+        );
+        this._callbacks?.onLayerError?.(
+          id,
+          this._sourceErrors.get(sourceId) ??
+            `Source "${source.name ?? sourceId}" could not be added.`,
+        );
+        return;
+      }
+
+      // GeoJSON may also exist as a MapLibre source for vector layers; ensure
+      // deck has a copy when the native source path already ran.
+      if (source.type === 'GeoJSONSource' && this._geojsonData.has(sourceId)) {
+        this._deckOverlay.setGeoJsonData(
+          sourceId,
+          this._geojsonData.get(sourceId),
+        );
+      }
+
+      this._layerSubIds.set(id, []);
+      this._layerVisibility.set(id, layer.visible ?? true);
+      this._syncDeckOverlay();
+      return;
+    }
+
     if (!this._map.getSource(sourceId)) {
       await this.addSource(sourceId, source);
     }
@@ -1599,6 +1660,7 @@ export class MapLibreAdapter implements IMapAdapter {
     if (orderIndex !== -1) {
       this._layerOrder.splice(orderIndex, 1);
     }
+    this._syncDeckOverlay();
   }
 
   async updateLayer(
@@ -1606,6 +1668,19 @@ export class MapLibreAdapter implements IMapAdapter {
     layer: IJGISLayer,
     oldLayer?: IDict,
   ): Promise<void> {
+    if (this._deckOverlay?.isDeckLayerType(layer.type)) {
+      if (!this._layerSubIds.has(id)) {
+        this._log(
+          'error',
+          `MapLibreAdapter: cannot update layer ${id} - layer not found in adapter`,
+        );
+        return;
+      }
+      this._layerVisibility.set(id, layer.visible ?? true);
+      this._syncDeckOverlay();
+      return;
+    }
+
     const subIds = this._layerSubIds.get(id);
 
     if (!subIds || !subIds.every(subId => this._map.getLayer(subId))) {
@@ -1772,6 +1847,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
     this._layerOrder = [...layerIds];
     this._applyLayerOrder();
+    this._syncDeckOverlay();
 
     if (
       this._pendingZoomLayerId &&
@@ -1781,6 +1857,10 @@ export class MapLibreAdapter implements IMapAdapter {
       this._pendingZoomLayerId = null;
       this.onZoomToPosition(pendingId);
     }
+  }
+
+  private _syncDeckOverlay(): void {
+    this._deckOverlay?.syncLayers(this._layerOrder);
   }
 
   private _mountControl(control: IControl): void {
@@ -1909,6 +1989,25 @@ export class MapLibreAdapter implements IMapAdapter {
 
   getProjection(): IMapProjection {
     return { code: 'EPSG:3857', units: 'm' };
+  }
+
+  private _onMapViewChanged = (
+    _sender: IJupyterGISModel,
+    state: IJGISUIState,
+  ): void => {
+    this._applyMapView(state.mapView);
+  };
+
+  /**
+   * Switches the MapLibre view between mercator and globe. Coordinates stay
+   * EPSG:3857. The deck.gl overlay follows this projection.
+   */
+  private _applyMapView(mode: IJGISUIState['mapView']): void {
+    const next = mode === 'globe' ? 'globe' : 'mercator';
+    if (this._map.getProjection()?.type === next) {
+      return;
+    }
+    this._map.setProjection({ type: next });
   }
 
   setProjection(code: string): IMapProjection | undefined {
@@ -2429,6 +2528,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
   private _map: MlMap;
   private _model: IJupyterGISModel;
+  private _deckOverlay?: DeckOverlayHost;
   private _mainViewId?: string;
   private _drawTool: IDrawToolAdapter;
   private _mapKey?: string;

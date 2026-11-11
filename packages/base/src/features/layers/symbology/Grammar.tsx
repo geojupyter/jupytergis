@@ -210,6 +210,7 @@ interface ILayerSectionProps {
   bandStats?: Record<number, { min: number; max: number }>;
   normalize?: boolean;
   zoomRangeSupported?: boolean;
+  filtersDisabled?: boolean;
   onChange: (layer: ILayerUIState) => void;
   onDelete: () => void;
   onMoveUp?: () => void;
@@ -227,6 +228,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
   bandStats,
   normalize = true,
   zoomRangeSupported,
+  filtersDisabled = false,
   onChange,
   onDelete,
   onMoveUp,
@@ -365,8 +367,13 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           <Button
             type="button"
             variant="ghost"
+            disabled={filtersDisabled}
             onClick={addTransform}
-            title="Add transform"
+            title={
+              filtersDisabled
+                ? 'Deck.gl layers ignore transforms'
+                : 'Add transform'
+            }
           >
             <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
             Transform
@@ -417,6 +424,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             variant="ghost"
             size="xs"
             className="jp-gis-grammar-when-op"
+            disabled={filtersDisabled}
             onClick={() =>
               onChange({
                 ...layer,
@@ -442,8 +450,13 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
           variant="ghost"
           size="icon-xs"
           className="rounded-[10px] border-dashed"
+          disabled={filtersDisabled}
           onClick={addLayerPredicate}
-          title="Add condition"
+          title={
+            filtersDisabled
+              ? 'Deck.gl layers ignore conditions'
+              : 'Add condition'
+          }
         >
           <FontAwesomeIcon icon={faPlus} />
         </Button>
@@ -561,6 +574,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
               bandStats={bandStats}
               normalize={normalize}
               zoomRangeSupported={zoomRangeSupported}
+              whenDisabled={filtersDisabled}
               shadowedEncodings={shadowedEncodings}
               onChangeRow={updateRow}
               onDeleteRows={removeRows}
@@ -612,6 +626,10 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     layer?.type === 'GeoTiffLayer' ||
     layer?.type === 'GeoZarrLayer' ||
     layer?.type === 'OpenEOTileLayer';
+  const isDeckLayer =
+    layer?.type === 'GeoJsonLayer' ||
+    layer?.type === 'PolygonLayer' ||
+    layer?.type === 'TripsLayer';
 
   const { featureProperties: selectableAttributesAndValues } = useGetProperties(
     { layerId, model },
@@ -770,6 +788,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           bandStats={bandStats}
           normalize={normalize}
           zoomRangeSupported={zoomRangeSupported}
+          filtersDisabled={isDeckLayer}
           onChange={updated =>
             setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
           }

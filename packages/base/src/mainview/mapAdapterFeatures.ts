@@ -41,6 +41,8 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     WmsTileSource: true,
     OpenEOTileSource: false,
     FeatureStoreSource: false,
+    TripsSource: true,
+    PolygonSource: true,
   },
   layers: {
     RasterLayer: true,
@@ -54,6 +56,9 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     GeoZarrLayer: false,
     OpenEOTileLayer: false,
     StacLayer: false,
+    TripsLayer: true,
+    PolygonLayer: true,
+    GeoJsonLayer: true,
   },
   drawTool: false,
   storyMaps: false,
@@ -84,6 +89,8 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     WmsTileSource: true,
     OpenEOTileSource: true,
     FeatureStoreSource: true,
+    TripsSource: false,
+    PolygonSource: false,
   },
   layers: {
     RasterLayer: true,
@@ -97,6 +104,9 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     GeoZarrLayer: true,
     OpenEOTileLayer: true,
     StacLayer: true,
+    TripsLayer: false,
+    PolygonLayer: false,
+    GeoJsonLayer: false,
   },
   drawTool: true,
   geolocation: true,
@@ -185,6 +195,13 @@ const LAYER_ENTRIES: ILayerEntry[] = [
     label: 'Feature store',
     layer: 'VectorLayer',
     source: 'FeatureStoreSource',
+  },
+  { label: 'Trips', layer: 'TripsLayer', source: 'TripsSource' },
+  { label: 'Polygons', layer: 'PolygonLayer', source: 'PolygonSource' },
+  {
+    label: 'GeoJSON (Deck.gl)',
+    layer: 'GeoJsonLayer',
+    source: 'GeoJSONSource',
   },
 ];
 

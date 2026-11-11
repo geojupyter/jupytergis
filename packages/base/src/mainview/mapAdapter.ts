@@ -150,6 +150,7 @@ export interface IMapAdapterOptions {
   lonLat?: [number, number];
   zoom?: number;
   rotation?: number;
+  pitch?: number;
   layers?: IJGISLayers;
   sources?: IJGISSources;
   controlsTarget?: HTMLElement;
