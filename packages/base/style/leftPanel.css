@@ -61,8 +61,18 @@
 .jp-gis-layer.jp-mod-selected path {
   fill: var(--jp-ui-inverse-font-color1);
 }
-.jp-gis-layer.jp-mod-selected button:hover {
+.jp-gis-layer.jp-mod-selected button:hover,
+.jp-gis-layer.jp-mod-selected .jp-ToolbarButtonComponent:hover {
   background: none;
+}
+
+.jp-gis-layer.jp-mod-selected .jp-ToolbarButtonComponent[aria-pressed='true'] {
+  box-shadow: none;
+  background-color: color-mix(
+    in srgb,
+    var(--jp-ui-inverse-font-color1),
+    transparent 70%
+  );
 }
 
 .jp-gis-layer button {

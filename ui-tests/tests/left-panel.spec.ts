@@ -131,6 +131,28 @@ test.describe('#layerPanel', () => {
       await expect(thumbInput).toHaveAttribute('aria-valuenow', '100');
     });
 
+    test('should toggle declutter from the vector layer row', async ({
+      page,
+    }) => {
+      const layerTree = await openLayerTree(page);
+      await layerTree.locator('.jp-gis-layerGroup').first().click();
+      await layerTree.locator('.jp-gis-layerGroup').last().click();
+
+      // Only the vector layer has a declutter parameter.
+      const toggle = layerTree.locator(
+        '[data-command="jupytergis:toggleDeclutter"]:visible',
+      );
+      await expect(toggle).toHaveCount(1);
+
+      await toggle.click();
+      await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+
+      // The row follows the document, so undo turns it back off.
+      await layerTree.getByText('Regions France').click();
+      await page.keyboard.press('ControlOrMeta+z');
+      await expect(toggle).toHaveAttribute('aria-pressed', 'false');
+    });
+
     test('should hide the last layer', async ({ page }) => {
       const layerTree = await openLayerTree(page);
 

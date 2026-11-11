@@ -240,6 +240,35 @@ test.describe('context menu', () => {
     await expect(processingMenu.getByText('Dissolve')).toBeVisible();
   });
 
+  test('declutter can be toggled from the vector layer menu', async ({
+    page,
+  }) => {
+    await page.getByText('level 1 group').click();
+    await page.getByText('level 2 group').click();
+
+    const layer = page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Regions France');
+
+    await layer.click({ button: 'right' });
+    await page.getByRole('menuitem', { name: 'Declutter' }).click();
+
+    await layer.click({ button: 'right' });
+    await expect(
+      page.getByRole('menuitemcheckbox', { name: 'Declutter', checked: true }),
+    ).toBeVisible();
+  });
+
+  test('declutter is not offered on raster layers', async ({ page }) => {
+    await page
+      .getByLabel('Layers', { exact: true })
+      .getByText('Open Topo Map')
+      .click({ button: 'right' });
+
+    await expect(page.getByRole('menu').getByText('Remove')).toBeVisible();
+    await expect(page.getByRole('menu').getByText('Declutter')).toBeHidden();
+  });
+
   test('move layer to group should move layer', async ({ page }) => {
     await page
       .getByLabel('Layers', { exact: true })

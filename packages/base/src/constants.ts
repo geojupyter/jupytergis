@@ -16,6 +16,7 @@ import {
   markerIcon,
   pencilSolidIcon,
   scrollIcon,
+  ungroupIcon,
 } from './shared/icons';
 
 /**
@@ -94,6 +95,7 @@ const iconObject = {
   [CommandIDs.renameSelected]: { iconClass: 'fa fa-pen' },
   [CommandIDs.removeSelected]: { iconClass: 'fa fa-trash' },
   [CommandIDs.togglePanel]: { icon: columns2Icon },
+  [CommandIDs.toggleDeclutter]: { icon: ungroupIcon },
 };
 
 /**

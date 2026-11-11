@@ -1914,6 +1914,46 @@ export function addCommands(
     },
   });
 
+  commands.addCommand(CommandIDs.toggleDeclutter, {
+    label: trans.__('Declutter'),
+    caption:
+      'Skip drawing features of the layer that would overlap ones already drawn.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          layerId: { type: 'string' },
+        },
+      },
+    },
+    isVisible: (args: { filePath?: string; layerId?: string }) =>
+      !!Private.getDeclutterLayer(tracker, formSchemaRegistry, args),
+    isEnabled: (args: { filePath?: string; layerId?: string }) =>
+      !!Private.getDeclutterLayer(tracker, formSchemaRegistry, args)?.model
+        .sharedModel.editable,
+    isToggled: (args: { filePath?: string; layerId?: string }) =>
+      !!Private.getDeclutterLayer(tracker, formSchemaRegistry, args)?.layer
+        .parameters?.declutter,
+    execute: (args: { filePath?: string; layerId?: string }) => {
+      const target = Private.getDeclutterLayer(
+        tracker,
+        formSchemaRegistry,
+        args,
+      );
+
+      if (!target?.model.sharedModel.editable) {
+        return;
+      }
+
+      target.model.sharedModel.updateObjectParameters(target.id, {
+        declutter: !target.layer.parameters?.declutter,
+      });
+      commands.notifyCommandChanged(CommandIDs.toggleDeclutter);
+    },
+    ...icons.get(CommandIDs.toggleDeclutter),
+  });
+
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
@@ -3256,6 +3296,24 @@ namespace Private {
     const current = model?.getComparison()?.layers;
 
     return !!layerId && !!current && current.includes(layerId);
+  }
+
+  /** The given or selected layer, when its type has a `declutter` parameter. */
+  export function getDeclutterLayer(
+    tracker: JupyterGISTracker,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
+    args: { filePath?: string; layerId?: string },
+  ): { model: IJupyterGISModel; id: string; layer: IJGISLayer } | undefined {
+    const model = args.filePath
+      ? tracker.find(w => w.model.filePath === args.filePath)?.model
+      : tracker.currentWidget?.model;
+    const id = args.layerId ?? getSelectedLayerId(model);
+    const layer = id ? model?.getLayer(id) : undefined;
+    const schema = layer && formSchemaRegistry.getSchemas().get(layer.type);
+
+    return model && id && layer && schema?.properties?.declutter
+      ? { model, id, layer }
+      : undefined;
   }
 
   export async function renameSelectedItem(
