@@ -21,7 +21,6 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/src/shared/components/Select';
-import { cn } from '@/src/shared/components/utils';
 import { ProjectionCombobox } from './ProjectionCombobox';
 
 const CURSOR_COORD_MODES: { value: CursorCoordMode; label: string }[] = [
@@ -34,8 +33,7 @@ interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
   commands: CommandRegistry;
   loading?: boolean;
-  /** Layer-add progress 0–100; null while idle. */
-  loadingProgress?: number | null;
+  progress?: number;
   projection?: { code: string; units: string };
   onProjectionChange?: (code: string) => void;
   cursor: ICursorDisplay | null;
@@ -46,7 +44,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   jgisModel,
   commands,
   loading,
-  loadingProgress = null,
+  progress = 0,
   projection,
   onProjectionChange,
   cursor,
@@ -79,16 +77,13 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   const rendererName = activeFeatures.name;
   const canChangeProjection = activeFeatures.customProjections;
 
-  const showProgress = Boolean(loading || loadingProgress !== null);
-
   return (
     <div className="jgis-status-bar">
-      <div
-        className={cn('jgis-status-bar-progress', !showProgress && 'hidden')}
-        aria-hidden={!showProgress}
-      >
-        <Progress value={loadingProgress} className="w-full gap-0" />
-      </div>
+      {loading && (
+        <div className="jgis-status-bar-progress">
+          <Progress value={progress} className="w-full" />
+        </div>
+      )}
       <Select
         value={cursorCoordMode}
         onValueChange={value => {
