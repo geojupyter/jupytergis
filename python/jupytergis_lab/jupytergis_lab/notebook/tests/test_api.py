@@ -1,6 +1,7 @@
 import pytest
-from jupytergis_core.schema import LayerType, SourceType
+from jupytergis_core.schema import LayerType, SourceType, StoryType
 from pycrdt import Map
+from pydantic import ValidationError
 
 from jupytergis_lab import GISDocument
 from jupytergis_lab.notebook.gis_document import QGIS_UNSUPPORTED_TYPES
@@ -527,3 +528,186 @@ class TestLayerManipulation(TestDocument):
     def test_remove_nonexistent_layer_raises(self):
         with pytest.raises(KeyError):
             self.doc.remove_layer("foo")
+
+
+class TestStoryMap(TestDocument):
+    def test_add_segment_creates_the_story(self):
+        self.doc._is_ready = True
+        segment = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
+
+        assert self.doc.story.title == "New Story"
+        assert self.doc.story.storyType == StoryType.guided
+        assert self.doc.story.segments == [segment]
+        assert segment.type == LayerType.StorySegmentLayer
+
+    def test_segments_keep_insertion_order(self):
+        self.doc._is_ready = True
+        first = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
+        second = self.doc.add_story_segment(center=(3.0, 48.0), zoom=6)
+
+        assert self.doc.story.segments == [first, second]
+        assert first.name == "Story Segment"
+        assert second.name == "Story Segment 1"
+
+    def test_center_is_projected_to_the_view_projection(self):
+        self.doc._is_ready = True
+        segment = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
+
+        extent = self.doc._layers[segment._id]["parameters"]["extent"]
+        assert extent[0] == pytest.approx(222638.98, abs=0.01)
+        assert extent[1] == pytest.approx(5942074.07, abs=0.01)
+        assert extent[0] == extent[2]
+        assert extent[1] == extent[3]
+
+    def test_extent_is_projected_to_the_view_projection(self):
+        self.doc._is_ready = True
+        segment = self.doc.add_story_segment(
+            extent=[2.0, 47.0, 3.0, 48.0],
+            zoom=5,
+        )
+
+        extent = self.doc._layers[segment._id]["parameters"]["extent"]
+        assert extent[0] == pytest.approx(222638.98, abs=0.01)
+        assert extent[2] == pytest.approx(333958.47, abs=0.01)
+
+    def test_center_defaults_to_the_map_center(self):
+        doc = GISDocument(latitude=47.0, longitude=2.0, zoom=5)
+        doc._is_ready = True
+        segment = doc.add_story_segment()
+
+        parameters = doc._layers[segment._id]["parameters"]
+        assert parameters["zoom"] == 5
+        assert parameters["extent"][0] == pytest.approx(222638.98, abs=0.01)
+
+    def test_extent_and_center_together_raise(self):
+        self.doc._is_ready = True
+        with pytest.raises(ValueError, match="at the same time"):
+            self.doc.add_story_segment(
+                center=(2.0, 47.0),
+                extent=[2, 47, 3, 48],
+                zoom=5,
+            )
+
+    def test_markdown_keeps_the_map_content_mode(self):
+        self.doc._is_ready = True
+        segment = self.doc.add_story_segment(
+            center=(2.0, 47.0),
+            zoom=5,
+            markdown="# Title",
+            image="https://example.com/a.png",
+            image_caption="A caption",
+        )
+
+        content = self.doc._layers[segment._id]["parameters"]["content"]
+        assert content["contentMode"] == "map"
+        assert content["markdown"] == "# Title"
+        assert content["image"] == "https://example.com/a.png"
+        assert content["imageCaption"] == "A caption"
+
+    def test_transition_and_identify_are_persisted(self):
+        self.doc._is_ready = True
+        segment = self.doc.add_story_segment(
+            center=(2.0, 47.0),
+            zoom=5,
+            transition="smooth",
+            transition_time=2.5,
+            enable_identify=True,
+        )
+
+        parameters = self.doc._layers[segment._id]["parameters"]
+        assert parameters["transition"] == {"type": "smooth", "time": 2.5}
+        assert parameters["enableIdentify"] is True
+
+    def test_layer_overrides_are_persisted(self):
+        self.doc._is_ready = True
+        layer = self.doc.add_geojson_layer(data=SAMPLE_GEOJSON, name="Quakes")
+        segment = self.doc.add_story_segment(
+            center=(2.0, 47.0),
+            zoom=5,
+            layer_overrides=[{"targetLayer": layer, "visible": False}],
+        )
+
+        overrides = self.doc._layers[segment._id]["parameters"]["layerOverride"]
+        assert overrides[0]["targetLayer"] == layer._id
+        assert overrides[0]["visible"] is False
+
+    def test_create_story_then_add_segment(self):
+        self.doc._is_ready = True
+        story = self.doc.create_story(
+            title="My story",
+            story_type="Vertical Scroll",
+            show_gradient=False,
+        )
+        segment = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
+
+        assert self.doc.story._id == story._id
+        assert self.doc.story.title == "My story"
+        assert self.doc.story.storyType == StoryType.Vertical_Scroll
+        assert self.doc.story.showGradient is False
+        assert self.doc.story.segments == [segment]
+
+    def test_create_story_twice_raises(self):
+        self.doc._is_ready = True
+        self.doc.create_story()
+        with pytest.raises(ValueError, match="already has a story"):
+            self.doc.create_story()
+
+    def test_setting_a_story_field_updates_the_document(self):
+        self.doc._is_ready = True
+        story = self.doc.create_story(title="My story", story_panel_opacity=0.5)
+        self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
+
+        story.title = "Renamed"
+
+        assert self.doc.story.title == "Renamed"
+        assert self.doc.story.storyPanelOpacity == 0.5
+        assert len(self.doc.story.segments) == 1
+
+    def test_setting_an_invalid_story_field_raises(self):
+        self.doc._is_ready = True
+        story = self.doc.create_story()
+
+        with pytest.raises(ValidationError):
+            story.storyType = "scroll"
+        with pytest.raises(AttributeError):
+            story.nope = 1
+
+    def test_invalid_story_type_raises(self):
+        self.doc._is_ready = True
+        with pytest.raises(ValidationError):
+            self.doc.create_story(story_type="scroll")
+
+    def test_invalid_content_mode_raises(self):
+        self.doc._is_ready = True
+        with pytest.raises(ValidationError):
+            self.doc.add_story_segment(center=(2.0, 47.0), zoom=5, content_mode="text")
+
+    def test_remove_segment_drops_it_from_the_story(self):
+        self.doc._is_ready = True
+        first = self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
+        second = self.doc.add_story_segment(center=(3.0, 48.0), zoom=6)
+
+        self.doc.remove_layer(first)
+
+        assert first._id not in self.doc._layers
+        assert self.doc.story.segments == [second]
+
+    def test_remove_a_layer_while_a_segment_exists(self):
+        self.doc._is_ready = True
+        layer_id = self.doc.add_geojson_layer(data=SAMPLE_GEOJSON, name="Quakes")
+        self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
+
+        self.doc.remove_layer(layer_id)
+
+        assert layer_id not in self.doc.layers
+
+    def test_story_is_blocked_on_qgis_documents(self):
+        self.doc._is_ready = True
+        self.doc._path = "project.qgz"
+
+        with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
+            self.doc.create_story()
+        with pytest.raises(RuntimeError, match="Convert it to jGIS first"):
+            self.doc.add_story_segment(center=(2.0, 47.0), zoom=5)
+
+        assert self.doc.story is None

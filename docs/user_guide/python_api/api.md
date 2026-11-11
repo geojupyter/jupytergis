@@ -18,6 +18,10 @@
     :members:
     :exclude-members: model_config, model_post_init
 
+.. autoclass:: jupytergis_lab.notebook.gis_document.JGISStory
+    :members:
+    :exclude-members: model_config, model_post_init
+
 .. autofunction:: field
 .. autofunction:: constant
 .. autofunction:: when
