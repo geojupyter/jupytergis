@@ -110,6 +110,7 @@ interface IStates {
   clientPointers: IDict<ClientPointer>;
   viewProjection: { code: string; units: string };
   loadingLayer: boolean;
+  tileProgress: { loaded: number; total: number };
   cursorCoordMode: CursorCoordMode;
   cursorDisplay: ICursorDisplay | null;
   loadingErrors: Array<{ id: string; error: any; index: number }>;
@@ -246,6 +247,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       clientPointers: {},
       viewProjection: { code: '', units: '' },
       loadingLayer: false,
+      tileProgress: { loaded: 0, total: 0 },
       cursorCoordMode: loadCursorCoordMode(),
       cursorDisplay: null,
       loadingErrors: [],
@@ -533,6 +535,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         },
         onLayerAddSettled: id => {
           this.setState(old => ({ ...old, loadingLayer: false }));
+        },
+        onTileProgress: (loaded, total) => {
+          this.setState(old => ({ ...old, tileProgress: { loaded, total } }));
         },
         onLayerError: (id, message) => {
           // greys the layer out
@@ -1847,6 +1852,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       cursorDisplay,
       loading,
       loadingLayer,
+      tileProgress,
       remoteUser,
       segmentTransition,
       viewProjection,
@@ -1944,6 +1950,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               jgisModel={this._model}
               commands={this._mainViewModel.commands}
               loading={loadingLayer}
+              tileProgress={tileProgress}
               projection={viewProjection}
               onProjectionChange={code =>
                 this._model.projectionChangedSignal.emit(code)

@@ -33,6 +33,7 @@ interface IStatusBarProps {
   jgisModel: IJupyterGISModel;
   commands: CommandRegistry;
   loading?: boolean;
+  tileProgress: { loaded: number; total: number };
   projection?: { code: string; units: string };
   onProjectionChange?: (code: string) => void;
   cursor: ICursorDisplay | null;
@@ -43,6 +44,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   jgisModel,
   commands,
   loading,
+  tileProgress,
   projection,
   onProjectionChange,
   cursor,
@@ -80,6 +82,16 @@ const StatusBar: React.FC<IStatusBarProps> = ({
       {loading && (
         <div style={{ width: '16%', padding: '0 6px' }}>
           <Progress height={14} />
+        </div>
+      )}
+      {!loading && tileProgress.total > 0 && (
+        <div style={{ width: '16%', padding: '0 6px' }}>
+          <Progress
+            height={14}
+            value={tileProgress.loaded}
+            max={tileProgress.total}
+            title={`OpenEO tiles: ${tileProgress.loaded}/${tileProgress.total}`}
+          />
         </div>
       )}
       <Select
