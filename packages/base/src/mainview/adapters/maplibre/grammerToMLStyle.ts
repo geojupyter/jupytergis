@@ -10,23 +10,34 @@
  *   stroke-color / stroke-width      -> 'line'   layer (Polygon outline + LineString)
  *   circle-* keys                    -> 'circle' layer (Point)
  *
- * KDE (heatmap) grammar layers are skipped for now; MapLibre has a native
- * 'heatmap' layer type that can be added as a follow-up.
+ * A KDE (heatmap) grammar layer becomes MapLibre's native 'heatmap' layer:
+ *
+ *   kde radius + blur                -> heatmap-radius
+ *   kde weightField                  -> heatmap-weight
+ *   pixel-color colorMap             -> heatmap-color
  */
 
-import { IGrammarLayer, IGrammarSymbologyState } from '@jupytergis/schema';
+import {
+  IGrammarLayer,
+  IGrammarSymbologyState,
+  IKDETransform,
+} from '@jupytergis/schema';
 
+import {
+  DEFAULT_HEATMAP_GRADIENT,
+  extractHeatmapGradient,
+} from '../../../features/layers/symbology/heatmapGradient';
 import { DEFAULT_FLAT_STYLE } from '../../../features/layers/symbology/styleBuilder';
 import { grammarToOLStyle } from '../openlayers/grammarToOLStyle';
 
-export type MapLibreSubLayerType = 'fill' | 'line' | 'circle';
+export type MapLibreSubLayerType = 'fill' | 'line' | 'circle' | 'heatmap';
 
 export interface IMapLibreLayerSpec {
   id: string;
   type: MapLibreSubLayerType;
   source: string;
   'source-layer'?: string;
-  filter: any[];
+  filter?: any[];
   layout: { visibility: 'visible' | 'none' };
   paint: Record<string, any>;
 }
@@ -34,6 +45,7 @@ export interface IMapLibreLayerSpec {
 export interface IGrammarToMapLibreOptions {
   id: string;
   sourceId: string;
+  heatmapSourceId?: string;
   state: IGrammarSymbologyState | undefined;
   featureValues: unknown[];
   opacity: number;
@@ -107,11 +119,83 @@ export function toMapLibreExpr(value: any): any {
   return ['literal', value];
 }
 
+/** The same color with alpha 0, so a heatmap fades in from nothing. */
+function transparentVariant(color: string): string {
+  const s = color.trim().toLowerCase();
+  const fn = s.match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/);
+  if (fn) {
+    return `rgba(${fn[1]}, ${fn[2]}, ${fn[3]}, 0)`;
+  }
+  const hex = s.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/);
+  if (hex) {
+    const h =
+      hex[1].length === 3
+        ? hex[1]
+            .split('')
+            .map(c => c + c)
+            .join('')
+        : hex[1];
+    return `rgba(${parseInt(h.slice(0, 2), 16)}, ${parseInt(h.slice(2, 4), 16)}, ${parseInt(h.slice(4, 6), 16)}, 0)`;
+  }
+  return 'rgba(0, 0, 0, 0)';
+}
+
+/**
+ * MapLibre's heatmap-color is a ramp over density 0..1. Start it fully
+ * transparent (the docs' advice, so the edge blurs out), then spread the
+ * gradient's colors evenly over the rest, hottest at density 1.
+ */
+export function gradientToHeatmapColor(gradient: string[]): any[] {
+  const n = gradient.length;
+  return [
+    'interpolate',
+    ['linear'],
+    ['heatmap-density'],
+    0,
+    transparentVariant(gradient[0]),
+    ...gradient.flatMap((color, i) => [(i + 1) / n, color]),
+  ];
+}
+
+function compileKdeLayer(
+  o: IGrammarToMapLibreOptions,
+  grammarLayer: IGrammarLayer,
+  kde: IKDETransform,
+  index: number,
+): IMapLibreLayerSpec {
+  const gradient =
+    extractHeatmapGradient(grammarLayer.rules) ?? DEFAULT_HEATMAP_GRADIENT;
+
+  return {
+    id: `${o.id}:${index}:heatmap`,
+    type: 'heatmap',
+    source: o.heatmapSourceId ?? o.sourceId,
+    ...(o.sourceLayer ? { 'source-layer': o.sourceLayer } : {}),
+    filter: isGeom('Point', 'MultiPoint', 'Polygon', 'MultiPolygon'),
+    layout: { visibility: o.visible ? 'visible' : 'none' },
+    paint: {
+      'heatmap-radius': (kde.radius ?? 10) + (kde.blur ?? 15),
+      'heatmap-color': gradientToHeatmapColor(gradient),
+      'heatmap-opacity': o.opacity,
+      ...(kde.weightField
+        ? { 'heatmap-weight': ['to-number', ['get', kde.weightField], 1] }
+        : {}),
+    },
+  };
+}
+
 function compileGrammarLayer(
   o: IGrammarToMapLibreOptions,
   grammarLayer: IGrammarLayer | undefined,
   index: number,
 ): IMapLibreLayerSpec[] {
+  const kde = grammarLayer?.preprocess?.find(
+    (t): t is IKDETransform => t.type === 'kde',
+  );
+  if (grammarLayer && kde) {
+    return [compileKdeLayer(o, grammarLayer, kde, index)];
+  }
+
   // Same fallback OL uses when a grammar layer produces no style at all.
   const compiled = grammarLayer
     ? grammarToOLStyle({ layers: [grammarLayer] }, o.featureValues)
@@ -190,19 +274,10 @@ function compileGrammarLayer(
 export function grammarToMapLibreLayers(
   options: IGrammarToMapLibreOptions,
 ): IMapLibreLayerSpec[] {
-  const allGrammarLayers = options.state?.layers ?? [];
-  const grammarLayers = allGrammarLayers.filter(
-    gl => !gl.preprocess?.some(t => t.type === 'kde'),
-  );
+  const grammarLayers = options.state?.layers ?? [];
 
   if (grammarLayers.length === 0) {
-    // Use the default style only when no grammar was configured.
-    if (allGrammarLayers.length === 0) {
-      return compileGrammarLayer(options, undefined, 0);
-    }
-
-    // All configured grammar layers are KDE, which is unsupported for now.
-    return [];
+    return compileGrammarLayer(options, undefined, 0);
   }
 
   return [...grammarLayers]
