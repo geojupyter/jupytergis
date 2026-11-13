@@ -1,0 +1,259 @@
+{
+  "annotations": {},
+  "layerTree": [
+    "32393edb-2ac2-4985-a8aa-fa933633d60f",
+    "bcc76c5b-2263-4c56-9c2a-92a492d21ab9"
+  ],
+  "layers": {
+    "32393edb-2ac2-4985-a8aa-fa933633d60f": {
+      "name": "OpenStreetMap.Mapnik Layer",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "9ee3894f-4360-4f5e-ae5b-34397f532244"
+      },
+      "type": "RasterLayer",
+      "visible": true
+    },
+    "bcc76c5b-2263-4c56-9c2a-92a492d21ab9": {
+      "name": "UK crop types 2022",
+      "parameters": {
+        "opacity": 1.0,
+        "source": "4ddc284f-f1ca-42c1-8d89-4e22fe0e53be",
+        "symbologyState": {
+          "layers": [
+            {
+              "id": "c5b705e5-b531-4932-9df3-4722d112ecef",
+              "rules": [
+                {
+                  "fields": [
+                    "band_1"
+                  ],
+                  "id": "8383478f-4680-41a4-b708-d32175fec619",
+                  "mappings": [
+                    {
+                      "encodings": [
+                        "pixel-color"
+                      ],
+                      "scale": {
+                        "params": {
+                          "colorRamp": "schemeCategory10",
+                          "colorStops": [
+                            {
+                              "color": [
+                                255.0,
+                                215.0,
+                                0.0,
+                                1.0
+                              ],
+                              "stop": 0.0
+                            },
+                            {
+                              "color": [
+                                210.0,
+                                150.0,
+                                0.0,
+                                1.0
+                              ],
+                              "stop": 1.0
+                            },
+                            {
+                              "color": [
+                                255.0,
+                                200.0,
+                                120.0,
+                                1.0
+                              ],
+                              "stop": 2.0
+                            },
+                            {
+                              "color": [
+                                255.0,
+                                120.0,
+                                0.0,
+                                1.0
+                              ],
+                              "stop": 3.0
+                            },
+                            {
+                              "color": [
+                                0.0,
+                                128.0,
+                                0.0,
+                                1.0
+                              ],
+                              "stop": 4.0
+                            },
+                            {
+                              "color": [
+                                139.0,
+                                0.0,
+                                139.0,
+                                1.0
+                              ],
+                              "stop": 5.0
+                            },
+                            {
+                              "color": [
+                                107.0,
+                                142.0,
+                                35.0,
+                                1.0
+                              ],
+                              "stop": 6.0
+                            },
+                            {
+                              "color": [
+                                255.0,
+                                255.0,
+                                0.0,
+                                1.0
+                              ],
+                              "stop": 7.0
+                            },
+                            {
+                              "color": [
+                                144.0,
+                                238.0,
+                                144.0,
+                                1.0
+                              ],
+                              "stop": 8.0
+                            },
+                            {
+                              "color": [
+                                173.0,
+                                255.0,
+                                47.0,
+                                1.0
+                              ],
+                              "stop": 9.0
+                            },
+                            {
+                              "color": [
+                                210.0,
+                                180.0,
+                                140.0,
+                                1.0
+                              ],
+                              "stop": 10.0
+                            },
+                            {
+                              "color": [
+                                139.0,
+                                90.0,
+                                43.0,
+                                1.0
+                              ],
+                              "stop": 11.0
+                            },
+                            {
+                              "color": [
+                                124.0,
+                                252.0,
+                                0.0,
+                                1.0
+                              ],
+                              "stop": 12.0
+                            },
+                            {
+                              "color": [
+                                160.0,
+                                160.0,
+                                160.0,
+                                1.0
+                              ],
+                              "stop": 13.0
+                            },
+                            {
+                              "color": [
+                                211.0,
+                                211.0,
+                                211.0,
+                                1.0
+                              ],
+                              "stop": 254.0
+                            },
+                            {
+                              "color": [
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0
+                              ],
+                              "stop": 255.0
+                            }
+                          ],
+                          "fallback": [
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0
+                          ]
+                        },
+                        "scheme": "categorical"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "type": "GeoTiffLayer",
+      "visible": true
+    }
+  },
+  "metadata": {},
+  "options": {
+    "bearing": 0.0,
+    "extent": [
+      -2271593.4049301567,
+      6200528.538013572,
+      1219156.6333386872,
+      8582493.243485598
+    ],
+    "latitude": 55.15245486563393,
+    "longitude": -4.727100187450112,
+    "mapAdapter": "openlayers",
+    "pitch": 0.0,
+    "projection": "EPSG:3857",
+    "zoom": 5.483990167589502
+  },
+  "presets": {},
+  "schemaVersion": "0.7.2",
+  "sources": {
+    "4ddc284f-f1ca-42c1-8d89-4e22fe0e53be": {
+      "name": "UK crop types 2022 Source",
+      "parameters": {
+        "httpHeaders": "",
+        "interpolate": false,
+        "normalize": false,
+        "projection": "",
+        "urls": [
+          {
+            "url": "https://eoresults.esa.int/d/GTIF_GMIF_CROPS/2021/10/01/GTIF-GMIF-CROPS-UK-2022/worldcereal_uk_croptype_2022.tif"
+          }
+        ],
+        "wrapX": false
+      },
+      "type": "GeoTiffSource"
+    },
+    "9ee3894f-4360-4f5e-ae5b-34397f532244": {
+      "name": "OpenStreetMap.Mapnik",
+      "parameters": {
+        "attribution": "(C) OpenStreetMap contributors",
+        "httpHeaders": "",
+        "interpolate": false,
+        "maxZoom": 19.0,
+        "minZoom": 0.0,
+        "provider": "OpenStreetMap",
+        "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        "urlParameters": {}
+      },
+      "type": "RasterSource"
+    }
+  },
+  "stories": {},
+  "viewState": {}
+}
