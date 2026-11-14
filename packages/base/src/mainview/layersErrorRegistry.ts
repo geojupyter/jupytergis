@@ -6,6 +6,10 @@
  * registry is the bridge: MainView writes, the panel subscribes with
  * `useLayerError` and greys the layer out.
  *
+ * A warning means the layer is on the map but its data failed to load
+ * (`onSourceDataError`). The panel flags it without greying it out, until
+ * the data loads (`onSourceDataLoaded`).
+ *
  * Errors belong to the active adapter, so MainView clears them when the
  * adapter is torn down. A layer clears its own error when the adapter
  * reports it loaded (`onLayerLoaded`).
@@ -14,7 +18,12 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
 import { useEffect, useState } from 'react';
 
-type LayerErrors = Readonly<Record<string, string>>;
+export type LayerError = Readonly<{
+  message: string;
+  level: 'error' | 'warning';
+}>;
+
+type LayerErrors = Readonly<Record<string, LayerError>>;
 
 const errorsByModel = new WeakMap<IJupyterGISModel, LayerErrors>();
 const listenersByModel = new WeakMap<IJupyterGISModel, Set<() => void>>();
@@ -26,7 +35,7 @@ const notify = (model: IJupyterGISModel): void => {
 export function getLayerError(
   model: IJupyterGISModel,
   layerId: string,
-): string | undefined {
+): LayerError | undefined {
   return errorsByModel.get(model)?.[layerId];
 }
 
@@ -34,21 +43,31 @@ export function setLayerError(
   model: IJupyterGISModel,
   layerId: string,
   message: string,
+  level: LayerError['level'] = 'error',
 ): void {
   const current = errorsByModel.get(model) ?? {};
-  if (current[layerId] === message) {
+  const existing = current[layerId];
+  if (
+    (existing?.message === message && existing.level === level) ||
+    (existing?.level === 'error' && level === 'warning')
+  ) {
     return;
   }
-  errorsByModel.set(model, { ...current, [layerId]: message });
+  errorsByModel.set(model, { ...current, [layerId]: { message, level } });
   notify(model);
 }
 
 export function clearLayerError(
   model: IJupyterGISModel,
   layerId: string,
+  level?: LayerError['level'],
 ): void {
   const current = errorsByModel.get(model);
-  if (!current || !(layerId in current)) {
+  if (
+    !current ||
+    !(layerId in current) ||
+    (level && current[layerId].level !== level)
+  ) {
     return;
   }
   const { [layerId]: _, ...rest } = current;
@@ -69,8 +88,8 @@ export function clearLayerErrors(model: IJupyterGISModel): void {
 export function useLayerError(
   model: IJupyterGISModel | undefined,
   layerId: string,
-): string | undefined {
-  const [error, setError] = useState<string | undefined>(() =>
+): LayerError | undefined {
+  const [error, setError] = useState<LayerError | undefined>(() =>
     model ? getLayerError(model, layerId) : undefined,
   );
 
