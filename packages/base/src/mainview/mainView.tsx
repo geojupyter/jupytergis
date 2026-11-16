@@ -554,6 +554,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         onLayerLoaded: id => {
           clearLayerError(this._model, id);
         },
+        onSourceDataError: sourceId => {
+          this._model.sharedModel
+            .getLayersBySource(sourceId)
+            .forEach(id =>
+              setLayerError(
+                this._model,
+                id,
+                "Could not load this layer's data.",
+                'warning',
+              ),
+            );
+        },
+        onSourceDataLoaded: sourceId => {
+          this._model.sharedModel
+            .getLayersBySource(sourceId)
+            .forEach(id => clearLayerError(this._model, id, 'warning'));
+        },
         onClientPointerPositionChanged: () => {
           if (!this._mapAdapter) {
             return;

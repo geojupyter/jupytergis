@@ -2996,15 +2996,28 @@ export class OpenLayersAdapter implements IMapAdapter {
     // These errors (CORS failures, network errors, etc.) are written directly
     // by the browser to DevTools and cannot be captured by console patching —
     // OL's own events are the only reliable interception point.
+    let hasLoadedData = false;
+    newSource.on(['tileloadend', 'featuresloadend'], () => {
+      if (!hasLoadedData) {
+        hasLoadedData = true;
+        this._callbacks?.onSourceDataLoaded?.(id);
+      }
+    });
     newSource.on('tileloaderror', (evt: any) => {
       const url = evt?.tile?.getKey?.() ?? '';
       this._log(
         'error',
         `Tile load error for source "${id}"${url ? ': ' + url : ''}`,
       );
+      if (!hasLoadedData) {
+        this._callbacks?.onSourceDataError?.(id);
+      }
     });
     newSource.on('featuresloaderror', () => {
       this._log('error', `Features load error for source "${id}"`);
+      if (!hasLoadedData) {
+        this._callbacks?.onSourceDataError?.(id);
+      }
     });
 
     // _sources is a list of OpenLayers sources

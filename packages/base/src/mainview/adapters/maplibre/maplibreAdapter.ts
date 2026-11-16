@@ -364,8 +364,18 @@ export class MapLibreAdapter implements IMapAdapter {
       );
     });
 
-    this._map.on('error', event => {
+    this._map.on('error', (event: { error?: unknown; sourceId?: string }) => {
       console.error('MapLibre error:', event.error);
+      if (event.sourceId && !this._sourcesWithData.has(event.sourceId)) {
+        this._callbacks?.onSourceDataError?.(event.sourceId);
+      }
+    });
+
+    this._map.on('sourcedata', event => {
+      if (event.tile && !this._sourcesWithData.has(event.sourceId)) {
+        this._sourcesWithData.add(event.sourceId);
+        this._callbacks?.onSourceDataLoaded?.(event.sourceId);
+      }
     });
   }
 
@@ -653,6 +663,7 @@ export class MapLibreAdapter implements IMapAdapter {
     }
     this._geojsonData.delete(id);
     this._sourceBounds.delete(id);
+    this._sourcesWithData.delete(id);
     this._revokeObjectUrls(id);
     this._forgetCogSource(id);
   }
@@ -2444,6 +2455,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _sourceUpdates = new Map<string, Promise<void>>();
   private _sourceBounds = new Map<string, number[]>();
   private _sourceErrors = new Map<string, string>();
+  private _sourcesWithData = new Set<string>();
   private _objectUrls = new Map<string, string[]>();
   private _cogSources = new Map<string, ICogSourceInfo>();
   private _geojsonData = new Map<string, GeoJSONFeature | FeatureCollection>();
