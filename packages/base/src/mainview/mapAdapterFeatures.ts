@@ -60,7 +60,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
   geolocation: false,
   layerComparison: false,
   heatmapSymbology: true,
-  clusterSymbology: true,
+  clusterSymbology: false,
   zoomRangeSymbology: false,
   customProjections: false,
   requiresVectorTileSourceLayer: true,

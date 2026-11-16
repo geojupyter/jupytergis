@@ -37,7 +37,7 @@ export function extractHeatmapGradient(
 
       // Prefer explicit colorStops when present (e.g. a heatmap round-tripped
       // through QGIS, which stores the gradient as stops rather than a named
-      // ramp). Without this the unknown name falls through to DEFAULT_GRADIENT
+      // ramp). Without this the unknown name falls through to DEFAULT_HEATMAP_GRADIENT
       // (a blue→red ramp), so a viridis heatmap would render with a red core.
       const colorStops = (mapping.scale.params as any).colorStops as
         | { stop: number; color: [number, number, number, number] }[]

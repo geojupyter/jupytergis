@@ -45,7 +45,6 @@ export interface IMapLibreLayerSpec {
 export interface IGrammarToMapLibreOptions {
   id: string;
   sourceId: string;
-  heatmapSourceId?: string;
   state: IGrammarSymbologyState | undefined;
   featureValues: unknown[];
   opacity: number;
@@ -169,9 +168,9 @@ function compileKdeLayer(
   return {
     id: `${o.id}:${index}:heatmap`,
     type: 'heatmap',
-    source: o.heatmapSourceId ?? o.sourceId,
+    source: o.sourceId,
     ...(o.sourceLayer ? { 'source-layer': o.sourceLayer } : {}),
-    filter: isGeom('Point', 'MultiPoint', 'Polygon', 'MultiPolygon'),
+    filter: isGeom('Point', 'Polygon'),
     layout: { visibility: o.visible ? 'visible' : 'none' },
     paint: {
       'heatmap-radius': (kde.radius ?? 10) + (kde.blur ?? 15),
