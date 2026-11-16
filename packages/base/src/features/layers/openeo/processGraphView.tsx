@@ -88,18 +88,12 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
   }, [onEdit]);
   const [selectionCount, setSelectionCount] = React.useState(0);
   const elementRef = React.useRef<HTMLElement | null>(null);
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
   const [ready, setReady] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  // mountKey ticks to force the element to be torn down and recreated,
-  // which is the only reliable way to get ModelBuilder to re-measure
-  // its container after the dialog finishes opening on a cold reload.
-  const [mountKey, setMountKey] = React.useState(0);
-  // Tracks the graph the element currently reflects (and the mount it was
-  // fed on), so we don't re-feed it a value it just emitted — reassigning
-  // el.value rebuilds the canvas and resets the user's zoom/pan.
+  // Tracks the graph the element currently reflects, so we don't re-feed
+  // it a value it just emitted — reassigning el.value rebuilds the canvas
+  // and resets the user's zoom/pan.
   const lastGraphJsonRef = React.useRef<string | null>(null);
-  const lastMountKeyRef = React.useRef<number>(-1);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -126,15 +120,13 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
       return;
     }
     const graphJson = JSON.stringify(graph);
-    const remounted = lastMountKeyRef.current !== mountKey;
-    // Only (re-)feed the element on a remount or an external graph change.
+    // Only feed the element on mount or on an external graph change.
     // Skipping it when `graph` merely echoes the ModelBuilder's own emit
     // keeps the user's zoom/pan intact while editing.
-    if (remounted || graphJson !== lastGraphJsonRef.current) {
+    if (graphJson !== lastGraphJsonRef.current) {
       el.value = { id: 'jp-openeo-preview', process_graph: graph };
     }
     lastGraphJsonRef.current = graphJson;
-    lastMountKeyRef.current = mountKey;
     el.editable = editable;
     // Feeding the backend's process + collection registry gives the
     // ModelBuilder port type labels and lets it validate connections.
@@ -248,43 +240,7 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
       el.removeEventListener('selectionChanged', onSelectionChanged);
       el.removeEventListener('error', onModelError);
     };
-  }, [graph, ready, mountKey, editable, processRegistry, collections]);
-
-  // Detect when the container becomes properly sized and the SVG inside
-  // the ModelBuilder is still empty — force a remount until it draws.
-  React.useEffect(() => {
-    if (!ready) {
-      return;
-    }
-    const container = containerRef.current;
-    if (!container) {
-      return;
-    }
-    let attempts = 0;
-    const maxAttempts = 10;
-    let timer: number | null = null;
-    const tick = () => {
-      attempts += 1;
-      const el = elementRef.current as any;
-      const blocks = el?.shadowRoot?.querySelector('.blocks');
-      const rendered = blocks && blocks.children && blocks.children.length > 0;
-      const sized = container.clientWidth > 0 && container.clientHeight > 0;
-      if (sized && !rendered && attempts < maxAttempts) {
-        setMountKey(k => k + 1);
-        timer = window.setTimeout(tick, 120);
-      } else if (!sized && attempts < maxAttempts) {
-        timer = window.setTimeout(tick, 120);
-      }
-    };
-    timer = window.setTimeout(tick, 60);
-    return () => {
-      if (timer !== null) {
-        window.clearTimeout(timer);
-      }
-    };
-    // Runs on (re)mount only — not on every edit — so editing the graph
-    // doesn't retrigger the remount/redraw probe.
-  }, [ready, mountKey]);
+  }, [graph, ready, editable, processRegistry, collections]);
 
   if (error) {
     return (
@@ -324,11 +280,7 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
   };
 
   return (
-    <div
-      className="jp-openeo-pg-canvas"
-      ref={containerRef}
-      style={{ position: 'relative' }}
-    >
+    <div className="jp-openeo-pg-canvas" style={{ position: 'relative' }}>
       {editable && (
         <button
           type="button"
@@ -345,7 +297,6 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
         </button>
       )}
       {React.createElement('openeo-model-builder', {
-        key: mountKey,
         ref: elementRef,
         id: 'jp-openeo-model-builder',
         height: '100%',
