@@ -77,7 +77,7 @@ export async function geoTiffProvider(
  * Open the GeoTIFF the same way the map does, so that local files come from the
  * existing (cached) loader rather than being fetched a second time.
  */
-async function openGeoTiff(
+export async function openGeoTiff(
   url: string,
   model: IJupyterGISModel,
 ): Promise<GeoTIFF> {
