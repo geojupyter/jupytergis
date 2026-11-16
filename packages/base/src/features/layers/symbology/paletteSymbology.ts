@@ -2,6 +2,10 @@ import { IGrammarSymbologyState, RGBA } from '@jupytergis/schema';
 import { UUID } from '@lumino/coreutils';
 import { GeoTIFFImage } from 'geotiff';
 
+/**
+ * Turn the colour table embedded in a GeoTIFF into a symbology.
+ * Returns undefined if the file has none.
+ */
 export function paletteSymbology(
   image: GeoTIFFImage,
 ): IGrammarSymbologyState | undefined {
