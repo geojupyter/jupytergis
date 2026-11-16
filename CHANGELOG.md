@@ -2,6 +2,39 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.18.2
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.18.1...2441f57d76659e5c6b3b28da494d19d6632490ac))
+
+### Enhancements made
+
+- Warn on the layer row when its data fails to load [#2002](https://github.com/geojupyter/jupytergis/pull/2002) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Load embedded GeoTIFF symbology [#1998](https://github.com/geojupyter/jupytergis/pull/1998) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Support Heatmap symbology in Maplibre [#1997](https://github.com/geojupyter/jupytergis/pull/1997) ([@nakul-py](https://github.com/nakul-py), [@arjxn-py](https://github.com/arjxn-py))
+- Make declutter reachable from the layer row [#1994](https://github.com/geojupyter/jupytergis/pull/1994) ([@arjxn-py](https://github.com/arjxn-py), [@gjmooney](https://github.com/gjmooney))
+
+### Bugs fixed
+
+- Remove the loop that rebuilt the OpenEO graph editor until it drew [#2006](https://github.com/geojupyter/jupytergis/pull/2006) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Load bare local .shp files [#2004](https://github.com/geojupyter/jupytergis/pull/2004) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Fix MacroStrat raster tile URL [#2003](https://github.com/geojupyter/jupytergis/pull/2003) ([@costajohnt](https://github.com/costajohnt), [@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+- Remove extra ramp reversal for Heatmap. [#1996](https://github.com/geojupyter/jupytergis/pull/1996) ([@nakul-py](https://github.com/nakul-py), [@arjxn-py](https://github.com/arjxn-py))
+
+### Other merged PRs
+
+- Bump pillow from 12.3.0 to 13.0.0 in /scripts/layer_gallery [#2001](https://github.com/geojupyter/jupytergis/pull/2001) ([@arjxn-py](https://github.com/arjxn-py))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-11-10&to=2026-11-16&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-11-10..2026-11-16&type=Issues)) | @costajohnt ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Acostajohnt+updated%3A2026-11-10..2026-11-16&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-11-10..2026-11-16&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-11-10..2026-11-16&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-11-10..2026-11-16&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.18.1
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.18.0...d699461fe1803451ad0f2fbbe96c2ac4fa8794af))
@@ -22,8 +55,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-11-06&to=2026-11-10&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-11-06..2026-11-10&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-11-06..2026-11-10&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-11-06..2026-11-10&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.18.0
 
