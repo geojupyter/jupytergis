@@ -25,6 +25,7 @@ import type { IJGISSource } from '@jupytergis/schema';
 
 import {
   compileGetter,
+  computePolygonRecordsExtent,
   createPolygonLayer,
   type IDeckLayerBuildContext,
 } from '../adapters/deckgl/createDeckLayers';
@@ -88,6 +89,54 @@ function deckContext(
     log: () => undefined,
   };
 }
+
+describe('computePolygonRecordsExtent', () => {
+  it('returns lng/lat bbox from polygon rings', () => {
+    expect(
+      computePolygonRecordsExtent([
+        {
+          polygon: [
+            [0, 10],
+            [2, 10],
+            [2, 12],
+            [0, 10],
+          ],
+        },
+        {
+          polygon: [
+            [-1, 9],
+            [1, 9],
+            [1, 11],
+            [-1, 9],
+          ],
+        },
+      ]),
+    ).toEqual([-1, 9, 2, 12]);
+  });
+
+  it('uses polygonField when provided', () => {
+    expect(
+      computePolygonRecordsExtent(
+        [
+          {
+            ring: [
+              [5, 5],
+              [6, 5],
+              [6, 6],
+              [5, 5],
+            ],
+          },
+        ],
+        'ring',
+      ),
+    ).toEqual([5, 5, 6, 6]);
+  });
+
+  it('returns undefined when there are no usable rings', () => {
+    expect(computePolygonRecordsExtent([])).toBeUndefined();
+    expect(computePolygonRecordsExtent([{ polygon: [[0, 0]] }])).toBeUndefined();
+  });
+});
 
 describe('source record fields', () => {
   const polygon = {

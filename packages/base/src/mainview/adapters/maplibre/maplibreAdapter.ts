@@ -19,6 +19,7 @@ import type {
   IGeoTiffSource,
   IGeoTiffLayer,
   IMarkerSource,
+  IPolygonSource,
   IRasterLayer,
   IRasterSource,
   IRasterDemSource,
@@ -78,7 +79,10 @@ import {
   getUnsupportedReason,
 } from '../../mapAdapterFeatures';
 import { isValidExtent } from '../../utils/olLayerZoomExtent';
-import { JSON_RECORD_SOURCES } from '../deckgl/createDeckLayers';
+import {
+  computePolygonRecordsExtent,
+  JSON_RECORD_SOURCES,
+} from '../deckgl/createDeckLayers';
 import { DeckOverlayHost } from '../deckgl/deckOverlayHost';
 import {
   compileCogColorExpression,
@@ -503,6 +507,8 @@ export class MapLibreAdapter implements IMapAdapter {
               `Deck source "${source.name ?? id}" could not be loaded.`,
             );
           }
+
+          this._cachePolygonSourceBounds(id);
           break;
         }
 
@@ -1462,6 +1468,10 @@ export class MapLibreAdapter implements IMapAdapter {
         );
       }
 
+      if (source.type === 'PolygonSource') {
+        this._cachePolygonSourceBounds(sourceId);
+      }
+
       this._layerSubIds.set(id, []);
       this._layerVisibility.set(id, layer.visible ?? true);
       this._syncDeckOverlay();
@@ -2298,14 +2308,32 @@ export class MapLibreAdapter implements IMapAdapter {
         ];
       }
 
-      case 'GeoTiffSource': {
-        // Bounds come from the COG's TileJSON, captured when the source loaded.
+      case 'GeoTiffSource':
+      case 'PolygonSource': {
+        // GeoTIFF: TileJSON bounds. Polygon: computed when the source loaded.
         const bounds = this._sourceBounds.get(sourceId);
         return bounds ? [...bounds] : undefined;
       }
 
       default:
         return undefined;
+    }
+  }
+
+  /** Cache lng/lat extent for a loaded PolygonSource into `_sourceBounds`. */
+  private _cachePolygonSourceBounds(sourceId: string): void {
+    const params = this._model.getSource(sourceId)?.parameters as
+      | IPolygonSource
+      | undefined;
+    const extent = computePolygonRecordsExtent(
+      this._deckOverlay?.getJsonRecords(sourceId),
+      params?.polygonField,
+    );
+    
+    if (extent) {
+      this._sourceBounds.set(sourceId, extent);
+    } else {
+      this._sourceBounds.delete(sourceId);
     }
   }
 

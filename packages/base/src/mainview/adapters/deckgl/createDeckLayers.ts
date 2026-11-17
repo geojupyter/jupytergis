@@ -136,6 +136,58 @@ export function isRing(value: unknown, minLength = 2): value is unknown[] {
   return Array.isArray(value) && value.length >= minLength;
 }
 
+/**
+ * Bounding box [minLng, minLat, maxLng, maxLat] for PolygonSource records.
+ */
+export function computePolygonRecordsExtent(
+  records: unknown[] | undefined,
+  polygonField?: string,
+): number[] | undefined {
+  if (!records?.length) {
+    return undefined;
+  }
+
+  const field = geometryField(polygonField, DEFAULT_POLYGON_FIELD);
+  const getPolygon = compileGetter(field);
+
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const record of records) {
+    const ring = getPolygon(record);
+    if (!isRing(ring, 3)) {
+      continue;
+    }
+
+    for (const coord of ring) {
+      if (
+        !Array.isArray(coord) ||
+        typeof coord[0] !== 'number' ||
+        typeof coord[1] !== 'number'
+      ) {
+        continue;
+      }
+      minX = Math.min(minX, coord[0]);
+      minY = Math.min(minY, coord[1]);
+      maxX = Math.max(maxX, coord[0]);
+      maxY = Math.max(maxY, coord[1]);
+    }
+  }
+
+  if (
+    !Number.isFinite(minX) ||
+    !Number.isFinite(minY) ||
+    !Number.isFinite(maxX) ||
+    !Number.isFinite(maxY)
+  ) {
+    return undefined;
+  }
+
+  return [minX, minY, maxX, maxY];
+}
+
 export function createPolygonLayer(
   id: string,
   layer: IJGISLayer,

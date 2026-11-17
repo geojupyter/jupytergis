@@ -108,6 +108,11 @@ export class DeckOverlayHost {
     this._geoJsonData.set(id, data);
   }
 
+  /** Loaded JSON-record payloads for PolygonSource (and similar). */
+  getJsonRecords(id: string): unknown[] | undefined {
+    return this._jsonRecords.get(id);
+  }
+
   removeSource(id: string): void {
     this._jsonRecords.delete(id);
     this._geoJsonData.delete(id);
