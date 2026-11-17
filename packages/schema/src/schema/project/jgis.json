@@ -51,7 +51,6 @@
         "StorySegmentLayer",
         "OpenEOTileLayer",
         "TerrainLayer",
-        "TripsLayer",
         "PolygonLayer",
         "GeoJsonLayer"
       ]
@@ -74,7 +73,6 @@
         "FeatureStoreSource",
         "MarkerSource",
         "OpenEOTileSource",
-        "TripsSource",
         "PolygonSource"
       ]
     },

@@ -3,30 +3,23 @@ import type {
   IJGISSource,
   IJupyterGISModel,
   IPolygonSource,
-  ITripsSource,
   IGeoJSONSource,
 } from '@jupytergis/schema';
 import { PathExt } from '@jupyterlab/coreutils';
 import type { Map as MlMap } from 'maplibre-gl';
 
 import { fetchWithProxies } from '@/src/tools';
-import { animate, type AnimationControls } from './animate';
 import {
   buildDeckOverlayLayers,
-  clearTripTimingForSource,
-  computeTripTiming,
   DECK_OVERLAY_LAYER_TYPES,
   JSON_RECORD_SOURCES,
   makeCachedGetter,
   type LogFn,
   type RecordGetter,
-  type TripTiming,
 } from './createDeckLayers';
 
-const MS_PER_TIMESTAMP_UNIT = 60;
-
 /**
- * Hosts a MapLibreOverlay and builds Trips/Polygon/GeoJson deck layers for
+ * Hosts a MapLibreOverlay and builds Polygon/GeoJson deck layers for
  * the MapLibre adapter.
  */
 export class DeckOverlayHost {
@@ -45,7 +38,6 @@ export class DeckOverlayHost {
   }
 
   detach(map?: MlMap): void {
-    this._stopTripAnimation();
     if (this._overlay) {
       if (map) {
         try {
@@ -71,11 +63,11 @@ export class DeckOverlayHost {
         return true;
       }
 
-      const label = source.type === 'TripsSource' ? 'trips' : 'polygon';
+      const label = 'polygon';
       const data = await this._loadJsonPayload(
         id,
         source,
-        source.parameters as ITripsSource | IPolygonSource | undefined,
+        source.parameters as IPolygonSource | undefined,
         label,
       );
       if (!data) {
@@ -86,9 +78,6 @@ export class DeckOverlayHost {
         id,
         this._asJsonRecordArray(data, source.name ?? id, label),
       );
-      if (source.type === 'TripsSource') {
-        clearTripTimingForSource(this._tripTimingCache, id);
-      }
       return true;
     }
 
@@ -122,7 +111,6 @@ export class DeckOverlayHost {
   removeSource(id: string): void {
     this._jsonRecords.delete(id);
     this._geoJsonData.delete(id);
-    clearTripTimingForSource(this._tripTimingCache, id);
   }
 
   syncLayers(layerIds: string[]): void {
@@ -138,77 +126,18 @@ export class DeckOverlayHost {
     const ctx = {
       jsonRecords: this._jsonRecords,
       geoJsonData: this._geoJsonData,
-      tripTime: this._tripTime,
       getSource: (id: string) => this._model.getSource(id),
       getter: this._getter,
-      tripTiming: (
-        sourceId: string,
-        expression: string,
-        records: unknown[],
-        getTimestamps: RecordGetter,
-      ) =>
-        computeTripTiming(
-          this._tripTimingCache,
-          sourceId,
-          expression,
-          records,
-          getTimestamps,
-        ),
       log: this._log,
     };
 
-    const { layers, tripPlayback } = buildDeckOverlayLayers(
+    const layers = buildDeckOverlayLayers(
       this._layerIds,
       id => this._model.getLayer(id),
       ctx,
     );
 
     this._overlay.setProps({ layers: layers as any });
-
-    if (tripPlayback) {
-      this._startTripAnimation(
-        tripPlayback.from,
-        tripPlayback.to,
-        tripPlayback.animationSpeed,
-      );
-    } else {
-      this._stopTripAnimation();
-    }
-  }
-
-  private _startTripAnimation(
-    from: number,
-    to: number,
-    animationSpeed: number,
-  ): void {
-    const span = to - from;
-    const durationMs = (span * MS_PER_TIMESTAMP_UNIT) / animationSpeed;
-    const key = `${from}\0${to}\0${durationMs}`;
-    if (this._tripAnimation && this._tripPlaybackKey === key) {
-      return;
-    }
-
-    this._stopTripAnimation();
-    this._tripPlaybackKey = key;
-    this._tripAnimation = animate({
-      from,
-      to,
-      duration: durationMs,
-      repeat: Infinity,
-      onUpdate: time => {
-        this._tripTime = time;
-        if (this._overlay && this._layerIds.length) {
-          this.syncLayers(this._layerIds);
-        }
-      },
-    });
-  }
-
-  private _stopTripAnimation(): void {
-    this._tripAnimation?.stop();
-    this._tripAnimation = undefined;
-    this._tripPlaybackKey = undefined;
-    this._tripTime = 0;
   }
 
   private async _loadJsonPayload(
@@ -311,12 +240,8 @@ export class DeckOverlayHost {
   private readonly _log: LogFn;
   private _overlay?: MapLibreOverlay;
   private _layerIds: string[] = [];
-  private _tripAnimation?: AnimationControls;
-  private _tripPlaybackKey?: string;
-  private _tripTime = 0;
   private _jsonRecords = new Map<string, unknown[]>();
   private _geoJsonData = new Map<string, unknown>();
   private _getters = new Map<string, RecordGetter>();
-  private _tripTimingCache = new Map<string, TripTiming>();
   private _getter: (expression: string) => RecordGetter;
 }

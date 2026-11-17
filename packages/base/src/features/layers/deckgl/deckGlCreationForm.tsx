@@ -13,7 +13,7 @@ import * as React from 'react';
 import { FollowMirrorContext } from '@/src/features/follow/useFollowedState';
 import { CreationForm } from '@/src/shared/formbuilder';
 
-export type DeckGlLayerChoice = 'Trips' | 'Polygon' | 'GeoJSON';
+export type DeckGlLayerChoice = 'Polygon' | 'GeoJSON';
 
 export interface IDeckGlLayerPreset {
   label: DeckGlLayerChoice;
@@ -23,12 +23,6 @@ export interface IDeckGlLayerPreset {
 }
 
 export const DECK_GL_LAYER_PRESETS: readonly IDeckGlLayerPreset[] = [
-  {
-    label: 'Trips',
-    sourceType: 'TripsSource',
-    layerType: 'TripsLayer',
-    layerName: 'Custom Trips Layer',
-  },
   {
     label: 'Polygon',
     sourceType: 'PolygonSource',
@@ -75,7 +69,7 @@ export function DeckGlCreationForm(
     formErrorSignal,
     registerConfirmHandler,
     dialogOptions,
-    initialChoice = 'Trips',
+    initialChoice = 'Polygon',
   } = props;
 
   const [choice, setChoice] = React.useState<DeckGlLayerChoice>(initialChoice);

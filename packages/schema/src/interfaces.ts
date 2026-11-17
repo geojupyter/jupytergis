@@ -61,8 +61,6 @@ import type {
   IGeoZarrLayer,
   Modes,
   ITerrainLayer,
-  ITripsLayer,
-  ITripsSource,
   IPolygonLayer,
   IPolygonSource,
   IGeoJsonLayer,
@@ -769,7 +767,6 @@ export type ILayerGalleryEntry = {
     | IGeoZarrLayer
     | IOpenEOTileLayer
     | ITerrainLayer
-    | ITripsLayer
     | IPolygonLayer
     | IGeoJsonLayer;
   sourceType: SourceType;
@@ -786,7 +783,6 @@ export type ILayerGalleryEntry = {
     | IShapefileSource
     | IVectorTileSource
     | IOpenEOTileSource
-    | ITripsSource
     | IPolygonSource;
   provider: string;
   description: string;

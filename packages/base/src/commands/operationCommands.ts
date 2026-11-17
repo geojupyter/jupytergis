@@ -15,7 +15,6 @@ export namespace LayerCreationCommandIDs {
   export const newGeoTiffWithParams = 'jupytergis:newGeoTiffWithParams';
   export const newGeoZarrWithParams = 'jupytergis:newGeoZarrWithParams';
   export const newShapefileWithParams = 'jupytergis:newShapefileWithParams';
-  export const newTripsWithParams = 'jupytergis:newTripsWithParams';
   export const newPolygonWithParams = 'jupytergis:newPolygonWithParams';
   export const newGeoJsonLayerWithParams =
     'jupytergis:newGeoJsonLayerWithParams';
@@ -332,38 +331,6 @@ export function addLayerCreationCommands(options: {
         color: p.color ?? {},
         opacity: p.opacity ?? 1,
         symbologyState: p.symbologyState ?? { layers: [] },
-      }),
-    },
-    {
-      id: LayerCreationCommandIDs.newTripsWithParams,
-      label: 'New Trips Layer From Parameters',
-      caption:
-        'Add a new trips layer (by file path or URL) and add it to the given JupyterGIS file',
-      sourceType: 'TripsSource',
-      layerType: 'TripsLayer',
-      sourceSchema: {
-        type: 'object',
-        required: ['path'],
-        properties: { path: { type: 'string' } },
-      },
-      layerParamsSchema: {
-        opacity: { type: 'number', default: 1 },
-        trailLength: { type: 'number', default: 120 },
-        fadeTrail: { type: 'boolean', default: true },
-        capRounded: { type: 'boolean', default: false },
-        jointRounded: { type: 'boolean', default: false },
-        loopLength: { type: 'number' },
-        animationSpeed: { type: 'number', default: 1 },
-      },
-      buildParameters: (p, id) => ({
-        source: id,
-        opacity: p.opacity ?? 1,
-        trailLength: p.trailLength ?? 120,
-        fadeTrail: p.fadeTrail ?? true,
-        capRounded: p.capRounded ?? false,
-        jointRounded: p.jointRounded ?? false,
-        ...(p.loopLength !== undefined ? { loopLength: p.loopLength } : {}),
-        animationSpeed: p.animationSpeed ?? 1,
       }),
     },
     {

@@ -496,7 +496,6 @@ export class MapLibreAdapter implements IMapAdapter {
           break;
         }
 
-        case 'TripsSource':
         case 'PolygonSource': {
           const ok = await this._deckOverlay?.ensureSource(id, source);
           if (!ok) {

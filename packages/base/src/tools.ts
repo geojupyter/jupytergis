@@ -736,7 +736,6 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'GeoJSONSource':
-      case 'TripsSource':
       case 'PolygonSource': {
         const cached = await getFromIndexedDB(filepath);
         if (cached) {
@@ -832,7 +831,6 @@ export const loadFile = async (fileInfo: {
 
     switch (type) {
       case 'GeoJSONSource':
-      case 'TripsSource':
       case 'PolygonSource': {
         switch (file.format) {
           case 'base64': {

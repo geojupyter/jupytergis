@@ -208,7 +208,6 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   // 3D terrain layers
   CommandIDs.openNewTerrainDialog,
   // DeckGL layers
-  CommandIDs.openNewTripsDialog,
   CommandIDs.openNewPolygonDialog,
   CommandIDs.openNewGeoJsonLayerDialog,
   CommandIDs.openNewDeckGLDialog,
@@ -249,10 +248,6 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
     source: 'GeoJSONSource',
     layer: 'VectorLayer',
   },
-  [CommandIDs.openNewTripsDialog]: {
-    source: 'TripsSource',
-    layer: 'TripsLayer',
-  },
   [CommandIDs.openNewPolygonDialog]: {
     source: 'PolygonSource',
     layer: 'PolygonLayer',
@@ -262,8 +257,8 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
     layer: 'GeoJsonLayer',
   },
   [CommandIDs.openNewDeckGLDialog]: {
-    source: 'TripsSource',
-    layer: 'TripsLayer',
+    source: 'PolygonSource',
+    layer: 'PolygonLayer',
   },
   [CommandIDs.openNewShapefileDialog]: {
     source: 'ShapefileSource',
@@ -346,10 +341,6 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   [LayerCreationCommandIDs.newShapefileWithParams]: {
     source: 'ShapefileSource',
     layer: 'VectorLayer',
-  },
-  [LayerCreationCommandIDs.newTripsWithParams]: {
-    source: 'TripsSource',
-    layer: 'TripsLayer',
   },
   [LayerCreationCommandIDs.newPolygonWithParams]: {
     source: 'PolygonSource',
@@ -1085,34 +1076,6 @@ export function addCommands(
     ...icons.get(CommandIDs.openNewGeoJSONDialog),
   });
 
-  commands.addCommand(CommandIDs.openNewTripsDialog, {
-    label: trans.__('Trips'),
-    caption:
-      'Open a dialog to create a new trips layer and source in the current JupyterGIS document.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: Private.createEntry({
-      tracker,
-      formSchemaRegistry,
-      title: 'Create Trips Layer',
-      createLayer: true,
-      createSource: true,
-      layerData: { name: 'Custom Trips Layer' },
-      sourceType: 'TripsSource',
-      layerType: 'TripsLayer',
-    }),
-    ...icons.get(CommandIDs.openNewTripsDialog),
-  });
-
   commands.addCommand(CommandIDs.openNewPolygonDialog, {
     label: trans.__('Polygon'),
     caption:
@@ -1203,9 +1166,9 @@ export function addCommands(
             title: 'Create DeckGL Layer',
             createLayer: true,
             createSource: true,
-            sourceType: 'TripsSource',
-            layerType: 'TripsLayer',
-            layerData: { name: 'Custom Trips Layer' },
+            sourceType: 'PolygonSource',
+            layerType: 'PolygonLayer',
+            layerData: { name: 'Custom Polygon Layer' },
           },
         },
         dialog,

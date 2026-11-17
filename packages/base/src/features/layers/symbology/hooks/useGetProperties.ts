@@ -165,10 +165,7 @@ export const useGetProperties = ({
         )
       ) {
         result = await getGeoJsonProperties({ source, model, sourceType });
-      } else if (
-        sourceType === 'TripsSource' ||
-        sourceType === 'PolygonSource'
-      ) {
+      } else if (sourceType === 'PolygonSource') {
         result = await getRecordProperties({ source, model, sourceType });
       } else if (sourceType === 'VectorTileSource') {
         const sourceId = layer?.parameters?.source;

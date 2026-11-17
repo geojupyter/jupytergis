@@ -10,7 +10,6 @@ from .interfaces.project.layers.geoZarrLayer import IGeoZarrLayer  # noqa
 from .interfaces.project.layers.storySegmentLayer import IStorySegmentLayer  # noqa
 from .interfaces.project.layers.openeoTileLayer import IOpenEOTileLayer  # noqa
 from .interfaces.project.layers.terrainLayer import ITerrainLayer  # noqa
-from .interfaces.project.layers.tripsLayer import ITripsLayer  # noqa
 from .interfaces.project.layers.polygonLayer import IPolygonLayer  # noqa
 from .interfaces.project.layers.geoJsonLayer import IGeoJsonLayer  # noqa
 
@@ -28,7 +27,6 @@ from .interfaces.project.sources.geoParquetSource import IGeoParquetSource  # no
 from .interfaces.project.sources.featureStoreSource import IFeatureStoreSource  # noqa
 from .interfaces.project.sources.wmsTileSource import IWmsTileSource  # noqa
 from .interfaces.project.sources.openeoTileSource import IOpenEOTileSource  # noqa
-from .interfaces.project.sources.tripsSource import ITripsSource  # noqa
 from .interfaces.project.sources.polygonSource import IPolygonSource  # noqa
 
 from .interfaces.processing.buffer import IBuffer  # noqa

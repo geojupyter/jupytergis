@@ -1623,11 +1623,6 @@ export class OpenLayersAdapter implements IMapAdapter {
         return;
       }
 
-      case 'TripsLayer': {
-        // Animated trips are only supported by the MapLibre adapter.
-        return;
-      }
-
       case 'PolygonLayer': {
         // Contour polygons are only supported by the MapLibre adapter.
         return;
@@ -1635,6 +1630,11 @@ export class OpenLayersAdapter implements IMapAdapter {
 
       case 'GeoJsonLayer': {
         // deck.gl GeoJsonLayer is only supported by the MapLibre adapter.
+        return;
+      }
+
+      default: {
+        // Removed or unknown layer types are skipped.
         return;
       }
     }

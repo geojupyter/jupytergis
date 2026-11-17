@@ -19,7 +19,6 @@ export { IMarkerSource } from './_interface/project/sources/markerSource';
 export { IWmsTileSource } from './_interface/project/sources/wmsTileSource';
 export { IGeoZarrSource } from './_interface/project/sources/geoZarrSource';
 export { IOpenEOTileSource } from './_interface/project/sources/openeoTileSource';
-export { ITripsSource } from './_interface/project/sources/tripsSource';
 export { IPolygonSource } from './_interface/project/sources/polygonSource';
 
 // Layers
@@ -34,7 +33,6 @@ export { IGeoTiffLayer } from './_interface/project/layers/geoTiffLayer';
 export { IGeoZarrLayer } from './_interface/project/layers/geoZarrLayer';
 export { IOpenEOTileLayer } from './_interface/project/layers/openeoTileLayer';
 export { ITerrainLayer } from './_interface/project/layers/terrainLayer';
-export { ITripsLayer } from './_interface/project/layers/tripsLayer';
 export { IPolygonLayer } from './_interface/project/layers/polygonLayer';
 export { IGeoJsonLayer } from './_interface/project/layers/geoJsonLayer';
 
