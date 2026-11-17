@@ -627,8 +627,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     layer?.type === 'GeoZarrLayer' ||
     layer?.type === 'OpenEOTileLayer';
   const isDeckLayer =
-    layer?.type === 'GeoJsonLayer' ||
-    layer?.type === 'PolygonLayer';
+    layer?.type === 'GeoJsonLayer' || layer?.type === 'PolygonLayer';
 
   const { featureProperties: selectableAttributesAndValues } = useGetProperties(
     { layerId, model },
