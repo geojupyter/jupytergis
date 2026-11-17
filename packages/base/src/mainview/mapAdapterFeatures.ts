@@ -64,7 +64,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
   storyMaps: false,
   geolocation: false,
   layerComparison: false,
-  heatmapSymbology: false,
+  heatmapSymbology: true,
   clusterSymbology: false,
   zoomRangeSymbology: false,
   customProjections: false,

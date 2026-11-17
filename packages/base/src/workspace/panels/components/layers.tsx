@@ -33,6 +33,7 @@ import React, {
 import { CommandIDs, icons } from '@/src/constants';
 import { useGetSymbology } from '@/src/features/layers/symbology/hooks/useGetSymbology';
 import { useLayerError } from '@/src/mainview/layersErrorRegistry';
+import { ErrorTip } from '@/src/shared/components/ErrorTip';
 import { Slider } from '@/src/shared/components/Slider';
 import {
   columns2Icon,
@@ -849,7 +850,9 @@ const LayerComponent: React.FC<ILayerProps> = props => {
   // Set when the active map could not render this layer (unsupported type,
   // failed source, unsupported projection, ...). The layer stays in the
   // document and in the panel; it just can't be shown on this map.
-  const loadError = useLayerError(gisModel, layerId);
+  const layerError = useLayerError(gisModel, layerId);
+  const loadError =
+    layerError?.level === 'error' ? layerError.message : undefined;
   const showVisible = layer.visible && !loadError;
   const [expanded, setExpanded] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
@@ -1172,6 +1175,13 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           >
             {name}
           </span>
+        )}
+
+        {layerError?.level === 'warning' && (
+          <ErrorTip
+            text={layerError.message}
+            triggerLabel="Layer data failed to load"
+          />
         )}
 
         {declutterArgs &&
