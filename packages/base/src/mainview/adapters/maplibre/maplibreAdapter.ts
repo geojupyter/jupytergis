@@ -2329,7 +2329,7 @@ export class MapLibreAdapter implements IMapAdapter {
       this._deckOverlay?.getJsonRecords(sourceId),
       params?.polygonField,
     );
-    
+
     if (extent) {
       this._sourceBounds.set(sourceId, extent);
     } else {

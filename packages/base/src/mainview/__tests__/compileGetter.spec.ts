@@ -134,7 +134,9 @@ describe('computePolygonRecordsExtent', () => {
 
   it('returns undefined when there are no usable rings', () => {
     expect(computePolygonRecordsExtent([])).toBeUndefined();
-    expect(computePolygonRecordsExtent([{ polygon: [[0, 0]] }])).toBeUndefined();
+    expect(
+      computePolygonRecordsExtent([{ polygon: [[0, 0]] }]),
+    ).toBeUndefined();
   });
 });
 
