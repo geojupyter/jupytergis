@@ -389,7 +389,7 @@ const activate = async (
     });
 
     palette.addItem({
-      command: CommandIDs.openNewDeckGLDialog,
+      command: CommandIDs.openNewGeoJsonLayerDialog,
       category: 'JupyterGIS',
     });
 

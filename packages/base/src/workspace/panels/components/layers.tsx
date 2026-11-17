@@ -243,10 +243,6 @@ function createContextMenu(
     type: 'command',
     command: CommandIDs.toggleStacBrowser,
   });
-  newLayerSubMenu.addItem({
-    type: 'command',
-    command: CommandIDs.openNewDeckGLDialog,
-  });
 
   // Separator
   gisContextMenu.addItem({

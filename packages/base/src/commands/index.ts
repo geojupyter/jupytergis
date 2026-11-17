@@ -42,7 +42,6 @@ import { CommandIDs, icons } from '../constants';
 import { isFeatureStoreAvailable } from '../features/feature-store/availability';
 import { launchFollowable, registerFollowDialogs } from '../features/follow';
 import { LayerBrowserWidget } from '../features/layer-browser';
-import { DeckGlLayerCreationFormDialog } from '../features/layers/deckgl/deckGlCreationForm';
 import { LayerCreationFormDialog } from '../features/layers/layerCreationFormDialog';
 import {
   editOpenEOLayer,
@@ -210,7 +209,6 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   // DeckGL layers
   CommandIDs.openNewPolygonDialog,
   CommandIDs.openNewGeoJsonLayerDialog,
-  CommandIDs.openNewDeckGLDialog,
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
@@ -255,10 +253,6 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   [CommandIDs.openNewGeoJsonLayerDialog]: {
     source: 'GeoJSONSource',
     layer: 'GeoJsonLayer',
-  },
-  [CommandIDs.openNewDeckGLDialog]: {
-    source: 'PolygonSource',
-    layer: 'PolygonLayer',
   },
   [CommandIDs.openNewShapefileDialog]: {
     source: 'ShapefileSource',
@@ -1130,51 +1124,6 @@ export function addCommands(
       layerType: 'GeoJsonLayer',
     }),
     ...icons.get(CommandIDs.openNewGeoJsonLayerDialog),
-  });
-
-  commands.addCommand(CommandIDs.openNewDeckGLDialog, {
-    label: trans.__('DeckGL'),
-    caption:
-      'Open a dialog to create a new DeckGL layer and source in the current JupyterGIS document.',
-    describedBy: {
-      args: {
-        type: 'object',
-        properties: {},
-      },
-    },
-    isEnabled: () => {
-      return tracker.currentWidget
-        ? tracker.currentWidget.model.sharedModel.editable
-        : false;
-    },
-    execute: async () => {
-      const current = tracker.currentWidget;
-      if (!current) {
-        return;
-      }
-
-      const dialog = new DeckGlLayerCreationFormDialog({
-        model: current.model,
-        formSchemaRegistry,
-        title: 'Create DeckGL Layer',
-      });
-      await launchFollowable(
-        current.model,
-        {
-          kind: 'layerCreation',
-          params: {
-            title: 'Create DeckGL Layer',
-            createLayer: true,
-            createSource: true,
-            sourceType: 'PolygonSource',
-            layerType: 'PolygonLayer',
-            layerData: { name: 'Custom Polygon Layer' },
-          },
-        },
-        dialog,
-      );
-    },
-    ...icons.get(CommandIDs.openNewDeckGLDialog),
   });
 
   commands.addCommand(CommandIDs.openNewWmsDialog, {

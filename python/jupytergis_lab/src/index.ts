@@ -84,10 +84,6 @@ const plugin: JupyterFrontEndPlugin<void> = {
       type: 'submenu',
       submenu: vectorSubMenu(app.commands),
     });
-    newLayerSubMenu.addItem({
-      type: 'command',
-      command: CommandIDs.openNewDeckGLDialog,
-    });
 
     app.contextMenu.addItem({
       type: 'submenu',
