@@ -49,12 +49,7 @@
     "build:packages": "python scripts/build_packages.py",
     "watch:lib": "lerna run --stream watch",
     "watch": "lerna watch -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
-    "build:lab": "lerna run",
-    "bench:tsc": "node scripts/bench-tsc.mjs",
-    "bench:lint": "node scripts/bench-lint-ox.mjs",
-    "bench:lint-ox": "node scripts/bench-lint-ox.mjs",
-    "bench:build": "node scripts/bench-build.mjs",
-    "bench:build-main": "node scripts/bench-build-main.mjs"
+    "build:lab": "lerna run"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
