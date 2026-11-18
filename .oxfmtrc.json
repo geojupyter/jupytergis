@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "singleQuote": true,
+  "sortImports": true,
+  "sortTailwindcss": {
+    "stylesheet": "./packages/base/style/tailwind.in.css",
+    "functions": [
+      "cn"
+    ],
+  },
+  "printWidth": 80,
+  "singleAttributePerLine": true,
+  "ignorePatterns": [
+    "**/*.d.ts",
+    "**/examples/**",
+    "**/paper/**",
+  ]
+}

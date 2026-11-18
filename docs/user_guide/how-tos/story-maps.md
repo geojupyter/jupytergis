@@ -35,7 +35,7 @@ The presentation colors are used only in the Specta view.
 
 - **Guided** stories advance with previous/next controls;
 - **unguided** stories follow the selected segment in the layer list, so the viewer can jump to any segment by selecting it.
-  :::
+:::
 
 - **Add segments**: Click **Add Story Segment** at the bottom of the panel. Each new segment again captures the current map view and is appended to the story. You can then select it in the layer list and edit its properties (see below).
 
