@@ -18,6 +18,7 @@ We have several tools configured for checking code quality:
     files or trailing whitespace.
 
 - **Oxfmt formats Typescript, Javascript, CSS, JSON, Markdown, and YAML.
+
 Oxlint lints and sometimes autofixes Javascript and Typescript.**
   Defined as package scripts (in `package.json`).
   Run manually with `pnpm run lint`.

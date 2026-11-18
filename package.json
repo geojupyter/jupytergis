@@ -49,7 +49,12 @@
     "build:packages": "python scripts/build_packages.py",
     "watch:lib": "lerna run --stream watch",
     "watch": "lerna watch -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
-    "build:lab": "lerna run"
+    "build:lab": "lerna run",
+    "bench:tsc": "node scripts/bench-tsc.mjs",
+    "bench:lint": "node scripts/bench-lint-ox.mjs",
+    "bench:lint-ox": "node scripts/bench-lint-ox.mjs",
+    "bench:build": "node scripts/bench-build.mjs",
+    "bench:build-main": "node scripts/bench-build-main.mjs"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
@@ -67,7 +72,6 @@
     "react-draggable": "4.5.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^29.4.9",
-    "@typescript/native": "npm:typescript@^7.0.2",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vega2ol": "^1.2.0",
     "webpack": "^5.76.3",
