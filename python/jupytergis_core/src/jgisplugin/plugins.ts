@@ -384,6 +384,16 @@ const activate = async (
     });
 
     palette.addItem({
+      command: CommandIDs.openNewPolygonDialog,
+      category: 'JupyterGIS',
+    });
+
+    palette.addItem({
+      command: CommandIDs.openNewGeoJsonLayerDialog,
+      category: 'JupyterGIS',
+    });
+
+    palette.addItem({
       command: CommandIDs.openNewHillshadeDialog,
       category: 'JupyterGIS',
     });

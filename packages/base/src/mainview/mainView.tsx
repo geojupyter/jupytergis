@@ -471,11 +471,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mapAdapterType = mapAdapterType;
     setMapFeatures(this._model, this._mapAdapter.supportedFeatures);
 
+    const { bearing = 0, pitch = 0 } = this._model.getOptions();
+
     await this._mapAdapter.initialize(this.divRef.current, {
       projection,
       lonLat: [center[0], center[1]],
       zoom,
-      rotation: 0,
+      rotation: bearing,
+      pitch,
       controlsTarget: this.controlsToolbarRef.current || undefined,
       zoomButtonsEnabled: this._model.jgisSettings.zoomButtonsEnabled,
       isSpectaMode: this._model.isSpectaMode(),

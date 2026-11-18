@@ -206,6 +206,9 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.openNewGeoZarrDialog,
   // 3D terrain layers
   CommandIDs.openNewTerrainDialog,
+  // DeckGL layers
+  CommandIDs.openNewPolygonDialog,
+  CommandIDs.openNewGeoJsonLayerDialog,
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
@@ -242,6 +245,14 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   [CommandIDs.openNewGeoJSONDialog]: {
     source: 'GeoJSONSource',
     layer: 'VectorLayer',
+  },
+  [CommandIDs.openNewPolygonDialog]: {
+    source: 'PolygonSource',
+    layer: 'PolygonLayer',
+  },
+  [CommandIDs.openNewGeoJsonLayerDialog]: {
+    source: 'GeoJSONSource',
+    layer: 'GeoJsonLayer',
   },
   [CommandIDs.openNewShapefileDialog]: {
     source: 'ShapefileSource',
@@ -324,6 +335,14 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   [LayerCreationCommandIDs.newShapefileWithParams]: {
     source: 'ShapefileSource',
     layer: 'VectorLayer',
+  },
+  [LayerCreationCommandIDs.newPolygonWithParams]: {
+    source: 'PolygonSource',
+    layer: 'PolygonLayer',
+  },
+  [LayerCreationCommandIDs.newGeoJsonLayerWithParams]: {
+    source: 'GeoJSONSource',
+    layer: 'GeoJsonLayer',
   },
 
   // Interaction features
@@ -1049,6 +1068,62 @@ export function addCommands(
       layerType: 'VectorLayer',
     }),
     ...icons.get(CommandIDs.openNewGeoJSONDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewPolygonDialog, {
+    label: trans.__('Polygon'),
+    caption:
+      'Open a dialog to create a new polygon layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Polygon Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom Polygon Layer' },
+      sourceType: 'PolygonSource',
+      layerType: 'PolygonLayer',
+    }),
+    ...icons.get(CommandIDs.openNewPolygonDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewGeoJsonLayerDialog, {
+    label: trans.__('GeoJSON (Deck.gl)'),
+    caption:
+      'Open a dialog to create a new deck.gl GeoJSON layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoJSON Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom GeoJSON Layer' },
+      sourceType: 'GeoJSONSource',
+      layerType: 'GeoJsonLayer',
+    }),
+    ...icons.get(CommandIDs.openNewGeoJsonLayerDialog),
   });
 
   commands.addCommand(CommandIDs.openNewWmsDialog, {

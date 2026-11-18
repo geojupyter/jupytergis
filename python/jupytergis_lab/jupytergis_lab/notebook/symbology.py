@@ -68,6 +68,7 @@ class VisualEncoding(StrEnum):
     circle_radius = "circle-radius"
     circle_stroke_color = "circle-stroke-color"
     circle_stroke_width = "circle-stroke-width"
+    elevation = "elevation"
     fill_alpha = "fill-alpha"
     fill_blue = "fill-blue"
     fill_color = "fill-color"

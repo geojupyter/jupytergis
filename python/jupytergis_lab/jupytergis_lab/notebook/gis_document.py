@@ -18,6 +18,7 @@ import requests
 from IPython import get_ipython
 from IPython.display import display
 from jupytergis_core.schema import (
+    IGeoJsonLayer,
     IGeoJSONSource,
     IGeoPackageRasterSource,
     IGeoPackageVectorSource,
@@ -32,6 +33,8 @@ from jupytergis_core.schema import (
     IMarkerSource,
     IOpenEOTileLayer,
     IOpenEOTileSource,
+    IPolygonLayer,
+    IPolygonSource,
     IRasterDemSource,
     IRasterLayer,
     IRasterSource,
@@ -1829,6 +1832,8 @@ class JGISLayer(JGISObject):
         | IStorySegmentLayer
         | IOpenEOTileLayer
         | ITerrainLayer
+        | IPolygonLayer
+        | IGeoJsonLayer
         | dict[str, Any]
     ) = PrivateAttr(default_factory=dict)
 
@@ -1878,6 +1883,7 @@ class JGISSource(JGISObject):
         | IGeoPackageRasterSource
         | IWmsTileSource
         | IOpenEOTileSource
+        | IPolygonSource
         | dict[str, Any]
     ) = PrivateAttr(default_factory=dict)
 
@@ -2063,6 +2069,8 @@ OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 OBJECT_FACTORY.register_factory(LayerType.OpenEOTileLayer, IOpenEOTileLayer)
 OBJECT_FACTORY.register_factory(LayerType.TerrainLayer, ITerrainLayer)
+OBJECT_FACTORY.register_factory(LayerType.PolygonLayer, IPolygonLayer)
+OBJECT_FACTORY.register_factory(LayerType.GeoJsonLayer, IGeoJsonLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
@@ -2083,3 +2091,4 @@ OBJECT_FACTORY.register_factory(
 )
 OBJECT_FACTORY.register_factory(SourceType.WmsTileSource, IWmsTileSource)
 OBJECT_FACTORY.register_factory(SourceType.OpenEOTileSource, IOpenEOTileSource)
+OBJECT_FACTORY.register_factory(SourceType.PolygonSource, IPolygonSource)
