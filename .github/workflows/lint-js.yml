@@ -31,7 +31,6 @@ jobs:
           environment-name: gis
           create-args: >-
             pip
-            qgis
             python=3.14
 
       - name: Setup pip cache
