@@ -4,15 +4,9 @@
   "sortImports": true,
   "sortTailwindcss": {
     "stylesheet": "./packages/base/style/tailwind.in.css",
-    "functions": [
-      "cn"
-    ],
+    "functions": ["cn"]
   },
   "printWidth": 80,
   "singleAttributePerLine": true,
-  "ignorePatterns": [
-    "**/*.d.ts",
-    "**/examples/**",
-    "**/paper/**",
-  ]
+  "ignorePatterns": ["**/*.d.ts", "**/examples/**", "**/paper/**"]
 }
