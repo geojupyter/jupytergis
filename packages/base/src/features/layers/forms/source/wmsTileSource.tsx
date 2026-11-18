@@ -78,7 +78,7 @@ export function WmsTileSourceForm(
         handleChangeBase({
           ...(formData ?? {}),
           params: {
-            ...(((formData?.params ?? {}) as IDict) ?? {}),
+            ...((formData?.params ?? {}) as IDict | {}),
             layers: undefined,
           },
         });
