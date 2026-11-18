@@ -17,7 +17,7 @@ We have several tools configured for checking code quality:
   - Generic pre-commit checks help avoid common mistakes like committing large
     files or trailing whitespace.
 
-- **Oxfmt formats Typescript, Javascript, CSS, JSON, Markdown, and YAML. 
+- **Oxfmt formats Typescript, Javascript, CSS, JSON, Markdown, and YAML.
 Oxlint lints and sometimes autofixes Javascript and Typescript.**
   Defined as package scripts (in `package.json`).
   Run manually with `pnpm run lint`.
