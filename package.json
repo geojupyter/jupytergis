@@ -67,6 +67,7 @@
     "react-draggable": "4.5.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^29.4.9",
+    "@typescript/native": "npm:typescript@^7.0.2",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vega2ol": "^1.2.0",
     "webpack": "^5.76.3",
