@@ -22,6 +22,14 @@
     :members:
     :exclude-members: model_config, model_post_init
 
+.. autoclass:: jupytergis_core.schema.interfaces.project.jgis.StoryType
+
+.. autoclass:: jupytergis_core.schema.interfaces.project.layers.storySegmentLayer.ContentMode
+
+.. autoclass:: jupytergis_core.schema.interfaces.project.layers.storySegmentLayer.PaneAlignment
+
+.. autoclass:: jupytergis_core.schema.interfaces.project.layers.storySegmentLayer.Type
+
 .. autofunction:: field
 .. autofunction:: constant
 .. autofunction:: when
