@@ -487,7 +487,7 @@ export class JupyterGISDoc
   }
 
   removeOption(key: keyof IJGISOptions): void {
-    this.transact(() =>  this._options.delete(key));
+    this.transact(() => this._options.delete(key));
   }
 
   getAnnotation(id: string): IAnnotation | undefined {

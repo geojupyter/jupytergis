@@ -1122,11 +1122,11 @@ const LayerComponent: React.FC<ILayerProps> = (props) => {
             disabled={!!loadError}
             minimal
           >
-              {LabIcon.resolveReact({
-                icon: showVisible ? visibilityIcon : nonVisibilityIcon,
-                className: `${LAYER_ICON_CLASS}${showVisible ? '' : ' jp-gis-mod-hidden'}`,
-                tag: 'span',
-              })}
+            {LabIcon.resolveReact({
+              icon: showVisible ? visibilityIcon : nonVisibilityIcon,
+              className: `${LAYER_ICON_CLASS}${showVisible ? '' : ' jp-gis-mod-hidden'}`,
+              tag: 'span',
+            })}
           </Button>
         )}
 

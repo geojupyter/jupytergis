@@ -40,16 +40,12 @@ export class MainViewModel implements IDisposable {
     if (this._isDisposed) {
       return;
     }
-    this._jGISModel.sharedLayersChanged.disconnect(
-      this._onsharedLayersChanged
-    );
+    this._jGISModel.sharedLayersChanged.disconnect(this._onsharedLayersChanged);
     this._isDisposed = true;
   }
 
   initSignal(): void {
-    this._jGISModel.sharedLayersChanged.connect(
-      this._onsharedLayersChanged
-    );
+    this._jGISModel.sharedLayersChanged.connect(this._onsharedLayersChanged);
   }
 
   addAnnotation(value: IAnnotation): void {
@@ -63,7 +59,7 @@ export class MainViewModel implements IDisposable {
     if (change.layerChange) {
       // TODO STUFF with the new updated shared model
     }
-  }
+  };
 
   private _jGISModel: IJupyterGISModel;
   private _viewSetting: ObservableMap<JSONValue>;

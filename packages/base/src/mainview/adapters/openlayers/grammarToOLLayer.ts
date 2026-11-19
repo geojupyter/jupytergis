@@ -67,7 +67,7 @@ export function grammarToOLLayer({
 }: {
   layer: IJGISLayer;
   layerId: string;
-    source: VectorSource | RasterTileSource;
+  source: VectorSource | RasterTileSource;
   featureValues?: unknown[];
   className?: string;
   resolutionForZoom?: (zoom: number) => number;

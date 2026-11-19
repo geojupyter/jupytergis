@@ -11,7 +11,5 @@
     },
     "types": ["jest", "node", "webpack-env"]
   },
-  "include": [
-    "src/**/*",
-  ]
+  "include": ["src/**/*"]
 }

@@ -2266,7 +2266,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   async updateLayer(
     id: string,
     layer: IJGISLayer,
-  _oldLayer?: IDict,
+    _oldLayer?: IDict,
   ): Promise<void> {
     const mapLayer = this.getLayer(id);
     if (!mapLayer) {

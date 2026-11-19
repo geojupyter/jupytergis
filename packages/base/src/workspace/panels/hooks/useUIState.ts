@@ -19,7 +19,10 @@ export function useUIState<K extends keyof IJGISUIState>(
       setValue(state[key]);
       const stateDb = GlobalStateDbManager.getInstance().getStateDb();
       if (stateDb) {
-        void stateDb.save(`${STATE_DB_KEY_PREFIX}${model.filePath}`, state as any);
+        void stateDb.save(
+          `${STATE_DB_KEY_PREFIX}${model.filePath}`,
+          state as any,
+        );
       }
     };
     model.uiStateChanged.connect(handler);

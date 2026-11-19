@@ -236,7 +236,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // Keep draw UI/interactions in sync with the exclusive map mode.
     this._model.modeChanged.connect(this._handleModeChanged, this);
 
-   void Promise.resolve().then(() => {
+    void Promise.resolve().then(() => {
       void this._syncSettingsFromRegistry();
     });
 
@@ -1500,7 +1500,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         } else {
           currentPanelHandle.handlePrev();
         }
-        
+
         return;
       }
 

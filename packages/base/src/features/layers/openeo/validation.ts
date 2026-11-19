@@ -93,8 +93,8 @@ function checkCallbackArgs(
 export async function validateProcessGraphLocally(
   processGraph: Record<string, any>,
   processes: any[] | undefined,
-  userProcesses?: any[]  ,
-  parameters?: any[]  ,
+  userProcesses?: any[],
+  parameters?: any[],
 ): Promise<IValidationError[]> {
   if (!processes || processes.length === 0) {
     return [];
@@ -251,7 +251,7 @@ export function mergeValidationErrors(
 export async function validateProcessGraph(
   connectionInfo: IOpenEOConnectionInfo,
   processGraph: Record<string, any>,
-  parameters?: any[]  ,
+  parameters?: any[],
 ): Promise<IValidationError[]> {
   // Lazily imported so the pure validators above (used in unit tests) don't
   // pull OpenEOTileLayer's @jupyterlab/apputils dependency into the module
