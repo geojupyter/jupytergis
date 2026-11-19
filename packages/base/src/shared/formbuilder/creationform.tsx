@@ -12,9 +12,10 @@ import { UUID } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useMemo, useRef } from 'react';
 
-import { deepCopy, getGeoPackageTableNames } from '@/src/';
 import { paletteSymbology } from '@/src/features/layers/symbology/paletteSymbology';
 import { openGeoTiff } from '@/src/features/metadata/providers/geoTiffProvider';
+import { deepCopy, getGeoPackageTableNames } from '@/src/index';
+
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 
 export interface ICreationFormProps {
@@ -190,7 +191,7 @@ export function CreationForm(props: ICreationFormProps) {
         currentSourceType === 'GeoPackageVectorSource' ||
         currentSourceType === 'GeoPackageRasterSource'
       ) {
-        (async () => {
+        void (async () => {
           if (!currentCreateSource) {
             console.error('GeoPackage handling requires source creation');
             return;
@@ -217,7 +218,7 @@ export function CreationForm(props: ICreationFormProps) {
             );
 
             if (invalid.length) {
-              showErrorMessage(
+              void showErrorMessage(
                 'Invalid GeoPackage Tables',
                 `Invalid: ${invalid.join(', ')}. Available: ${allTables.join(', ')}`,
               );

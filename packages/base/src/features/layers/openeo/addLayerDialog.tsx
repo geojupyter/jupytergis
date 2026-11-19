@@ -8,6 +8,9 @@ import {
   fetchBackendCatalog,
   IBackendCatalog,
 } from '@/src/tools';
+
+import { CodeExportPanel } from './codeExportPanel';
+import { JsonEditor } from './jsonEditor';
 import {
   createOpenEOTileService,
   openEOConnect,
@@ -16,8 +19,6 @@ import {
   OpenEOSigninCancelled,
   restoreOpenEOSession,
 } from './OpenEOTileLayer';
-import { CodeExportPanel } from './codeExportPanel';
-import { JsonEditor } from './jsonEditor';
 import { ProcessGraphView } from './processGraphView';
 import { OpenEOSignin } from './signin';
 import { normalizeSpatialExtent } from './templates';
@@ -190,7 +191,7 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
       return list;
     }
     return list.filter(
-      c =>
+      (c) =>
         (c.id ?? '').toLowerCase().includes(q) ||
         (c.title ?? '').toLowerCase().includes(q),
     );
@@ -202,7 +203,7 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
       return list;
     }
     return list.filter(
-      p =>
+      (p) =>
         (p.id ?? '').toLowerCase().includes(q) ||
         (p.summary ?? '').toLowerCase().includes(q),
     );
@@ -214,7 +215,7 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
       return list;
     }
     return list.filter(
-      p =>
+      (p) =>
         (p.id ?? '').toLowerCase().includes(q) ||
         (p.summary ?? '').toLowerCase().includes(q),
     );
@@ -226,7 +227,7 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
       return list;
     }
     return list.filter(
-      f =>
+      (f) =>
         (f.id ?? '').toLowerCase().includes(q) ||
         (f.title ?? '').toLowerCase().includes(q),
     );
@@ -256,7 +257,7 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
         className="jp-openeo-filter"
         placeholder="Search collections and processes…"
         value={filter}
-        onChange={e => setFilter(e.target.value)}
+        onChange={(e) => setFilter(e.target.value)}
       />
       {loading && <p className="jp-openeo-empty">Loading catalog…</p>}
       {!loading && (
@@ -265,14 +266,14 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
             title="Collections"
             count={filteredCollections.length}
             open={openCollections}
-            onToggle={() => setOpenCollections(o => !o)}
+            onToggle={() => setOpenCollections((o) => !o)}
           >
             {filteredCollections.map((c: any) => (
               <PaletteRow
                 key={c.id}
                 id={c.id}
                 subtitle={c.title}
-                onDragStart={e =>
+                onDragStart={(e) =>
                   onDragStart(e, { kind: 'collection', id: c.id })
                 }
               />
@@ -282,14 +283,16 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
             title="Processes"
             count={filteredProcesses.length}
             open={openProcesses}
-            onToggle={() => setOpenProcesses(o => !o)}
+            onToggle={() => setOpenProcesses((o) => !o)}
           >
             {filteredProcesses.map((p: any) => (
               <PaletteRow
                 key={p.id}
                 id={p.id}
                 subtitle={p.summary}
-                onDragStart={e => onDragStart(e, { kind: 'process', id: p.id })}
+                onDragStart={(e) =>
+                  onDragStart(e, { kind: 'process', id: p.id })
+                }
               />
             ))}
           </PaletteSection>
@@ -298,14 +301,14 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
               title="User-Defined Processes"
               count={filteredUserProcesses.length}
               open={openUserProcesses}
-              onToggle={() => setOpenUserProcesses(o => !o)}
+              onToggle={() => setOpenUserProcesses((o) => !o)}
             >
               {filteredUserProcesses.map((p: any) => (
                 <PaletteRow
                   key={p.id}
                   id={p.id}
                   subtitle={p.summary ?? p.description}
-                  onDragStart={e => onDragStart(e, { kind: 'udp', id: p.id })}
+                  onDragStart={(e) => onDragStart(e, { kind: 'udp', id: p.id })}
                   onOpen={() => onOpenUserProcess(p.id)}
                   openTitle={`Open ${p.id} in the editor`}
                 />
@@ -316,14 +319,16 @@ const CatalogPalette: React.FC<ICatalogPaletteProps> = ({
             title="Output Formats"
             count={filteredFormats.length}
             open={openFormats}
-            onToggle={() => setOpenFormats(o => !o)}
+            onToggle={() => setOpenFormats((o) => !o)}
           >
             {filteredFormats.map((f: any) => (
               <PaletteRow
                 key={f.id}
                 id={f.id}
                 subtitle={f.title}
-                onDragStart={e => onDragStart(e, { kind: 'format', id: f.id })}
+                onDragStart={(e) =>
+                  onDragStart(e, { kind: 'format', id: f.id })
+                }
               />
             ))}
           </PaletteSection>
@@ -382,7 +387,10 @@ const PaletteRow: React.FC<{
       onDragStart={onDragStart}
       title={`Drag ${id} onto the graph`}
     >
-      <span className="jp-openeo-grip" aria-hidden="true">
+      <span
+        className="jp-openeo-grip"
+        aria-hidden="true"
+      >
         ⠿
       </span>
       <span className="jp-openeo-palette-row-text">
@@ -478,7 +486,7 @@ const Form: React.FC<IFormProps> = ({
     }
     let cancelled = false;
     setServerBusy(true);
-    void restoreOpenEOSession(suggested).then(restored => {
+    void restoreOpenEOSession(suggested).then((restored) => {
       if (cancelled) {
         return;
       }
@@ -489,7 +497,7 @@ const Form: React.FC<IFormProps> = ({
       }
       const url = restored.url;
       setConnectionInfo(restored);
-      setServers(prev => (prev.includes(url) ? prev : [...prev, url]));
+      setServers((prev) => (prev.includes(url) ? prev : [...prev, url]));
       setServerMode('connected');
     });
     return () => {
@@ -533,7 +541,7 @@ const Form: React.FC<IFormProps> = ({
     setServerError(null);
     if (listOpenEOConnections().includes(raw)) {
       setConnectionInfo({ url: raw });
-      setServers(prev => (prev.includes(raw) ? prev : [...prev, raw]));
+      setServers((prev) => (prev.includes(raw) ? prev : [...prev, raw]));
       setServerMode('connected');
       return;
     }
@@ -555,7 +563,7 @@ const Form: React.FC<IFormProps> = ({
         setAuthProviders(providers);
         setServerTitle(connection.capabilities().title());
         setServerBusy(false);
-        return new Promise<boolean>(resolve => {
+        return new Promise<boolean>((resolve) => {
           signinDone.current = resolve;
         });
       },
@@ -576,7 +584,9 @@ const Form: React.FC<IFormProps> = ({
     // that back so downstream references match.
     const resolved = next.url ?? raw;
     setServerInput(resolved);
-    setServers(prev => (prev.includes(resolved) ? prev : [...prev, resolved]));
+    setServers((prev) =>
+      prev.includes(resolved) ? prev : [...prev, resolved],
+    );
     setConnectionInfo(next);
     setServerBusy(false);
     setServerMode('connected');
@@ -638,7 +648,7 @@ const Form: React.FC<IFormProps> = ({
       const parsed = JSON.parse(text);
       if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
         setJsonError(null);
-        setState(prev => {
+        setState((prev) => {
           const next = { ...prev, editedGraph: parsed };
           onChange(next);
           return next;
@@ -674,7 +684,7 @@ const Form: React.FC<IFormProps> = ({
         );
         return;
       }
-      setState(prev => {
+      setState((prev) => {
         const next = { ...prev, editedGraph: graph };
         onChange(next);
         return next;
@@ -773,12 +783,12 @@ const Form: React.FC<IFormProps> = ({
     // (missing required args, wrong argument types, etc) without waiting
     // for the network. Stored in a ref so the backend pass can merge.
     localErrorsRef.current = [];
-    validateProcessGraphLocally(
+    void validateProcessGraphLocally(
       parsed,
       catalog?.processes,
       catalog?.userProcesses,
       editingUdp?.parameters,
-    ).then(local => {
+    ).then((local) => {
       if (versionRef.current !== myVersion) {
         return;
       }
@@ -882,13 +892,13 @@ const Form: React.FC<IFormProps> = ({
     setCatalogLoading(true);
     const url = connectionInfo.url;
     fetchBackendCatalog(connectionInfo)
-      .then(c => {
+      .then((c) => {
         if (!cancelled) {
           setCatalog(c);
           setCatalogLoading(false);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         if (cancelled) {
           return;
         }
@@ -913,7 +923,7 @@ const Form: React.FC<IFormProps> = ({
       setCanSaveUdp(false);
       return;
     }
-    canSaveUserProcesses(connectionInfo).then(ok => {
+    void canSaveUserProcesses(connectionInfo).then((ok) => {
       if (!cancelled) {
         setCanSaveUdp(ok);
       }
@@ -933,9 +943,9 @@ const Form: React.FC<IFormProps> = ({
       setUdpBusy(true);
       setUdpError(null);
       fetchUserProcess(connectionInfo, id)
-        .then(udp => {
+        .then((udp) => {
           setEditingUdp(udp);
-          setState(prev => {
+          setState((prev) => {
             const next = { ...prev, editedGraph: udp.processGraph };
             onChange(next);
             return next;
@@ -943,7 +953,7 @@ const Form: React.FC<IFormProps> = ({
           setSaveAsForm(null);
           setViewMode('graph');
         })
-        .catch(err => {
+        .catch((err) => {
           setUdpError(`Couldn't load '${id}': ${err?.message ?? String(err)}`);
         })
         .finally(() => setUdpBusy(false));
@@ -960,10 +970,10 @@ const Form: React.FC<IFormProps> = ({
       .then(() => {
         setEditingUdp(udp);
         setSaveAsForm(null);
-        setCatalogVersion(v => v + 1);
+        setCatalogVersion((v) => v + 1);
         Notification.success(label, { autoClose: 2500 });
       })
-      .catch(err => {
+      .catch((err) => {
         setUdpError(
           `Couldn't save '${udp.id}': ${err?.message ?? String(err)}`,
         );
@@ -1002,7 +1012,7 @@ const Form: React.FC<IFormProps> = ({
         // unless it came from a UDP that did.
         parameters: editingUdp?.parameters ?? [],
         metadata: {
-          ...(editingUdp?.metadata ?? {}),
+          ...editingUdp?.metadata,
           ...(summary ? { summary } : {}),
         },
       },
@@ -1065,7 +1075,7 @@ const Form: React.FC<IFormProps> = ({
       ...base,
       [key]: hasResult ? node : { ...node, result: true },
     };
-    setState(prev => {
+    setState((prev) => {
       const next = { ...prev, editedGraph: nextGraph };
       onChange(next);
       return next;
@@ -1149,13 +1159,13 @@ const Form: React.FC<IFormProps> = ({
                     placeholder="https://openeo.example.org"
                     autoFocus
                     value={serverInput}
-                    onChange={e => {
+                    onChange={(e) => {
                       setServerInput(e.target.value);
                       if (serverError) {
                         setServerError(null);
                       }
                     }}
-                    onKeyDown={e => {
+                    onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
                         onPickServer();
@@ -1163,8 +1173,11 @@ const Form: React.FC<IFormProps> = ({
                     }}
                   />
                   <datalist id="jp-openeo-known-servers">
-                    {servers.map(s => (
-                      <option key={s} value={s} />
+                    {servers.map((s) => (
+                      <option
+                        key={s}
+                        value={s}
+                      />
                     ))}
                   </datalist>
                   <button
@@ -1179,7 +1192,7 @@ const Form: React.FC<IFormProps> = ({
               </label>
               {servers.length > 0 && (
                 <div className="jp-openeo-server-suggest">
-                  {servers.map(s => (
+                  {servers.map((s) => (
                     <button
                       key={s}
                       type="button"
@@ -1200,7 +1213,10 @@ const Form: React.FC<IFormProps> = ({
             </>
           ) : serverBusy || !authProviders ? (
             <div className="jp-openeo-connect-status">
-              <span className="jp-openeo-spinner" aria-label="Connecting">
+              <span
+                className="jp-openeo-spinner"
+                aria-label="Connecting"
+              >
                 ⟳
               </span>
               {authProviders
@@ -1213,7 +1229,7 @@ const Form: React.FC<IFormProps> = ({
               serverTitle={serverTitle || serverInput.trim()}
               allowAnonymous
               onSwitchServer={onChangeServer}
-              onSignedIn={isAnonymous => {
+              onSignedIn={(isAnonymous) => {
                 setAnonymous(isAnonymous);
                 setServerBusy(true);
                 signinDone.current?.(true);
@@ -1247,7 +1263,7 @@ const Form: React.FC<IFormProps> = ({
                 <input
                   type="text"
                   value={state.layerName}
-                  onChange={e => update({ layerName: e.target.value })}
+                  onChange={(e) => update({ layerName: e.target.value })}
                 />
               </label>
               <div className="jp-openeo-server-section">
@@ -1316,7 +1332,7 @@ const Form: React.FC<IFormProps> = ({
                 'jp-openeo-toolbar-toggle jp-openeo-icon-btn' +
                 (editMode ? ' jp-mod-selected' : '')
               }
-              onClick={() => setEditMode(v => !v)}
+              onClick={() => setEditMode((v) => !v)}
               title={editMode ? 'Exit edit mode' : 'Edit graph or JSON'}
               aria-label="Toggle edit mode"
             >
@@ -1400,7 +1416,10 @@ const Form: React.FC<IFormProps> = ({
             }
           >
             {isChecking && (
-              <span className="jp-openeo-spinner" aria-label="Re-checking">
+              <span
+                className="jp-openeo-spinner"
+                aria-label="Re-checking"
+              >
                 ⟳
               </span>
             )}
@@ -1424,7 +1443,10 @@ const Form: React.FC<IFormProps> = ({
           <div className="jp-openeo-udp-bar">
             {udpBusy && !editingUdp && (
               <div className="jp-openeo-udp-bar-row">
-                <span className="jp-openeo-spinner" aria-label="Working">
+                <span
+                  className="jp-openeo-spinner"
+                  aria-label="Working"
+                >
                   ⟳
                 </span>
                 <span className="jp-openeo-udp-bar-label">
@@ -1440,7 +1462,10 @@ const Form: React.FC<IFormProps> = ({
                 <code>{editingUdp.id}</code>
                 <div className="jp-openeo-toolbar-spacer" />
                 {udpBusy && (
-                  <span className="jp-openeo-spinner" aria-label="Working">
+                  <span
+                    className="jp-openeo-spinner"
+                    aria-label="Working"
+                  >
                     ⟳
                   </span>
                 )}
@@ -1488,10 +1513,10 @@ const Form: React.FC<IFormProps> = ({
                   placeholder="Process name"
                   autoFocus
                   value={saveAsForm.id}
-                  onChange={e =>
+                  onChange={(e) =>
                     setSaveAsForm({ ...saveAsForm, id: e.target.value })
                   }
-                  onKeyDown={e => {
+                  onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       e.preventDefault();
                       onSaveUserProcessAs();
@@ -1503,7 +1528,7 @@ const Form: React.FC<IFormProps> = ({
                   className="jp-openeo-udp-summary"
                   placeholder="Summary (optional)"
                   value={saveAsForm.summary}
-                  onChange={e =>
+                  onChange={(e) =>
                     setSaveAsForm({ ...saveAsForm, summary: e.target.value })
                   }
                 />
@@ -1590,8 +1615,8 @@ const Form: React.FC<IFormProps> = ({
               processes={catalog?.processes}
               userProcesses={catalog?.userProcesses}
               collections={catalog?.collections}
-              onEdit={next =>
-                setState(prev => {
+              onEdit={(next) =>
+                setState((prev) => {
                   const updated = { ...prev, editedGraph: next };
                   onChange(updated);
                   return updated;
@@ -1639,10 +1664,10 @@ class AddLayerBody extends ReactWidget {
         initialConnection={this._activeConnection}
         knownServers={this._knownServers}
         mapView={this._mapView}
-        onChange={next => {
+        onChange={(next) => {
           this._state = next;
         }}
-        onActiveServerChange={info => {
+        onActiveServerChange={(info) => {
           this._activeConnection = info;
         }}
         onValidationChange={this._onValidationChange}
@@ -1721,7 +1746,7 @@ export async function showAddOpenEOLayerDialog(
     initial,
     options.connectionInfo ?? null,
     options.knownServers ?? [],
-    valid => {
+    (valid) => {
       lastValid = valid;
       applyOk();
     },

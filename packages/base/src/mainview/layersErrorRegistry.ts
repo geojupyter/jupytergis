@@ -29,7 +29,7 @@ const errorsByModel = new WeakMap<IJupyterGISModel, LayerErrors>();
 const listenersByModel = new WeakMap<IJupyterGISModel, Set<() => void>>();
 
 const notify = (model: IJupyterGISModel): void => {
-  listenersByModel.get(model)?.forEach(listener => listener());
+  listenersByModel.get(model)?.forEach((listener) => listener());
 };
 
 export function getLayerError(

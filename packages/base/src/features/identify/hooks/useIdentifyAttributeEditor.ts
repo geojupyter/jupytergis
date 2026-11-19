@@ -98,7 +98,7 @@ export function useIdentifyAttributeEditor(props: {
     );
 
     if (success) {
-      setFeatures(previous => {
+      setFeatures((previous) => {
         const updatedFeatures = [...previous];
         const targetFeatureEntry = updatedFeatures[featureIndex];
 
@@ -165,7 +165,7 @@ export function useIdentifyAttributeEditor(props: {
     );
 
     if (success) {
-      setFeatures(previous => {
+      setFeatures((previous) => {
         const updatedFeatures = [...previous];
         const targetFeatureEntry = updatedFeatures[featureIndex];
 
@@ -212,7 +212,7 @@ export function useIdentifyAttributeEditor(props: {
       setEditorMode('edit');
       setEditingAttributeKey(attributeKey);
       setNewAttributeKey(attributeKey);
-      setNewAttributeValue(String(value ?? ''));
+      setNewAttributeValue(value);
     },
     onDeleteAttribute: handleDeleteAttribute,
     onStartAddAttribute: startAddAttribute,

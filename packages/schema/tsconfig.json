@@ -1,21 +1,14 @@
 {
   "extends": "../../tsconfigbase.json",
   "compilerOptions": {
-    "outDir": "lib",
-    "rootDir": "src",
+    "composite": false,
+    "declaration": false,
+    "incremental": false,
+    "noEmit": true,
     "paths": {
       "@/*": ["./*"]
     },
-    "plugins": [
-      { "transform": "typescript-transform-paths" },
-      { "transform": "typescript-transform-paths", "afterDeclarations": true }
-    ]
+    "types": ["jest", "node", "webpack-env"]
   },
-  "include": [
-    "src/**/*",
-    "src/processing/_generated/*.json",
-    "src/schema/**/*.json",
-    "src/_interface/*.json"
-  ],
-  "exclude": ["**/*.spec.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"]
 }

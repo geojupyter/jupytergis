@@ -90,7 +90,7 @@ export class JupyterGISDoc
     this.undoManager.addToScope(this._layerTree);
     this.undoManager.addToScope(this._featureStores);
 
-    this._initialSyncReadyPromise = new Promise<void>(resolve => {
+    this._initialSyncReadyPromise = new Promise<void>((resolve) => {
       this._initialSyncReadyResolve = resolve;
     });
 
@@ -165,7 +165,7 @@ export class JupyterGISDoc
 
       const layerTree =
         (value['layerTree'] as unknown as Array<IJGISLayerItem>) ?? [];
-      layerTree.forEach(layer => {
+      layerTree.forEach((layer) => {
         this._layerTree.push([layer]);
       });
 
@@ -487,7 +487,7 @@ export class JupyterGISDoc
   }
 
   removeOption(key: keyof IJGISOptions): void {
-    this.transact(() => void this._options.delete(key));
+    this.transact(() => this._options.delete(key));
   }
 
   getAnnotation(id: string): IAnnotation | undefined {
@@ -775,7 +775,7 @@ export class JupyterGISDoc
       newValue: IJGISLayer;
     }> = [];
     let needEmit = false;
-    events.forEach(event => {
+    events.forEach((event) => {
       event.keys.forEach((change, key) => {
         if (!needEmit) {
           needEmit = true;
@@ -804,7 +804,7 @@ export class JupyterGISDoc
       newValue: IJGISSource;
     }> = [];
     let needEmit = false;
-    events.forEach(event => {
+    events.forEach((event) => {
       event.keys.forEach((change, key) => {
         if (!needEmit) {
           needEmit = true;
@@ -827,7 +827,7 @@ export class JupyterGISDoc
       newValue: IJGISStoryMap;
     }> = [];
     let needEmit = false;
-    events.forEach(event => {
+    events.forEach((event) => {
       event.keys.forEach((change, key) => {
         if (!needEmit) {
           needEmit = true;

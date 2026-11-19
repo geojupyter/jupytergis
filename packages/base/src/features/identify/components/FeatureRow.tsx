@@ -8,9 +8,9 @@ interface IFeatureRowProps {
   feature: IIdentifiedFeature;
   rowIndex: number;
   attributeKey: string;
-  value: unknown;
+  value: string;
   showActions: boolean;
-  onEditAttribute: (attributeKey: string, value: unknown) => void;
+  onEditAttribute: (attributeKey: string, value: string) => void;
   onDeleteAttribute: (
     feature: IIdentifiedFeature,
     rowIndex: number,
@@ -30,10 +30,10 @@ export const FeatureRow: React.FC<IFeatureRowProps> = ({
   return (
     <div className="jgis-attribute-row">
       <strong className="jgis-attribute-col-key">{attributeKey}</strong>
-      <span className="jgis-attribute-col-value">{String(value)}</span>
+      <span className="jgis-attribute-col-value">{value}</span>
       {showActions && (
         <AttributeActionsMenu
-          onContentClick={event => event.stopPropagation()}
+          onContentClick={(event) => event.stopPropagation()}
           items={[
             {
               label: 'Edit',

@@ -29,7 +29,7 @@ export function extractHeatmapGradient(
   for (const rule of rules) {
     for (const mapping of rule.mappings) {
       const isPixelEncoding = (mapping.encodings as string[]).some(
-        ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
+        (ch) => ch === 'pixel-color' || ch.startsWith('pixel-'),
       );
       if (!isPixelEncoding || mapping.scale.scheme !== 'colorMap') {
         continue;
@@ -44,7 +44,7 @@ export function extractHeatmapGradient(
         | undefined;
       if (Array.isArray(colorStops) && colorStops.length > 0) {
         const stops = [...colorStops].sort((a, b) => a.stop - b.stop);
-        return stops.map(({ color: [r, g, b, a = 1] }) => {
+        return stops.map(({ color: [r, g, b, a] }) => {
           return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`;
         });
       }

@@ -31,7 +31,7 @@ function mockGroup(layers: Array<Layer | LayerGroup>): LayerGroup {
     getLayers: () => ({
       getArray: () => layers,
     }),
-  } as LayerGroup;
+  } as unknown as LayerGroup;
 }
 
 function computeFromMockSource(

@@ -256,7 +256,7 @@ export class ToolbarWidget extends ReactiveToolbar {
       });
       this.addItem('togglePanel', this._togglePanelButton);
       this._togglePanelButton.node.dataset.testid = 'toggle-panel-button';
-      options.model.settingsReady.then(() =>
+      void options.model.settingsReady.then(() =>
         this._updateTogglePanelVisibility(),
       );
 
@@ -291,7 +291,10 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem(
         'users',
         ReactWidget.create(
-          <UsersItem model={this._model} iconRenderer={iconRenderer} />,
+          <UsersItem
+            model={this._model}
+            iconRenderer={iconRenderer}
+          />,
         ),
       );
     }
@@ -373,7 +376,7 @@ export class ToolbarWidget extends ReactiveToolbar {
   /**
    * Handles story changes to update Specta mode visibility
    */
-  private _onSpectaModeChanged = (args: any): void => {
+  private _onSpectaModeChanged = (): void => {
     if (!this._hasSetSpectaVisibility) {
       this.setHidden(this._model.isSpectaMode());
       this._hasSetSpectaVisibility = true;

@@ -80,7 +80,7 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
   );
 
   const handleChannelInput = (channel: RgbaChannel, value: string) => {
-    setInputs(prev => ({ ...prev, [channel]: value }));
+    setInputs((prev) => ({ ...prev, [channel]: value }));
     const num = Number(value);
     if (channel === 'a') {
       if (num >= 0 && num <= 100) {
@@ -143,7 +143,7 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
                 : rect.bottom + 4;
             setPopupPos({ top, left: rect.left });
           }
-          setOpen(v => !v);
+          setOpen((v) => !v);
         }}
       >
         <div style={swatchColorStyle} />
@@ -168,8 +168,11 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
             onChange={handlePickerChange}
           />
           <div className="jp-gis-rgba-inputs">
-            {(['r', 'g', 'b'] as const).map(ch => (
-              <div key={ch} className="jp-gis-rgba-field">
+            {(['r', 'g', 'b'] as const).map((ch) => (
+              <div
+                key={ch}
+                className="jp-gis-rgba-field"
+              >
                 <label>{ch.toUpperCase()}</label>
                 <input
                   className="jp-mod-styled"
@@ -177,7 +180,7 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
                   min={0}
                   max={255}
                   value={inputs[ch]}
-                  onChange={e => handleChannelInput(ch, e.target.value)}
+                  onChange={(e) => handleChannelInput(ch, e.target.value)}
                 />
               </div>
             ))}
@@ -189,7 +192,7 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
                 min={0}
                 max={100}
                 value={inputs.a}
-                onChange={e => handleChannelInput('a', e.target.value)}
+                onChange={(e) => handleChannelInput('a', e.target.value)}
               />
             </div>
           </div>
@@ -197,7 +200,7 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
             <input
               type="checkbox"
               checked={a === 0}
-              onChange={e => handleTransparentChange(e.target.checked)}
+              onChange={(e) => handleTransparentChange(e.target.checked)}
             />
             No color
           </label>

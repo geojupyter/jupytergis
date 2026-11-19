@@ -39,7 +39,7 @@ export function useLayerMetadata(
     setError(undefined);
 
     getLayerMetadata(model, selectedId)
-      .then(result => {
+      .then((result) => {
         if (!cancelled) {
           setMetadata(result);
           setLoading(false);

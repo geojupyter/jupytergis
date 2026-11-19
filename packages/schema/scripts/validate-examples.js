@@ -84,7 +84,10 @@ async function main() {
       const schema = await loadDereferencedSchema(relPath);
       layerValidators[type] = ajvParams.compile(schema);
     } catch (err) {
-      console.warn(`Warning: could not load layer schema ${relPath}:`, err.message);
+      console.warn(
+        `Warning: could not load layer schema ${relPath}:`,
+        err.message,
+      );
     }
   }
   for (const [type, relPath] of Object.entries(SOURCE_SCHEMAS)) {
@@ -92,7 +95,10 @@ async function main() {
       const schema = await loadDereferencedSchema(relPath);
       sourceValidators[type] = ajvParams.compile(schema);
     } catch (err) {
-      console.warn(`Warning: could not load source schema ${relPath}:`, err.message);
+      console.warn(
+        `Warning: could not load source schema ${relPath}:`,
+        err.message,
+      );
     }
   }
 
@@ -122,7 +128,7 @@ async function main() {
 
     if (!validateRoot(data)) {
       const errs = (validateRoot.errors || []).map(
-        (e) => `[root] ${e.instancePath || '/'} ${e.message}`
+        (e) => `[root] ${e.instancePath || '/'} ${e.message}`,
       );
       failures.push({ file: rel, errors: errs });
       continue;
@@ -137,7 +143,9 @@ async function main() {
       if (!validator) continue;
       if (!validator(params)) {
         const prefix = `[layer ${layerId} (${layer.name}, ${layer.type})]`;
-        const errs = (validator.errors || []).map((e) => formatError(e, prefix));
+        const errs = (validator.errors || []).map((e) =>
+          formatError(e, prefix),
+        );
         failures.push({ file: rel, errors: errs });
       }
     }
@@ -148,24 +156,30 @@ async function main() {
       if (!validator) continue;
       if (!validator(params)) {
         const prefix = `[source ${sourceId} (${source.name}, ${source.type})]`;
-        const errs = (validator.errors || []).map((e) => formatError(e, prefix));
+        const errs = (validator.errors || []).map((e) =>
+          formatError(e, prefix),
+        );
         failures.push({ file: rel, errors: errs });
       }
     }
   }
 
   if (failures.length > 0) {
-    console.log('Examples that do NOT match the schema:\n');
+    console.error('Examples that do NOT match the schema:\n');
     for (const r of failures) {
-      console.log(r.file);
+      console.error(r.file);
       for (const e of r.errors) {
-        console.log('  -', e);
+        console.error('  -', e);
       }
-      console.log('');
+      console.error('');
     }
     process.exit(1);
   } else {
-    console.log('All', jgisFiles.length, 'example .jGIS files match the schema.');
+    console.debug(
+      'All',
+      jgisFiles.length,
+      'example .jGIS files match the schema.',
+    );
   }
 }
 

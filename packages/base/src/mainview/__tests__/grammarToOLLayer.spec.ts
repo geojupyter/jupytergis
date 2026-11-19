@@ -59,7 +59,7 @@ function layerFor(state: IGrammarSymbologyState, type = 'VectorLayer') {
     type,
     visible: true,
     parameters: { symbologyState: state },
-  } as IJGISLayer;
+  } as unknown as IJGISLayer;
 }
 
 function vectorMarkerOf(layer: MockVectorLayer): string {
@@ -123,7 +123,7 @@ describe('grammarToOLLayer — multi-layer render order (raster)', () => {
     const result = grammarToOLLayer({
       layer: layerFor(state, 'GeoTiffLayer'),
       layerId: 'layer-1',
-      source: { bandCount: 1 },
+      source: { bandCount: 1 } as never,
     }) as any;
 
     expect(result.opts.layers.map(rasterMarkerOf)).toEqual(['bottom', 'top']);

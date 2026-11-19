@@ -78,7 +78,7 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
       {...rowProps}
       hideWhen={hideWhen}
       shadowed={shadowedEncodings.get(row.id)}
-      onChange={updated => onChangeRow(index, updated)}
+      onChange={(updated) => onChangeRow(index, updated)}
       onDelete={() => onDeleteRows([index, ...alsoDelete])}
     />
   );
@@ -157,7 +157,7 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
                 scale={row.scale}
                 encodings={row.encodings}
                 disabled={shadowedEncodings.has(row.id)}
-                onChange={scale => onChangeRow(index, { ...row, scale })}
+                onChange={(scale) => onChangeRow(index, { ...row, scale })}
                 onPromote={
                   promotedFields(row) && (() => promote({ row, index }))
                 }
@@ -175,7 +175,7 @@ const RuleGroup: React.FC<IRuleGroupProps> = ({
           ))}
         </div>
       )}
-      {dynamic.map(entry => renderRow(entry, true))}
+      {dynamic.map((entry) => renderRow(entry, true))}
     </div>
   );
 };

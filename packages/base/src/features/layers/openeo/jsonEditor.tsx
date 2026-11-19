@@ -41,7 +41,7 @@ export const JsonEditor: React.FC<IJsonEditorProps> = ({
         indentOnInput(),
         json(),
         keymap.of([...defaultKeymap, ...historyKeymap] as any),
-        EditorView.updateListener.of(update => {
+        EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             onChangeRef.current(update.state.doc.toString());
           }
@@ -79,7 +79,10 @@ export const JsonEditor: React.FC<IJsonEditorProps> = ({
 
   return (
     <div className="jp-openeo-json-editor">
-      <div ref={hostRef} className="jp-openeo-json-editor-host" />
+      <div
+        ref={hostRef}
+        className="jp-openeo-json-editor-host"
+      />
       {parseError && (
         <ErrorBanner
           variant="error"

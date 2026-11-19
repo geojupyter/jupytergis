@@ -1,6 +1,7 @@
-import { expect, test } from '@jupyterlab/galata';
 import * as fs from 'fs';
 import * as path from 'path';
+
+import { expect, test } from '@jupyterlab/galata';
 
 import {
   getLayerSummary,
@@ -44,9 +45,8 @@ const EXPECTED_CELLS = [
 
 test.describe('Notebook API', () => {
   test.beforeEach(async ({ page, tmpPath }) => {
-    page.on('console', message => {
-      console.log('CONSOLE MSG ---', message.text());
-    });
+    page.on('console', () => {});
+    console.debug('CONSOLE MSG ---', message.text());
 
     await page.contents.uploadDirectory(
       path.resolve(__dirname, './notebooks'),
@@ -84,7 +84,7 @@ test.describe('Notebook API', () => {
       const layers = await getLayerSummary(page, map);
       expect(layers, `cell ${index} layers`).toHaveLength(expected.layers);
 
-      const vectors = layers.filter(layer => layer.kind === 'vector');
+      const vectors = layers.filter((layer) => layer.kind === 'vector');
       expect(vectors, `cell ${index} vector layers`).toHaveLength(
         expected.vectors,
       );

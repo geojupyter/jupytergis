@@ -8,6 +8,7 @@ import {
 } from '@/src/features/story/presentation/getStoryPresentationMode';
 import type { JupyterGISTracker } from '@/src/types';
 import { JupyterGISPanel } from '@/src/workspace/widget';
+
 import {
   MapPreviewBarActions,
   MapViewBarActions,
@@ -43,7 +44,7 @@ export class StoryMapBarController {
   constructor(private readonly _host: IStoryMapBarHost) {}
 
   public refresh(): void {
-    for (const model of [...this._mapBars.keys()]) {
+    for (const model of this._mapBars.keys()) {
       if (!this._modelNeedsBar(model)) {
         this.disposeForModel(model);
       }
@@ -57,7 +58,7 @@ export class StoryMapBarController {
       modelsToEnsure.add(currentModel);
     }
 
-    tracker?.forEach(widget => {
+    tracker?.forEach((widget) => {
       const model = widget.model;
       if (model && this._modelNeedsBar(model)) {
         modelsToEnsure.add(model);
@@ -83,7 +84,7 @@ export class StoryMapBarController {
   }
 
   public disposeAll(): void {
-    for (const model of [...this._mapBars.keys()]) {
+    for (const model of this._mapBars.keys()) {
       this.disposeForModel(model);
     }
   }
@@ -209,7 +210,7 @@ export class StoryMapBarController {
       return null;
     }
 
-    const widget = tracker.find(w => w.model === model);
+    const widget = tracker.find((w) => w.model === model);
     const panel = widget?.content;
     if (!(panel instanceof JupyterGISPanel)) {
       return null;

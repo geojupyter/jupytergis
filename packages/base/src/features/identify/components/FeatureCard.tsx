@@ -6,13 +6,14 @@ import {
   Collapsible,
   CollapsibleTrigger,
 } from '@/src/shared/components/Collapsible';
-import { AddAttributeEditor } from './AttributeEditors';
-import { FeatureAttributeList } from './FeatureAttributeList';
-import { FeatureCardHeader } from './FeatureCardHeader';
+
 import {
   IAttributeEditorActions,
   IAttributeEditorState,
 } from '../types/editorTypes';
+import { AddAttributeEditor } from './AttributeEditors';
+import { FeatureAttributeList } from './FeatureAttributeList';
+import { FeatureCardHeader } from './FeatureCardHeader';
 
 interface IFeatureCardProps {
   feature: IIdentifiedFeature;
@@ -54,7 +55,7 @@ export const FeatureCard: React.FC<IFeatureCardProps> = ({
   return (
     <Collapsible
       open={isVisible}
-      onOpenChange={nextOpen => onToggleVisibility(rowIndex, nextOpen)}
+      onOpenChange={(nextOpen) => onToggleVisibility(rowIndex, nextOpen)}
     >
       <CollapsibleTrigger
         nativeButton={false}

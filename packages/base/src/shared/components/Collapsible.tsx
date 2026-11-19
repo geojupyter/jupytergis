@@ -6,18 +6,29 @@ import { Button } from './Button';
 import { cn } from './utils';
 
 function Collapsible({ ...props }: CollapsiblePrimitive.Root.Props) {
-  return <CollapsiblePrimitive.Root data-slot="collapsible" {...props} />;
+  return (
+    <CollapsiblePrimitive.Root
+      data-slot="collapsible"
+      {...props}
+    />
+  );
 }
 
 function CollapsibleTrigger({ ...props }: CollapsiblePrimitive.Trigger.Props) {
   return (
-    <CollapsiblePrimitive.Trigger data-slot="collapsible-trigger" {...props} />
+    <CollapsiblePrimitive.Trigger
+      data-slot="collapsible-trigger"
+      {...props}
+    />
   );
 }
 
 function CollapsibleContent({ ...props }: CollapsiblePrimitive.Panel.Props) {
   return (
-    <CollapsiblePrimitive.Panel data-slot="collapsible-content" {...props} />
+    <CollapsiblePrimitive.Panel
+      data-slot="collapsible-content"
+      {...props}
+    />
   );
 }
 
@@ -70,7 +81,10 @@ const CollapsibleHeader = React.forwardRef<
         >
           <ChevronRightIcon />
         </Button>
-        <span id={titleId} className="truncate">
+        <span
+          id={titleId}
+          className="truncate"
+        >
           {title}
         </span>
       </div>

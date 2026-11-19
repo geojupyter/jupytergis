@@ -120,7 +120,7 @@ export function useStacCatalogQuery({
         const page: IStacCollectionsReturn | null = await fetchWithProxies(
           nextUrl,
           model,
-          async response => await response.json(),
+          async (response) => await response.json(),
           undefined,
         );
 
@@ -139,7 +139,7 @@ export function useStacCatalogQuery({
 
         const currentPageUrl: string = nextUrl;
         const nextLinkHref: string | undefined = page.links.find(
-          link => link.rel === 'next',
+          (link) => link.rel === 'next',
         )?.href;
 
         nextUrl = nextLinkHref
@@ -184,7 +184,7 @@ export function useStacCatalogQuery({
   const selectCollection = useCallback(
     (id: string) => {
       setCatalogCollectionId(id);
-      const collection = collections.find(item => item.id === id);
+      const collection = collections.find((item) => item.id === id);
       setStartTime(toDate(collection?.start ?? null));
       setEndTime(toDate(collection?.end ?? null));
     },
@@ -224,7 +224,7 @@ export function useStacCatalogQuery({
       return;
     }
 
-    registerAddToMap(item => {
+    registerAddToMap((item) => {
       void addCatalogResultToMap(
         model,
         root,
@@ -236,7 +236,7 @@ export function useStacCatalogQuery({
 
   useEffect(() => {
     const collection = collections.find(
-      item => item.id === catalogCollectionId,
+      (item) => item.id === catalogCollectionId,
     );
     if (!collection || collection.wmsLayers.length === 0) {
       return;
@@ -247,7 +247,7 @@ export function useStacCatalogQuery({
 
   useEffect(() => {
     const collection = collections.find(
-      item => item.id === catalogCollectionId,
+      (item) => item.id === catalogCollectionId,
     );
     if (
       !model ||
@@ -434,7 +434,7 @@ async function addCatalogResultToMap(
   const collection = await fetchWithProxies(
     `${root}/collections/${encodeURIComponent(collectionId)}`,
     model,
-    async response => (await response.json()) as IStacCollection,
+    async (response) => (await response.json()) as IStacCollection,
     undefined,
   );
 

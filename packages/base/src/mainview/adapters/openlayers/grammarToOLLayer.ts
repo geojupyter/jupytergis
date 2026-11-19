@@ -25,6 +25,7 @@ import {
 } from 'ol/layer';
 import LayerGroup from 'ol/layer/Group';
 import { Vector as VectorSource } from 'ol/source';
+import DataTileSource from 'ol/source/DataTile';
 import { Rule } from 'ol/style/flat';
 
 import {
@@ -32,7 +33,10 @@ import {
   extractHeatmapGradient,
 } from '@/src/features/layers/symbology/heatmapGradient';
 import { DEFAULT_FLAT_STYLE } from '@/src/features/layers/symbology/styleBuilder';
+
 import { grammarToOLStyle } from './grammarToOLStyle';
+
+type RasterTileSource = DataTileSource & { bandCount?: number };
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -63,7 +67,7 @@ export function grammarToOLLayer({
 }: {
   layer: IJGISLayer;
   layerId: string;
-  source: VectorSource | any;
+  source: VectorSource | RasterTileSource;
   featureValues?: unknown[];
   className?: string;
   resolutionForZoom?: (zoom: number) => number;
@@ -80,10 +84,10 @@ export function grammarToOLLayer({
   const grammarLayers = state.layers ?? [];
 
   if (isRaster) {
-    const subLayers = grammarLayers.map(grammarLayer =>
+    const subLayers = grammarLayers.map((grammarLayer) =>
       compileRasterLayer(
         grammarLayer,
-        source,
+        source as RasterTileSource,
         opacity,
         visible,
         featureValues,
@@ -107,13 +111,18 @@ export function grammarToOLLayer({
   if (grammarLayers.length === 0) {
     // No grammar layers defined yet — return an empty vector layer so the map
     // has a valid layer object to call setVisible/setOpacity on.
-    return new VectorImageLayer({ opacity, visible, source, className });
+    return new VectorImageLayer({
+      opacity,
+      visible,
+      source: source as VectorSource,
+      className,
+    });
   }
 
-  const subLayers = grammarLayers.map(grammarLayer =>
+  const subLayers = grammarLayers.map((grammarLayer) =>
     compileGrammarLayer(
       grammarLayer,
-      source,
+      source as VectorSource,
       opacity,
       visible,
       featureValues,
@@ -187,7 +196,7 @@ function compileGrammarLayer(
  */
 function compileRasterLayer(
   grammarLayer: IGrammarLayer,
-  source: any,
+  source: RasterTileSource,
   opacity: number,
   visible: boolean,
   featureValues: unknown[],

@@ -93,7 +93,7 @@ export function useStacFilterExtension({
 
   const updateSelectedQueryables = useCallback(
     (qKey: string, filter: IQueryableFilter | null) => {
-      setSelectedQueryables(prev => {
+      setSelectedQueryables((prev) => {
         // If filter is null, remove the key entirely
         if (filter === null) {
           const { [qKey]: _, ...rest } = prev;
@@ -248,7 +248,7 @@ export function useStacFilterExtension({
       }
     }
 
-    loadFilterExtensionStateFromDb();
+    void loadFilterExtensionStateFromDb();
   }, [stateDb]);
 
   // Save filter state to StateDB on change
@@ -276,7 +276,7 @@ export function useStacFilterExtension({
       });
     }
 
-    saveFilterExtensionStateToDb();
+    void saveFilterExtensionStateToDb();
   }, [selectedCollection, selectedQueryables, filterOperator, stateDb]);
 
   // Reset all state when URL changes
@@ -327,7 +327,7 @@ export function useStacFilterExtension({
         const page: IStacCollectionsReturn | null = await fetchWithProxies(
           nextUrl,
           model,
-          async response => await response.json(),
+          async (response) => await response.json(),
           undefined,
         );
 
@@ -339,7 +339,7 @@ export function useStacFilterExtension({
 
         const currentPageUrl: string = nextUrl;
         const nextLinkHref: string | undefined = page.links.find(
-          link => link.rel === 'next',
+          (link) => link.rel === 'next',
         )?.href;
 
         nextUrl = nextLinkHref
@@ -370,7 +370,7 @@ export function useStacFilterExtension({
       }
     };
 
-    fetchCollections();
+    void fetchCollections();
   }, [
     model,
     baseUrl,
@@ -410,7 +410,7 @@ export function useStacFilterExtension({
       const data = await fetchWithProxies(
         queryablesUrl,
         model,
-        async response => await response.json(),
+        async (response) => await response.json(),
         undefined,
       );
 
@@ -423,7 +423,7 @@ export function useStacFilterExtension({
       hasLoadedInitialQueryablesRef.current = true;
     };
 
-    fetchQueryables();
+    void fetchQueryables();
   }, [model, baseUrl, selectedCollection, stateDb, getQueryablesCacheKey]);
 
   // Handle search when filters change

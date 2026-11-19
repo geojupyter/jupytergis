@@ -51,8 +51,8 @@ export function SegmentImageUrlField({
             placeholder="https://example.com/image.jpg"
             value={draftUrl}
             data-lm-suppress-shortcuts="true"
-            onChange={event => setDraftUrl(event.target.value)}
-            onKeyDown={event => {
+            onChange={(event) => setDraftUrl(event.target.value)}
+            onKeyDown={(event) => {
               if (event.key === 'Enter') {
                 handleCommit();
               }
@@ -60,7 +60,11 @@ export function SegmentImageUrlField({
           />
         </label>
         <div className="jgis-story-editor-actions">
-          <Button size={'xs'} type="button" onClick={handleCommit}>
+          <Button
+            size={'xs'}
+            type="button"
+            onClick={handleCommit}
+          >
             Use URL
           </Button>
           {trimmedValue ? (
@@ -102,7 +106,11 @@ export function SegmentImageUrlField({
           >
             Change
           </Button>
-          <Button type="button" variant="destructive" onClick={handleRemove}>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={handleRemove}
+          >
             Remove
           </Button>
         </div>

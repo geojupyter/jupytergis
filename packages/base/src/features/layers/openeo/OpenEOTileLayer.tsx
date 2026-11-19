@@ -14,7 +14,7 @@ import {
   Process,
   Service,
 } from '@openeo/js-client';
-// @ts-expect-error
+// @ts-expect-error no types
 import Environment from '@openeo/js-client/src/env';
 import { fromArrayBuffer, TypedArray } from 'geotiff';
 import WebGLTileLayer from 'ol/layer/WebGLTile';
@@ -25,7 +25,8 @@ import DataTileSource, {
 import React from 'react';
 
 import { maybeProxied } from '@/src/shared/proxy';
-import { describeConnectionError } from '@/src/tools';
+import { describeConnectionError, errorMessage } from '@/src/tools';
+
 import { OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
 import { ensureSaveResult } from './templates';
@@ -198,7 +199,7 @@ class SigninWidget extends ReactWidget {
             className="jp-mod-styled"
             type="text"
             defaultValue={this._serverUrl}
-            onChange={e => {
+            onChange={(e) => {
               this._serverUrl = e.target.value;
             }}
             style={{ width: '100%' }}
@@ -210,7 +211,7 @@ class SigninWidget extends ReactWidget {
           <input
             className="jp-mod-styled"
             type="text"
-            onChange={e => {
+            onChange={(e) => {
               this._username = e.target.value;
             }}
             style={{ width: '100%' }}
@@ -222,7 +223,7 @@ class SigninWidget extends ReactWidget {
           <input
             className="jp-mod-styled"
             type="password"
-            onChange={e => {
+            onChange={(e) => {
               this._password = e.target.value;
             }}
             style={{ width: '100%' }}
@@ -306,7 +307,7 @@ export async function openEOConnect(
     window.location.protocol === 'https:' &&
     parsedUrl.protocol !== 'https:'
   ) {
-    showErrorMessage(
+    void showErrorMessage(
       errorTitle,
       'You are trying to connect to a server with HTTP instead of HTTPS, which is insecure and prohibited by web browsers. Please use HTTPS instead.',
     );
@@ -322,14 +323,14 @@ export async function openEOConnect(
     connection.baseUrl = await maybeProxied(connection.baseUrl);
 
     if (!connection.isAuthenticated()) {
-      connection.setOidcProviderFactory(info =>
+      connection.setOidcProviderFactory((info) =>
         OpenEODeviceProvider.create(connection, info),
       );
       const providers = await connection.listAuthProviders();
 
       if (signIn) {
         const authProvider = providers.find(
-          provider => provider.type === 'basic',
+          (provider) => provider.type === 'basic',
         );
         if (!authProvider) {
           throw new Error('Failed to get "basic" OpenEO provider.');
@@ -369,7 +370,7 @@ export async function openEOConnect(
     return connection;
   } catch (error) {
     if (!(error instanceof OpenEOSigninCancelled) && !connectionInfo.quiet) {
-      showErrorMessage(errorTitle, describeConnectionError(error, url));
+      void showErrorMessage(errorTitle, describeConnectionError(error, url));
     }
 
     throw error;
@@ -469,7 +470,7 @@ export async function createOpenEOTileService(
   try {
     service = await connection.createService(graph, 'XYZ');
   } catch (e) {
-    throw new Error(`Failed to create the XYZ service ${e}`);
+    throw new Error(`Failed to create the XYZ service: ${errorMessage(e)}`);
   }
 
   if (!service.url) {
@@ -559,7 +560,7 @@ export class OpenEOTileSource extends DataTileSource {
 
         retries -= 1;
         const retry = async () => {
-          await new Promise(resolve => setTimeout(resolve, TILE_RETRY_RATE));
+          await new Promise((resolve) => setTimeout(resolve, TILE_RETRY_RATE));
           return tileLoadFunction(retries)(z, x, y, loaderOptions);
         };
 
@@ -623,7 +624,7 @@ export class OpenEOTileSource extends DataTileSource {
 
     this.serverUrl = options.serverUrl;
 
-    this._initializeTileServiceURL(options);
+    void this._initializeTileServiceURL(options);
   }
 
   /**

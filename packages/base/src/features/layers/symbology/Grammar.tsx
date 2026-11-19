@@ -96,7 +96,7 @@ function defaultTransform(type: ITransform['type']): ITransform {
     case 'cluster':
       return { type: 'cluster', radius: 40 };
     default:
-      throw new Error(`Invalid transform type ${type}`);
+      throw new Error(`Invalid transform type ${JSON.stringify(type)}`);
   }
 }
 
@@ -122,10 +122,13 @@ const TransformRow: React.FC<ITransformRowProps> = ({
       {/* Type selector */}
       <NativeSelect
         value={transform.type}
-        onChange={e => handleTypeChange(e.target.value as ITransform['type'])}
+        onChange={(e) => handleTypeChange(e.target.value as ITransform['type'])}
       >
         {TRANSFORM_TYPES.map(({ value, label }) => (
-          <NativeSelectOption key={value} value={value}>
+          <NativeSelectOption
+            key={value}
+            value={value}
+          >
             {label}
           </NativeSelectOption>
         ))}
@@ -138,18 +141,18 @@ const TransformRow: React.FC<ITransformRowProps> = ({
           <NumericInput
             style={{ width: 52 }}
             value={transform.radius}
-            onChange={v => onChange({ ...transform, radius: v })}
+            onChange={(v) => onChange({ ...transform, radius: v })}
           />
           <label>blur</label>
           <NumericInput
             style={{ width: 52 }}
             value={transform.blur}
-            onChange={v => onChange({ ...transform, blur: v })}
+            onChange={(v) => onChange({ ...transform, blur: v })}
           />
           <label>weight</label>
           <NativeSelect
             value={transform.weightField ?? ''}
-            onChange={e =>
+            onChange={(e) =>
               onChange({
                 ...transform,
                 weightField: e.target.value || undefined,
@@ -157,8 +160,11 @@ const TransformRow: React.FC<ITransformRowProps> = ({
             }
           >
             <NativeSelectOption value="">(none)</NativeSelectOption>
-            {availableFields.map(field => (
-              <NativeSelectOption key={field.value} value={field.value}>
+            {availableFields.map((field) => (
+              <NativeSelectOption
+                key={field.value}
+                value={field.value}
+              >
                 {field.label}
               </NativeSelectOption>
             ))}
@@ -173,7 +179,7 @@ const TransformRow: React.FC<ITransformRowProps> = ({
           <NumericInput
             style={{ width: 52 }}
             value={transform.radius}
-            onChange={v => onChange({ ...transform, radius: v })}
+            onChange={(v) => onChange({ ...transform, radius: v })}
           />
         </>
       )}
@@ -315,7 +321,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     [layer, onChange],
   );
 
-  const hasKDE = layer.transforms.some(t => t.type === 'kde');
+  const hasKDE = layer.transforms.some((t) => t.type === 'kde');
   const isRaster = isRasterLayer || hasKDE;
 
   const addRow = useCallback(() => {
@@ -344,10 +350,12 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
     });
   }, [layer, onChange, availableFields]);
 
-  const hasLabel = layer.rows.some(row => row.encodings.includes('text-value'));
+  const hasLabel = layer.rows.some((row) =>
+    row.encodings.includes('text-value'),
+  );
 
   const styleGroups = groupRows(layer.rows);
-  const groupedRows = styleGroups.map(g => g.rows.map(r => r.row));
+  const groupedRows = styleGroups.map((g) => g.rows.map((r) => r.row));
   const shadowedEncodings = shadowedRowEncodings(layer.rows);
 
   // KDE layers expose '$density'; raster layers expose band_N fields.
@@ -375,7 +383,10 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
                 : 'Add transform'
             }
           >
-            <FontAwesomeIcon data-icon="inline-start" icon={faPlus} />
+            <FontAwesomeIcon
+              data-icon="inline-start"
+              icon={faPlus}
+            />
             Transform
           </Button>
         )}
@@ -441,7 +452,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
             predicate={pred}
             availableFields={availableFields}
             zoomRangeSupported={zoomRangeSupported}
-            onChange={updated => updateLayerPredicate(i, updated)}
+            onChange={(updated) => updateLayerPredicate(i, updated)}
             onDelete={() => removeLayerPredicate(i)}
           />
         ))}
@@ -476,7 +487,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
       {/* Container handles drag events so drops work even at top/bottom edges */}
       <div
         className="jp-gis-grammar-rules-container"
-        onDragOver={e => {
+        onDragOver={(e) => {
           e.preventDefault();
           // Find which wrapper the cursor is closest to
           const wrappers = Array.from(
@@ -542,7 +553,7 @@ const LayerSection: React.FC<ILayerSectionProps> = ({
                 <div
                   className="jp-gis-grammar-drag-handle"
                   draggable
-                  onDragStart={e => {
+                  onDragStart={(e) => {
                     dragIndexRef.current = position;
                     const wrapper = e.currentTarget.closest(
                       '.jp-gis-grammar-drag-wrapper',
@@ -639,7 +650,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
   const bandStats = React.useMemo(() => {
     const map: Record<number, { min: number; max: number }> = {};
 
-    bandRows.forEach(b => {
+    bandRows.forEach((b) => {
       map[b.band] = {
         min: b.stats.minimum,
         max: b.stats.maximum,
@@ -685,7 +696,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
     }
     const state = rawState as IGrammarSymbologyState;
     setLayers(
-      state.layers.map(grammarLayer => ({
+      state.layers.map((grammarLayer) => ({
         id: grammarLayer.id,
         transforms: grammarLayer.preprocess ?? [],
         ...(grammarLayer.when?.length ? { when: grammarLayer.when } : {}),
@@ -705,7 +716,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
       return;
     }
 
-    const grammarLayers: IGrammarLayer[] = layers.map(uiLayer => {
+    const grammarLayers: IGrammarLayer[] = layers.map((uiLayer) => {
       return {
         id: uiLayer.id,
         rules: rowsToRules(uiLayer.rows),
@@ -727,7 +738,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
       isStorySegmentOverride,
       segmentId,
       payload: { symbologyState },
-      mutateLayerBeforeSave: targetLayer => {
+      mutateLayerBeforeSave: (targetLayer) => {
         if (targetLayer.parameters?.color !== undefined) {
           delete targetLayer.parameters.color;
         }
@@ -738,7 +749,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
   useOkSignal(okSignalPromise, handleOk);
 
   const addLayer = () => {
-    setLayers(prev => [
+    setLayers((prev) => [
       ...prev,
       { id: UUID.uuid4(), transforms: [], rows: [] },
     ]);
@@ -749,7 +760,7 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
       if (from === to) {
         return;
       }
-      setLayers(prev => {
+      setLayers((prev) => {
         const next = [...prev];
         const [moved] = next.splice(from, 1);
         next.splice(to, 0, moved);
@@ -760,13 +771,13 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
   );
 
   const availableFields = isRasterLayer
-    ? bandRows.map(b => ({
+    ? bandRows.map((b) => ({
         value: `band_${b.band}`,
         label: `band_${b.band}  ${b.name}${
           b.colorInterpretation ? ` (${b.colorInterpretation})` : ''
         }`,
       }))
-    : Object.keys(selectableAttributesAndValues).map(f => ({
+    : Object.keys(selectableAttributesAndValues).map((f) => ({
         value: f,
         label: f,
       }));
@@ -787,10 +798,10 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
           normalize={normalize}
           zoomRangeSupported={zoomRangeSupported}
           filtersDisabled={isDeckLayer}
-          onChange={updated =>
-            setLayers(prev => prev.map((l, j) => (j === i ? updated : l)))
+          onChange={(updated) =>
+            setLayers((prev) => prev.map((l, j) => (j === i ? updated : l)))
           }
-          onDelete={() => setLayers(prev => prev.filter((_, j) => j !== i))}
+          onDelete={() => setLayers((prev) => prev.filter((_, j) => j !== i))}
           onMoveUp={i > 0 ? () => moveLayer(i, i - 1) : undefined}
           onMoveDown={
             i < layers.length - 1 ? () => moveLayer(i, i + 1) : undefined
@@ -798,7 +809,11 @@ const Grammar: React.FC<ISymbologyDialogProps> = ({
         />
       ))}
       <div className="jp-gis-symbology-button-container">
-        <Button variant="outline" size="sm" onClick={addLayer}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={addLayer}
+        >
           Add Layer
         </Button>
       </div>

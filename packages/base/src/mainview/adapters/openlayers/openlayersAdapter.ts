@@ -50,11 +50,9 @@ import {
   VectorTile,
   View,
 } from 'ol';
-import { FeatureLike } from 'ol/Feature';
-import { GeolocationError } from 'ol/Geolocation';
-import ImageTile from 'ol/ImageTile';
-import { unByKey } from 'ol/Observable';
-import TileState from 'ol/TileState';
+//@ts-expect-error no types for ol-pmtiles
+import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
+import StacLayer from 'ol-stac';
 import { asArray } from 'ol/color';
 import { Control, FullScreen, Rotate, ScaleLine, Zoom } from 'ol/control';
 import { Coordinate } from 'ol/coordinate';
@@ -62,9 +60,12 @@ import { linear } from 'ol/easing';
 import type { EventsKey } from 'ol/events';
 import { singleClick } from 'ol/events/condition';
 import { getCenter } from 'ol/extent';
+import { FeatureLike } from 'ol/Feature';
 import { GeoJSON, MVT } from 'ol/format';
 import FeatureFormat from 'ol/format/Feature';
+import { GeolocationError } from 'ol/Geolocation';
 import { Geometry as OLGeometry, Point } from 'ol/geom';
+import ImageTile from 'ol/ImageTile';
 import {
   DoubleClickZoom,
   DragAndDrop,
@@ -90,6 +91,7 @@ import {
 } from 'ol/layer';
 import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
+import { unByKey } from 'ol/Observable';
 import {
   fromLonLat,
   get as getProjection,
@@ -114,9 +116,7 @@ import Static from 'ol/source/ImageStatic';
 import TileSource, { TileSourceEvent } from 'ol/source/Tile';
 import { Fill, Icon, Style } from 'ol/style';
 import { Rule } from 'ol/style/flat';
-//@ts-expect-error no types for ol-pmtiles
-import { PMTilesRasterSource, PMTilesVectorSource } from 'ol-pmtiles';
-import StacLayer from 'ol-stac';
+import TileState from 'ol/TileState';
 import projcodes from 'proj-codes';
 import proj4 from 'proj4';
 
@@ -153,6 +153,7 @@ import {
 import { markerIcon } from '@/src/shared/icons';
 import { maybeProxied } from '@/src/shared/proxy';
 import { debounce, getCssVarValue, loadFile, throttle } from '@/src/tools';
+
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
   MAP_ADAPTER_FEATURES,
@@ -192,7 +193,7 @@ function setClipPath(
 ): void {
   viewport
     .querySelectorAll<HTMLElement>(`.${comparisonLayerClass(layerId)}`)
-    .forEach(element => {
+    .forEach((element) => {
       if (element.style.clipPath !== clip) {
         element.style.clipPath = clip;
       }
@@ -253,7 +254,7 @@ function loadProxiedWmsTile(
   }
 
   void fetch(proxyUrl, { cache: 'no-store' })
-    .then(async response => {
+    .then(async (response) => {
       if (tile.getState() !== TileState.LOADING) {
         return;
       }
@@ -312,15 +313,15 @@ export class OpenLayersAdapter implements IMapAdapter {
     this._loadingLayers = new Set();
     this._drawTool = new OpenLayersDrawToolController({
       getMap: () => this._map,
-      getLayer: layerId => this.getLayer(layerId),
+      getLayer: (layerId) => this.getLayer(layerId),
       getModel: () => this._model,
-      getFeatureStoreOverlay: storeId =>
+      getFeatureStoreOverlay: (storeId) =>
         this._featureStoreSources.get(storeId)?.overlay,
-      onDrawLayerIdChange: layerId =>
+      onDrawLayerIdChange: (layerId) =>
         this._callbacks?.onDrawLayerIdChange?.(layerId),
-      onDrawGeometryLabelChange: label =>
+      onDrawGeometryLabelChange: (label) =>
         this._callbacks?.onDrawGeometryLabelChange?.(label),
-      setModifyHighlight: features => this._setHighlightFeatures(features),
+      setModifyHighlight: (features) => this._setHighlightFeatures(features),
       log: (level, message) => this._log(level, message),
     });
   }
@@ -411,20 +412,20 @@ export class OpenLayersAdapter implements IMapAdapter {
     });
 
     for (const [sourceId, source] of Object.entries(sources)) {
-      this.addSource(sourceId, source);
+      void this.addSource(sourceId, source);
     }
 
     let index = 0;
 
     for (const [layerId, layer] of Object.entries(layers)) {
-      this.addLayer(layerId, layer, index++);
+      void this.addLayer(layerId, layer, index++);
     }
 
     this._setupInteractions();
     this._setupViewEvents();
     this._setupGeolocation();
 
-    await new Promise<void>(resolve => {
+    await new Promise<void>((resolve) => {
       if (!this._map) {
         resolve();
         return;
@@ -456,7 +457,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       formatConstructors: [GeoJSON as unknown as typeof FeatureFormat],
     });
 
-    dragAndDropInteraction.on('addfeatures', event => {
+    dragAndDropInteraction.on('addfeatures', (event) => {
       const sourceId = UUID.uuid4();
 
       const sourceModel: IJGISSource = {
@@ -467,7 +468,7 @@ export class OpenLayersAdapter implements IMapAdapter {
 
       const layerId = UUID.uuid4();
 
-      this.addSource(sourceId, sourceModel);
+      void this.addSource(sourceId, sourceModel);
       this._model.sharedModel.addSource(sourceId, sourceModel);
 
       const layerModel: IJGISLayer = {
@@ -482,7 +483,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         },
       };
 
-      this.addLayer(layerId, layerModel, this.getLayerIDs().length);
+      void this.addLayer(layerId, layerModel, this.getLayerIDs().length);
       this._model.addLayer(layerId, layerModel);
     });
 
@@ -584,11 +585,11 @@ export class OpenLayersAdapter implements IMapAdapter {
       this._publishScale();
     });
 
-    this._map.on('click', event => {
+    this._map.on('click', (event) => {
       this._identifyFeature(event);
     });
-    this._map.on('click', event => {
-      this._addMarker(event);
+    this._map.on('click', (event) => {
+      void this._addMarker(event);
     });
 
     const viewport = this._map.getViewport();
@@ -607,7 +608,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       this._syncPointer(null);
     });
 
-    viewport.addEventListener('contextmenu', event => {
+    viewport.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       event.stopPropagation();
       this._callbacks?.onContextMenu?.(
@@ -938,7 +939,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       extent: nextView.calculateExtent(this._map.getSize()),
     });
 
-    this._rereadViewProjectedVectorSources();
+    void this._rereadViewProjectedVectorSources();
 
     return {
       code: nextProjection.getCode(),
@@ -1112,7 +1113,10 @@ export class OpenLayersAdapter implements IMapAdapter {
      * Built as an inline SVG rather than via OL's Icon `color` option as this icon needs a
      * contrasting white stroke and the OL API does not support that in a single icon.
      */
-    const [iconWidth, iconHeight, , , iconPath] = faCrosshairs.icon;
+    const [iconWidth, iconHeight, , , iconPathData] = faCrosshairs.icon;
+    const iconPath = Array.isArray(iconPathData)
+      ? iconPathData.join(' ')
+      : iconPathData;
     const crosshairsSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
       `<svg
         xmlns="http://www.w3.org/2000/svg"
@@ -1201,10 +1205,10 @@ export class OpenLayersAdapter implements IMapAdapter {
       DoubleClickZoom,
     ];
 
-    this._map?.getInteractions().forEach(interaction => {
+    this._map?.getInteractions().forEach((interaction) => {
       if (
         navigationInteractions.some(
-          InteractionClass => interaction instanceof InteractionClass,
+          (InteractionClass) => interaction instanceof InteractionClass,
         )
       ) {
         interaction.setActive(enabled);
@@ -1214,7 +1218,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const controlsRoot = this._controlsTarget ?? this._map?.getTargetElement();
     controlsRoot
       ?.querySelectorAll<HTMLButtonElement>('.ol-zoom button')
-      .forEach(button => (button.disabled = !enabled));
+      .forEach((button) => (button.disabled = !enabled));
   }
 
   /**
@@ -1293,9 +1297,9 @@ export class OpenLayersAdapter implements IMapAdapter {
 
     this._spectaRemovedInteractions = [];
 
-    interactionsToRemove.forEach(InteractionClass => {
+    interactionsToRemove.forEach((InteractionClass) => {
       const interaction = interactionArray.find(
-        candidate => candidate instanceof InteractionClass,
+        (candidate) => candidate instanceof InteractionClass,
       );
       if (interaction) {
         this._spectaRemovedInteractions.push(interaction);
@@ -1714,7 +1718,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       layerParameters.symbologyState as IGrammarSymbologyState;
     const rows =
       olSource instanceof VectorSource
-        ? olSource.getFeatures().map(f => (f as Feature).getProperties())
+        ? olSource.getFeatures().map((f) => (f as Feature).getProperties())
         : [];
     const featureValues = extractEncodingFieldValues(grammarState, rows);
 
@@ -1771,7 +1775,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const selectInteraction = new Select({
       hitTolerance: 3,
       multi: true,
-      layers: layer => {
+      layers: (layer) => {
         const localState = this._model?.sharedModel.awareness.getLocalState();
         const selectedLayers = localState?.selected?.value;
 
@@ -1798,7 +1802,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       style: null,
     });
 
-    selectInteraction.on('select', event => {
+    selectInteraction.on('select', () => {
       const identifiedFeatures: IIdentifiedFeatureEntry[] = [];
       const highlightFeatures: Feature[] = [];
 
@@ -1827,7 +1831,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
       const resolution = this._map.getView().getResolution() ?? 1;
 
-      selectInteraction.getFeatures().forEach(feature => {
+      selectInteraction.getFeatures().forEach((feature) => {
         identifiedFeatures.push({
           feature: feature.getProperties(),
           // Specta has no IdentifyPanel to open floaters so we show them on identify.
@@ -1852,7 +1856,7 @@ export class OpenLayersAdapter implements IMapAdapter {
             if (styles.length > 0) {
               const gType = geom.getType();
               hlFeature.setStyle(
-                styles.map(s => this._buildHighlightStyle(s, gType)),
+                styles.map((s) => this._buildHighlightStyle(s, gType)),
               );
               break;
             }
@@ -1931,7 +1935,10 @@ export class OpenLayersAdapter implements IMapAdapter {
 
   flyToGeometry(geometry: Geometry): void {
     if (!geometry) {
-      this._log('warning', `Invalid geometry for flyToGeometry: ${geometry}`);
+      this._log(
+        'warning',
+        `Invalid geometry for flyToGeometry: ${JSON.stringify(geometry)}`,
+      );
       return;
     }
 
@@ -1963,7 +1970,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     if (!geometry) {
       this._log(
         'warning',
-        `No geometry found in feature: ${featureOrGeometry}`,
+        `No geometry found in feature: ${JSON.stringify(featureOrGeometry)}`,
       );
       return;
     }
@@ -2162,7 +2169,7 @@ export class OpenLayersAdapter implements IMapAdapter {
    * Wait for all layers to be loaded.
    */
   private _waitForReady(): Promise<void> {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const checkReady = () => {
         if (this._loadingLayers.size === 0) {
           this._callbacks?.onAllLayersSettled?.();
@@ -2250,7 +2257,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   async updateLayer(
     id: string,
     layer: IJGISLayer,
-    oldLayer?: IDict,
+    _oldLayer?: IDict,
   ): Promise<void> {
     const mapLayer = this.getLayer(id);
     if (!mapLayer) {
@@ -2294,7 +2301,7 @@ export class OpenLayersAdapter implements IMapAdapter {
 
           const style = this.vectorLayerStyleRuleBuilder(layer);
 
-          mapLayer.getLayers().forEach(child => {
+          mapLayer.getLayers().forEach((child) => {
             const sub = child as Layer;
             sub.setOpacity(layerParams.opacity ?? 1);
             if (
@@ -2418,7 +2425,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     return this._map
       .getLayers()
       .getArray()
-      .map(layer => layer.get('id'));
+      .map((layer) => layer.get('id'));
   }
 
   /**
@@ -2460,7 +2467,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     return this._map
       .getLayers()
       .getArray()
-      .find(layer => layer.get('id') === id) as Layer | undefined;
+      .find((layer) => layer.get('id') === id) as Layer | undefined;
   }
 
   /**
@@ -2471,7 +2478,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     return this._map
       .getLayers()
       .getArray()
-      .findIndex(layer => layer.get('id') === id);
+      .findIndex((layer) => layer.get('id') === id);
   }
 
   /**
@@ -2606,7 +2613,7 @@ export class OpenLayersAdapter implements IMapAdapter {
 
           const featureCollection = new Collection(featureArray);
 
-          featureCollection.forEach(feature => {
+          featureCollection.forEach((feature) => {
             feature.setId(getUid(feature));
           });
 
@@ -2645,16 +2652,16 @@ export class OpenLayersAdapter implements IMapAdapter {
           // Convert lon/lat array to extent
           // Get lon/lat from source coordinates
           const leftSide = Math.min(
-            ...sourceParameters.coordinates.map(corner => corner[0]),
+            ...sourceParameters.coordinates.map((corner) => corner[0]),
           );
           const bottomSide = Math.min(
-            ...sourceParameters.coordinates.map(corner => corner[1]),
+            ...sourceParameters.coordinates.map((corner) => corner[1]),
           );
           const rightSide = Math.max(
-            ...sourceParameters.coordinates.map(corner => corner[0]),
+            ...sourceParameters.coordinates.map((corner) => corner[0]),
           );
           const topSide = Math.max(
-            ...sourceParameters.coordinates.map(corner => corner[1]),
+            ...sourceParameters.coordinates.map((corner) => corner[1]),
           );
 
           const extent = [leftSide, bottomSide, rightSide, topSide];
@@ -2683,7 +2690,7 @@ export class OpenLayersAdapter implements IMapAdapter {
             return { ...url, nodata: 0 };
           };
           const sources = await Promise.all(
-            sourceParameters.urls.map(async sourceInfo => {
+            sourceParameters.urls.map(async (sourceInfo) => {
               const isRemote =
                 sourceInfo.url?.startsWith('http://') ||
                 sourceInfo.url?.startsWith('https://');
@@ -2909,7 +2916,7 @@ export class OpenLayersAdapter implements IMapAdapter {
                 src,
                 this._model,
                 sourceParameters.httpHeaders,
-              ).then(proxyUrl =>
+              ).then((proxyUrl) =>
                 loadProxiedWmsTile(tile as ImageTile, proxyUrl),
               );
             },
@@ -2954,7 +2961,7 @@ export class OpenLayersAdapter implements IMapAdapter {
                 const vtTile = tile as VectorTile<RenderFeature>;
                 vtTile.setLoader((extent, _resolution, projection) => {
                   return ServerConnection.makeRequest(url, {}, settings)
-                    .then(response => {
+                    .then((response) => {
                       if (!response.ok) {
                         throw new Error(
                           `Baseline tile request failed: ${response.status}`,
@@ -2962,7 +2969,7 @@ export class OpenLayersAdapter implements IMapAdapter {
                       }
                       return response.arrayBuffer();
                     })
-                    .then(data => {
+                    .then((data) => {
                       const features = vtTile.getFormat().readFeatures(data, {
                         extent,
                         featureProjection: projection,
@@ -3109,7 +3116,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     }
 
     // Remove layers that are no longer in the `layerIds` list.
-    previousLayerIds.forEach(layerId => {
+    previousLayerIds.forEach((layerId) => {
       const layer = this.getLayer(layerId);
       if (layer !== undefined) {
         this._map.removeLayer(layer);
@@ -3138,7 +3145,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       return;
     }
 
-    source.forEachFeature(feature => {
+    source.forEachFeature((feature) => {
       const time = feature.get(selectedFeature);
       const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
       feature.set(`${selectedFeature}ms`, parsedTime);
@@ -3346,7 +3353,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
 
       mapLayer.getLayers().clear();
-      children.forEach(child => mapLayer.getLayers().push(child));
+      children.forEach((child) => mapLayer.getLayers().push(child));
       return;
     }
 
@@ -3463,7 +3470,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const source = sourceId ? this._sources.get(sourceId) : undefined;
     const rows =
       source instanceof VectorSource
-        ? source.getFeatures().map(f => (f as Feature).getProperties())
+        ? source.getFeatures().map((f) => (f as Feature).getProperties())
         : [];
     const featureValues = extractEncodingFieldValues(grammarState, rows);
     const nextLayer = grammarToOLLayer({
@@ -3533,7 +3540,14 @@ export class OpenLayersAdapter implements IMapAdapter {
         }
       }
     } catch (error) {
-      this._log('warning', `Failed to compute extent: ${error}`);
+      const detail =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+            ? error
+            : 'Unknown error';
+
+      this._log('warning', `Failed to compute extent: ${detail}`);
     }
 
     return undefined;
@@ -3703,7 +3717,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const overlayStyle = this.vectorLayerStyleRuleBuilder(layer);
     const baselineStyle = highlightTombstones(overlayStyle, ids);
 
-    group.getLayers().forEach(child => {
+    group.getLayers().forEach((child) => {
       const sub = child as Layer;
       sub.setOpacity(layerParams.opacity ?? 1);
       if (sub instanceof VectorTileLayer) {
@@ -3839,7 +3853,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       .getLayers()
       .getArray()
       .find(
-        child =>
+        (child) =>
           child instanceof VectorTileLayer &&
           child.getSource() === baselineSource,
       ) as VectorTileLayer | undefined;
@@ -3876,7 +3890,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         return true;
       },
       {
-        layerFilter: layer => layer === baselineLayer,
+        layerFilter: (layer) => layer === baselineLayer,
         hitTolerance: 3,
       },
     );

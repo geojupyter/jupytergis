@@ -9,4 +9,4 @@ declare module 'geoparquet' {
     file: AsyncBuffer;
     compressors?: any;
   }): Promise<GeoJSON>;
-};
+}

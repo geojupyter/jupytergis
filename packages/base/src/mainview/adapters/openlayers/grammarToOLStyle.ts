@@ -96,7 +96,7 @@ function normalizeRasterBandFields(
     }
   }
 
-  return expression.map(value =>
+  return expression.map((value) =>
     Array.isArray(value)
       ? normalizeRasterBandFields(value as ExpressionValue)
       : value,
@@ -141,7 +141,7 @@ export function grammarToOLStyle(
   // Guard: state.layers may be absent on legacy Grammar states that predate
   // the layers nesting (e.g. stored as { rules: [...] } without a layers wrapper).
   for (const layer of state.layers ?? []) {
-    if (layer.preprocess?.some(t => t.type === 'kde')) {
+    if (layer.preprocess?.some((t) => t.type === 'kde')) {
       // KDE layers are compiled separately by the renderer (HeatmapLayer).
       // Skip flat-style compilation for this layer.
       continue;
@@ -245,7 +245,7 @@ export function extractEncodingFieldValues(
     );
     return [];
   }
-  return rows.map(r => r[field]).filter(v => v !== null && v !== undefined);
+  return rows.map((r) => r[field]).filter((v) => v !== null && v !== undefined);
 }
 
 // ---------------------------------------------------------------------------
@@ -266,7 +266,7 @@ function buildEncodingExpr(
   entries: IEncodingEntry[],
   encoding: Encoding,
 ): ExpressionValue {
-  const firstUnconditional = entries.findIndex(e => e.guard === undefined);
+  const firstUnconditional = entries.findIndex((e) => e.guard === undefined);
   const reachable =
     firstUnconditional === -1
       ? entries
@@ -277,7 +277,7 @@ function buildEncodingExpr(
       ? encodingZero(encoding)
       : entries[firstUnconditional].expr;
 
-  const conditional = reachable.filter(e => e.guard !== undefined);
+  const conditional = reachable.filter((e) => e.guard !== undefined);
 
   if (conditional.length === 0) {
     return elseExpr;
@@ -374,7 +374,7 @@ function assembleStyle(
 
   // Assemble text-font from its parts. Either part on its own wins over a
   // whole-shorthand rule, falling back to OL's own default for the other half.
-  if (FONT_SUB.some(c => encodingExprs.has(c))) {
+  if (FONT_SUB.some((c) => encodingExprs.has(c))) {
     const size = encodingExprs.get('text-font-size') ?? DEFAULT_FONT_SIZE;
     const family = encodingExprs.get('text-font-family') ?? DEFAULT_FONT_FAMILY;
     style['text-font'] = [
@@ -399,8 +399,8 @@ function assembleStyle(
   // Assemble fill-color from sub-encodings if any fill-* sub-encoding is present.
   // ['color', r, g, b, a] is the OL operator that produces ColorType (r/g/b 0-255, a 0-1).
   if (
-    FILL_SUB.some(c => encodingExprs.has(c)) ||
-    FILL_ALPHA_SUB.some(c => encodingExprs.has(c))
+    FILL_SUB.some((c) => encodingExprs.has(c)) ||
+    FILL_ALPHA_SUB.some((c) => encodingExprs.has(c))
   ) {
     const r = encodingExprs.get('fill-red') ?? 0;
     const g = encodingExprs.get('fill-green') ?? 0;
@@ -411,14 +411,14 @@ function assembleStyle(
 
   // Assemble pixel-color from sub-encodings when pixel-R/G/B are present.
   // pixel-alpha alone does NOT overwrite a direct pixel-color mapping.
-  if (PIXEL_SUB.some(c => encodingExprs.has(c))) {
+  if (PIXEL_SUB.some((c) => encodingExprs.has(c))) {
     const r = encodingExprs.get('pixel-red') ?? 0;
     const g = encodingExprs.get('pixel-green') ?? 0;
     const b = encodingExprs.get('pixel-blue') ?? 0;
     const a = encodingExprs.get('pixel-alpha') ?? 1;
     style['pixel-color'] = ['color', r, g, b, a] as ExpressionValue;
   } else if (
-    PIXEL_ALPHA_SUB.some(c => encodingExprs.has(c)) &&
+    PIXEL_ALPHA_SUB.some((c) => encodingExprs.has(c)) &&
     !encodingExprs.has('pixel-color')
   ) {
     // Alpha-only with no direct pixel-color: compose with black.
@@ -438,7 +438,7 @@ function compileGuard(
   op: 'all' | 'any',
   resolutionForZoom: (zoom: number) => number,
 ): ExpressionValue {
-  const conditions = predicates.map(p =>
+  const conditions = predicates.map((p) =>
     compilePredicate(p, resolutionForZoom),
   );
   return conditions.length === 1 ? conditions[0] : [op, ...conditions];
@@ -492,7 +492,7 @@ function compilePredicate(
         : (['all', ...bounds] as ExpressionValue);
     }
     default:
-      throw new Error(`Invalid predicate type ${predicate}`);
+      throw new Error(`Invalid predicate type ${JSON.stringify(predicate)}`);
   }
 }
 
@@ -575,7 +575,7 @@ function compileMapping(
       // Wrap with coalesce so OL's expression type system infers the correct
       // output type (color vs number). Bare ['get', field] has type 'any'
       // which OL rejects for typed encodings like fill-color.
-      const isColorEncoding = (mapping.encodings as string[]).some(ch =>
+      const isColorEncoding = (mapping.encodings as string[]).some((ch) =>
         [
           'fill-color',
           'stroke-color',
@@ -593,7 +593,7 @@ function compileMapping(
       return ['coalesce', fieldExpr(field), typedFallback] as ExpressionValue;
     }
     default:
-      throw new Error(`Invalid scale scheme ${scale}`);
+      throw new Error(`Invalid scale scheme ${JSON.stringify(scale)}`);
   }
 }
 
@@ -682,7 +682,7 @@ function resolveColorStops(
   } as unknown as SymbologyState;
 
   const computed = computeGraduatedColorStops(syntheticState, numericValues);
-  return computed.map(s => ({
+  return computed.map((s) => ({
     stop: s.value as number,
     color: s.color as RGBA,
   }));
@@ -707,7 +707,7 @@ function compileCategorical(
   let stops: Array<{ value: unknown; color: unknown }>;
 
   if (scale.params.colorStops && scale.params.colorStops.length > 0) {
-    stops = scale.params.colorStops.map(s => ({
+    stops = scale.params.colorStops.map((s) => ({
       value: s.stop,
       color: s.color,
     }));

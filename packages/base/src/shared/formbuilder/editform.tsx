@@ -11,6 +11,7 @@ import * as React from 'react';
 import type { ILayerProps } from '@/src/features/layers/forms/layer/layerform';
 import type { ISourceFormProps } from '@/src/features/layers/forms/source/sourceform';
 import { deepCopy } from '@/src/tools';
+
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 
 export interface IEditFormProps {

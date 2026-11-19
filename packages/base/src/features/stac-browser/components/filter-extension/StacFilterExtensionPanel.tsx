@@ -62,7 +62,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
   );
 
   const selectedItem =
-    collectionItems.find(item => item.value === selectedCollection) ?? null;
+    collectionItems.find((item) => item.value === selectedCollection) ?? null;
 
   if (!model) {
     console.warn('JupyterGIS model not found');
@@ -122,7 +122,10 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
             <ComboboxEmpty>No collection found.</ComboboxEmpty>
             <ComboboxList>
               {(item: CollectionItem) => (
-                <ComboboxItem key={item.value} value={item}>
+                <ComboboxItem
+                  key={item.value}
+                  value={item}
+                >
                   {item.label}
                 </ComboboxItem>
               )}
@@ -158,7 +161,7 @@ function StacFilterExtensionPanel({ model }: IStacFilterExtensionPanelProps) {
           min="1"
           max="1000"
           value={limit}
-          onChange={e => {
+          onChange={(e) => {
             const value = parseInt(e.target.value, 10);
             if (!isNaN(value) && value > 0) {
               setLimit(value);

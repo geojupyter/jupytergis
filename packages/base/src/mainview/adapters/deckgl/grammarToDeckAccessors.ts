@@ -246,7 +246,7 @@ function colorMapAccessor(
     return () => fallback;
   }
 
-  return feature => {
+  return (feature) => {
     const value = readNumber(feature, field);
     return value === undefined ? fallback : interpolateColor(stops, value);
   };
@@ -260,7 +260,7 @@ function resolveColorMapStops(
   const explicit = scale.params.colorStops;
   if (explicit && explicit.length >= 2) {
     return explicit
-      .map(stop => ({ stop: stop.stop, color: toDeckColor(stop.color) }))
+      .map((stop) => ({ stop: stop.stop, color: toDeckColor(stop.color) }))
       .sort((a, b) => a.stop - b.stop);
   }
 
@@ -289,7 +289,7 @@ function resolveColorMapStops(
       (stop): stop is { value: number; color: RGBA } =>
         typeof stop.value === 'number',
     )
-    .map(stop => ({ stop: stop.value, color: toDeckColor(stop.color) }));
+    .map((stop) => ({ stop: stop.value, color: toDeckColor(stop.color) }));
 }
 
 function categoricalAccessor(
@@ -303,12 +303,12 @@ function categoricalAccessor(
     return () => fallback;
   }
 
-  return feature => {
+  return (feature) => {
     const value = readProperty(feature, field);
     if (value === null || value === undefined) {
       return fallback;
     }
-    const match = stops.find(stop => stop.value === value);
+    const match = stops.find((stop) => stop.value === value);
     return match ? match.color : fallback;
   };
 }
@@ -320,7 +320,7 @@ function resolveCategoricalStops(
 ): Array<{ value: string | number; color: DeckColor }> {
   const explicit = scale.params.colorStops;
   if (explicit && explicit.length > 0) {
-    return explicit.map(stop => ({
+    return explicit.map((stop) => ({
       value: stop.stop,
       color: toDeckColor(stop.color),
     }));
@@ -338,7 +338,7 @@ function resolveCategoricalStops(
     collectFieldValues(data, field),
   );
 
-  return computed.flatMap(stop => {
+  return computed.flatMap((stop) => {
     if (typeof stop.value !== 'string' && typeof stop.value !== 'number') {
       return [];
     }
@@ -355,7 +355,7 @@ function scalarAccessor(
   const stops: INumberStop[] =
     explicit && explicit.length >= 2
       ? explicit
-          .map(stop => ({ stop: stop.stop, output: stop.output }))
+          .map((stop) => ({ stop: stop.stop, output: stop.output }))
           .sort((a, b) => a.stop - b.stop)
       : [
           { stop: scale.params.domain[0], output: scale.params.range[0] },
@@ -366,7 +366,7 @@ function scalarAccessor(
     return () => fallback;
   }
 
-  return feature => {
+  return (feature) => {
     const value = readNumber(feature, field);
     return value === undefined ? fallback : interpolateNumber(stops, value);
   };
@@ -375,7 +375,7 @@ function scalarAccessor(
 function identityColorAccessor(
   field: string | undefined,
 ): (feature: unknown) => DeckColor {
-  return feature => {
+  return (feature) => {
     if (!field) {
       return EMPTY_COLOR;
     }
@@ -387,7 +387,7 @@ function identityColorAccessor(
 function identityNumberAccessor(
   field: string | undefined,
 ): (feature: unknown) => number {
-  return feature => {
+  return (feature) => {
     if (!field) {
       return 0;
     }
@@ -418,7 +418,7 @@ function expressionColorAccessor(
     return () => fallback;
   }
 
-  return feature => {
+  return (feature) => {
     try {
       const value = fn(datumFor(feature), EMPTY_GLOBAL);
 
@@ -447,7 +447,7 @@ function expressionNumberAccessor(
     return () => fallback;
   }
 
-  return feature => {
+  return (feature) => {
     try {
       const value = fn(datumFor(feature), EMPTY_GLOBAL);
 
@@ -488,6 +488,8 @@ function compileExpression(
     });
 
     const { code } = generate(ast);
+
+    // oxlint-disable-next-line no-implied-eval
     const fn = new Function('datum', 'global', `return (${code});`) as VegaFn;
     expressionCache.set(cacheKey, fn);
 
@@ -582,7 +584,7 @@ function isRgba(
     Array.isArray(value) &&
     value.length === 4 &&
     value.every(
-      channel => typeof channel === 'number' && Number.isFinite(channel),
+      (channel) => typeof channel === 'number' && Number.isFinite(channel),
     )
   );
 }

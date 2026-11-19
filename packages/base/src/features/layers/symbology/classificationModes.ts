@@ -243,7 +243,7 @@ export namespace VectorClassifications {
     }
 
     if (minimum < 0.0 && maximum > 0.0) {
-      const breaksMinusZero = breaks.map(b => b - 0.0);
+      const breaksMinusZero = breaks.map((b) => b - 0.0);
 
       let posOfMin = 0;
       for (let i = 1; i < breaks.length; i++) {
@@ -264,7 +264,7 @@ export namespace VectorClassifications {
     values: number[],
     nStops: number,
   ) => {
-    const positiveValues = values.filter(v => v > 0);
+    const positiveValues = values.filter((v) => v > 0);
     if (positiveValues.length === 0 || nStops < 1) {
       return [];
     }
@@ -303,7 +303,7 @@ export namespace GeoTiffClassifications {
     const bandValues = values[bandNumber - 1] as TypedArray;
 
     const bandSortedValues = bandValues
-      .filter(value => value !== 0)
+      .filter((value) => value !== 0)
       .sort((a, b) => a - b);
 
     pool.destroy();

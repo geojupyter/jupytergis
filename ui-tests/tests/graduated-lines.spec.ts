@@ -1,5 +1,6 @@
-import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
+
+import { expect, galata, test } from '@jupyterlab/galata';
 
 import {
   getLayerSummary,
@@ -25,7 +26,7 @@ const assertViridisRamp = (strokes: Array<{ value: any; stroke?: string }>) => {
   expect(colors[colors.length - 1]).toBe('rgba(253,231,37,1)');
   expect(new Set(colors).size).toBe(SPEED_LIMITS.length);
 
-  const green = colors.map(color => Number(color?.split(',')[1]));
+  const green = colors.map((color) => Number(color?.split(',')[1]));
   for (let i = 1; i < green.length; i++) {
     expect(green[i]).toBeGreaterThan(green[i - 1]);
   }
@@ -54,7 +55,7 @@ test.describe('#graduatedLines', () => {
     await waitForMapReady(page, map);
 
     const layers = await getLayerSummary(page, map);
-    const roads = layers.find(layer => layer.id === ROADS_LAYER);
+    const roads = layers.find((layer) => layer.id === ROADS_LAYER);
     expect(roads).toBeDefined();
     expect(roads?.visible).toBe(true);
     expect(roads?.featureCount).toBe(5);

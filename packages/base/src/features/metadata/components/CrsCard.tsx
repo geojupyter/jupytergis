@@ -1,9 +1,10 @@
 import * as React from 'react';
 
 import { InfoTip } from '@/src/shared/components/InfoTip';
+
 import { ICrsMetadata, IMetadataField } from '../types';
-import { FieldList, MetadataSection } from './MetadataSection';
 import { getCrsInfoUrl } from '../utils/crs';
+import { FieldList, MetadataSection } from './MetadataSection';
 
 /**
  * Where a reader who does not know what a projection is can go to find out.

@@ -28,7 +28,9 @@ function updateRefPath(refValue, schemaDir, schemaRoot) {
   // Check if the referenced file exists
   const absoluteRefPath = path.resolve(schemaRoot, refPath);
   if (!fs.existsSync(absoluteRefPath)) {
-    throw new Error(`Referenced file does not exist: ${refPath} (resolved to ${absoluteRefPath})`);
+    throw new Error(
+      `Referenced file does not exist: ${refPath} (resolved to ${absoluteRefPath})`,
+    );
   }
 
   // Convert schemaRoot-relative path to schemaDir-relative path
@@ -49,7 +51,7 @@ function updateRefPath(refValue, schemaDir, schemaRoot) {
 function processSchema(schema, schemaDir, schemaRoot) {
   if (Array.isArray(schema)) {
     // Recurse!
-    return schema.map(item => processSchema(item, schemaDir, schemaRoot));
+    return schema.map((item) => processSchema(item, schemaDir, schemaRoot));
   }
 
   if (Object.prototype.toString.call(schema) !== '[object Object]') {
@@ -99,7 +101,9 @@ function preProcessSchemaDirectory(src, dest, schemaRoot) {
       fs.writeFileSync(destChild, JSON.stringify(processedSchema, null, 2));
     } else {
       // There should be no non-JSON files in the schema directory!
-      throw new Error(`Non-JSON file detected in schema directory: ${child.parentPath}/${child.name}`);
+      throw new Error(
+        `Non-JSON file detected in schema directory: ${child.parentPath}/${child.name}`,
+      );
     }
   }
 }
@@ -109,8 +113,10 @@ function preProcessSchemas() {
   preProcessSchemaDirectory(schemaRoot, tempDir, schemaRoot);
 }
 
-console.log(`Pre-processing JSONSchemas for Python type generation (writing to ${tempDir})...`)
+console.debug(
+  `Pre-processing JSONSchemas for Python type generation (writing to ${tempDir})...`,
+);
 
 preProcessSchemas();
 
-console.log('Schemas pre-processed for Python type generation.');
+console.debug('Schemas pre-processed for Python type generation.');

@@ -14,7 +14,7 @@ export function ListStoryTitleBarDesktop({
   const [hasOverflow, setHasOverflow] = useState(false);
 
   const currentPosition = segmentItems.findIndex(
-    item => item.index === currentIndex,
+    (item) => item.index === currentIndex,
   );
   const hasPrev = currentPosition > 0;
   const hasNext =
@@ -70,7 +70,10 @@ export function ListStoryTitleBarDesktop({
   }, [currentIndex]);
 
   return (
-    <nav className="jgis-story-title-bar" aria-label="Story segments">
+    <nav
+      className="jgis-story-title-bar"
+      aria-label="Story segments"
+    >
       {hasOverflow ? (
         <Button
           type="button"
@@ -85,9 +88,9 @@ export function ListStoryTitleBarDesktop({
       <div
         ref={segmentsRef}
         className="jgis-story-title-bar-segments"
-        onWheelCapture={event => event.stopPropagation()}
+        onWheelCapture={(event) => event.stopPropagation()}
       >
-        {segmentItems.map(item => {
+        {segmentItems.map((item) => {
           const isActive = item.index === currentIndex;
           return (
             <ListStoryTitleBarSegmentButton

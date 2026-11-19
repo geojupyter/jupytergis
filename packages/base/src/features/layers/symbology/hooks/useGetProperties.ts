@@ -118,7 +118,7 @@ function getVectorTileProperties({
   const result: Record<string, Set<any>> = {};
   const features = model.getFeaturesForCurrentTile({ sourceId });
 
-  features.forEach(feature => {
+  features.forEach((feature) => {
     const props = feature.getProperties?.();
     if (props) {
       for (const [key, value] of Object.entries(props)) {
@@ -183,7 +183,7 @@ export const useGetProperties = ({
   };
 
   useEffect(() => {
-    getProperties();
+    void getProperties();
   }, [model, layerId]);
 
   useEffect(() => {
@@ -196,7 +196,7 @@ export const useGetProperties = ({
     }
     const handler = (_: IJupyterGISModel, changed: string) => {
       if (changed === sourceId) {
-        getProperties();
+        void getProperties();
       }
     };
     model.tileFeaturesChanged.connect(handler);

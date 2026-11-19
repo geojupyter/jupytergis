@@ -34,6 +34,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
+
 import {
   CategoricalEditor,
   ColorMapEditor,
@@ -302,7 +303,10 @@ const ScalePreview: React.FC<{ scale: IScale }> = ({ scale }) => {
       const { name, reverse, domain } = scale.params;
       return (
         <span className="jp-gis-scale-preview">
-          <ColorRampPreview name={name} reverse={reverse} />
+          <ColorRampPreview
+            name={name}
+            reverse={reverse}
+          />
           <span className="jp-gis-scale-meta">
             {name}
             {domain ? ` [${domain[0]}–${domain[1]}]` : ''}
@@ -449,7 +453,7 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
       };
     }
     default:
-      throw new Error(`Invalid predicate type ${p.type}`);
+      throw new Error(`Invalid predicate type ${JSON.stringify(p.type)}`);
   }
 }
 
@@ -591,7 +595,7 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
     <span className="jp-gis-grammar-when-form">
       <NativeSelect
         value={draft.type}
-        onChange={e => changeType(e.target.value as PredicateType)}
+        onChange={(e) => changeType(e.target.value as PredicateType)}
       >
         <NativeSelectOption value="geometryType">
           Geometry Type
@@ -612,7 +616,7 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
       {draft.type === 'geometryType' && (
         <NativeSelect
           value={draft.geomValue}
-          onChange={e =>
+          onChange={(e) =>
             patch({
               geomValue: e.target.value as INewPredicate['geomValue'],
             })
@@ -630,11 +634,14 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
         draft.type === 'between') && (
         <NativeSelect
           value={draft.field}
-          onChange={e => patch({ field: e.target.value })}
+          onChange={(e) => patch({ field: e.target.value })}
         >
           <NativeSelectOption value="">(field)</NativeSelectOption>
-          {availableFields.map(field => (
-            <NativeSelectOption key={field.value} value={field.value}>
+          {availableFields.map((field) => (
+            <NativeSelectOption
+              key={field.value}
+              value={field.value}
+            >
               {field.label}
             </NativeSelectOption>
           ))}
@@ -644,10 +651,13 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
       {draft.type === 'fieldCompare' && (
         <NativeSelect
           value={draft.compareOp}
-          onChange={e => patch({ compareOp: e.target.value as ICompareOp })}
+          onChange={(e) => patch({ compareOp: e.target.value as ICompareOp })}
         >
-          {COMPARE_OPS.map(op => (
-            <NativeSelectOption key={op} value={op}>
+          {COMPARE_OPS.map((op) => (
+            <NativeSelectOption
+              key={op}
+              value={op}
+            >
               {op}
             </NativeSelectOption>
           ))}
@@ -660,7 +670,7 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
           type={draft.type === 'fieldCompare' ? 'number' : 'text'}
           placeholder="value"
           value={draft.fieldValue}
-          onChange={e => patch({ fieldValue: e.target.value })}
+          onChange={(e) => patch({ fieldValue: e.target.value })}
         />
       )}
 
@@ -671,7 +681,7 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
             type="number"
             placeholder="min"
             value={draft.betweenMin}
-            onChange={e => patch({ betweenMin: e.target.value })}
+            onChange={(e) => patch({ betweenMin: e.target.value })}
           />
           <span
             style={{ flex: '0 0 auto', fontSize: 'var(--jp-ui-font-size0)' }}
@@ -683,7 +693,7 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
             type="number"
             placeholder="max"
             value={draft.betweenMax}
-            onChange={e => patch({ betweenMax: e.target.value })}
+            onChange={(e) => patch({ betweenMax: e.target.value })}
           />
         </>
       )}
@@ -696,7 +706,7 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
             placeholder="min z"
             title="Apply only when zoomed in at least this far"
             value={draft.minZoom}
-            onChange={e => patch({ minZoom: e.target.value })}
+            onChange={(e) => patch({ minZoom: e.target.value })}
           />
           <span
             style={{ flex: '0 0 auto', fontSize: 'var(--jp-ui-font-size0)' }}
@@ -709,7 +719,7 @@ export const WhenRow: React.FC<IWhenRowProps> = ({
             placeholder="max z"
             title="Apply only when zoomed out at least this far"
             value={draft.maxZoom}
-            onChange={e => patch({ maxZoom: e.target.value })}
+            onChange={(e) => patch({ maxZoom: e.target.value })}
           />
         </>
       )}
@@ -777,11 +787,14 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
       <div style={{ gridRow: 1, gridColumn: 1 }}>
         <NativeSelect
           value={selectedField}
-          onChange={e => onFieldChange(0, e.target.value)}
+          onChange={(e) => onFieldChange(0, e.target.value)}
         >
           <NativeSelectOption value="">(none)</NativeSelectOption>
-          {availableFields.map(f => (
-            <NativeSelectOption key={f.value} value={f.value}>
+          {availableFields.map((f) => (
+            <NativeSelectOption
+              key={f.value}
+              value={f.value}
+            >
               {f.label}
             </NativeSelectOption>
           ))}
@@ -803,7 +816,10 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
       }}
     >
       {fields.map((f, i) => (
-        <span key={i} className="jp-gis-grammar-when-chip">
+        <span
+          key={i}
+          className="jp-gis-grammar-when-chip"
+        >
           {f}
           <Button
             type="button"
@@ -820,7 +836,7 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
       <div style={{ minWidth: 60, flex: '0 0 auto' }}>
         <NativeSelect
           value=""
-          onChange={e => {
+          onChange={(e) => {
             if (e.target.value) {
               onAddField(e.target.value);
             }
@@ -828,9 +844,12 @@ const FieldSelector: React.FC<IFieldSelectorProps> = ({
         >
           <NativeSelectOption value="">+field</NativeSelectOption>
           {availableFields
-            .filter(f => !fields.includes(f.value))
-            .map(f => (
-              <NativeSelectOption key={f.value} value={f.value}>
+            .filter((f) => !fields.includes(f.value))
+            .map((f) => (
+              <NativeSelectOption
+                key={f.value}
+                value={f.value}
+              >
                 {f.label}
               </NativeSelectOption>
             ))}
@@ -1034,7 +1053,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
       }
 
       const compat = compatibleEncodings(newScale, isRaster);
-      const filtered = row.encodings.filter(ch => compat.includes(ch));
+      const filtered = row.encodings.filter((ch) => compat.includes(ch));
       const newFieldCount = fieldCountForScale(scheme);
       // Trim fields list to match new count constraint
       const trimmedFields =
@@ -1076,7 +1095,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
 
   const removeEncoding = useCallback(
     (ch: Encoding) => {
-      const next = row.encodings.filter(c => c !== ch);
+      const next = row.encodings.filter((c) => c !== ch);
       if (next.length > 0) {
         onChange({ ...row, encodings: next });
       } else {
@@ -1115,7 +1134,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
   );
 
   const compat = compatibleEncodings(row.scale, isRaster);
-  const availableToAdd = compat.filter(ch => !row.encodings.includes(ch));
+  const availableToAdd = compat.filter((ch) => !row.encodings.includes(ch));
 
   return (
     <div className="jp-gis-grammar-rule">
@@ -1141,7 +1160,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
         <div className="jp-gis-grammar-section jp-gis-grammar-scale-section">
           <NativeSelect
             value={row.scale.scheme}
-            onChange={e =>
+            onChange={(e) =>
               handleSchemeChange(e.target.value as IScale['scheme'])
             }
           >
@@ -1149,7 +1168,10 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               ({ value, disabled }) =>
                 !disabled && !disabledSchemes.includes(value),
             ).map(({ value, label }) => (
-              <NativeSelectOption key={value} value={value}>
+              <NativeSelectOption
+                key={value}
+                value={value}
+              >
                 {label}
               </NativeSelectOption>
             ))}
@@ -1157,11 +1179,14 @@ const MappingRow: React.FC<IMappingRowProps> = ({
           <button
             type="button"
             className="jp-gis-grammar-preview-btn"
-            onClick={() => setExpanded(v => !v)}
+            onClick={() => setExpanded((v) => !v)}
             title={expanded ? 'Collapse editor' : 'Edit scale'}
           >
             <ScalePreview scale={row.scale} />
-            <span className="jp-gis-grammar-preview-chevron" aria-hidden="true">
+            <span
+              className="jp-gis-grammar-preview-chevron"
+              aria-hidden="true"
+            >
               {expanded ? '▾' : '▸'}
             </span>
           </button>
@@ -1186,12 +1211,15 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               <div className="jp-gis-grammar-encoding-select">
                 <NativeSelect
                   value={ch}
-                  onChange={e =>
+                  onChange={(e) =>
                     handleEncodingChange(i, e.target.value as Encoding)
                   }
                 >
-                  {compat.map(c => (
-                    <NativeSelectOption key={c} value={c}>
+                  {compat.map((c) => (
+                    <NativeSelectOption
+                      key={c}
+                      value={c}
+                    >
                       {ENCODING_LABELS[c] ?? c}
                     </NativeSelectOption>
                   ))}
@@ -1223,7 +1251,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               <div className="jp-gis-grammar-encoding-select">
                 <NativeSelect
                   value=""
-                  onChange={e => {
+                  onChange={(e) => {
                     if (e.target.value) {
                       addEncoding(e.target.value as Encoding);
                     }
@@ -1232,8 +1260,11 @@ const MappingRow: React.FC<IMappingRowProps> = ({
                   <NativeSelectOption value="">
                     (add encoding)
                   </NativeSelectOption>
-                  {availableToAdd.map(ch => (
-                    <NativeSelectOption key={ch} value={ch}>
+                  {availableToAdd.map((ch) => (
+                    <NativeSelectOption
+                      key={ch}
+                      value={ch}
+                    >
                       {ENCODING_LABELS[ch] ?? ch}
                     </NativeSelectOption>
                   ))}
@@ -1271,7 +1302,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
               predicate={pred}
               availableFields={availableFields}
               zoomRangeSupported={zoomRangeSupported}
-              onChange={updated => updatePredicate(i, updated)}
+              onChange={(updated) => updatePredicate(i, updated)}
               onDelete={() => removePredicate(i)}
             />
           ))}
@@ -1344,7 +1375,7 @@ const MappingRow: React.FC<IMappingRowProps> = ({
             <ExpressionEditor
               scale={row.scale}
               onChange={handleScaleChange}
-              fields={availableFields.map(f => f.value)}
+              fields={availableFields.map((f) => f.value)}
             />
           )}
         </div>

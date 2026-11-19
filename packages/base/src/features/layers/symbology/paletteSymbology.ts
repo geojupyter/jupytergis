@@ -29,7 +29,7 @@ export function paletteSymbology(
   // Unused entries share one colour: use it as the fallback and leave it out
   // of the stops, so that only the real classes are listed.
   const counts: Record<string, number> = {};
-  colors.forEach(c => (counts[c.join()] = (counts[c.join()] ?? 0) + 1));
+  colors.forEach((c) => (counts[c.join()] = (counts[c.join()] ?? 0) + 1));
   const fallback = colors.reduce((a, b) =>
     counts[b.join()] > counts[a.join()] ? b : a,
   );

@@ -10,7 +10,6 @@ export interface IListStoryScrollState {
 
 interface IComputeListStoryScrollInput {
   scrollTop: number;
-  viewportHeight: number;
   segments: IListStoryScrollTrackSegment[];
 }
 
@@ -109,7 +108,6 @@ function buildSegmentTransitionPayload(
 
 export function computeListStoryScrollState({
   scrollTop,
-  viewportHeight,
   segments,
 }: IComputeListStoryScrollInput): IListStoryScrollState | null {
   if (!segments.length) {

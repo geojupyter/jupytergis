@@ -17,14 +17,12 @@ We have several tools configured for checking code quality:
   - Generic pre-commit checks help avoid common mistakes like committing large
     files or trailing whitespace.
 
-- **Formatting and lint checks and autofixers for Typescript, Javascript, CSS, JSON, Markdown, and YAML.**
+- **Oxfmt formats Typescript, Javascript, CSS, JSON, Markdown, and YAML.
+  Oxlint lints and sometimes autofixes Javascript and Typescript.**
   Defined as package scripts (in `package.json`).
   Run manually with `pnpm run lint`.
   **Will exit 0 when applying fixes.**
   **Check the logs and/or `git status` after every run.**
-  - Prettier formats the file types listed above.
-
-  - Eslint lints (sometimes autofixes) JS/TS code.
 
 - **UI tests using [Galata](https://github.com/jupyterlab/galata)**, defined in the
   `ui-tests/` directory.

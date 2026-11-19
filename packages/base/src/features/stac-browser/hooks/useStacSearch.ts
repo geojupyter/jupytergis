@@ -69,7 +69,7 @@ export function useStacSearch({
       }
     }
 
-    loadStacSearchStateFromDb();
+    void loadStacSearchStateFromDb();
   }, [stateDb]);
 
   // Save state to StateDB on change
@@ -82,7 +82,7 @@ export function useStacSearch({
       });
     }
 
-    saveStacSearchStateToDb();
+    void saveStacSearchStateToDb();
   }, [startTime, endTime, useWorldBBox, stateDb]);
 
   // Listen for model updates to get current bounding box

@@ -42,8 +42,9 @@ import {
   visibilityIcon,
 } from '@/src/shared/icons';
 import { ILeftPanelClickHandlerParams } from '@/src/workspace/panels/leftpanel';
-import { LegendItem } from './legendItem';
+
 import { rasterSubMenu, vectorSubMenu } from '../../menus';
+import { LegendItem } from './legendItem';
 
 const LAYER_GROUP_CLASS = 'jp-gis-layerGroup';
 const LAYER_GROUP_HEADER_CLASS = 'jp-gis-layerGroupHeader';
@@ -267,7 +268,7 @@ function createContextMenu(
 function buildCompareMenu(contextMenu: ContextMenu, model: IJupyterGISModel) {
   const submenu =
     contextMenu.menu.items.find(
-      item =>
+      (item) =>
         item.type === 'submenu' &&
         item.submenu?.id === 'jp-gis-contextmenu-compare',
     )?.submenu ?? null;
@@ -313,7 +314,7 @@ function buildCompareMenu(contextMenu: ContextMenu, model: IJupyterGISModel) {
 function buildGroupsMenu(contextMenu: ContextMenu, model: IJupyterGISModel) {
   const submenu =
     contextMenu.menu.items.find(
-      item =>
+      (item) =>
         item.type === 'submenu' &&
         item.submenu?.id === 'jp-gis-contextmenu-movelayer',
     )?.submenu ?? null;
@@ -357,7 +358,7 @@ function buildGroupsMenu(contextMenu: ContextMenu, model: IJupyterGISModel) {
     args: { label: '' },
   });
 
-  groupNames.forEach(name => {
+  groupNames.forEach((name) => {
     submenu.addItem({
       command: CommandIDs.moveSelectedToGroup,
       args: { label: name },
@@ -369,7 +370,7 @@ function buildGroupsMenu(contextMenu: ContextMenu, model: IJupyterGISModel) {
   });
 }
 
-export const LayersBodyComponent: React.FC<IBodyProps> = props => {
+export const LayersBodyComponent: React.FC<IBodyProps> = (props) => {
   const model = props.model;
   const commands = props.commands;
 
@@ -399,7 +400,7 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     Private.dragInfo.dragOverPosition = null;
   };
 
-  const _onDrop = (e: React.DragEvent) => {
+  const _onDrop = () => {
     Private.dragIndicator.style.display = 'none';
 
     if (model === undefined) {
@@ -486,7 +487,7 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
     } else {
       // Check if new selection is the same type as previous selections
       const isSelectedSameType = Object.values(selectedValue).some(
-        selection => selection.type === type,
+        (selection) => selection.type === type,
       );
 
       if (!isSelectedSameType) {
@@ -536,7 +537,7 @@ export const LayersBodyComponent: React.FC<IBodyProps> = props => {
       onDragOver={_onDragOver}
       onContextMenu={_onContextMenu}
     >
-      {layerTree.map(layer =>
+      {layerTree.map((layer) =>
         typeof layer === 'string' ? (
           <LayerComponent
             key={layer}
@@ -574,7 +575,7 @@ interface ILayerGroupProps {
 /**
  * The component to handle group of layers.
  */
-const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
+const LayerGroupComponent: React.FC<ILayerGroupProps> = (props) => {
   const { group, gisModel, commands, onClick, state } = props;
 
   if (group === undefined) {
@@ -603,7 +604,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
       );
     };
 
-    getExpandedState();
+    void getExpandedState();
   }, []);
 
   /**
@@ -675,7 +676,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
   };
 
   const handleExpand = async () => {
-    state.save(`jupytergis:${group.name}`, { expanded: !open });
+    void state.save(`jupytergis:${group.name}`, { expanded: !open });
     setOpen(!open);
   };
 
@@ -717,16 +718,16 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
         onDragOver={Private.onDragOver}
         data-id={name}
       >
-        <LabIcon.resolveReact
-          icon={caretDownIcon}
-          className={`${LAYER_GROUP_COLLAPSER_CLASS}${open ? ' jp-mod-expanded' : ''}`}
-          tag={'span'}
-        />
+        {LabIcon.resolveReact({
+          icon: caretDownIcon,
+          className: `${LAYER_GROUP_COLLAPSER_CLASS}${open ? ' jp-mod-expanded' : ''}`,
+          tag: 'span',
+        })}
         {isEditing ? (
           <input
             type="text"
             value={editValue}
-            onChange={e => setEditValue(e.target.value)}
+            onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleRenameKeyDown}
             onBlur={handleRenameSave}
             className={LAYER_TEXT_CLASS}
@@ -741,7 +742,11 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
             autoFocus
           />
         ) : (
-          <span id={id} className={LAYER_TEXT_CLASS} tabIndex={-2}>
+          <span
+            id={id}
+            className={LAYER_TEXT_CLASS}
+            tabIndex={-2}
+          >
             {name}
           </span>
         )}
@@ -759,7 +764,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
           {layers
             .slice()
             .reverse()
-            .map(layer =>
+            .map((layer) =>
               typeof layer === 'string' ? (
                 <LayerComponent
                   key={layer}
@@ -828,7 +833,7 @@ function isSelected(layerId: string, model: IJupyterGISModel | undefined) {
 /**
  * The component to display a single layer.
  */
-const LayerComponent: React.FC<ILayerProps> = props => {
+const LayerComponent: React.FC<ILayerProps> = (props) => {
   const { layerId, gisModel, commands, onClick } = props;
   const layer = gisModel?.getLayer(layerId);
   if (layer === undefined) {
@@ -1055,8 +1060,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
 
   return (
     <div
-      className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS}
-                  ${selected ? ' jp-mod-selected' : ''}`}
+      className={`${LAYER_ITEM_CLASS} ${LAYER_CLASS} ${selected ? 'jp-mod-selected' : ''}`}
       draggable={isDraggable}
       onDragStart={Private.onDragStart}
       onDragOver={Private.onDragOver}
@@ -1076,9 +1080,9 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           minimal
           onClick={
             hasSupportedSymbology
-              ? e => {
+              ? (e) => {
                   e.stopPropagation();
-                  setExpanded(v => !v);
+                  setExpanded((v) => !v);
                 }
               : undefined
           }
@@ -1091,15 +1095,18 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           }
           style={{ visibility: hasSupportedSymbology ? 'visible' : 'hidden' }}
         >
-          <LabIcon.resolveReact
-            icon={expanded ? caretDownIcon : caretRightIcon}
-            tag="span"
-          />
+          {LabIcon.resolveReact({
+            icon: expanded ? caretDownIcon : caretRightIcon,
+            tag: 'span',
+          })}
         </Button>
 
         {/* Visibility toggle for normal layers, Slide number for story segments */}
         {isStorySegmentLayer ? (
-          <span className={LAYER_SLIDE_NUMBER_CLASS} title="Slide number">
+          <span
+            className={LAYER_SLIDE_NUMBER_CLASS}
+            title="Slide number"
+          >
             {getSlideNumber()}
           </span>
         ) : (
@@ -1115,39 +1122,36 @@ const LayerComponent: React.FC<ILayerProps> = props => {
             disabled={!!loadError}
             minimal
           >
-            <LabIcon.resolveReact
-              icon={showVisible ? visibilityIcon : nonVisibilityIcon}
-              className={`${LAYER_ICON_CLASS}${showVisible ? '' : ' jp-gis-mod-hidden'}`}
-              tag="span"
-            />
+            {LabIcon.resolveReact({
+              icon: showVisible ? visibilityIcon : nonVisibilityIcon,
+              className: `${LAYER_ICON_CLASS}${showVisible ? '' : ' jp-gis-mod-hidden'}`,
+              tag: 'span',
+            })}
           </Button>
         )}
 
-        {icons.has(iconKey) && (
-          <LabIcon.resolveReact
-            {...icons.get(iconKey)}
-            className={LAYER_ICON_CLASS}
-          />
-        )}
+        {icons.has(iconKey) &&
+          LabIcon.resolveReact({
+            ...icons.get(iconKey),
+            className: LAYER_ICON_CLASS,
+          })}
 
-        {comparedSide && (
-          <LabIcon.resolveReact
-            icon={columns2Icon}
-            className={LAYER_ICON_CLASS}
-            tag="span"
-            title={
+        {comparedSide &&
+          LabIcon.resolveReact({
+            icon: columns2Icon,
+            className: LAYER_ICON_CLASS,
+            tag: 'span',
+            title:
               comparedSide === 'left'
                 ? 'Comparing, shown left of the swipe divider'
-                : 'Comparing, shown right of the swipe divider'
-            }
-          />
-        )}
+                : 'Comparing, shown right of the swipe divider',
+          })}
 
         {isEditing ? (
           <input
             type="text"
             value={editValue}
-            onChange={e => setEditValue(e.target.value)}
+            onChange={(e) => setEditValue(e.target.value)}
             onKeyDown={handleRenameKeyDown}
             onBlur={handleRenameSave}
             className={LAYER_TEXT_CLASS}
@@ -1194,10 +1198,10 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           <span
             className={LAYER_OPACITY_SLIDER_CLASS}
             title={`Opacity: ${Math.round(opacity * 100)}%`}
-            onClick={e => e.stopPropagation()}
-            onDoubleClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            onDoubleClick={(e) => e.stopPropagation()}
             // Disable the row drag while adjusting the slider.
-            onPointerDown={e => {
+            onPointerDown={(e) => {
               e.stopPropagation();
               setIsDraggable(false);
             }}
@@ -1211,7 +1215,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
               step={1}
               value={[Math.round(opacity * 100)]}
               aria-label="Layer opacity"
-              onValueChange={value => {
+              onValueChange={(value) => {
                 const next = Array.isArray(value) ? value[0] : value;
                 handleOpacityChange(next / 100);
               }}
@@ -1226,11 +1230,11 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           minimal
           disabled={!!loadError}
         >
-          <LabIcon.resolveReact
-            icon={targetWithCenterIcon}
-            className={LAYER_ICON_CLASS}
-            tag="span"
-          />
+          {LabIcon.resolveReact({
+            icon: targetWithCenterIcon,
+            className: LAYER_ICON_CLASS,
+            tag: 'span',
+          })}
         </Button>
         <Button
           className="jp-gis-layer-more-btn"
@@ -1249,7 +1253,10 @@ const LayerComponent: React.FC<ILayerProps> = props => {
           onClick={setSelection}
           onContextMenu={setSelection}
         >
-          <LegendItem layerId={layerId} model={gisModel} />
+          <LegendItem
+            layerId={layerId}
+            model={gisModel}
+          />
         </div>
       )}
     </div>

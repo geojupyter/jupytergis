@@ -27,7 +27,12 @@ export function ErrorTip({
 }: IErrorTipProps) {
   return (
     <HoverTip
-      icon={<XCircle data-size="md" className="jgis-error-tip-icon" />}
+      icon={
+        <XCircle
+          data-size="md"
+          className="jgis-error-tip-icon"
+        />
+      }
       triggerLabel={triggerLabel}
       className={cn('jgis-error-tip-content', className)}
       {...props}

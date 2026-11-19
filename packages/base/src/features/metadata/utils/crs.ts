@@ -121,7 +121,9 @@ export function getCrsUnits(proj4Definition?: string): string | undefined {
  * epsg.io covers EPSG codes; anything else gets no link rather than a broken
  * one.
  */
-export function getCrsInfoUrl(code?: string): string | undefined {
+export function getCrsInfoUrl(
+  code?: string | number | null,
+): string | undefined {
   const normalized = normalizeCrsCode(code);
   if (!normalized) {
     return undefined;
@@ -204,18 +206,18 @@ export function transformExtent(
   try {
     const transformer = proj4(fromCode, toCode);
     const transformed = points
-      .map(point => transformer.forward(point))
-      .filter(point => point.every(Number.isFinite));
+      .map((point) => transformer.forward(point))
+      .filter((point) => point.every(Number.isFinite));
 
     if (!transformed.length) {
       return undefined;
     }
 
     return [
-      Math.min(...transformed.map(p => p[0])),
-      Math.min(...transformed.map(p => p[1])),
-      Math.max(...transformed.map(p => p[0])),
-      Math.max(...transformed.map(p => p[1])),
+      Math.min(...transformed.map((p) => p[0])),
+      Math.min(...transformed.map((p) => p[1])),
+      Math.max(...transformed.map((p) => p[0])),
+      Math.max(...transformed.map((p) => p[1])),
     ];
   } catch {
     return undefined;

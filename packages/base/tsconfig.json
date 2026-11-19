@@ -1,23 +1,15 @@
 {
   "extends": "../../tsconfigbase.json",
   "compilerOptions": {
-    "outDir": "lib",
-    "rootDir": "src",
+    "composite": false,
+    "declaration": false,
+    "incremental": false,
+    "noEmit": true,
+    "jsx": "react",
     "paths": {
       "@/*": ["./*"]
     },
-    "plugins": [
-      { "transform": "typescript-transform-paths" },
-      { "transform": "typescript-transform-paths", "afterDeclarations": true }
-    ]
+    "types": ["jest", "node", "webpack-env"]
   },
-  "exclude": ["**/*.spec.ts"],
-  "include": [
-    "src/**/*",
-    "src/schema/*.json",
-    "src/_interface/*.json",
-    "src/*.json",
-    "src/typings/*",
-    "src/features/layers/symbology/components/color_ramp/cmocean.json"
-  ]
+  "include": ["src/**/*"]
 }

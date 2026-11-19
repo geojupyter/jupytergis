@@ -60,7 +60,7 @@ async function patchGeoJSONFeatureAttributes(
 
   const featureId = target.featureId;
   const index = features.findIndex(
-    feature => feature.properties?._id === featureId,
+    (feature) => feature.properties?._id === featureId,
   );
 
   if (index < 0 || index >= features.length) {
@@ -74,7 +74,7 @@ async function patchGeoJSONFeatureAttributes(
     features: IGeoJSONFeatureLike[];
   };
   const updatedFeature = updatedData.features[index];
-  const nextAttributes: IDict<any> = { ...(updatedFeature.properties ?? {}) };
+  const nextAttributes: IDict<any> = { ...updatedFeature.properties };
 
   Object.entries(attributeUpdates).forEach(([key, value]) => {
     if (value === undefined) {

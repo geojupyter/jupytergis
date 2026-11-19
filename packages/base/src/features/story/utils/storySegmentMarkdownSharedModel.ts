@@ -5,6 +5,7 @@ import { removeAwarenessStates } from 'y-protocols/awareness';
 import { Text, YTextEvent } from 'yjs';
 
 import { debounce } from '@/src/tools';
+
 import { updateSegmentContent } from './storySegmentContent';
 
 const PARAMETER_SYNC_DEBOUNCE_MS = 300;
@@ -80,7 +81,7 @@ export class StorySegmentMarkdownSharedModel implements IYText {
   }
 
   getSource(): string {
-    return this.ysource.toString();
+    return this.ysource.toJSON();
   }
 
   setSource(value: string): void {
@@ -215,7 +216,7 @@ export function peekStorySegmentMarkdown(
     return undefined;
   }
 
-  return model.sharedModel.ydoc.getText(segmentId).toString();
+  return model.sharedModel.ydoc.getText(segmentId).toJSON();
 }
 
 export function getStorySegmentMarkdownSharedModel(

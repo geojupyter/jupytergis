@@ -1,3 +1,5 @@
+import path from 'path';
+
 import {
   IJupyterLabPageFixture,
   expect,
@@ -5,7 +7,6 @@ import {
   test,
 } from '@jupyterlab/galata';
 import { Locator } from '@playwright/test';
-import path from 'path';
 
 // A document with layers, so the "Edit a layer" step has a layer item to
 // highlight.
@@ -46,7 +47,7 @@ test.describe('#featureTour', () => {
     );
   });
 
-  test.afterEach(async ({ page, tmpPath }) => {
+  test.afterEach(async ({ page }) => {
     await page.activity.closeAll();
     if (await page.filebrowser.contents.fileExists(FILENAME)) {
       await page.filebrowser.contents.deleteFile(FILENAME);

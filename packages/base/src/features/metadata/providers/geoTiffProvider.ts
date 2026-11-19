@@ -3,6 +3,7 @@ import { fromBlob, fromUrl, GeoTIFF, GeoTIFFImage } from 'geotiff';
 
 import { maybeProxied } from '@/src/shared/proxy';
 import { loadFile } from '@/src/tools';
+
 import {
   IBandMetadata,
   ILayerMetadata,
@@ -249,7 +250,7 @@ async function sampleBandRanges(
 
     const noData = image.getGDALNoData();
 
-    return rasters.map(band => {
+    return rasters.map((band) => {
       let minimum = Infinity;
       let maximum = -Infinity;
 

@@ -2,6 +2,7 @@ import {
   analyzeZarrStore,
   getBandInfoFromZarr,
 } from '@/src/features/layers/symbology/zarrBandDiscovery';
+
 import {
   IBandMetadata,
   ILayerMetadata,
@@ -55,7 +56,7 @@ async function readBands(url: string): Promise<IBandMetadata[] | undefined> {
     const bands = await getBandInfoFromZarr(url);
 
     return bands.length
-      ? bands.map(band => ({
+      ? bands.map((band) => ({
           band: band.band,
           name: band.name,
           colorInterpretation: band.colorInterpretation,

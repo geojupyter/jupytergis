@@ -113,7 +113,6 @@ export function useListStoryScroll({
 
     const next = computeListStoryScrollState({
       scrollTop: scroller.scrollTop,
-      viewportHeight: scroller.clientHeight,
       segments: layout.segments,
     });
 

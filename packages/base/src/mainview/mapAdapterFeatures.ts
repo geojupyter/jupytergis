@@ -246,7 +246,7 @@ export function getSupportTable(): ISupportGroup[] {
   ): ISupportRow => ({
     label,
     support: Object.fromEntries(
-      types.map(type => [type, pick(MAP_ADAPTER_FEATURES[type])]),
+      types.map((type) => [type, pick(MAP_ADAPTER_FEATURES[type])]),
     ) as Record<IMapAdapterType, boolean>,
   });
 
@@ -256,20 +256,20 @@ export function getSupportTable(): ISupportGroup[] {
       rows: LAYER_ENTRIES.map(({ label, layer, source }) =>
         row(
           label,
-          f => f.layers[layer] && (source === undefined || f.sources[source]),
+          (f) => f.layers[layer] && (source === undefined || f.sources[source]),
         ),
       ),
     },
     {
       title: 'Tools',
-      rows: (Object.keys(TOOL_LABELS) as ToolKey[]).map(key =>
-        row(TOOL_LABELS[key], f => f[key]),
+      rows: (Object.keys(TOOL_LABELS) as ToolKey[]).map((key) =>
+        row(TOOL_LABELS[key], (f) => f[key]),
       ),
     },
     {
       title: 'Symbology',
-      rows: (Object.keys(SYMBOLOGY_LABELS) as SymbologyKey[]).map(key =>
-        row(SYMBOLOGY_LABELS[key], f => f[key]),
+      rows: (Object.keys(SYMBOLOGY_LABELS) as SymbologyKey[]).map((key) =>
+        row(SYMBOLOGY_LABELS[key], (f) => f[key]),
       ),
     },
   ];

@@ -109,7 +109,7 @@ export function StacResultsProvider({
     IWmsCollectionSummary[]
   >([]);
   const wmsCollection =
-    wmsCollections.find(item => item.id === catalogCollectionId) ?? null;
+    wmsCollections.find((item) => item.id === catalogCollectionId) ?? null;
   const [selectedUrl, setSelectedUrlState] = useState(HYDROWEB_STAC_URL);
   const [currentPage, setCurrentPageState] = useState(1);
   const currentPageRef = useRef(1);
@@ -140,7 +140,7 @@ export function StacResultsProvider({
       hasLoadedSelectedUrlRef.current = true;
     }
 
-    loadStacSelectedUrlFromDb();
+    void loadStacSelectedUrlFromDb();
   }, [stateDb]);
 
   // Save selected URL to StateDB on change, after the initial load.
@@ -154,7 +154,7 @@ export function StacResultsProvider({
       });
     }
 
-    saveStacSelectedUrlToDb();
+    void saveStacSelectedUrlToDb();
   }, [selectedUrl, stateDb]);
 
   // Keep ref in sync with state
@@ -350,7 +350,7 @@ export function StacResultsProvider({
         } else {
           // If no context, check pagination links to determine if there are more results
           const hasNext =
-            data.links?.some(link => link.rel === 'next') ?? false;
+            data.links?.some((link) => link.rel === 'next') ?? false;
           const featuresCount = data.features.length;
 
           // If there are more results, show the number of results and a +
@@ -373,7 +373,7 @@ export function StacResultsProvider({
         }
 
         setIsLoading(false);
-      } catch (error) {
+      } catch {
         setResults([], '0', 0);
         setIsLoading(false);
       }
@@ -411,7 +411,7 @@ export function StacResultsProvider({
       const currentLinks = paginationLinks;
 
       // Find the pagination link by rel
-      const link = currentLinks.find(l => {
+      const link = currentLinks.find((l) => {
         if (dir === 'next') {
           return l.rel === 'next';
         }
