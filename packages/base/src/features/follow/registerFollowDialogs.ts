@@ -108,7 +108,7 @@ export function registerFollowDialogs({
   registerFollowDialog('processing', (model, params) => {
     const processingType = params.processingType as 'Export' | ProcessingType;
     const schema = {
-      ...(formSchemaRegistry.getSchemas().get(params.schemaId as string) ?? {}),
+      ...formSchemaRegistry.getSchemas().get(params.schemaId as string),
     };
 
     return new ProcessingFormDialog({

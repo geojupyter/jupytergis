@@ -77,7 +77,7 @@ export function WmsTileSourceForm(
       } else {
         setWmsAvailableLayers([]);
         handleChangeBase({
-          ...(formData ?? {}),
+          ...formData,
           params: {
             ...((formData?.params ?? {}) as IDict | {}),
             layers: undefined,
@@ -97,7 +97,7 @@ export function WmsTileSourceForm(
     }
     setWmsAvailableLayers([]);
     handleChangeBase({
-      ...(formData ?? {}),
+      ...formData,
       params: {
         ...((formData?.params ?? {}) as IDict),
         layers: undefined,

@@ -1012,7 +1012,7 @@ const Form: React.FC<IFormProps> = ({
         // unless it came from a UDP that did.
         parameters: editingUdp?.parameters ?? [],
         metadata: {
-          ...(editingUdp?.metadata ?? {}),
+          ...editingUdp?.metadata,
           ...(summary ? { summary } : {}),
         },
       },

@@ -79,7 +79,7 @@ export function processBaseSchema(
         orderable: false,
         removable: false,
         addable: false,
-        ...((uiSchema[k] as IDict)['ui:options'] ?? {}),
+        ...(uiSchema[k] as IDict)['ui:options'],
       };
       const items = v['items'];
       if (
@@ -93,7 +93,7 @@ export function processBaseSchema(
             removable: false,
             addable: false,
           },
-          ...((uiSchema[k] as IDict).items ?? {}),
+          ...(uiSchema[k] as IDict).items,
         };
       }
     }
