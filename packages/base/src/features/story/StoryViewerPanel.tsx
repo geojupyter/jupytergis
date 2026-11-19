@@ -201,8 +201,6 @@ function StoryViewerPanel({
             <StoryImageSection
               imageUrl={activeSlide.content.image}
               imageLoaded={imageLoaded}
-              layerName={layerName ?? ''}
-              slideNumber={currentIndex}
               navSlot={navPlacement === 'over-image' ? navSlot : null}
             />
           ) : null}
