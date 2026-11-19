@@ -125,6 +125,11 @@ export const openEOTokensPlugin: JupyterFrontEndPlugin<IOpenEOTokensProvider> =
     requires: [],
     provides: IOpenEOTokensProviderToken,
     activate: (app: JupyterFrontEnd) => {
+      // Allow providing the openEOTokensProvider globally
+      if (window.openEOTokensProvider) {
+        return window.openEOTokensProvider;
+      }
+
       return new LocalStorageOpenEOTokensProvider();
     },
   };
