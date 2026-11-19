@@ -2,6 +2,12 @@
   "name": "@jupytergis/jupytergis-root",
   "version": "0.18.2",
   "private": true,
+  "workspaces": [
+    "packages/*",
+    "python/jupytergis_core",
+    "python/jupytergis_lab",
+    "python/jupytergis_qgis"
+  ],
   "homepage": "https://github.com/geojupyter/jupytergis",
   "repository": {
     "type": "git",
