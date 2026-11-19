@@ -739,7 +739,7 @@ export function addCommands(
         return current.model.sharedModel.redo();
       }
     },
-    ...icons.get(CommandIDs.redo)?.icon,
+    ...icons.get(CommandIDs.redo),
   });
 
   commands.addCommand(CommandIDs.undo, {
@@ -1527,7 +1527,7 @@ export function addCommands(
         return;
       }
 
-      await Private.removeSelectedItems(model);
+      Private.removeSelectedItems(model);
     },
     ...icons.get(CommandIDs.removeSelected),
   });
@@ -2508,7 +2508,7 @@ export function addCommands(
       // TODO should check if at least one layer exists?
       return true;
     },
-    execute: (args) => {
+    execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
@@ -2662,7 +2662,7 @@ export function addCommands(
         !current.model.jgisSettings.storyMapsDisabled
       );
     },
-    execute: (args) => {
+    execute: () => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
@@ -2935,7 +2935,7 @@ export function addCommands(
     for (const command of Object.values(CommandIDs)) {
       try {
         commands.notifyCommandChanged(command);
-      } catch (_) {
+      } catch {
         // Do Continue if command is not registered
       }
     }
@@ -2943,7 +2943,7 @@ export function addCommands(
 
   let cleanup: (() => void) | null = null;
 
-  tracker.currentChanged.connect((_) => {
+  tracker.currentChanged.connect(() => {
     cleanup?.();
     cleanup = null;
 

@@ -70,7 +70,7 @@ export function createCommands() {
     execute: jest.fn(),
     isToggled: jest.fn(() => false),
     notifyCommandChanged: jest.fn(),
-  } as unknown as import('@lumino/commands').CommandRegistry;
+  };
 }
 export function createTracker(
   model: ReturnType<typeof createModel>,
@@ -134,7 +134,7 @@ export function attachSession(
   session.attachDialog(
     dialog as never,
     model as never,
-    commands,
+    commands as never,
     {} as never,
     {} as never,
     tracker as never,
