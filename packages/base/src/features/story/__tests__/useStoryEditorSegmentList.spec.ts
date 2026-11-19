@@ -59,13 +59,16 @@ function createModel(
     { storySegmentId: string }
   >(modelOwner);
 
+  const setCurrentSegmentIndex = jest.fn();
+  const updateStoryMap = jest.fn();
+
   const model = {
     getSelectedStory: jest.fn(() => ({
       storyId: story ? 'story-1' : undefined,
       story: story ?? undefined,
     })),
     getCurrentSegmentIndex: jest.fn(() => options.currentIndex),
-    setCurrentSegmentIndex: jest.fn(),
+    setCurrentSegmentIndex,
     getLayer: jest.fn((id: string) => ({
       name: id,
       type: 'StorySegmentLayer',
@@ -81,7 +84,7 @@ function createModel(
     sharedModel: {
       layersChanged,
       storyMapsChanged,
-      updateStoryMap: jest.fn(),
+      updateStoryMap,
       transact: jest.fn((fn: () => void) => {
         fn();
       }),
@@ -92,6 +95,8 @@ function createModel(
 
   return {
     model: model as unknown as IJupyterGISModel,
+    setCurrentSegmentIndex,
+    updateStoryMap,
     signals: {
       layersChanged,
       storyMapsChanged,
@@ -137,11 +142,11 @@ function mountHook(model: IJupyterGISModel, commands: CommandRegistry) {
 
 describe('useStoryEditorSegmentList', () => {
   let commands: CommandRegistry;
+  let execute: jest.Mock;
 
   beforeEach(() => {
-    commands = {
-      execute: jest.fn(),
-    } as unknown as CommandRegistry;
+    execute = jest.fn();
+    commands = { execute } as unknown as CommandRegistry;
   });
 
   it('selects the first segment when the current index is unset', () => {
@@ -153,14 +158,14 @@ describe('useStoryEditorSegmentList', () => {
   });
 
   it('updates the current segment index when a segment is selected', () => {
-    const { model } = createModel({ currentIndex: 0 });
+    const { model, setCurrentSegmentIndex } = createModel({ currentIndex: 0 });
     const view = mountHook(model, commands);
 
     act(() => {
       view.current.selectSegment('segment-2');
     });
 
-    expect(model.setCurrentSegmentIndex).toHaveBeenCalledWith(1);
+    expect(setCurrentSegmentIndex).toHaveBeenCalledWith(1);
   });
 
   it('adds a segment through the add-story-segment command', () => {
@@ -171,7 +176,7 @@ describe('useStoryEditorSegmentList', () => {
       view.current.addSegment();
     });
 
-    expect(commands.execute).toHaveBeenCalledWith(ADD_STORY_SEGMENT_COMMAND);
+    expect(execute).toHaveBeenCalledWith(ADD_STORY_SEGMENT_COMMAND);
   });
 
   it('removes a segment through the remove-story-segment command', () => {
@@ -182,12 +187,15 @@ describe('useStoryEditorSegmentList', () => {
       view.current.removeSegment();
     });
 
-    expect(commands.execute).toHaveBeenCalledWith(REMOVE_STORY_SEGMENT_COMMAND);
+    expect(execute).toHaveBeenCalledWith(REMOVE_STORY_SEGMENT_COMMAND);
   });
 
   it('selects a newly added segment when segmentAdded fires', () => {
     const story = createStory({ storySegments: ['segment-1'] });
-    const { model, signals } = createModel({ story, currentIndex: 0 });
+    const { model, setCurrentSegmentIndex, signals } = createModel({
+      story,
+      currentIndex: 0,
+    });
     mountHook(model, commands);
 
     model.getSelectedStory = jest.fn(() => ({
@@ -202,7 +210,7 @@ describe('useStoryEditorSegmentList', () => {
       signals.segmentAdded.emit({ storySegmentId: 'segment-new' });
     });
 
-    expect(model.setCurrentSegmentIndex).toHaveBeenCalledWith(1);
+    expect(setCurrentSegmentIndex).toHaveBeenCalledWith(1);
   });
 
   it('does not allow removing the last remaining segment', () => {
@@ -215,17 +223,20 @@ describe('useStoryEditorSegmentList', () => {
 
   it('reorders story segments', () => {
     const story = createStory();
-    const { model } = createModel({ story, currentIndex: 0 });
+    const { model, setCurrentSegmentIndex, updateStoryMap } = createModel({
+      story,
+      currentIndex: 0,
+    });
     const view = mountHook(model, commands);
 
     act(() => {
       view.current.reorderSegments(0, 1);
     });
 
-    expect(model.sharedModel.updateStoryMap).toHaveBeenCalledWith('story-1', {
+    expect(updateStoryMap).toHaveBeenCalledWith('story-1', {
       ...story,
       storySegments: ['segment-2', 'segment-1'],
     });
-    expect(model.setCurrentSegmentIndex).toHaveBeenCalledWith(1);
+    expect(setCurrentSegmentIndex).toHaveBeenCalledWith(1);
   });
 });
