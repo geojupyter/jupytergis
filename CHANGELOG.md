@@ -2,6 +2,25 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.18.4
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.18.3...6948fb66d37ee307e6faa6d481a38c60b3c5ce27))
+
+### Enhancements made
+
+- Allow JupyterGIS deployments to expose the OpenEO provider not through JupyterLab tokens [#2012](https://github.com/geojupyter/jupytergis/pull/2012) ([@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-11-19&to=2026-11-19&type=c))
+
+@martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-11-19..2026-11-19&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.18.3
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.18.2...415c2841d411e86fc1e835a508d9a14d06d7da12))
@@ -28,8 +47,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-11-16&to=2026-11-19&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-11-16..2026-11-19&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-11-16..2026-11-19&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-11-16..2026-11-19&type=Issues)) | @mistral-vibe ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amistral-vibe+updated%3A2026-11-16..2026-11-19&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.18.2
 
