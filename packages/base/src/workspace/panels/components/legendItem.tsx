@@ -279,7 +279,7 @@ function formatPredicate(p: IPredicate): string {
       }
       return 'any zoom';
     default:
-      throw new Error(`Invalid predicate type ${p}`);
+      throw new Error(`Invalid predicate type ${JSON.stringify(p)}`);
   }
 }
 

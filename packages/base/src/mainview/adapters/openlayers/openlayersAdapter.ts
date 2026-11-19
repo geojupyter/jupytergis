@@ -1114,7 +1114,10 @@ export class OpenLayersAdapter implements IMapAdapter {
      * Built as an inline SVG rather than via OL's Icon `color` option as this icon needs a
      * contrasting white stroke and the OL API does not support that in a single icon.
      */
-    const [iconWidth, iconHeight, , , iconPath] = faCrosshairs.icon;
+    const [iconWidth, iconHeight, , , iconPathData] = faCrosshairs.icon;
+    const iconPath = Array.isArray(iconPathData)
+      ? iconPathData.join(' ')
+      : iconPathData;
     const crosshairsSrc = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(
       `<svg
         xmlns="http://www.w3.org/2000/svg"
@@ -1800,7 +1803,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       style: null,
     });
 
-    selectInteraction.on('select', (event) => {
+    selectInteraction.on('select', () => {
       const identifiedFeatures: IIdentifiedFeatureEntry[] = [];
       const highlightFeatures: Feature[] = [];
 
@@ -1933,7 +1936,10 @@ export class OpenLayersAdapter implements IMapAdapter {
 
   flyToGeometry(geometry: Geometry): void {
     if (!geometry) {
-      this._log('warning', `Invalid geometry for flyToGeometry: ${geometry}`);
+      this._log(
+        'warning',
+        `Invalid geometry for flyToGeometry: ${JSON.stringify(geometry)}`,
+      );
       return;
     }
 
@@ -1965,7 +1971,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     if (!geometry) {
       this._log(
         'warning',
-        `No geometry found in feature: ${featureOrGeometry}`,
+        `No geometry found in feature: ${JSON.stringify(featureOrGeometry)}`,
       );
       return;
     }
@@ -2260,7 +2266,7 @@ export class OpenLayersAdapter implements IMapAdapter {
   async updateLayer(
     id: string,
     layer: IJGISLayer,
-    oldLayer?: IDict,
+  _oldLayer?: IDict,
   ): Promise<void> {
     const mapLayer = this.getLayer(id);
     if (!mapLayer) {
@@ -3559,7 +3565,14 @@ export class OpenLayersAdapter implements IMapAdapter {
         }
       }
     } catch (error) {
-      this._log('warning', `Failed to compute extent: ${error}`);
+      const detail =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+            ? error
+            : 'Unknown error';
+
+      this._log('warning', `Failed to compute extent: ${detail}`);
     }
 
     return undefined;

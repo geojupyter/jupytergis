@@ -212,7 +212,7 @@ export function useIdentifyAttributeEditor(props: {
       setEditorMode('edit');
       setEditingAttributeKey(attributeKey);
       setNewAttributeKey(attributeKey);
-      setNewAttributeValue(String(value ?? ''));
+      setNewAttributeValue(value);
     },
     onDeleteAttribute: handleDeleteAttribute,
     onStartAddAttribute: startAddAttribute,
