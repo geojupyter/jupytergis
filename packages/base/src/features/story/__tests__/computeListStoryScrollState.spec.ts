@@ -2,16 +2,9 @@ import { IListStoryScrollTrackSegment } from '../types/types';
 import { computeListStoryScrollState } from '../utils/computeListStoryScrollState';
 import { layoutSegments, storyItem } from './fixtures/listStoryTestItems';
 
-const VIEWPORT = 100;
-
-function compute(
-  scrollTop: number,
-  segments: IListStoryScrollTrackSegment[],
-  viewportHeight = VIEWPORT,
-) {
+function compute(scrollTop: number, segments: IListStoryScrollTrackSegment[]) {
   return computeListStoryScrollState({
     scrollTop,
-    viewportHeight,
     segments,
   });
 }
@@ -215,7 +208,7 @@ describe('computeListStoryScrollState', () => {
     const span = handoffSpan(segments, 0);
     expect(span).toBe(1039 + 1039);
 
-    expect(compute(600, segments, 439)).toEqual({
+    expect(compute(600, segments)).toEqual({
       activeIndex: 0,
       segmentTransition: {
         progress: 600 / span,

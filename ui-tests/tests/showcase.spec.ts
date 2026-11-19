@@ -70,7 +70,7 @@ test.describe('Showcase @showcase', () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    page.setViewportSize({ width: 1920, height: 1080 });
+    void page.setViewportSize({ width: 1920, height: 1080 });
   });
 
   for (const { name, file, snapshot, setup } of SHOWCASES) {

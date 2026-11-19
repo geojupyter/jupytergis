@@ -129,7 +129,6 @@ export function registerFollowDialogs({
       new StoryEditorWidget({
         model,
         commands,
-        state,
         formSchemaRegistry,
         editorServices,
         rendermime,

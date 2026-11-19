@@ -5,7 +5,6 @@ import type {
   IRenderMimeRegistry,
   IUrlResolverFactory,
 } from '@jupyterlab/rendermime';
-import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import React from 'react';
 
@@ -17,7 +16,6 @@ import { StoryEditorSession } from './storyEditorSession';
 export interface IStoryEditorWidgetOptions {
   model: IJupyterGISModel;
   commands: CommandRegistry;
-  state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   editorServices: IEditorServices;
   rendermime: IRenderMimeRegistry;
@@ -37,7 +35,6 @@ export class StoryEditorWidget extends Dialog<boolean> {
         <StoryEditorDialogBody
           model={options.model}
           commands={options.commands}
-          state={options.state}
           formSchemaRegistry={options.formSchemaRegistry}
           editorServices={options.editorServices}
         />

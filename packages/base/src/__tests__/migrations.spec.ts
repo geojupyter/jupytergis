@@ -48,7 +48,7 @@ describe('document migrations', () => {
         it.todo('no shared fixtures found');
       } else {
         for (const name of names) {
-          it(name, () => {
+          it(`${name}`, () => {
             const doc = JSON.parse(
               fs.readFileSync(path.join(FIXTURES_ROOT, fromV, name), 'utf8'),
             );

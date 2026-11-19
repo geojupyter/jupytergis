@@ -136,7 +136,6 @@ export function attachSession(
     model as never,
     commands as never,
     {} as never,
-    {} as never,
     tracker as never,
     {} as never,
     {} as never,

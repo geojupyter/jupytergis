@@ -228,7 +228,7 @@ export function mergeValidationErrors(
   // Dedupe by (process, argument) "subject", keeping the most actionable
   // message — preserving original order otherwise.
   const bestForSubject = new Map<string, { idx: number; prio: number }>();
-  const kept = new Array<boolean>(all.length).fill(true);
+  const kept = Array.from({ length: all.length }, () => true);
   for (let i = 0; i < all.length; i++) {
     const subject = extractSubject(all[i].message);
     if (!subject) {

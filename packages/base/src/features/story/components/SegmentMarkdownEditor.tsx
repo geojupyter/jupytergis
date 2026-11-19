@@ -20,7 +20,6 @@ export interface ISegmentMarkdownEditorProps {
   segmentId: string;
   editorServices: IEditorServices;
   initialMarkdown?: string;
-  rows?: number;
   tall?: boolean;
 }
 
@@ -29,7 +28,6 @@ export function SegmentMarkdownEditor({
   segmentId,
   editorServices,
   initialMarkdown = '',
-  rows = 6,
   tall = false,
 }: ISegmentMarkdownEditorProps): JSX.Element {
   const [tab, setTab] = useState<MarkdownEditorTab>('write');

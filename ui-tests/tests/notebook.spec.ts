@@ -45,7 +45,7 @@ const EXPECTED_CELLS = [
 
 test.describe('Notebook API', () => {
   test.beforeEach(async ({ page, tmpPath }) => {
-    page.on('console', (message) => {
+    page.on('console', () => {
       
     });
 

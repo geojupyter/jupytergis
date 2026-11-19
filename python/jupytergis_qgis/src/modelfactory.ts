@@ -70,7 +70,7 @@ export class JupyterGISModelFactoryBase implements DocumentRegistry.IModelFactor
    * @param path path of the file represented by this document model
    * @returns The preferred language
    */
-  preferredLanguage(path: string): string {
+  preferredLanguage(): string {
     return '';
   }
 

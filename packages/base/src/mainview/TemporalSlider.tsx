@@ -206,7 +206,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
 
     // Get valid step options
     const filteredSteps = Object.fromEntries(
-      Object.entries(stepMap).filter(([_, val]) => val < max - min),
+      Object.entries(stepMap).filter(([, val]) => val < max - min),
     );
 
     //using filter item as a state object to restore prev values
