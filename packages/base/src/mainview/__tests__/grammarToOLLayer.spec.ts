@@ -59,7 +59,7 @@ function layerFor(state: IGrammarSymbologyState, type = 'VectorLayer') {
     type,
     visible: true,
     parameters: { symbologyState: state },
-  } as IJGISLayer;
+  } as unknown as IJGISLayer;
 }
 
 function vectorMarkerOf(layer: MockVectorLayer): string {

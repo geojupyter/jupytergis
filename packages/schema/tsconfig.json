@@ -1,17 +1,19 @@
 {
   "extends": "../../tsconfigbase.json",
   "compilerOptions": {
-    "outDir": "lib",
-    "rootDir": "src",
+    "composite": false,
+    "declaration": false,
+    "incremental": false,
+    "noEmit": true,
     "paths": {
       "@/*": ["./*"]
-    }
+    },
+    "types": ["jest", "node", "webpack-env"]
   },
   "include": [
     "src/**/*",
     "src/processing/_generated/*.json",
     "src/schema/**/*.json",
     "src/_interface/*.json"
-  ],
-  "exclude": ["**/*.spec.ts"]
+  ]
 }
