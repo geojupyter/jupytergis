@@ -74,7 +74,7 @@ const StacPanelResults = () => {
                   return;
                 }
                 setCurrentPage(Math.max(currentPage - 1, 1));
-                handlePaginationClick('previous');
+                void handlePaginationClick('previous');
               }}
             />
           </PaginationItem>
@@ -140,7 +140,7 @@ const StacPanelResults = () => {
                   return;
                 }
                 setCurrentPage(currentPage + 1);
-                handlePaginationClick('next');
+                void handlePaginationClick('next');
               }}
             />
           </PaginationItem>

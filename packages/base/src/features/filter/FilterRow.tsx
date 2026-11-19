@@ -31,7 +31,12 @@ const FilterRow: React.FC<{
 
     for (const key of sortedKeys) {
       // Convert each Set to a sorted array
-      const sortedArray = Array.from(features[key]).sort();
+      const sortedArray = Array.from(features[key]).sort((a, b) => {
+        if (typeof a === 'number' && typeof b === 'number') {
+          return a - b;
+        }
+        return String(a).localeCompare(String(b));
+      });
       sortedResult[key] = sortedArray;
     }
 
@@ -49,7 +54,10 @@ const FilterRow: React.FC<{
     }
 
     const currentValue = valueSelect.options[valueSelect.selectedIndex]?.value;
-    currentValue && onValueChange(currentValue);
+
+    if (currentValue) {
+      onValueChange(currentValue);
+    }
   }, [selectedFeature]);
 
   const onValueChange = (value: string | number) => {

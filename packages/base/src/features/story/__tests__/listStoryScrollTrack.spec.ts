@@ -17,6 +17,9 @@ describe('getSegmentDisplayMode', () => {
   it('returns markdown when contentMode is markdown', () => {
     expect(
       getSegmentDisplayMode({
+        zoom: 0,
+        extent: [],
+        transition: { type: 'linear', time: 0 },
         content: { contentMode: 'markdown', markdown: 'x' },
       }),
     ).toBe('markdown');
@@ -24,9 +27,14 @@ describe('getSegmentDisplayMode', () => {
 
   it('returns map otherwise', () => {
     expect(getSegmentDisplayMode(undefined)).toBe('map');
-    expect(getSegmentDisplayMode({ content: { contentMode: 'map' } })).toBe(
-      'map',
-    );
+    expect(
+      getSegmentDisplayMode({
+        zoom: 0,
+        extent: [],
+        transition: { type: 'linear', time: 0 },
+        content: { contentMode: 'map' },
+      }),
+    ).toBe('map');
   });
 });
 

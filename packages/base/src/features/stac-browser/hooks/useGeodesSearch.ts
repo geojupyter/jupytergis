@@ -123,7 +123,7 @@ function useGeodesSearch({
       });
     }
 
-    loadStacStateFromDb();
+    void loadStacStateFromDb();
   }, [stateDb]);
 
   // Save filterState to StateDB on change
@@ -137,7 +137,7 @@ function useGeodesSearch({
       });
     }
 
-    saveStacFilterStateToDb();
+    void saveStacFilterStateToDb();
   }, [filterState, stateDb]);
 
   /**
@@ -218,7 +218,7 @@ function useGeodesSearch({
   // Handle search when filters change
   useEffect(() => {
     if (model && !isFirstRender && filterState.datasets.size > 0) {
-      handleSubmit();
+      void handleSubmit();
     }
   }, [
     model,

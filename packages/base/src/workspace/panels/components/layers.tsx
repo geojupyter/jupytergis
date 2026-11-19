@@ -400,7 +400,7 @@ export const LayersBodyComponent: React.FC<IBodyProps> = (props) => {
     Private.dragInfo.dragOverPosition = null;
   };
 
-  const _onDrop = (e: React.DragEvent) => {
+  const _onDrop = () => {
     Private.dragIndicator.style.display = 'none';
 
     if (model === undefined) {
@@ -604,7 +604,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = (props) => {
       );
     };
 
-    getExpandedState();
+    void getExpandedState();
   }, []);
 
   /**
@@ -676,7 +676,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = (props) => {
   };
 
   const handleExpand = async () => {
-    state.save(`jupytergis:${group.name}`, { expanded: !open });
+    void state.save(`jupytergis:${group.name}`, { expanded: !open });
     setOpen(!open);
   };
 
@@ -718,11 +718,11 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = (props) => {
         onDragOver={Private.onDragOver}
         data-id={name}
       >
-        <LabIcon.resolveReact
-          icon={caretDownIcon}
-          className={`${LAYER_GROUP_COLLAPSER_CLASS}${open ? ' jp-mod-expanded' : ''}`}
-          tag={'span'}
-        />
+        {LabIcon.resolveReact({
+          icon: caretDownIcon,
+          className: `${LAYER_GROUP_COLLAPSER_CLASS}${open ? ' jp-mod-expanded' : ''}`,
+          tag: 'span',
+        })}
         {isEditing ? (
           <input
             type="text"
@@ -1095,10 +1095,10 @@ const LayerComponent: React.FC<ILayerProps> = (props) => {
           }
           style={{ visibility: hasSupportedSymbology ? 'visible' : 'hidden' }}
         >
-          <LabIcon.resolveReact
-            icon={expanded ? caretDownIcon : caretRightIcon}
-            tag="span"
-          />
+          {LabIcon.resolveReact({
+            icon: expanded ? caretDownIcon : caretRightIcon,
+            tag: 'span',
+          })}
         </Button>
 
         {/* Visibility toggle for normal layers, Slide number for story segments */}
@@ -1122,33 +1122,30 @@ const LayerComponent: React.FC<ILayerProps> = (props) => {
             disabled={!!loadError}
             minimal
           >
-            <LabIcon.resolveReact
-              icon={showVisible ? visibilityIcon : nonVisibilityIcon}
-              className={`${LAYER_ICON_CLASS}${showVisible ? '' : ' jp-gis-mod-hidden'}`}
-              tag="span"
-            />
+              {LabIcon.resolveReact({
+                icon: showVisible ? visibilityIcon : nonVisibilityIcon,
+                className: `${LAYER_ICON_CLASS}${showVisible ? '' : ' jp-gis-mod-hidden'}`,
+                tag: 'span',
+              })}
           </Button>
         )}
 
-        {icons.has(iconKey) && (
-          <LabIcon.resolveReact
-            {...icons.get(iconKey)}
-            className={LAYER_ICON_CLASS}
-          />
-        )}
+        {icons.has(iconKey) &&
+          LabIcon.resolveReact({
+            ...icons.get(iconKey),
+            className: LAYER_ICON_CLASS,
+          })}
 
-        {comparedSide && (
-          <LabIcon.resolveReact
-            icon={columns2Icon}
-            className={LAYER_ICON_CLASS}
-            tag="span"
-            title={
+        {comparedSide &&
+          LabIcon.resolveReact({
+            icon: columns2Icon,
+            className: LAYER_ICON_CLASS,
+            tag: 'span',
+            title:
               comparedSide === 'left'
                 ? 'Comparing, shown left of the swipe divider'
-                : 'Comparing, shown right of the swipe divider'
-            }
-          />
-        )}
+                : 'Comparing, shown right of the swipe divider',
+          })}
 
         {isEditing ? (
           <input
@@ -1233,11 +1230,11 @@ const LayerComponent: React.FC<ILayerProps> = (props) => {
           minimal
           disabled={!!loadError}
         >
-          <LabIcon.resolveReact
-            icon={targetWithCenterIcon}
-            className={LAYER_ICON_CLASS}
-            tag="span"
-          />
+          {LabIcon.resolveReact({
+            icon: targetWithCenterIcon,
+            className: LAYER_ICON_CLASS,
+            tag: 'span',
+          })}
         </Button>
         <Button
           className="jp-gis-layer-more-btn"
