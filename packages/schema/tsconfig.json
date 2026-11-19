@@ -10,10 +10,5 @@
     },
     "types": ["jest", "node", "webpack-env"]
   },
-  "include": [
-    "src/**/*",
-    "src/processing/_generated/*.json",
-    "src/schema/**/*.json",
-    "src/_interface/*.json"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"]
 }
