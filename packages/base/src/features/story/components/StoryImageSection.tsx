@@ -8,16 +8,12 @@ import {
 interface IStoryImageSectionProps {
   imageUrl: string;
   imageLoaded: boolean;
-  layerName: string;
-  slideNumber: number;
   navSlot?: React.ReactNode;
 }
 
 function StoryImageSection({
   imageUrl,
   imageLoaded,
-  layerName,
-  slideNumber,
   navSlot,
 }: IStoryImageSectionProps) {
   const imageRef = useRef<HTMLImageElement>(null);

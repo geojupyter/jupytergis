@@ -44,7 +44,7 @@ export class StoryMapBarController {
   constructor(private readonly _host: IStoryMapBarHost) {}
 
   public refresh(): void {
-    for (const model of [...this._mapBars.keys()]) {
+    for (const model of this._mapBars.keys()) {
       if (!this._modelNeedsBar(model)) {
         this.disposeForModel(model);
       }
@@ -84,7 +84,7 @@ export class StoryMapBarController {
   }
 
   public disposeAll(): void {
-    for (const model of [...this._mapBars.keys()]) {
+    for (const model of this._mapBars.keys()) {
       this.disposeForModel(model);
     }
   }

@@ -23,8 +23,6 @@ import {
 } from '@jupyterlab/application';
 import { WidgetTracker } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
-import { IMainMenu } from '@jupyterlab/mainmenu';
-import { ITranslator } from '@jupyterlab/translation';
 import { SqljsAdapter } from '@ngageoint/geopackage';
 import wasmURL from 'rtree-sql.js/dist/sql-wasm.wasm';
 
@@ -32,7 +30,7 @@ import { JupyterGISExternalCommandRegistry } from './externalcommand';
 import { JupyterGISLayerBrowserRegistry } from './layerBrowserRegistry';
 import { JupyterGISFormSchemaRegistry } from './schemaregistry';
 
-SqljsAdapter.setSqljsWasmLocateFile((filename: string) => {
+SqljsAdapter.setSqljsWasmLocateFile(() => {
   return wasmURL;
 });
 
@@ -41,14 +39,9 @@ const NAME_SPACE = 'jupytergis';
 export const trackerPlugin: JupyterFrontEndPlugin<IJupyterGISTracker> = {
   id: 'jupytergis:core:tracker',
   autoStart: true,
-  requires: [ITranslator],
-  optional: [IMainMenu],
+  requires: [],
   provides: IJupyterGISDocTracker,
-  activate: (
-    app: JupyterFrontEnd,
-    translator: ITranslator,
-    mainMenu?: IMainMenu,
-  ): IJupyterGISTracker => {
+  activate: (_app: JupyterFrontEnd): IJupyterGISTracker => {
     const tracker = new WidgetTracker<IJupyterGISWidget>({
       namespace: NAME_SPACE,
     });
@@ -64,7 +57,7 @@ export const formSchemaRegistryPlugin: JupyterFrontEndPlugin<IJGISFormSchemaRegi
     requires: [IDocumentManager],
     provides: IJGISFormSchemaRegistryToken,
     activate: (
-      app: JupyterFrontEnd,
+      _app: JupyterFrontEnd,
       docmanager: IDocumentManager,
     ): IJGISFormSchemaRegistry => {
       const registry = new JupyterGISFormSchemaRegistry(docmanager);
@@ -78,7 +71,7 @@ export const externalCommandRegistryPlugin: JupyterFrontEndPlugin<IJGISExternalC
     autoStart: true,
     requires: [],
     provides: IJGISExternalCommandRegistryToken,
-    activate: (app: JupyterFrontEnd): IJGISExternalCommandRegistry => {
+  activate: (_app: JupyterFrontEnd): IJGISExternalCommandRegistry => {
       const registry = new JupyterGISExternalCommandRegistry();
       return registry;
     },
@@ -90,7 +83,7 @@ export const layerBrowserRegistryPlugin: JupyterFrontEndPlugin<IJGISLayerBrowser
     autoStart: true,
     requires: [],
     provides: IJGISLayerBrowserRegistryToken,
-    activate: (app: JupyterFrontEnd) => {
+  activate: (_app: JupyterFrontEnd) => {
       console.debug('jupytergis:core:layer-browser-registry is activated');
       const registry = new JupyterGISLayerBrowserRegistry();
       return registry;
@@ -124,7 +117,7 @@ export const openEOTokensPlugin: JupyterFrontEndPlugin<IOpenEOTokensProvider> =
     autoStart: true,
     requires: [],
     provides: IOpenEOTokensProviderToken,
-    activate: (app: JupyterFrontEnd) => {
+  activate: (_app: JupyterFrontEnd) => {
       // Allow providing the openEOTokensProvider globally
       if (window.openEOTokensProvider) {
         return window.openEOTokensProvider;
