@@ -155,7 +155,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       //We need to observe the size to counteract
       //What the default jupyter plugin will try
       //To do dynamically with the width
-      const resizeObserver = new ResizeObserver((_) => {
+      const resizeObserver = new ResizeObserver(() => {
         el.style.setProperty('width', '100%');
         el.style.setProperty('max-width', '100%');
         el?.style.setProperty('left', '0px');
@@ -236,8 +236,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     // Keep draw UI/interactions in sync with the exclusive map mode.
     this._model.modeChanged.connect(this._handleModeChanged, this);
 
-    Promise.resolve().then(() => {
-      this._syncSettingsFromRegistry();
+   void Promise.resolve().then(() => {
+      void this._syncSettingsFromRegistry();
     });
 
     this.state = {
@@ -537,7 +537,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         onLayerAddStarted: () => {
           this.setState((old) => ({ ...old, loadingLayer: true }));
         },
-        onLayerAddSettled: (id) => {
+        onLayerAddSettled: () => {
           this.setState((old) => ({ ...old, loadingLayer: false }));
         },
         onTileProgress: (loaded, total) => {
@@ -599,7 +599,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         JupyterGISModel.getOrderedLayerIds(this._model),
       );
       const options = this._model.getOptions();
-      this.updateOptions(options);
+      void this.updateOptions(options);
     }
 
     const viewProjection = this._mapAdapter.getProjection();
@@ -923,7 +923,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     return { disableEditing: false, shouldRebind: true };
   }
 
-  private _handleTemporalControllerActiveChanged(): void {
+  private _handleTemporalControllerActiveChanged = (): void => {
     const localState = this._model.localState;
     if (!localState) {
       return;
@@ -952,11 +952,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         CommandIDs.temporalController,
       );
     }
-  }
+  };
 
   private _followDialogMirror: FollowDialogMirror | null = null;
 
-  private _handleRemoteUserChanged(): void {
+  private _handleRemoteUserChanged = (): void => {
     const localState = this._model.localState;
     if (!localState) {
       return;
@@ -1029,9 +1029,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         );
       }
     }
-  }
+  };
 
-  private _handlePointerChanged(): void {
+  private _handlePointerChanged = (): void => {
     const clients = this._model.sharedModel.awareness.getStates() as Map<
       number,
       IJupyterGISClientState
@@ -1075,7 +1075,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
 
     this.setState((old) => ({ ...old, clientPointers }));
-  }
+  };
 
   private _onStoryPreviewActiveChanged = (): void => {
     this.setState({
@@ -1083,7 +1083,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     });
   };
 
-  private _onSharedOptionsChanged(): void {
+  private _onSharedOptionsChanged = (): void => {
     if (!this._mapAdapter) {
       return;
     }
@@ -1102,12 +1102,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     if (!this._isPositionInitialized) {
       const options = this._model.getOptions();
-      this.updateOptions(options);
+      void this.updateOptions(options);
       this._isPositionInitialized = true;
     }
 
     this._syncComparison();
-  }
+  };
 
   private _getMapAdapter(): IMapAdapter | undefined {
     return this._mapAdapter;
@@ -1177,13 +1177,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
-  private _onSettingsChanged(): void {
+  private _onSettingsChanged = (): void => {
     this.setState({ jgisSettings: this._model.jgisSettings });
 
     // Handle other settings changes (existing code)
     const enabled = this._model.jgisSettings.zoomButtonsEnabled;
     this._mapAdapter?.setZoomButtonsEnabled(enabled);
-  }
+  };
 
   private async updateOptions(options: IJGISOptions): Promise<void> {
     const projectionInfo = this._mapAdapter?.applyOptions(options);
@@ -1200,17 +1200,17 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
   }
 
-  private _onViewChanged(
-    sender: ObservableMap<JSONValue>,
-    change: IObservableMap.IChangedArgs<JSONValue>,
-  ): void {
+  private _onViewChanged = (
+    _sender: ObservableMap<JSONValue>,
+    _change: IObservableMap.IChangedArgs<JSONValue>,
+  ): void => {
     // TODO SOMETHING
-  }
+  };
 
-  private _onLayersChanged(
+  private _onLayersChanged = (
     _: IJupyterGISDoc,
     change: IJGISLayerDocChange,
-  ): void {
+  ): void => {
     change.layerChange?.forEach((change) => {
       const { id, oldValue: oldLayer, newValue: newLayer } = change;
       if (!this._mapAdapter) {
@@ -1233,7 +1233,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const layerTree = JupyterGISModel.getOrderedLayerIds(this._model);
 
       if (layerTree.includes(id)) {
-        this._mapAdapter.updateLayer(id, newLayer, oldLayer);
+        void this._mapAdapter.updateLayer(id, newLayer, oldLayer);
 
         if (
           this._model.currentMode === 'drawing' &&
@@ -1245,20 +1245,20 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         void this._mapAdapter.updateLayers(layerTree);
       }
     });
-  }
+  };
 
-  private _onLayerTreeChange(
-    sender?: IJupyterGISDoc,
-    change?: IJGISLayerTreeDocChange,
-  ): void {
+  private _onLayerTreeChange = (
+    _sender?: IJupyterGISDoc,
+    _change?: IJGISLayerTreeDocChange,
+  ): void => {
     this._ready = false;
     // We can't properly use the change, because of the nested groups in the the shared
     // document which is flattened for the map tool.
-    this._mapAdapter?.updateLayers(
+    void this._mapAdapter?.updateLayers(
       JupyterGISModel.getOrderedLayerIds(this._model),
     );
     this._syncComparison();
-  }
+  };
 
   /** Hands the map the document's comparison, keeping the divider where it is. */
   private _syncComparison(): void {
@@ -1310,10 +1310,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
    * the user signed in stay broken because their constructor already
    * threw on the empty cache.
    */
-  private _onOpenEOConnected(
+  private _onOpenEOConnected = (
     _: unknown,
     { serverUrl }: { serverUrl: string },
-  ): void {
+  ): void => {
     const sources = this._model.sharedModel.sources ?? {};
     for (const [sourceId, source] of Object.entries(sources)) {
       if (source?.type !== 'OpenEOTileSource') {
@@ -1335,12 +1335,12 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         void this._mapAdapter?.updateSource(sourceId, source);
       }
     }
-  }
+  };
 
-  private _onSourcesChange(
+  private _onSourcesChange = (
     _: IJupyterGISDoc,
     change: IJGISSourceDocChange,
-  ): void {
+  ): void => {
     change.sourceChange?.forEach((srcChange) => {
       if (!srcChange.newValue || Object.keys(srcChange.newValue).length === 0) {
         this._mapAdapter?.removeSource(srcChange.id);
@@ -1367,7 +1367,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       ...old,
       identifyFeatureFloatersVersion: old.identifyFeatureFloatersVersion + 1,
     }));
-  }
+  };
 
   private _onSharedModelStateChange = (
     _: any,
@@ -1494,9 +1494,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           return;
         }
         segmentChangeInProgress = true;
-        isScrollingDown
-          ? currentPanelHandle.handleNext()
-          : currentPanelHandle.handlePrev();
+
+        if (isScrollingDown) {
+          currentPanelHandle.handleNext();
+        } else {
+          currentPanelHandle.handlePrev();
+        }
+        
         return;
       }
 
@@ -1687,7 +1691,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
   }
 
-  private _triggerLayerUpdate(_: IJupyterGISModel, args: string) {
+  private _triggerLayerUpdate = (_: IJupyterGISModel, args: string) => {
     // ? could send just the filters object and modify that instead of emitting whole layer
     const json = JSON.parse(args);
     const { layerId, layer: jgisLayer } = json;
@@ -1695,14 +1699,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       typeof jgisLayer?.type === 'string' && jgisLayer.type.includes('Source');
 
     if (isSourceType) {
-      this._mapAdapter?.updateSource(layerId, jgisLayer);
+      void this._mapAdapter?.updateSource(layerId, jgisLayer);
     }
     if (!jgisLayer) {
       this._log('error', 'Failed to update layer -- layer not found');
       return;
     }
-    this._mapAdapter?.updateLayer(layerId, jgisLayer);
-  }
+    void this._mapAdapter?.updateLayer(layerId, jgisLayer);
+  };
 
   private _handleThemeChange = (): void => {
     const lightTheme = isLightTheme();
@@ -1870,9 +1874,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     );
   }
 
-  private _onFeatureStoresChanged() {
+  private _onFeatureStoresChanged = () =>
     this._mapAdapter?.onFeatureStoresChanged();
-  }
 
   render(): JSX.Element {
     const {
