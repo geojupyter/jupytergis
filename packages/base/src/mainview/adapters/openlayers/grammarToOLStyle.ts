@@ -492,7 +492,7 @@ function compilePredicate(
         : (['all', ...bounds] as ExpressionValue);
     }
     default:
-      throw new Error(`Invalid predicate type ${predicate}`);
+      throw new Error(`Invalid predicate type ${JSON.stringify(predicate)}`);
   }
 }
 
@@ -593,7 +593,7 @@ function compileMapping(
       return ['coalesce', fieldExpr(field), typedFallback] as ExpressionValue;
     }
     default:
-      throw new Error(`Invalid scale scheme ${scale}`);
+      throw new Error(`Invalid scale scheme ${JSON.stringify(scale)}`);
   }
 }
 

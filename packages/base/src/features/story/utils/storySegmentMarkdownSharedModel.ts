@@ -81,7 +81,7 @@ export class StorySegmentMarkdownSharedModel implements IYText {
   }
 
   getSource(): string {
-    return this.ysource.toString();
+    return this.ysource.toJSON();
   }
 
   setSource(value: string): void {
@@ -216,7 +216,7 @@ export function peekStorySegmentMarkdown(
     return undefined;
   }
 
-  return model.sharedModel.ydoc.getText(segmentId).toString();
+  return model.sharedModel.ydoc.getText(segmentId).toJSON();
 }
 
 export function getStorySegmentMarkdownSharedModel(

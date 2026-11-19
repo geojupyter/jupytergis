@@ -96,7 +96,7 @@ function defaultTransform(type: ITransform['type']): ITransform {
     case 'cluster':
       return { type: 'cluster', radius: 40 };
     default:
-      throw new Error(`Invalid transform type ${type}`);
+      throw new Error(`Invalid transform type ${JSON.stringify(type)}`);
   }
 }
 

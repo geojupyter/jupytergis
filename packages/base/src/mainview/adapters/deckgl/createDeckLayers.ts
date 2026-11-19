@@ -11,6 +11,8 @@ import type {
   IPolygonSource,
 } from '@jupytergis/schema';
 
+import { errorMessage } from '@/src/tools';
+
 import {
   grammarToDeckAccessors,
   type DeckNumberAccessor,
@@ -357,18 +359,6 @@ export function buildDeckOverlayLayers(
 }
 
 // !TODO this is getting repeated a lot should centralize
-function errorDetail(error: unknown): string {
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  if (typeof error === 'string') {
-    return error;
-  }
-
-  return 'Unknown error';
-}
-
 export function makeCachedGetter(
   cache: Map<string, RecordGetter>,
   log: LogFn,
@@ -392,7 +382,7 @@ export function makeCachedGetter(
             logged = true;
             log(
               'error',
-              `${prefix}: getter "${expression}" failed: ${errorDetail(error)}`,
+              `${prefix}: getter "${expression}" failed: ${errorMessage(error)}`,
             );
           }
           return undefined;
@@ -401,7 +391,7 @@ export function makeCachedGetter(
     } catch (error) {
       log(
         'error',
-        `${prefix}: getter "${expression}" is not a function: ${errorDetail(error)}`,
+        `${prefix}: getter "${expression}" is not a function: ${errorMessage(error)}`,
       );
       getter = () => undefined;
     }

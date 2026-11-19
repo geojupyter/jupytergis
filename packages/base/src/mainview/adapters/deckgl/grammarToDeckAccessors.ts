@@ -488,6 +488,8 @@ function compileExpression(
     });
 
     const { code } = generate(ast);
+
+    // oxlint-disable-next-line no-implied-eval
     const fn = new Function('datum', 'global', `return (${code});`) as VegaFn;
     expressionCache.set(cacheKey, fn);
 

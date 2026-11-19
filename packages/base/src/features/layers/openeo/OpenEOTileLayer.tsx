@@ -14,7 +14,7 @@ import {
   Process,
   Service,
 } from '@openeo/js-client';
-// @ts-expect-error
+// @ts-expect-error no types
 import Environment from '@openeo/js-client/src/env';
 import { fromArrayBuffer, TypedArray } from 'geotiff';
 import WebGLTileLayer from 'ol/layer/WebGLTile';
@@ -25,7 +25,7 @@ import DataTileSource, {
 import React from 'react';
 
 import { maybeProxied } from '@/src/shared/proxy';
-import { describeConnectionError } from '@/src/tools';
+import { describeConnectionError, errorMessage } from '@/src/tools';
 
 import { OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
@@ -470,7 +470,7 @@ export async function createOpenEOTileService(
   try {
     service = await connection.createService(graph, 'XYZ');
   } catch (e) {
-    throw new Error(`Failed to create the XYZ service ${e}`);
+    throw new Error(`Failed to create the XYZ service: ${errorMessage(e)}`);
   }
 
   if (!service.url) {
