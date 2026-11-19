@@ -113,4 +113,10 @@ function preProcessSchemas() {
   preProcessSchemaDirectory(schemaRoot, tempDir, schemaRoot);
 }
 
+console.debug(
+  `Pre-processing JSONSchemas for Python type generation (writing to ${tempDir})...`,
+);
+
 preProcessSchemas();
+
+console.debug('Schemas pre-processed for Python type generation.');
