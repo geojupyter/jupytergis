@@ -57,11 +57,11 @@ export class YJupyterGISModel extends JupyterYModel {
    * Currently used by the Python API to request one-off map actions such as
    * zooming to a freshly added layer (`zoom_to=True`).
    */
-  protected _onCustomMessage(_: unknown, data: JSONObject): void {
+  protected readonly _onCustomMessage = (_: unknown, data: JSONObject): void => {
     if (data?.type === 'zoom-to' && typeof data.layerId === 'string') {
       this.jupyterGISModel?.centerOnPosition(data.layerId);
     }
-  }
+  };
 
   dispose(): void {
     if (this.isDisposed) {
@@ -142,7 +142,7 @@ export class YJupyterGISLuminoWidget extends Panel {
       toolbar,
     });
     this.addWidget(this._jgisWidget);
-    tracker?.add(this._jgisWidget);
+    void tracker?.add(this._jgisWidget);
   };
 
   private _jgisWidget: JupyterGISOutputWidget;
@@ -200,7 +200,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         const fileFormat = format as Contents.FileFormat;
 
         if (!drive) {
-          showErrorMessage(
+          void showErrorMessage(
             'Error using the JupyterGIS Python API',
             'You cannot use the JupyterGIS Python API without a collaborative drive. You need to install a package providing collaboration features (e.g. jupyter-collaboration).',
           );
@@ -226,7 +226,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
           // If the file does not exist yet, create it
           try {
             await app.serviceManager.contents.get(localPath);
-          } catch (e) {
+          } catch {
             await app.serviceManager.contents.save(localPath, {
               content: btoa(DEFAULT_JGIS_DOCUMENT_CONTENT),
               format: 'base64',
@@ -268,7 +268,7 @@ export const notebookRendererPlugin: JupyterFrontEndPlugin<void> = {
         // Listen for one-off custom messages sent by the Python API over the
         // widget comm (e.g. `zoom_to=True` -> `{ type: 'zoom-to', layerId }`).
         // These are ephemeral actions, deliberately kept out of the shared doc.
-        this.messageReceived.connect(this._onCustomMessage, this);
+        this.messageReceived.connect(this._onCustomMessage);
 
         this.ydoc = this.jupyterGISModel.sharedModel.ydoc;
         this.sharedModel = new JupyterYDoc(commMetadata, this.ydoc);

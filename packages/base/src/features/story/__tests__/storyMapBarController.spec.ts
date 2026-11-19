@@ -207,10 +207,14 @@ describe('StoryMapBarController', () => {
   it('routes map-view bar actions through the host', () => {
     const model = createModel();
     const tracker = createTracker(model);
+    const restoreEditorForModel = jest.fn();
+    const applyMapViewForModel = jest.fn();
     const host = createHost(tracker, {
       getInteraction: jest.fn(() => ({
         mode: SegmentInteractionMode.mapView,
       })),
+      restoreEditorForModel,
+      applyMapViewForModel,
     });
     const controller = new StoryMapBarController(host);
 
@@ -220,18 +224,21 @@ describe('StoryMapBarController', () => {
     config.children.props.onBack();
     config.children.props.onApply();
 
-    expect(host.restoreEditorForModel).toHaveBeenCalledWith(model);
-    expect(host.applyMapViewForModel).toHaveBeenCalledWith(model);
+    expect(restoreEditorForModel).toHaveBeenCalledWith(model);
+    expect(applyMapViewForModel).toHaveBeenCalledWith(model);
   });
 
   it('routes segment preview back through the host', () => {
     const model = createModel();
     const tracker = createTracker(model);
+    const restoreEditorForModel = jest.fn();
     const host = createHost(tracker, {
       getInteraction: jest.fn(() => ({
         mode: SegmentInteractionMode.previewingSegment,
       })),
+      restoreEditorForModel,
     });
+    
     const controller = new StoryMapBarController(host);
 
     controller.refresh();
@@ -239,7 +246,7 @@ describe('StoryMapBarController', () => {
     const config = barMock().mock.calls[0][0];
     config.children.props.onBack();
 
-    expect(host.restoreEditorForModel).toHaveBeenCalledWith(model);
+    expect(restoreEditorForModel).toHaveBeenCalledWith(model);
   });
 
   it('routes story preview back through the host', () => {
@@ -247,7 +254,8 @@ describe('StoryMapBarController', () => {
       isStoryPreviewActive: jest.fn(() => true),
     });
     const tracker = createTracker(model);
-    const host = createHost(tracker);
+    const exitStoryPreviewForModel = jest.fn();
+    const host = createHost(tracker, { exitStoryPreviewForModel });
     const controller = new StoryMapBarController(host);
 
     controller.refresh();
@@ -255,6 +263,6 @@ describe('StoryMapBarController', () => {
     const config = barMock().mock.calls[0][0];
     config.children.props.onBack();
 
-    expect(host.exitStoryPreviewForModel).toHaveBeenCalledWith(model);
+    expect(exitStoryPreviewForModel).toHaveBeenCalledWith(model);
   });
 });
