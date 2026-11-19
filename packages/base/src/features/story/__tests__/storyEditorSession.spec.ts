@@ -313,8 +313,9 @@ describe('StoryEditorSession', () => {
       attachSession(session, dialog, modelA, commands, tracker);
       session.enterStoryPreviewMode();
 
-      const mapBarA = (StoryMapInteractionBarWidget as jest.Mock).mock
-        .results[0].value as { show: jest.Mock };
+      const mapBarA = (
+        StoryMapInteractionBarWidget as unknown as jest.Mock
+      ).mock.results[0].value as { show: jest.Mock };
 
       tracker.configureMainViewParents((model) =>
         model === modelA ? parentA : parentB,
@@ -323,7 +324,7 @@ describe('StoryEditorSession', () => {
       notifyTrackerTabChange(session);
       session.restoreEditor();
 
-      modelB.isStoryPreviewActive = jest.fn(() => false);
+      modelB.isStoryPreviewActive.mockReturnValue(false);
       mapBarA.show.mockClear();
       tracker.setActiveModel(modelA);
       notifyTrackerTabChange(session);

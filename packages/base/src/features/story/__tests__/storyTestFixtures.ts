@@ -1,5 +1,3 @@
-import { jest } from '@jest/globals';
-
 import { STORY_TYPE } from '@/src/types';
 import { JupyterGISPanel } from '@/src/workspace/widget';
 
@@ -29,7 +27,7 @@ export function createMainViewPanel(
 export function createDialog() {
   return {
     close: jest.fn(),
-    launch: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    launch: jest.fn<Promise<unknown>, []>().mockResolvedValue({}),
     show: jest.fn(),
     hide: jest.fn(),
     activate: jest.fn(),

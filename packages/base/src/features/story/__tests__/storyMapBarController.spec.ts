@@ -33,6 +33,10 @@ import {
 import { SegmentInteractionMode } from '../types/types';
 import { createModel, createTracker } from './storyTestFixtures';
 
+function barMock(): jest.Mock {
+  return StoryMapInteractionBarWidget as unknown as jest.Mock;
+}
+
 function createHost(
   tracker: ReturnType<typeof createTracker>,
   overrides: Partial<IStoryMapBarHost> = {},
@@ -98,13 +102,15 @@ describe('StoryMapBarController', () => {
     const host = createHost(tracker, {
       getInteraction: jest.fn((model: ReturnType<typeof createModel>) =>
         model === modelA ? { mode: SegmentInteractionMode.mapView } : null,
-      ),
+      ) as unknown as IStoryMapBarHost['getInteraction'],
     });
     const controller = new StoryMapBarController(host);
 
     controller.refresh();
-    const bar = (StoryMapInteractionBarWidget as jest.Mock).mock.results[0]
-      .value as { show: jest.Mock; hide: jest.Mock };
+    const bar = barMock().mock.results[0].value as {
+      show: jest.Mock;
+      hide: jest.Mock;
+    };
     bar.show.mockClear();
 
     tracker.setActiveModel(modelB);
@@ -117,15 +123,17 @@ describe('StoryMapBarController', () => {
   it('disposes the bar when the model no longer needs one', () => {
     const model = createModel();
     const tracker = createTracker(model);
-    const getInteraction = jest.fn(() => ({
+    const getInteraction = jest.fn<
+      { mode: SegmentInteractionMode } | null,
+      []
+    >(() => ({
       mode: SegmentInteractionMode.mapView,
     }));
     const host = createHost(tracker, { getInteraction });
     const controller = new StoryMapBarController(host);
 
     controller.refresh();
-    const bar = (StoryMapInteractionBarWidget as jest.Mock).mock.results[0]
-      .value as { dispose: jest.Mock };
+    const bar = barMock().mock.results[0].value as { dispose: jest.Mock };
 
     getInteraction.mockReturnValue(null);
     controller.refresh();
@@ -208,7 +216,7 @@ describe('StoryMapBarController', () => {
 
     controller.refresh();
 
-    const config = (StoryMapInteractionBarWidget as jest.Mock).mock.calls[0][0];
+    const config = barMock().mock.calls[0][0];
     config.children.props.onBack();
     config.children.props.onApply();
 
@@ -228,7 +236,7 @@ describe('StoryMapBarController', () => {
 
     controller.refresh();
 
-    const config = (StoryMapInteractionBarWidget as jest.Mock).mock.calls[0][0];
+    const config = barMock().mock.calls[0][0];
     config.children.props.onBack();
 
     expect(host.restoreEditorForModel).toHaveBeenCalledWith(model);
@@ -244,7 +252,7 @@ describe('StoryMapBarController', () => {
 
     controller.refresh();
 
-    const config = (StoryMapInteractionBarWidget as jest.Mock).mock.calls[0][0];
+    const config = barMock().mock.calls[0][0];
     config.children.props.onBack();
 
     expect(host.exitStoryPreviewForModel).toHaveBeenCalledWith(model);

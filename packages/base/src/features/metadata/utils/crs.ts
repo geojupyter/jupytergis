@@ -121,7 +121,9 @@ export function getCrsUnits(proj4Definition?: string): string | undefined {
  * epsg.io covers EPSG codes; anything else gets no link rather than a broken
  * one.
  */
-export function getCrsInfoUrl(code?: string): string | undefined {
+export function getCrsInfoUrl(
+  code?: string | number | null,
+): string | undefined {
   const normalized = normalizeCrsCode(code);
   if (!normalized) {
     return undefined;

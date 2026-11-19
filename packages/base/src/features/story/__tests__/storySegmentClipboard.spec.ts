@@ -79,6 +79,7 @@ function createModel(
       ? {
           type: 'StorySegmentLayer',
           name: 'Segment A',
+          visible: true,
           parameters: createParameters(),
         }
       : options.layer;
@@ -132,6 +133,7 @@ describe('storySegmentClipboard', () => {
       layer: {
         type: 'StorySegmentLayer',
         name: 'Segment A',
+        visible: true,
         parameters,
       },
     });
@@ -151,6 +153,7 @@ describe('storySegmentClipboard', () => {
       layer: {
         type: 'StorySegmentLayer',
         name: 'MD',
+        visible: true,
         parameters: createParameters({
           content: {
             contentMode: 'markdown',
@@ -198,6 +201,7 @@ describe('storySegmentClipboard', () => {
       layer: {
         type: 'StorySegmentLayer',
         name: 'MD',
+        visible: true,
         parameters: createParameters({
           content: {
             contentMode: 'markdown',

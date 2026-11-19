@@ -6,6 +6,13 @@ import {
 } from '../utils/listStoryScrollTrack';
 import { storyItem } from './fixtures/listStoryTestItems';
 
+function requireLayout<T>(layout: T | null): T {
+  if (!layout) {
+    throw new Error('expected a scroll track layout');
+  }
+  return layout;
+}
+
 describe('getSegmentDisplayMode', () => {
   it('returns markdown when contentMode is markdown', () => {
     expect(
@@ -46,7 +53,7 @@ describe('buildListStoryScrollTrack', () => {
   });
 
   it('chains segments with a handoff gap after each except the last', () => {
-    const layout = buildListStoryScrollTrack({
+    const layout = requireLayout(buildListStoryScrollTrack({
       items: [
         storyItem('a', 0, 'map'),
         storyItem('b', 1, 'markdown', 'line\nline'),
@@ -55,7 +62,7 @@ describe('buildListStoryScrollTrack', () => {
       viewportHeight: 400,
       mapViewportHeight: 350,
       heightsById: { b: 500 },
-    });
+    }));
 
     expect(layout).not.toBeNull();
     const { segments } = layout;
@@ -88,21 +95,21 @@ describe('buildListStoryScrollTrack', () => {
   });
 
   it('uses map viewport height for map segments, not heightsById', () => {
-    const layout = buildListStoryScrollTrack({
+    const layout = requireLayout(buildListStoryScrollTrack({
       items: [storyItem('map', 0, 'map')],
       viewportHeight: 400,
       mapViewportHeight: 350,
       heightsById: { map: 999 },
-    });
+    }));
 
     expect(layout.segments[0].height).toBe(350);
   });
 
   it('estimates unmeasured markdown with measured false', () => {
-    const layout = buildListStoryScrollTrack({
+    const layout = requireLayout(buildListStoryScrollTrack({
       items: [storyItem('md', 0, 'markdown', 'short')],
       viewportHeight: 400,
-    });
+    }));
 
     expect(layout.segments[0]).toMatchObject({
       start: 0,
@@ -113,7 +120,7 @@ describe('buildListStoryScrollTrack', () => {
   });
 
   it('starts markdown-first stories at offset zero', () => {
-    const layout = buildListStoryScrollTrack({
+    const layout = requireLayout(buildListStoryScrollTrack({
       items: [
         storyItem('md', 0, 'markdown', 'short'),
         storyItem('map', 1, 'map'),
@@ -121,7 +128,7 @@ describe('buildListStoryScrollTrack', () => {
       viewportHeight: 400,
       mapViewportHeight: 350,
       heightsById: { md: 120 },
-    });
+    }));
 
     expect(layout.segments[0]).toMatchObject({
       start: 0,
@@ -132,7 +139,7 @@ describe('buildListStoryScrollTrack', () => {
   });
 
   it('omits gap between markdown segments when markdownSegmentGap is false', () => {
-    const layout = buildListStoryScrollTrack({
+    const layout = requireLayout(buildListStoryScrollTrack({
       items: [
         storyItem('a', 0, 'markdown', 'one'),
         storyItem('b', 1, 'markdown', 'two'),
@@ -140,7 +147,7 @@ describe('buildListStoryScrollTrack', () => {
       viewportHeight: 400,
       heightsById: { a: 120, b: 180 },
       markdownSegmentGap: false,
-    });
+    }));
 
     expect(layout.segments[0]).toMatchObject({
       start: 0,
@@ -155,7 +162,7 @@ describe('buildListStoryScrollTrack', () => {
   });
 
   it('inserts gap between markdown segments when markdownSegmentGap is true', () => {
-    const layout = buildListStoryScrollTrack({
+    const layout = requireLayout(buildListStoryScrollTrack({
       items: [
         storyItem('a', 0, 'markdown', 'one'),
         storyItem('b', 1, 'markdown', 'two'),
@@ -164,7 +171,7 @@ describe('buildListStoryScrollTrack', () => {
       mapViewportHeight: 350,
       heightsById: { a: 120, b: 180 },
       markdownSegmentGap: true,
-    });
+    }));
 
     expect(layout.segments[0]).toMatchObject({
       start: 0,
@@ -180,7 +187,7 @@ describe('buildListStoryScrollTrack', () => {
 });
 
 describe('getTransitionTranslatePx', () => {
-  const mapMdLayout = buildListStoryScrollTrack({
+  const mapMdLayout = requireLayout(buildListStoryScrollTrack({
     items: [
       storyItem('a', 0, 'map'),
       storyItem('b', 1, 'markdown', 'line\nline'),
@@ -189,7 +196,7 @@ describe('getTransitionTranslatePx', () => {
     viewportHeight: 400,
     mapViewportHeight: 350,
     heightsById: { b: 500 },
-  });
+  }));
 
   it('returns 0 without transition or layout', () => {
     expect(getTransitionTranslatePx(null, mapMdLayout)).toBe(0);
@@ -252,7 +259,7 @@ describe('getTransitionTranslatePx', () => {
   });
 
   it('uses from height only for md→md with no gap', () => {
-    const layout = buildListStoryScrollTrack({
+    const layout = requireLayout(buildListStoryScrollTrack({
       items: [
         storyItem('a', 0, 'markdown', 'one'),
         storyItem('b', 1, 'markdown', 'two'),
@@ -260,7 +267,7 @@ describe('getTransitionTranslatePx', () => {
       viewportHeight: 400,
       heightsById: { a: 120, b: 180 },
       markdownSegmentGap: false,
-    });
+    }));
 
     expect(
       getTransitionTranslatePx(
@@ -277,7 +284,7 @@ describe('getTransitionTranslatePx', () => {
   });
 
   it('includes gap for md→md when markdownSegmentGap is true', () => {
-    const layout = buildListStoryScrollTrack({
+    const layout = requireLayout(buildListStoryScrollTrack({
       items: [
         storyItem('a', 0, 'markdown', 'one'),
         storyItem('b', 1, 'markdown', 'two'),
@@ -286,7 +293,7 @@ describe('getTransitionTranslatePx', () => {
       mapViewportHeight: 350,
       heightsById: { a: 120, b: 180 },
       markdownSegmentGap: true,
-    });
+    }));
 
     expect(
       getTransitionTranslatePx(
