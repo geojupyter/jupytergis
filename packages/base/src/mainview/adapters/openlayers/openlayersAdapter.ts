@@ -413,13 +413,13 @@ export class OpenLayersAdapter implements IMapAdapter {
     });
 
     for (const [sourceId, source] of Object.entries(sources)) {
-      this.addSource(sourceId, source);
+      void this.addSource(sourceId, source);
     }
 
     let index = 0;
 
     for (const [layerId, layer] of Object.entries(layers)) {
-      this.addLayer(layerId, layer, index++);
+      void this.addLayer(layerId, layer, index++);
     }
 
     this._setupInteractions();
@@ -469,7 +469,7 @@ export class OpenLayersAdapter implements IMapAdapter {
 
       const layerId = UUID.uuid4();
 
-      this.addSource(sourceId, sourceModel);
+      void this.addSource(sourceId, sourceModel);
       this._model.sharedModel.addSource(sourceId, sourceModel);
 
       const layerModel: IJGISLayer = {
@@ -484,7 +484,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         },
       };
 
-      this.addLayer(layerId, layerModel, this.getLayerIDs().length);
+      void this.addLayer(layerId, layerModel, this.getLayerIDs().length);
       this._model.addLayer(layerId, layerModel);
     });
 
@@ -590,7 +590,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       this._identifyFeature(event);
     });
     this._map.on('click', (event) => {
-      this._addMarker(event);
+      void this._addMarker(event);
     });
 
     const viewport = this._map.getViewport();
@@ -940,7 +940,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       extent: nextView.calculateExtent(this._map.getSize()),
     });
 
-    this._rereadViewProjectedVectorSources();
+    void this._rereadViewProjectedVectorSources();
 
     return {
       code: nextProjection.getCode(),

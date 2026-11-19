@@ -128,7 +128,7 @@ export async function requestAPI<T>(
   if (data.length > 0) {
     try {
       data = JSON.parse(data);
-    } catch (error) {
+    } catch  {
       console.error(
         'Jupyter API request failed -- not a JSON response body:',
         response,
@@ -498,7 +498,7 @@ export const loadGeoTiff = async (
       response.blob(),
     );
     if (!fileBlob) {
-      showErrorMessage('Network error', `Failed to fetch ${url}`);
+      void showErrorMessage('Network error', `Failed to fetch ${url}`);
       throw new Error(`Failed to fetch ${url}`);
     }
   } else {
@@ -575,7 +575,7 @@ function loadGeoPackageVectorFile(
       }
       return tableMap;
     } catch (e: any) {
-      showErrorMessage('Failed to load GeoPackage file', e);
+      void showErrorMessage('Failed to load GeoPackage file', e);
       throw e;
     }
   })();
@@ -604,7 +604,7 @@ async function loadGeoPackageRasterFile(
       }
 
       const geoPackage = await GeoPackageAPI.open(bytes);
-      const tileTables = await geoPackage.getTileTables();
+      const tileTables = geoPackage.getTileTables();
       const tableMap: GpkgTable = {};
 
       tileTables.forEach((tableName) => {
@@ -621,7 +621,7 @@ async function loadGeoPackageRasterFile(
 
       return tableMap;
     } catch (error: any) {
-      showErrorMessage(
+      void showErrorMessage(
         `Failed to load GeoPackage file: ${cacheFilename}`,
         error,
       );
@@ -732,7 +732,7 @@ export const loadFile = async (fileInfo: {
           return geojson;
         }
 
-        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        void showErrorMessage('Network error', `Failed to fetch ${filepath}`);
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
@@ -754,7 +754,7 @@ export const loadFile = async (fileInfo: {
           return geojson;
         }
 
-        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        void showErrorMessage('Network error', `Failed to fetch ${filepath}`);
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
@@ -771,7 +771,7 @@ export const loadFile = async (fileInfo: {
         );
 
         if (!fileBlob) {
-          showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+          void showErrorMessage('Network error', `Failed to fetch ${filepath}`);
           throw new Error(`Failed to fetch ${filepath}`);
         }
 
@@ -802,7 +802,7 @@ export const loadFile = async (fileInfo: {
           return geojson;
         }
 
-        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        void showErrorMessage('Network error', `Failed to fetch ${filepath}`);
         throw new Error(`Failed to fetch ${filepath}`);
       }
 

@@ -141,7 +141,7 @@ export function GeoTiffSourcePropertiesForm(
       handleChangeBase(data);
 
       if (data.urls) {
-        validateUrls(data.urls, false);
+        void validateUrls(data.urls, false);
       }
     },
     [handleChangeBase, validateUrls],
@@ -153,7 +153,7 @@ export function GeoTiffSourcePropertiesForm(
 
       if (!valid) {
         if (errors.length > 0) {
-          showErrorMessage('Invalid URLs', errors[0]);
+          void showErrorMessage('Invalid URLs', errors[0]);
         }
 
         return;
@@ -165,7 +165,7 @@ export function GeoTiffSourcePropertiesForm(
   );
 
   useEffect(() => {
-    validateUrls(formData?.urls, false);
+    void validateUrls(formData?.urls, false);
   }, []);
 
   if (!hasSchema) {

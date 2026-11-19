@@ -47,7 +47,7 @@ const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = (
   const okSignal = React.useRef<Signal<Dialog<any>, number>>();
   const formErrorSignal = React.useRef<Signal<Dialog<any>, boolean>>();
 
-  Promise.all([
+  void Promise.all([
     props.okSignalPromise.promise,
     props.formErrorSignalPromise?.promise,
   ]).then(([ok, formChanged]) => {

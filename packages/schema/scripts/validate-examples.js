@@ -165,21 +165,17 @@ async function main() {
   }
 
   if (failures.length > 0) {
-    console.log('Examples that do NOT match the schema:\n');
+    
     for (const r of failures) {
-      console.log(r.file);
+      
       for (const e of r.errors) {
-        console.log('  -', e);
+        
       }
-      console.log('');
+      
     }
     process.exit(1);
   } else {
-    console.log(
-      'All',
-      jgisFiles.length,
-      'example .jGIS files match the schema.',
-    );
+    
   }
 }
 

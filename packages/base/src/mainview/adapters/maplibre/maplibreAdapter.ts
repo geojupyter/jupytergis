@@ -375,11 +375,11 @@ export class MapLibreAdapter implements IMapAdapter {
     });
 
     this._map.on('click', (event) => {
-      this._identifyFeature(event);
+      void this._identifyFeature(event);
     });
 
     this._map.on('click', (event) => {
-      this._addMarker(event);
+      void this._addMarker(event);
     });
 
     this._map.on('contextmenu', (event) => {
@@ -2298,7 +2298,7 @@ export class MapLibreAdapter implements IMapAdapter {
     });
 
     const source = this._map.getSource(sourceId) as GeoJSONSource;
-    source?.setData(data);
+    void source?.setData(data);
   }
 
   /**

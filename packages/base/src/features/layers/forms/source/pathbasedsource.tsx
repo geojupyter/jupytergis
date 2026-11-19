@@ -67,7 +67,7 @@ export function PathBasedSourcePropertiesForm(
             type: sourceType,
             model,
           });
-        } catch (e) {
+        } catch  {
           valid = false;
           error = `"${path}" is not a valid ${sourceType} file.`;
         }
@@ -127,7 +127,7 @@ export function PathBasedSourcePropertiesForm(
       handleChangeBase(data);
 
       if (data.path !== undefined) {
-        validatePath(data.path);
+        void validatePath(data.path);
       }
     },
     [handleChangeBase, validatePath],
@@ -136,7 +136,7 @@ export function PathBasedSourcePropertiesForm(
   const handleSubmit = useCallback(
     (data: IDict) => {
       if (extraErrors?.path?.__errors?.length >= 1) {
-        showErrorMessage('Invalid file', extraErrors.path.__errors[0]);
+        void showErrorMessage('Invalid file', extraErrors.path.__errors[0]);
 
         return;
       }
@@ -147,7 +147,7 @@ export function PathBasedSourcePropertiesForm(
   );
 
   useEffect(() => {
-    validatePath(formData?.path ?? '');
+    void validatePath(formData?.path ?? '');
   }, []);
 
   if (!hasSchema) {

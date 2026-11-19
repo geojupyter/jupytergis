@@ -53,7 +53,7 @@ const TILE_MAX_RETRY = 4;
  * Thrown when the user gives up on the sign-in form, so `openEOConnect`
  * can skip the "failed to connect" error dialog.
  */
-export class OpenEOSigninCancelled extends Error {}
+export class OpenEOSigninCancelled extends Error { }
 
 class OpenEOEvents {
   readonly connected = new Signal<this, { serverUrl: string }>(this);
@@ -307,7 +307,7 @@ export async function openEOConnect(
     window.location.protocol === 'https:' &&
     parsedUrl.protocol !== 'https:'
   ) {
-    showErrorMessage(
+    void showErrorMessage(
       errorTitle,
       'You are trying to connect to a server with HTTP instead of HTTPS, which is insecure and prohibited by web browsers. Please use HTTPS instead.',
     );
@@ -370,7 +370,7 @@ export async function openEOConnect(
     return connection;
   } catch (error) {
     if (!(error instanceof OpenEOSigninCancelled) && !connectionInfo.quiet) {
-      showErrorMessage(errorTitle, describeConnectionError(error, url));
+      void showErrorMessage(errorTitle, describeConnectionError(error, url));
     }
 
     throw error;
@@ -549,72 +549,72 @@ export class OpenEOTileSource extends DataTileSource {
   constructor(options: IOpenEOTileSourceOptions) {
     const tileLoadFunction =
       (retries: number): Loader =>
-      async (z, x, y, loaderOptions) => {
-        await this._connected.promise;
+        async (z, x, y, loaderOptions) => {
+          await this._connected.promise;
 
-        const url = this._url;
+          const url = this._url;
 
-        if (!url) {
-          throw new Error('XYZ URL undefined');
-        }
-
-        retries -= 1;
-        const retry = async () => {
-          await new Promise((resolve) => setTimeout(resolve, TILE_RETRY_RATE));
-          return tileLoadFunction(retries)(z, x, y, loaderOptions);
-        };
-
-        let res: Response;
-        try {
-          res = await fetch(openEOTileUrl(url, z, x, y), { method: 'GET' });
-        } catch (err: any) {
-          const errorMessage: string = err?.message ?? String(err);
-
-          if (errorMessage.toLowerCase().includes('rate limit')) {
-            return retry();
+          if (!url) {
+            throw new Error('XYZ URL undefined');
           }
 
-          this._reportTileError(`Tile request failed: ${errorMessage}`);
-          throw err;
-        }
+          retries -= 1;
+          const retry = async () => {
+            await new Promise((resolve) => setTimeout(resolve, TILE_RETRY_RATE));
+            return tileLoadFunction(retries)(z, x, y, loaderOptions);
+          };
 
-        if (!res.ok) {
-          // Try to surface the backend's actual message rather than a
-          // bare HTTP status — titiler-openeo, like most openEO
-          // backends, returns JSON `{ message: ... }` on errors.
-          let detail = '';
+          let res: Response;
           try {
-            const text = await res.text();
-            try {
-              const parsed = JSON.parse(text);
-              detail =
-                parsed?.message ?? parsed?.detail ?? parsed?.error ?? text;
-            } catch {
-              detail = text;
+            res = await fetch(openEOTileUrl(url, z, x, y), { method: 'GET' });
+          } catch (err: any) {
+            const errorMessage: string = err?.message ?? String(err);
+
+            if (errorMessage.toLowerCase().includes('rate limit')) {
+              return retry();
             }
-          } catch {
-            /* response body unreadable */
+
+            this._reportTileError(`Tile request failed: ${errorMessage}`);
+            throw err;
           }
 
-          if (detail.toLowerCase().includes('rate limit')) {
-            return retry();
+          if (!res.ok) {
+            // Try to surface the backend's actual message rather than a
+            // bare HTTP status — titiler-openeo, like most openEO
+            // backends, returns JSON `{ message: ... }` on errors.
+            let detail = '';
+            try {
+              const text = await res.text();
+              try {
+                const parsed = JSON.parse(text);
+                detail =
+                  parsed?.message ?? parsed?.detail ?? parsed?.error ?? text;
+              } catch {
+                detail = text;
+              }
+            } catch {
+              /* response body unreadable */
+            }
+
+            if (detail.toLowerCase().includes('rate limit')) {
+              return retry();
+            }
+
+            this._reportTileError(
+              `HTTP ${res.status} from OpenEO tile service${detail ? `: ${detail}` : ''}`,
+            );
+            throw new Error(`HTTP ${res.status}`);
           }
 
-          this._reportTileError(
-            `HTTP ${res.status} from OpenEO tile service${detail ? `: ${detail}` : ''}`,
-          );
-          throw new Error(`HTTP ${res.status}`);
-        }
+          if (res.headers.get('Content-Type')?.includes('tiff')) {
+            const tiff = await fromArrayBuffer(await res.arrayBuffer());
+            const image = await tiff.getImage();
+            const raster = await image.readRasters({ interleave: true });
+            return new Float32Array(raster as TypedArray);
+          }
 
-        if (res.headers.get('Content-Type')?.includes('tiff')) {
-          const tiff = await fromArrayBuffer(await res.arrayBuffer());
-          const image = await tiff.getImage();
-          const raster = await image.readRasters({ interleave: true });
-          return new Float32Array(raster as TypedArray);
-        }
-
-        return createImageBitmap(await res.blob());
-      };
+          return createImageBitmap(await res.blob());
+        };
 
     super({
       ...options,

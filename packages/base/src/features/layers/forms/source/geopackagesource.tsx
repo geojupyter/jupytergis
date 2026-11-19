@@ -135,7 +135,7 @@ export function GeoPackagePropertiesForm(
   const handleSubmit = useCallback(
     (data: IDict) => {
       if (extraErrors?.path?.__errors?.length >= 1) {
-        showErrorMessage('Invalid file', extraErrors.path.__errors[0]);
+        void showErrorMessage('Invalid file', extraErrors.path.__errors[0]);
         return;
       }
 

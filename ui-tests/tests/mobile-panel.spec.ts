@@ -82,7 +82,7 @@ test.describe('#mobilePanel', () => {
     await expect(triggers.nth(0)).toHaveAttribute('data-active', '');
     await expect(secondTab).not.toHaveAttribute('data-active');
 
-    console.log(`Tab switching verified for: ${secondTabName}`);
+    
   });
 
   test('dragging tab list vertically resizes the panel', async ({ page }) => {

@@ -33,7 +33,7 @@ test.describe('UI Test', () => {
               return;
             }
           }
-          console.log('CONSOLE ERROR', message);
+          
           errors += 1;
         }
       });
