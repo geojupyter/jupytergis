@@ -45,6 +45,10 @@
     "watch": "lerna watch -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
     "build:lab": "lerna run"
   },
+  "dependencies": {
+    "@types/jest": "^30.0.0",
+    "ts-jest": "^29.4.15"
+  },
   "devDependencies": {
     "@types/webpack-env": "^1.18.5",
     "@typescript/native": "npm:typescript@^7.0.2",
@@ -64,9 +68,5 @@
     "webpack": "^5.76.3",
     "zarrita": "^0.7.3"
   },
-  "packageManager": "pnpm@11.17.0",
-  "dependencies": {
-    "@types/jest": "^30.0.0",
-    "ts-jest": "^29.4.15"
-  }
+  "packageManager": "pnpm@11.17.0"
 }

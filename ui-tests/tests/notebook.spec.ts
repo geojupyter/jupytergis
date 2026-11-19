@@ -45,9 +45,7 @@ const EXPECTED_CELLS = [
 
 test.describe('Notebook API', () => {
   test.beforeEach(async ({ page, tmpPath }) => {
-    page.on('console', () => {
-      
-    });
+    page.on('console', () => {});
 
     await page.contents.uploadDirectory(
       path.resolve(__dirname, './notebooks'),

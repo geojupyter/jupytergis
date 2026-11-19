@@ -113,8 +113,4 @@ function preProcessSchemas() {
   preProcessSchemaDirectory(schemaRoot, tempDir, schemaRoot);
 }
 
-
-
 preProcessSchemas();
-
-

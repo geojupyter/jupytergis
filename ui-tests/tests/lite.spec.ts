@@ -1,4 +1,3 @@
-
 import { expect, test } from '@jupyterlab/galata';
 
 import {
@@ -29,7 +28,7 @@ test.describe('UI Test', () => {
               return;
             }
           }
-          
+
           errors += 1;
         }
       });

@@ -33,7 +33,7 @@ test.describe('UI Test', () => {
               return;
             }
           }
-          
+
           errors += 1;
         }
       });

@@ -11,16 +11,13 @@ if (!fs.existsSync(cacheDir)) {
 }
 
 if (fs.existsSync(schemaFile)) {
-  
 } else {
-  
   const file = fs.createWriteStream(schemaFile);
   https
     .get(schemaUrl, (response) => {
       response.pipe(file);
       file.on('finish', () => {
         file.close();
-        
       });
     })
     .on('error', (err) => {

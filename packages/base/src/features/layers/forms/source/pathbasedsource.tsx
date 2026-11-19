@@ -67,7 +67,7 @@ export function PathBasedSourcePropertiesForm(
             type: sourceType,
             model,
           });
-        } catch  {
+        } catch {
           valid = false;
           error = `"${path}" is not a valid ${sourceType} file.`;
         }

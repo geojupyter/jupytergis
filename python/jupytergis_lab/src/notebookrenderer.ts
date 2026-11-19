@@ -57,7 +57,10 @@ export class YJupyterGISModel extends JupyterYModel {
    * Currently used by the Python API to request one-off map actions such as
    * zooming to a freshly added layer (`zoom_to=True`).
    */
-  protected readonly _onCustomMessage = (_: unknown, data: JSONObject): void => {
+  protected readonly _onCustomMessage = (
+    _: unknown,
+    data: JSONObject,
+  ): void => {
     if (data?.type === 'zoom-to' && typeof data.layerId === 'string') {
       this.jupyterGISModel?.centerOnPosition(data.layerId);
     }

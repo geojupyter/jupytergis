@@ -313,9 +313,8 @@ describe('StoryEditorSession', () => {
       attachSession(session, dialog, modelA, commands, tracker);
       session.enterStoryPreviewMode();
 
-      const mapBarA = (
-        StoryMapInteractionBarWidget as unknown as jest.Mock
-      ).mock.results[0].value as { show: jest.Mock };
+      const mapBarA = (StoryMapInteractionBarWidget as unknown as jest.Mock)
+        .mock.results[0].value as { show: jest.Mock };
 
       tracker.configureMainViewParents((model) =>
         model === modelA ? parentA : parentB,

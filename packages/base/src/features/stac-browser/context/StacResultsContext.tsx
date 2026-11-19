@@ -373,7 +373,7 @@ export function StacResultsProvider({
         }
 
         setIsLoading(false);
-      } catch  {
+      } catch {
         setResults([], '0', 0);
         setIsLoading(false);
       }

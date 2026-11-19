@@ -128,7 +128,7 @@ export async function requestAPI<T>(
   if (data.length > 0) {
     try {
       data = JSON.parse(data);
-    } catch  {
+    } catch {
       console.error(
         'Jupyter API request failed -- not a JSON response body:',
         response,
@@ -214,7 +214,7 @@ export function createDefaultLayerRegistry(
   function convertToRegistryEntry(
     entry: string,
     layerProvider: { [x: string]: any },
-    provider?: string  ,
+    provider?: string,
   ): ILayerGalleryEntry {
     return {
       name: entry,
@@ -361,7 +361,7 @@ export const openDatabase = () => {
 export const saveToIndexedDB = async (
   key: string,
   file: any,
-  metadata?: any  ,
+  metadata?: any,
 ) => {
   const db = await openDatabase();
   return new Promise<void>((resolve, reject) => {
@@ -385,7 +385,7 @@ export const getFromIndexedDB = async (key: string) => {
   return new Promise<
     | {
         file: any;
-      metadata?: any;
+        metadata?: any;
       }
     | undefined
   >((resolve, reject) => {
@@ -1198,8 +1198,7 @@ const fileToArrayBuffer = async (
 
 export const getFeatureAttributes = <T>(
   featureProperties: Record<string, Set<any>>,
-  predicate: (key: string, value: any) => boolean = () =>
-    true,
+  predicate: (key: string, value: any) => boolean = () => true,
 ): Record<string, Set<T>> => {
   const filteredRecord: Record<string, Set<T>> = {};
 

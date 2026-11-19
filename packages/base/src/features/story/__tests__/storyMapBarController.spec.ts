@@ -123,12 +123,11 @@ describe('StoryMapBarController', () => {
   it('disposes the bar when the model no longer needs one', () => {
     const model = createModel();
     const tracker = createTracker(model);
-    const getInteraction = jest.fn<
-      { mode: SegmentInteractionMode } | null,
-      []
-    >(() => ({
-      mode: SegmentInteractionMode.mapView,
-    }));
+    const getInteraction = jest.fn<{ mode: SegmentInteractionMode } | null, []>(
+      () => ({
+        mode: SegmentInteractionMode.mapView,
+      }),
+    );
     const host = createHost(tracker, { getInteraction });
     const controller = new StoryMapBarController(host);
 
@@ -238,7 +237,7 @@ describe('StoryMapBarController', () => {
       })),
       restoreEditorForModel,
     });
-    
+
     const controller = new StoryMapBarController(host);
 
     controller.refresh();
