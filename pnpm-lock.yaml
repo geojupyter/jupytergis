@@ -1409,24 +1409,6 @@ packages:
   '@emotion/unitless@0.7.5':
     resolution: {integrity: sha512-OWORNpfjMsSSUBVrRBVGECkhWcULOAJz9ZW8uK9qgxD+87M7jHRcvh/A96XXNhXTLmKcoYSQtBEX7lHMO7YRwg==}
 
-  '@eslint-community/eslint-utils@4.9.1':
-    resolution: {integrity: sha512-phrYmNiYppR7znFEdqgfWHXR6NCkZEK7hwWDHZUjit/2/U0r6XvkDl0SYnoM51Hq7FhCGdLDT6zxCCOY1hexsQ==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    peerDependencies:
-      eslint: ^6.0.0 || ^7.0.0 || >=8.0.0
-
-  '@eslint-community/regexpp@4.12.2':
-    resolution: {integrity: sha512-EriSTlt5OC9/7SXkRSCAhfSxxoSUgBm33OH+IkwbdpgoqsSsUg7y3uh+IICI/Qg4BBWr3U2i39RpmycbxMq4ew==}
-    engines: {node: ^12.0.0 || ^14.0.0 || >=16.0.0}
-
-  '@eslint/eslintrc@2.1.4':
-    resolution: {integrity: sha512-269Z39MS6wVJtsoUl10L60WdkhJVdPG24Q4eZTH3nnF6lpvSShEK3wQjDX9JRWAUPvPh7COouPpU9IrqaZFvtQ==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-
-  '@eslint/js@8.57.1':
-    resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-
   '@esri/arcgis-html-sanitizer@4.1.0':
     resolution: {integrity: sha512-einEveDJ/k1180NOp78PB/4Hje9eBy3dyOGLLtLn6bSkizpUfCwuYBIXOA7Y3F/k/BsTQXgKqUVwQ0eiscWMdA==}
     engines: {node: '>=18.0.0'}
@@ -5413,6 +5395,10 @@ packages:
   charenc@0.0.2:
     resolution: {integrity: sha512-yrLQ/yVUFXkzg7EDQsPieE/53+0RlaWTs+wBrvW36cyilJ2SaDWfl4Yj7MtLTXleV9uEKefbAGUPv2/iWSooRA==}
 
+  chokidar@3.6.0:
+    resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
+    engines: {node: '>= 8.10.0'}
+
   chokidar@5.0.0:
     resolution: {integrity: sha512-TQMmc3w+5AxjpL8iIiwebF73dRDF4fBIieAqGn9RGCWaEVwQ6Fb2cGe31Yns0RRIzii5goJ1Y7xbMwo1TxMplw==}
     engines: {node: '>= 20.19.0'}
@@ -6217,9 +6203,6 @@ packages:
     resolution: {integrity: sha512-LOHxIOaPYdHlJRtCQfDIVZtfw/ufM8+rVj649RIHzcm/vGwQRXFt6OPqIFWsm2XEMrNIEtWR64sY1LEKD2vAOA==}
     engines: {node: '>=4.0.0'}
 
-  deep-is@0.1.4:
-    resolution: {integrity: sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==}
-
   deep-strict-equal@0.2.0:
     resolution: {integrity: sha512-3daSWyvZ/zwJvuMGlzG1O+Ow0YSadGfb3jsh9xoCutv2tWyB9dA4YvR9L9/fSdDZa2dByYQe+TqapSGUrjnkoA==}
     engines: {node: '>=0.10.0'}
@@ -6655,9 +6638,6 @@ packages:
   flatpickr@4.6.13:
     resolution: {integrity: sha512-97PMG/aywoYpB4IvbvUJi0RQi8vearvU0oov1WW3k0WZPBMrTQVqekSX5CjSG/M4Q3i6A/0FKXC7RyAoAUUSPw==}
 
-  flatted@3.4.2:
-    resolution: {integrity: sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA==}
-
   focus-trap@7.8.0:
     resolution: {integrity: sha512-/yNdlIkpWbM0ptxno3ONTuf+2g318kh2ez3KSeZN5dZ8YC6AAmgeWz+GasYYiBJPFaYcSAPeu4GfhUaChzIJXA==}
 
@@ -6888,12 +6868,6 @@ packages:
 
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
-
-  grapheme-splitter@1.0.4:
-    resolution: {integrity: sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==}
-
-  graphemer@1.4.0:
-    resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
   h3-js@4.5.0:
     resolution: {integrity: sha512-uKmdPc+DuarnR+XqZxEuWOMw7KzzKROrx3MLeJpFnMOs78S9M5eZ+X5RieS9UcSFQqbeXzbfWuX/W9Pyajinqw==}
@@ -9812,9 +9786,6 @@ packages:
     resolution: {integrity: sha512-wiBrwC1EhBelW12Zy26JeOUkQ5mRu+5o8rpsJk5+2t+Y5vE7e842qtZDQ2g1NpX/29HdyFeJ4nSIhI47ENSxlQ==}
     engines: {node: '>=0.10'}
 
-  text-table@0.2.0:
-    resolution: {integrity: sha512-N+8UisAXDGk8PFXP4HAzVR9nbfmVJ3zYLAWiTIoqC5v5isinhr+r5uaO8+7r3BMfuNIufIsA7RdpVgacC2cSpw==}
-
   texture-compressor@1.0.2:
     resolution: {integrity: sha512-dStVgoaQ11mA5htJ+RzZ51ZxIZqNOgWKAIvtjLrW1AliQQLCmrDqNzQZ8Jh91YealQ95DXt4MEduLzJmbs6lig==}
     hasBin: true
@@ -11351,29 +11322,6 @@ snapshots:
   '@emotion/stylis@0.8.5': {}
 
   '@emotion/unitless@0.7.5': {}
-
-  '@eslint-community/eslint-utils@4.9.1(eslint@8.57.1(supports-color@5.5.0))':
-    dependencies:
-      eslint: 8.57.1(supports-color@5.5.0)
-      eslint-visitor-keys: 3.4.3
-
-  '@eslint-community/regexpp@4.12.2': {}
-
-  '@eslint/eslintrc@2.1.4(supports-color@5.5.0)':
-    dependencies:
-      ajv: 6.15.0
-      debug: 4.4.3(supports-color@5.5.0)
-      espree: 9.6.1
-      globals: 13.24.0
-      ignore: 5.3.2
-      import-fresh: 3.3.1
-      js-yaml: 4.3.0
-      minimatch: 3.1.5
-      strip-json-comments: 3.1.1
-    transitivePeerDependencies:
-      - supports-color
-
-  '@eslint/js@8.57.1': {}
 
   '@esri/arcgis-html-sanitizer@4.1.0':
     dependencies:
@@ -16449,6 +16397,18 @@ snapshots:
 
   charenc@0.0.2: {}
 
+  chokidar@3.6.0:
+    dependencies:
+      anymatch: 3.1.3
+      braces: 3.0.3
+      glob-parent: 5.1.2
+      is-binary-path: 2.1.0
+      is-glob: 4.0.3
+      normalize-path: 3.0.0
+      readdirp: 3.6.0
+    optionalDependencies:
+      fsevents: 2.3.3
+
   chokidar@5.0.0:
     dependencies:
       readdirp: 5.0.0
@@ -17146,8 +17106,6 @@ snapshots:
   deep-extend@0.6.0:
     optional: true
 
-  deep-is@0.1.4: {}
-
   deep-strict-equal@0.2.0:
     dependencies:
       core-assert: 0.2.1
@@ -17634,8 +17592,6 @@ snapshots:
 
   flatpickr@4.6.13: {}
 
-  flatted@3.4.2: {}
-
   focus-trap@7.8.0:
     dependencies:
       tabbable: 6.5.0
@@ -17917,10 +17873,6 @@ snapshots:
   gopd@1.2.0: {}
 
   graceful-fs@4.2.11: {}
-
-  grapheme-splitter@1.0.4: {}
-
-  graphemer@1.4.0: {}
 
   h3-js@4.5.0: {}
 
@@ -18808,8 +18760,6 @@ snapshots:
   jsep@1.6.0: {}
 
   jsesc@3.1.0: {}
-
-  json-buffer@3.0.1: {}
 
   json-parse-better-errors@1.0.2: {}
 
@@ -21565,8 +21515,6 @@ snapshots:
       minimatch: 3.1.5
 
   text-extensions@1.9.0: {}
-
-  text-table@0.2.0: {}
 
   texture-compressor@1.0.2:
     dependencies:
