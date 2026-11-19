@@ -866,7 +866,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     emitter?: string,
   ): void {
     const current = {
-      ...(this.localState?.drawCustomAttributes?.value ?? {}),
+      ...this.localState?.drawCustomAttributes?.value,
     };
 
     current[layerId] = {
@@ -936,7 +936,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   setDialogStateKey(key: string, value: unknown, emitter?: string): void {
     this.syncDialogState(
       {
-        ...(this.localState?.dialogState?.value ?? {}),
+        ...this.localState?.dialogState?.value,
         [key]: value,
       },
       emitter,

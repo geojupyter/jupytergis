@@ -214,7 +214,7 @@ export function createDefaultLayerRegistry(
   function convertToRegistryEntry(
     entry: string,
     layerProvider: { [x: string]: any },
-    provider?: string | undefined,
+    provider?: string  ,
   ): ILayerGalleryEntry {
     return {
       name: entry,
@@ -361,7 +361,7 @@ export const openDatabase = () => {
 export const saveToIndexedDB = async (
   key: string,
   file: any,
-  metadata?: any | undefined,
+  metadata?: any  ,
 ) => {
   const db = await openDatabase();
   return new Promise<void>((resolve, reject) => {
@@ -1395,7 +1395,7 @@ export async function fetchBackendCatalog(
         : formats?.data?.output) ?? {};
     const outputFormats: IFileFormat[] = Object.keys(outputRaw).map((id) => ({
       id,
-      ...(outputRaw[id] ?? {}),
+      ...outputRaw[id],
     }));
     // listUserProcesses() returns a ResponseArray of UserProcess entities;
     // flatten each to plain metadata (id/parameters/…) via toJSON so the

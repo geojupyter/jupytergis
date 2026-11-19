@@ -242,7 +242,7 @@ export function shareDialogViewOn(
     model.updateDialogView(
       {
         scroll: {
-          ...(model.localState?.dialogView?.value?.scroll ?? {}),
+          ...model.localState?.dialogView?.value?.scroll,
           [path]: target.scrollTop / range,
         },
       },
