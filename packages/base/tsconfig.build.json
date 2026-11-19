@@ -7,8 +7,6 @@
       "@/*": ["./*"]
     }
   },
-  "exclude": ["**/*.spec.ts"],
-  "include": [
-    "src/**/*",
-  ]
+  "exclude": ["**/__tests__/**", "**/*.spec.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.json"]
 }
