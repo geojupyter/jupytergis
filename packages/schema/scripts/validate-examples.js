@@ -175,7 +175,7 @@ async function main() {
     }
     process.exit(1);
   } else {
-    console.error(
+    console.debug(
       'All',
       jgisFiles.length,
       'example .jGIS files match the schema.',

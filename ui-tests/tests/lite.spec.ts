@@ -29,6 +29,7 @@ test.describe('UI Test', () => {
             }
           }
 
+          console.error('CONSOLE ERROR', message);
           errors += 1;
         }
       });
