@@ -106,18 +106,13 @@ export class JupyterGISModel implements IJupyterGISModel {
       window.addEventListener('beforeunload', this._onPageExit);
       window.addEventListener('pagehide', this._onPageExit);
     }
-    this._sharedModel.metadataChanged.connect(
-      this._metadataChangedHandler,
-      this,
-    );
+    this._sharedModel.metadataChanged.connect(this._metadataChangedHandler);
     this._sharedModel.annotationsChanged.connect(
       this._annotationsChangedHandler,
-      this,
     );
-    this._sharedModel.presetsChanged.connect(this._presetsChangedHandler, this);
+    this._sharedModel.presetsChanged.connect(this._presetsChangedHandler);
     this._sharedModel.featureStoresChanged.connect(
       this._featureStoresChangedHandler,
-      this,
     );
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
@@ -131,7 +126,8 @@ export class JupyterGISModel implements IJupyterGISModel {
     this.settingsReady = new Promise((resolve) => {
       this._settingsReadyResolve = resolve;
     });
-    this.initSettings();
+
+    void this.initSettings();
   }
 
   /**
@@ -466,22 +462,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._zoomToPositionSignal.emit(id);
   }
 
-  private _metadataChangedHandler(_: IJupyterGISDoc, args: MapChange) {
-    this._sharedMetadataChanged.emit(args);
-  }
-
-  private _annotationsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
-    this._sharedAnnotationsChanged.emit(args);
-  }
-
-  private _presetsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
-    this._sharedPresetsChanged.emit(args);
-  }
-
-  private _featureStoresChangedHandler(_: IJupyterGISDoc, args: MapChange) {
-    this._featureStoresChanged.emit(args);
-  }
-
   dispose(): void {
     this._storyPreviewActive = false;
     if (this._isDisposed) {
@@ -544,7 +524,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return JSON.parse(this.toString());
   }
 
-  fromJSON(data: PartialJSONObject): void {
+  fromJSON(_data: PartialJSONObject): void {
     // nothing to do
   }
 
@@ -1876,6 +1856,30 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _sharedAnnotationsChanged = new Signal<this, MapChange>(this);
   private _sharedPresetsChanged = new Signal<this, MapChange>(this);
   private _featureStoresChanged = new Signal<this, MapChange>(this);
+  private readonly _metadataChangedHandler = (
+    _: IJupyterGISDoc,
+    args: MapChange,
+  ) => {
+    this._sharedMetadataChanged.emit(args);
+  };
+  private readonly _annotationsChangedHandler = (
+    _: IJupyterGISDoc,
+    args: MapChange,
+  ) => {
+    this._sharedAnnotationsChanged.emit(args);
+  };
+  private readonly _presetsChangedHandler = (
+    _: IJupyterGISDoc,
+    args: MapChange,
+  ) => {
+    this._sharedPresetsChanged.emit(args);
+  };
+  private readonly _featureStoresChangedHandler = (
+    _: IJupyterGISDoc,
+    args: MapChange,
+  ) => {
+    this._featureStoresChanged.emit(args);
+  };
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);

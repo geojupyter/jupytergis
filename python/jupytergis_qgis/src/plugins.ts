@@ -100,7 +100,7 @@ const activate = async (
   const { installed } = fcCheck;
   const backendCheck = () => {
     if (!installed) {
-      showErrorMessage(
+      void showErrorMessage(
         'QGIS is not installed',
         'QGIS is required to open QGIS files',
       );
@@ -195,13 +195,13 @@ const activate = async (
     widget.title.icon = logoMiniIconQGZ;
     // Notify the instance tracker if restore data needs to update.
     widget.context.pathChanged.connect(() => {
-      tracker.save(widget);
+      void tracker.save(widget);
     });
     themeManager.themeChanged.connect((_, changes) =>
       widget.model.themeChanged.emit(changes),
     );
 
-    tracker.add(widget);
+    void tracker.add(widget);
     app.shell.activateById('jupytergis::leftControlPanel');
     app.shell.activateById('jupytergis::rightControlPanel');
   };
@@ -306,7 +306,7 @@ const activate = async (
           },
         );
         if (!response.exported) {
-          showErrorMessage(
+          void showErrorMessage(
             'Export the project to QGZ file',
             response.logs.errors.length
               ? response.logs.errors.join('\n')
