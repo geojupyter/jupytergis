@@ -1,3 +1,5 @@
+import path from 'path';
+
 import {
   IJupyterLabPageFixture,
   expect,
@@ -5,7 +7,6 @@ import {
   test,
 } from '@jupyterlab/galata';
 import { Locator } from '@playwright/test';
-import path from 'path';
 
 async function openLayerTree(page: IJupyterLabPageFixture): Promise<Locator> {
   const layerTree = page.locator('#jp-gis-layer-tree');

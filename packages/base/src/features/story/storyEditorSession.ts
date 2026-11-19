@@ -13,6 +13,7 @@ import { CommandRegistry } from '@lumino/commands';
 import { CommandIDs } from '@/src/constants';
 import { launchFollowable } from '@/src/features/follow/followDialogs';
 import type { JupyterGISTracker } from '@/src/types';
+
 import { StoryEditorWidget } from './storyEditorDialog';
 import {
   StoryMapBarController,
@@ -289,7 +290,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
       this.clearInteractionForModel(model, { restorePanels: true });
     }
 
-    this._context?.tracker.forEach(widget => {
+    this._context?.tracker.forEach((widget) => {
       const model = widget.model;
       if (model?.isStoryPreviewActive()) {
         model.setStoryPreviewActive(false);
@@ -431,7 +432,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
     }
 
     let found = false;
-    this._context.tracker.forEach(widget => {
+    this._context.tracker.forEach((widget) => {
       const model = widget.model;
       if (!found && model?.isStoryPreviewActive()) {
         found = true;

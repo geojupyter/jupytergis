@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 
 import { STORY_TYPE } from '@/src/types';
 import { JupyterGISPanel } from '@/src/workspace/widget';
+
 import type { StoryEditorSession } from '../storyEditorSession';
 
 export function createMainViewPanel(
@@ -82,7 +83,7 @@ export function createTracker(
       model,
       content: createMainViewPanel(document.createElement('div')),
     },
-    ...extraModels.map(extraModel => ({
+    ...extraModels.map((extraModel) => ({
       model: extraModel,
       content: createMainViewPanel(document.createElement('div')),
     })),

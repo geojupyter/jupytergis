@@ -21,17 +21,20 @@ const { VueLoaderPlugin } = require('vue-loader');
 // VueLoaderPlugin has rebuilt the list, so source-map extraction still happens.
 class HideRspackNativeRulesFromVueLoader {
   apply(compiler) {
-    const isRspackNative = rule => rule && rule.extractSourceMap;
+    const isRspackNative = (rule) => rule && rule.extractSourceMap;
     const hidden = compiler.options.module.rules.filter(isRspackNative);
     if (!hidden.length) {
       return;
     }
     compiler.options.module.rules = compiler.options.module.rules.filter(
-      rule => !isRspackNative(rule)
+      (rule) => !isRspackNative(rule),
     );
-    compiler.hooks.afterPlugins.tap('HideRspackNativeRulesFromVueLoader', () => {
-      compiler.options.module.rules.push(...hidden);
-    });
+    compiler.hooks.afterPlugins.tap(
+      'HideRspackNativeRulesFromVueLoader',
+      () => {
+        compiler.options.module.rules.push(...hidden);
+      },
+    );
   }
 }
 
@@ -49,7 +52,7 @@ module.exports = {
       util: false,
       stream: require.resolve('stream-browserify'),
       buffer: require.resolve('buffer/'),
-    }
+    },
   },
   module: {
     parser: {
@@ -59,18 +62,18 @@ module.exports = {
         // condition rspack resolves. base never uses it, so downgrade rspack's
         // strict ESM "export not found" check from error to warning (webpack's
         // old, lenient behavior) instead of failing the browser bundle.
-        exportsPresence: 'warn'
-      }
+        exportsPresence: 'warn',
+      },
     },
     rules: [
       {
         test: /\.wasm$/,
-        type: 'asset/resource'
+        type: 'asset/resource',
       },
       {
         test: /\.vue$/,
         loader: 'vue-loader',
-        options: { shadowMode: true }
+        options: { shadowMode: true },
       },
       {
         test: /\.s[ac]ss$/,
@@ -81,10 +84,10 @@ module.exports = {
           {
             loader: 'sass-loader',
             options: {
-              sassOptions: { silenceDeprecations: ['legacy-js-api'] }
-            }
-          }
-        ]
+              sassOptions: { silenceDeprecations: ['legacy-js-api'] },
+            },
+          },
+        ],
       },
       // Plain CSS pulled in from SFCs via `<style src="…">` (e.g.
       // vue-multiselect's stylesheet). Same `?vue`-scoped shadow injection
@@ -97,15 +100,15 @@ module.exports = {
         resourceQuery: /vue/,
         use: [
           { loader: 'vue-style-loader', options: { shadowMode: true } },
-          { loader: 'css-loader', options: { esModule: false } }
-        ]
-      }
-    ]
+          { loader: 'css-loader', options: { esModule: false } },
+        ],
+      },
+    ],
   },
   plugins: [
     new rspack.ProvidePlugin({
       process: 'process/browser',
-      Buffer: ['buffer', 'Buffer']
+      Buffer: ['buffer', 'Buffer'],
     }),
     // geotiff starts its decoder workers from a data: URL, which a strict
     // worker-src CSP (e.g. notebook.link) blocks. Serve the worker as a file.
@@ -114,6 +117,6 @@ module.exports = {
       path.resolve(__dirname, 'geotiff-worker.js')
     ),
     new HideRspackNativeRulesFromVueLoader(),
-    new VueLoaderPlugin()
-  ]
+    new VueLoaderPlugin(),
+  ],
 };

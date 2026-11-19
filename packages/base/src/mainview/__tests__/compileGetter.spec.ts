@@ -85,7 +85,7 @@ function deckContext(
         type: 'PolygonSource',
         parameters,
       }) as IJGISSource,
-    getter: expression => compileGetter(expression),
+    getter: (expression) => compileGetter(expression),
     log: () => undefined,
   };
 }

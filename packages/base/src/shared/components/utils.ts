@@ -12,7 +12,7 @@ export function cn(...inputs: ClassValue[]) {
  * form controls. Undo that so our components keep their own styling.
  */
 export function stripJupyterSelectStyling(root: HTMLElement): void {
-  root.querySelectorAll(':scope > .jp-select-wrapper').forEach(wrapper => {
+  root.querySelectorAll(':scope > .jp-select-wrapper').forEach((wrapper) => {
     const select = wrapper.querySelector(':scope > select');
     if (!(select instanceof HTMLSelectElement) || !wrapper.parentElement) {
       return;
@@ -22,7 +22,7 @@ export function stripJupyterSelectStyling(root: HTMLElement): void {
     wrapper.remove();
   });
 
-  root.querySelectorAll(':scope > select').forEach(select => {
+  root.querySelectorAll(':scope > select').forEach((select) => {
     select.classList.remove('jp-mod-styled');
   });
 }
@@ -33,7 +33,7 @@ export function stripJupyterButtonStyling(root: HTMLElement): void {
       ? [root]
       : Array.from(root.querySelectorAll('button'));
 
-  buttons.forEach(button => {
+  buttons.forEach((button) => {
     button.classList.remove('jp-mod-styled');
   });
 }

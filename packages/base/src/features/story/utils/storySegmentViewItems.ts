@@ -8,6 +8,7 @@ import type {
   IListStoryMarkdownSegment,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
+
 import { getSegmentDisplayMode } from './listStoryScrollTrack';
 
 export function buildStorySegmentViewItems(
@@ -47,8 +48,8 @@ export function getListStoryMarkdownSegmentsFromItems(
   items: IStorySegmentViewItem[],
 ): IListStoryMarkdownSegment[] {
   return items
-    .filter(item => getSegmentDisplayMode(item.activeSlide) === 'markdown')
-    .map(item => ({
+    .filter((item) => getSegmentDisplayMode(item.activeSlide) === 'markdown')
+    .map((item) => ({
       id: item.id,
       index: item.index,
       markdown: getStoryMarkdownFromSlide(item.activeSlide),

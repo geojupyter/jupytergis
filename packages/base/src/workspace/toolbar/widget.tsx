@@ -291,7 +291,10 @@ export class ToolbarWidget extends ReactiveToolbar {
       this.addItem(
         'users',
         ReactWidget.create(
-          <UsersItem model={this._model} iconRenderer={iconRenderer} />,
+          <UsersItem
+            model={this._model}
+            iconRenderer={iconRenderer}
+          />,
         ),
       );
     }

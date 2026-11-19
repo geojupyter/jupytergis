@@ -6,7 +6,10 @@
       "properties": { "name": "Road A", "speed_limit": 30 },
       "geometry": {
         "type": "LineString",
-        "coordinates": [[-2.0, 48.0], [-1.9, 48.0]]
+        "coordinates": [
+          [-2.0, 48.0],
+          [-1.9, 48.0]
+        ]
       }
     },
     {
@@ -14,7 +17,10 @@
       "properties": { "name": "Road B", "speed_limit": 50 },
       "geometry": {
         "type": "LineString",
-        "coordinates": [[-2.0, 48.01], [-1.9, 48.01]]
+        "coordinates": [
+          [-2.0, 48.01],
+          [-1.9, 48.01]
+        ]
       }
     },
     {
@@ -22,7 +28,10 @@
       "properties": { "name": "Road C", "speed_limit": 70 },
       "geometry": {
         "type": "LineString",
-        "coordinates": [[-2.0, 48.02], [-1.9, 48.02]]
+        "coordinates": [
+          [-2.0, 48.02],
+          [-1.9, 48.02]
+        ]
       }
     },
     {
@@ -30,7 +39,10 @@
       "properties": { "name": "Road D", "speed_limit": 90 },
       "geometry": {
         "type": "LineString",
-        "coordinates": [[-2.0, 48.03], [-1.9, 48.03]]
+        "coordinates": [
+          [-2.0, 48.03],
+          [-1.9, 48.03]
+        ]
       }
     },
     {
@@ -38,7 +50,10 @@
       "properties": { "name": "Road E", "speed_limit": 110 },
       "geometry": {
         "type": "LineString",
-        "coordinates": [[-2.0, 48.04], [-1.9, 48.04]]
+        "coordinates": [
+          [-2.0, 48.04],
+          [-1.9, 48.04]
+        ]
       }
     }
   ]

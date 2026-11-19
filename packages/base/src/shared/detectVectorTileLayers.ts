@@ -43,7 +43,7 @@ function candidateTiles(o: IVectorTileLayerDetectionOptions): ITile[] {
   const zooms = [
     ...new Set([clamp(center.zoom), lo, clamp((lo + hi) / 2), hi]),
   ];
-  return zooms.map(z => lonLatToTile(center.longitude, center.latitude, z));
+  return zooms.map((z) => lonLatToTile(center.longitude, center.latitude, z));
 }
 
 function fillTemplate(template: string, { z, x, y }: ITile): string {
@@ -144,7 +144,7 @@ export async function detectVectorTileLayers(
     try {
       const names = readLayerNames(await toArrayBuffer(response));
       if (names.length > 0) {
-        names.forEach(name => found.add(name));
+        names.forEach((name) => found.add(name));
         decoded++;
       }
     } catch {

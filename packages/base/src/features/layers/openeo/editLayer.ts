@@ -1,10 +1,10 @@
 import { IJupyterGISModel } from '@jupytergis/schema';
 
+import { showAddOpenEOLayerDialog } from './addLayerDialog';
 import {
   IOpenEOConnectionInfo,
   listOpenEOConnections,
 } from './OpenEOTileLayer';
-import { showAddOpenEOLayerDialog } from './addLayerDialog';
 
 /**
  * Open the process-graph editor for an existing OpenEO layer and persist

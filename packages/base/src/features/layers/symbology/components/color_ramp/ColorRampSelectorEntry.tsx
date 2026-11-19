@@ -57,11 +57,15 @@ const ColorRampSelectorEntry: React.FC<IColorRampSelectorEntryProps> = ({
       {warning && (
         <span
           className="jp-gis-color-ramp-warning"
-          onClick={e => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
         >
           <InfoTip text={warning.reason}>
             {warning.link && (
-              <a href={warning.link} target="_blank" rel="noreferrer">
+              <a
+                href={warning.link}
+                target="_blank"
+                rel="noreferrer"
+              >
                 Learn more
               </a>
             )}

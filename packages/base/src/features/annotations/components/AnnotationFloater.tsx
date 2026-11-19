@@ -40,7 +40,10 @@ const AnnotationFloater: React.FC<IAnnotationProps> = ({
         className="jGIS-FloatingAnnotation"
         style={{ visibility: isOpen ? 'visible' : 'hidden' }}
       >
-        <Annotation itemId={itemId} annotationModel={model}>
+        <Annotation
+          itemId={itemId}
+          annotationModel={model}
+        >
           <div
             className="jGIS-Popup-Topbar"
             onClick={() => {

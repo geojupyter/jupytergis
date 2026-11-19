@@ -24,13 +24,14 @@ jest.mock('@/src/workspace/widget', () => ({
 import { Widget } from '@lumino/widgets';
 
 import { STORY_TYPE } from '@/src/types';
+
 import { StoryMapInteractionBarWidget } from '../components/StoryMapInteractionBarWidget';
 import {
   StoryMapBarController,
   type IStoryMapBarHost,
 } from '../storyMapBarController';
-import { createModel, createTracker } from './storyTestFixtures';
 import { SegmentInteractionMode } from '../types/types';
+import { createModel, createTracker } from './storyTestFixtures';
 
 function createHost(
   tracker: ReturnType<typeof createTracker>,

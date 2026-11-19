@@ -13,17 +13,17 @@
   "author": {
     "name": "JupyterGIS contributors"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/geojupyter/jupytergis.git"
+  },
+  "style": "style/index.css",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "main": "lib/index.js",
   "types": "lib/types.d.ts",
-  "style": "style/index.css",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/geojupyter/jupytergis.git"
-  },
   "scripts": {
     "test": "jest",
     "build": "pnpm run build:schema && pnpm run build:lib",

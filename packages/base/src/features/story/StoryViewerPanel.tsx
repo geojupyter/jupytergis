@@ -15,6 +15,7 @@ import { exitStoryIdentifyMode } from '@/src/features/story/utils/exitStoryIdent
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import { Button } from '@/src/shared/components/Button';
 import { infoIcon } from '@/src/shared/icons';
+
 import { RenderedStoryMarkdown } from './components/RenderedStoryMarkdown';
 import StoryImageCaptionSection from './components/StoryImageCaptionSection';
 import StoryImageSection from './components/StoryImageSection';

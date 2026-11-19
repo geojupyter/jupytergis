@@ -62,7 +62,10 @@ export function DrawCustomAttributesFollowMirror({
 
   return (
     <FollowMirrorContext.Provider value={true}>
-      <Dialog open onOpenChange={() => setLayerId(null)}>
+      <Dialog
+        open
+        onOpenChange={() => setLayerId(null)}
+      >
         <DialogContent className="jgis-follow-mirror">
           <DrawCustomAttributesDialogContent
             model={model}

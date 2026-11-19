@@ -111,8 +111,8 @@ export function graduatedToGrammar(
   const radius = state.radius ?? DEFAULT_RADIUS;
 
   const colorStops = state.stopsOverride
-    ?.filter(s => s.value !== undefined && s.color !== undefined)
-    .map(s => ({
+    ?.filter((s) => s.value !== undefined && s.color !== undefined)
+    .map((s) => ({
       stop:
         typeof s.value === 'string' ? parseFloat(s.value) : (s.value as number),
       color: s.color as RGBA,
@@ -183,8 +183,8 @@ export function categorizedToGrammar(
   const radius = state.radius ?? DEFAULT_RADIUS;
 
   const catColorStops = state.stopsOverride
-    ?.filter(s => s.value !== undefined && s.color !== undefined)
-    .map(s => ({ stop: s.value as string | number, color: s.color as RGBA }));
+    ?.filter((s) => s.value !== undefined && s.color !== undefined)
+    .map((s) => ({ stop: s.value as string | number, color: s.color as RGBA }));
 
   const categoricalScale = {
     scheme: 'categorical' as const,

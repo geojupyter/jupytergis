@@ -109,15 +109,15 @@ export function compileExpression(expr: unknown): Evaluator {
 
     case 'band': {
       const n = args[0] as number;
-      return ctx => ctx.band(n);
+      return (ctx) => ctx.band(n);
     }
 
     case 'array':
     case 'color':
     case 'rgba': {
       const parts = compiled();
-      return ctx => {
-        const out = parts.map(p => p(ctx));
+      return (ctx) => {
+        const out = parts.map((p) => p(ctx));
         if (out.length === 3) {
           out.push(1);
         }
@@ -132,12 +132,12 @@ export function compileExpression(expr: unknown): Evaluator {
       const [inner] = compiled();
       return op === 'string' || op === 'boolean'
         ? inner
-        : ctx => Number(inner(ctx));
+        : (ctx) => Number(inner(ctx));
     }
 
     case 'case': {
       const parts = compiled();
-      return ctx => {
+      return (ctx) => {
         for (let i = 0; i + 1 < parts.length; i += 2) {
           if (parts[i](ctx)) {
             return parts[i + 1](ctx);
@@ -159,29 +159,29 @@ export function compileExpression(expr: unknown): Evaluator {
         });
       }
       const fallback = compileExpression(rest[rest.length - 1]);
-      return ctx => {
+      return (ctx) => {
         const v = inputFn(ctx);
-        const hit = branches.find(b => b.labels.includes(v));
+        const hit = branches.find((b) => b.labels.includes(v));
         return hit ? hit.out(ctx) : fallback(ctx);
       };
     }
 
     case 'all': {
       const parts = compiled();
-      return ctx => parts.every(p => p(ctx));
+      return (ctx) => parts.every((p) => p(ctx));
     }
     case 'any': {
       const parts = compiled();
-      return ctx => parts.some(p => p(ctx));
+      return (ctx) => parts.some((p) => p(ctx));
     }
     case '!': {
       const [inner] = compiled();
-      return ctx => !inner(ctx);
+      return (ctx) => !inner(ctx);
     }
 
     case 'between': {
       const [v, lo, hi] = compiled();
-      return ctx => {
+      return (ctx) => {
         const x = v(ctx);
         return x >= lo(ctx) && x <= hi(ctx);
       };
@@ -189,48 +189,48 @@ export function compileExpression(expr: unknown): Evaluator {
 
     case '+': {
       const parts = compiled();
-      return ctx => parts.reduce((sum, p) => sum + p(ctx), 0);
+      return (ctx) => parts.reduce((sum, p) => sum + p(ctx), 0);
     }
     case '*': {
       const parts = compiled();
-      return ctx => parts.reduce((prod, p) => prod * p(ctx), 1);
+      return (ctx) => parts.reduce((prod, p) => prod * p(ctx), 1);
     }
     case '-': {
       const [a, b] = compiled();
-      return b ? ctx => a(ctx) - b(ctx) : ctx => -a(ctx);
+      return b ? (ctx) => a(ctx) - b(ctx) : (ctx) => -a(ctx);
     }
     case '/': {
       const [a, b] = compiled();
-      return ctx => a(ctx) / b(ctx);
+      return (ctx) => a(ctx) / b(ctx);
     }
     case '%': {
       const [a, b] = compiled();
-      return ctx => a(ctx) % b(ctx);
+      return (ctx) => a(ctx) % b(ctx);
     }
     case '^': {
       const [a, b] = compiled();
-      return ctx => Math.pow(a(ctx), b(ctx));
+      return (ctx) => Math.pow(a(ctx), b(ctx));
     }
     case 'min': {
       const parts = compiled();
-      return ctx => Math.min(...parts.map(p => p(ctx)));
+      return (ctx) => Math.min(...parts.map((p) => p(ctx)));
     }
     case 'max': {
       const parts = compiled();
-      return ctx => Math.max(...parts.map(p => p(ctx)));
+      return (ctx) => Math.max(...parts.map((p) => p(ctx)));
     }
     case 'atan2': {
       const [a, b] = compiled();
-      return ctx => Math.atan2(a(ctx), b(ctx));
+      return (ctx) => Math.atan2(a(ctx), b(ctx));
     }
     case 'clamp': {
       const [v, lo, hi] = compiled();
-      return ctx => Math.min(Math.max(v(ctx), lo(ctx)), hi(ctx));
+      return (ctx) => Math.min(Math.max(v(ctx), lo(ctx)), hi(ctx));
     }
 
     case 'coalesce': {
       const parts = compiled();
-      return ctx => {
+      return (ctx) => {
         for (const p of parts) {
           const v = p(ctx);
           if (v !== null && v !== undefined) {
@@ -248,12 +248,12 @@ export function compileExpression(expr: unknown): Evaluator {
       if (op in COMPARE) {
         const [a, b] = compiled();
         const cmp = COMPARE[op];
-        return ctx => cmp(a(ctx), b(ctx));
+        return (ctx) => cmp(a(ctx), b(ctx));
       }
       if (op in MATH_UNARY) {
         const [a] = compiled();
         const fn = MATH_UNARY[op];
-        return ctx => fn(a(ctx));
+        return (ctx) => fn(a(ctx));
       }
       throw new Error(`unsupported expression operator "${op}"`);
     }
@@ -300,7 +300,7 @@ function compileInterpolate(args: unknown[]): Evaluator {
     return a + (b - a) * t;
   };
 
-  return ctx => {
+  return (ctx) => {
     const x = inputFn(ctx);
     if (Number.isNaN(x)) {
       return outputs[0](ctx);
@@ -336,7 +336,7 @@ export function toRGBA(value: unknown): RGBA {
     const s = value.trim().toLowerCase();
     const fn = s.match(/^rgba?\(([^)]+)\)$/);
     if (fn) {
-      const [r, g, b, a = '1'] = fn[1].split(',').map(p => p.trim());
+      const [r, g, b, a = '1'] = fn[1].split(',').map((p) => p.trim());
       return [Number(r), Number(g), Number(b), Number(a)];
     }
     const hex = s.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/);
@@ -345,7 +345,7 @@ export function toRGBA(value: unknown): RGBA {
         hex[1].length === 3
           ? hex[1]
               .split('')
-              .map(c => c + c)
+              .map((c) => c + c)
               .join('')
           : hex[1];
       return [
@@ -459,7 +459,7 @@ function buildColorFunction(
   let lo = 0;
   let hi = 1;
   const ctx: IPixelContext = {
-    band: n => {
+    band: (n) => {
       const raw = currentPixel[n - 1];
       if (raw === undefined) {
         return NaN;

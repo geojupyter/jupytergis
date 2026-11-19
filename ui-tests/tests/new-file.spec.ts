@@ -7,7 +7,7 @@ test.describe('#newFile', () => {
 
   test('New file should open with no errors', async ({ page }) => {
     await page.getByText('GIS Project').click();
-    const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
     const layers = page.getByText('Layers', { exact: true });
     const map = page.locator('.ol-unselectable').first();

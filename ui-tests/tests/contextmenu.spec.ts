@@ -1,5 +1,6 @@
-import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
+
+import { expect, galata, test } from '@jupyterlab/galata';
 
 test.describe('context menu', () => {
   test.beforeAll(async ({ request }) => {

@@ -13,7 +13,7 @@ describe('drawCustomAttributes', () => {
       '_fromDrawTool',
       'geometry',
       '_geometry',
-    ])('reserves %s', key => {
+    ])('reserves %s', (key) => {
       expect(isReservedDrawCustomAttributeKey(key)).toBe(true);
     });
 

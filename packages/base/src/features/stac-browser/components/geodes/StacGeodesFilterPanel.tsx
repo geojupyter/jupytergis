@@ -36,9 +36,9 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
     if (datasets.has(dataset)) {
       datasets.delete(dataset);
       // Remove the collection if no datasets remain for it
-      const datasetsForCollection = Array.from(datasets).filter(d => {
+      const datasetsForCollection = Array.from(datasets).filter((d) => {
         return datasetsList.some(
-          entry =>
+          (entry) =>
             entry.collection === collection && entry.datasets.includes(d),
         );
       });
@@ -52,7 +52,7 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
         // Remove platforms belonging to this collection
         if (platformsList[collection as keyof typeof platformsList]) {
           platformsList[collection as keyof typeof platformsList].forEach(
-            platform => {
+            (platform) => {
               platforms.delete(platform);
             },
           );
@@ -60,8 +60,8 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
 
         // Remove products belonging to this collection
         productsList
-          .filter(product => product.collections.includes(collection))
-          .forEach(product => {
+          .filter((product) => product.collections.includes(collection))
+          .forEach((product) => {
             products.delete(product.productCode);
           });
 
@@ -118,7 +118,9 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
           data={platformsList}
           selectedCollections={Array.from(filterState.collections)}
           selectedData={Array.from(filterState.platforms)}
-          handleCheckedChange={platform => handleToggle('platforms', platform)}
+          handleCheckedChange={(platform) =>
+            handleToggle('platforms', platform)
+          }
         />
       </div>
       <div className="jgis-stac-filter-extension-section">
@@ -127,7 +129,7 @@ const StacGeodesFilterPanel = ({ model }: IStacGeodesFilterPanelProps) => {
           data={productsList}
           selectedCollections={Array.from(filterState.collections)}
           selectedData={Array.from(filterState.products)}
-          handleCheckedChange={product => handleToggle('products', product)}
+          handleCheckedChange={(product) => handleToggle('products', product)}
         />
       </div>
       {/* <div>cloud cover</div> */}

@@ -29,7 +29,7 @@ function schemaIsCallback(schema: any): boolean {
     return false;
   }
   if (Array.isArray(schema)) {
-    return schema.some(s => schemaIsCallback(s));
+    return schema.some((s) => schemaIsCallback(s));
   }
   if (typeof schema !== 'object') {
     return false;
@@ -263,7 +263,7 @@ export async function validateProcessGraph(
     process_graph: processGraph,
     ...(parameters?.length ? { parameters } : {}),
   } as any);
-  return (result as any[]).map(e => ({
+  return (result as any[]).map((e) => ({
     code: e?.code,
     message: e?.message ?? String(e),
   }));

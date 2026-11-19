@@ -61,7 +61,7 @@ function StoryOpacityField({
         step={1}
         value={[opacityPercent]}
         aria-label={label}
-        onValueChange={value => {
+        onValueChange={(value) => {
           const next = Array.isArray(value) ? value[0] : value;
           onChange(next / 100);
         }}
@@ -81,15 +81,26 @@ function StorySettingsPopover({
   const [open, setOpen] = useState(false);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={setOpen}
+    >
       <PopoverTrigger
         render={
-          <Button size={'icon-sm'} variant="ghost" title="Story settings">
+          <Button
+            size={'icon-sm'}
+            variant="ghost"
+            title="Story settings"
+          >
             <FontAwesomeIcon icon={faGear} />
           </Button>
         }
       />
-      <PopoverContent className={'w-fit'} align="end" side="bottom">
+      <PopoverContent
+        className={'w-fit'}
+        align="end"
+        side="bottom"
+      >
         <PopoverHeader>
           <PopoverTitle>Story settings</PopoverTitle>
         </PopoverHeader>
@@ -99,14 +110,17 @@ function StorySettingsPopover({
             <NativeSelect
               className="w-full"
               value={story.storyType ?? STORY_TYPE.guided}
-              onChange={event => {
+              onChange={(event) => {
                 onUpdateStory({
                   storyType: event.target.value as IJGISStoryMap['storyType'],
                 });
               }}
             >
-              {Object.values(STORY_TYPE).map(storyType => (
-                <NativeSelectOption key={storyType} value={storyType}>
+              {Object.values(STORY_TYPE).map((storyType) => (
+                <NativeSelectOption
+                  key={storyType}
+                  value={storyType}
+                >
                   {formatStoryTypeLabel(storyType)}
                 </NativeSelectOption>
               ))}
@@ -119,7 +133,7 @@ function StorySettingsPopover({
                 <span>Use gradient background</span>
                 <Switch
                   checked={story.showGradient !== false}
-                  onCheckedChange={checked => {
+                  onCheckedChange={(checked) => {
                     onUpdateStory({ showGradient: checked });
                   }}
                 />
@@ -133,7 +147,7 @@ function StorySettingsPopover({
                   <span>Gap between markdown segments</span>
                   <Switch
                     checked={story.markdownSegmentGap === true}
-                    onCheckedChange={checked => {
+                    onCheckedChange={(checked) => {
                       onUpdateStory({ markdownSegmentGap: checked });
                     }}
                   />
@@ -141,7 +155,7 @@ function StorySettingsPopover({
                 <SegmentWidthSelector
                   label="Overlay content width"
                   value={story.overlayContentWidth}
-                  onChange={overlayContentWidth => {
+                  onChange={(overlayContentWidth) => {
                     onUpdateStory({ overlayContentWidth });
                   }}
                   presets={CSS_WIDTH_PRESETS}
@@ -151,7 +165,7 @@ function StorySettingsPopover({
                 <StoryOpacityField
                   label="Markdown segment opacity"
                   value={story.markdownSegmentOpacity}
-                  onChange={markdownSegmentOpacity => {
+                  onChange={(markdownSegmentOpacity) => {
                     onUpdateStory({ markdownSegmentOpacity });
                   }}
                 />
@@ -160,7 +174,7 @@ function StorySettingsPopover({
             <StoryOpacityField
               label="Story panel opacity"
               value={story.storyPanelOpacity}
-              onChange={storyPanelOpacity => {
+              onChange={(storyPanelOpacity) => {
                 onUpdateStory({ storyPanelOpacity });
               }}
             />
@@ -187,7 +201,7 @@ export function StoryEditorHeaderBar({
         placeholder="Enter Story Title..."
         aria-label="Story title"
         disabled={!story}
-        onChange={title => {
+        onChange={(title) => {
           onUpdateStory({ title });
         }}
       />
@@ -217,7 +231,10 @@ export function StoryEditorHeaderBar({
           </Button>
         ) : null}
         {story && (
-          <StorySettingsPopover story={story} onUpdateStory={onUpdateStory} />
+          <StorySettingsPopover
+            story={story}
+            onUpdateStory={onUpdateStory}
+          />
         )}
       </div>
     </div>
