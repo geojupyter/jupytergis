@@ -248,7 +248,7 @@ export function useStacFilterExtension({
       }
     }
 
-    loadFilterExtensionStateFromDb();
+    void loadFilterExtensionStateFromDb();
   }, [stateDb]);
 
   // Save filter state to StateDB on change
@@ -276,7 +276,7 @@ export function useStacFilterExtension({
       });
     }
 
-    saveFilterExtensionStateToDb();
+    void saveFilterExtensionStateToDb();
   }, [selectedCollection, selectedQueryables, filterOperator, stateDb]);
 
   // Reset all state when URL changes
@@ -370,7 +370,7 @@ export function useStacFilterExtension({
       }
     };
 
-    fetchCollections();
+    void fetchCollections();
   }, [
     model,
     baseUrl,
@@ -423,7 +423,7 @@ export function useStacFilterExtension({
       hasLoadedInitialQueryablesRef.current = true;
     };
 
-    fetchQueryables();
+    void fetchQueryables();
   }, [model, baseUrl, selectedCollection, stateDb, getQueryablesCacheKey]);
 
   // Handle search when filters change

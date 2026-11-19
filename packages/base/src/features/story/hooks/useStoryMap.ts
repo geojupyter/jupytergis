@@ -2,6 +2,7 @@ import type {
   IJGISLayer,
   IJGISStoryMap,
   IJupyterGISModel,
+  IStorySegmentLayer,
 } from '@jupytergis/schema';
 import {
   RefObject,
@@ -62,7 +63,8 @@ export function useStoryMap({
   );
 
   const activeSlide = useMemo(
-    () => currentStorySegment?.parameters,
+    (): IStorySegmentLayer | undefined =>
+      currentStorySegment?.parameters as IStorySegmentLayer | undefined,
     [currentStorySegment],
   );
 
