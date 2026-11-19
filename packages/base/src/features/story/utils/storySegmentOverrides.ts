@@ -9,9 +9,7 @@ export function applySegmentLayerOverrides(
   entries: IOverrideLayerEntry[],
 ): void {
   const segment = model.getLayer(segmentId);
-  const parameters = segment?.parameters as
-    | IStorySegmentLayer['parameters']
-    | undefined;
+  const parameters = segment?.parameters as IStorySegmentLayer | undefined;
 
   if (getSegmentDisplayMode(parameters) === 'markdown') {
     return;

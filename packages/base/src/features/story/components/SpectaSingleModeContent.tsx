@@ -13,7 +13,7 @@ interface ISpectaSingleModeContentProps {
   segmentContainerRef: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
-  activeSlide: IStorySegmentLayer['parameters'] | undefined;
+  activeSlide: IStorySegmentLayer | undefined;
   layerName: string;
   handlePrev: () => void;
   handleNext: () => void;

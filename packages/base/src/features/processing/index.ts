@@ -421,7 +421,7 @@ export async function rasterizeLayer(
         outputName,
       );
       const bytes = await Gdal.getFileBytes(outputFilePath);
-      Gdal.close(dataset);
+      void Gdal.close(dataset);
       console.debug(
         `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
       );
@@ -783,7 +783,7 @@ export async function clipRasterByExtent(
         outputName,
       );
       const bytes = new Uint8Array(await Gdal.getFileBytes(outputPath));
-      Gdal.close(dataset);
+      void Gdal.close(dataset);
       console.debug(
         `[JupyterGIS] BROWSER WASM GDAL raster clip finished in ${(performance.now() - t0).toFixed(0)}ms`,
       );
@@ -1145,7 +1145,7 @@ export async function clipRasterByVector(
 
       const cutlineOpen = await Gdal.open(cutlineFile);
       if (cutlineOpen.datasets.length === 0) {
-        Gdal.close(rasterDataset);
+        void Gdal.close(rasterDataset);
         throw new Error('Failed to open cutline in GDAL.');
       }
       const cutlineDataset = cutlineOpen.datasets[0] as any;
@@ -1163,8 +1163,8 @@ export async function clipRasterByVector(
         );
         return bytes;
       } finally {
-        Gdal.close(rasterDataset);
-        Gdal.close(cutlineDataset);
+        void Gdal.close(rasterDataset);
+        void Gdal.close(cutlineDataset);
       }
     }
   };
@@ -1272,7 +1272,7 @@ async function computeUnionWkt(geojsonString: string): Promise<string | null> {
   ];
   const outputPath = await (Gdal as any).ogr2ogr(dataset, options);
   const bytes = await Gdal.getFileBytes(outputPath);
-  Gdal.close(dataset);
+  void Gdal.close(dataset);
   const csv = new TextDecoder().decode(bytes);
   const lines = csv.split('\n').filter((l: string) => l.trim());
   if (lines.length < 2) {
@@ -1421,7 +1421,7 @@ export async function clipVectorByMaskLayer(
   const openResult = await Gdal.open(inputFile);
   const dataset = openResult.datasets[0] as any;
   const inputLayerName = dataset.info.layers[0].name;
-  Gdal.close(dataset);
+  void Gdal.close(dataset);
 
   const escapedWkt = clipWkt.replace(/'/g, "''");
   const sql = `SELECT ST_Intersection(geometry, ST_GeomFromText('${escapedWkt}')) AS geometry, * FROM "${inputLayerName}" WHERE ST_Intersects(geometry, ST_GeomFromText('${escapedWkt}'))`;
@@ -1503,7 +1503,7 @@ export async function executeSQLProcessing(
       const outputFilePath = await Gdal[gdalFunction](dataset, wasmOptions);
       const processedBytes = await Gdal.getFileBytes(outputFilePath);
       const output = new TextDecoder().decode(processedBytes);
-      Gdal.close(dataset);
+      void Gdal.close(dataset);
       console.debug(
         `[JupyterGIS] BROWSER WASM GDAL "${processingType}" finished in ${(performance.now() - t0).toFixed(0)}ms`,
       );

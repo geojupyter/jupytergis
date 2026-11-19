@@ -41,16 +41,14 @@ export class MainViewModel implements IDisposable {
       return;
     }
     this._jGISModel.sharedLayersChanged.disconnect(
-      this._onsharedLayersChanged,
-      this,
+      this._onsharedLayersChanged
     );
     this._isDisposed = true;
   }
 
   initSignal(): void {
     this._jGISModel.sharedLayersChanged.connect(
-      this._onsharedLayersChanged,
-      this,
+      this._onsharedLayersChanged
     );
   }
 
@@ -58,10 +56,10 @@ export class MainViewModel implements IDisposable {
     this._jGISModel.annotationModel?.addAnnotation(UUID.uuid4(), value);
   }
 
-  private async _onsharedLayersChanged(
+  private _onsharedLayersChanged = async (
     _: IJupyterGISDoc,
     change: IJGISLayerDocChange,
-  ): Promise<void> {
+  ): Promise<void> => {
     if (change.layerChange) {
       // TODO STUFF with the new updated shared model
     }
