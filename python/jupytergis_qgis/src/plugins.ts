@@ -234,7 +234,7 @@ const activate = async (
         tracker.currentWidget
           ? tracker.currentWidget.model.sharedModel.editable
           : false,
-      execute: async args => {
+      execute: async (args) => {
         const extension = '.qgz';
         const model = tracker.currentWidget?.model.sharedModel;
         if (!model) {

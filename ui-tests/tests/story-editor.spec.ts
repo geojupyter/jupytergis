@@ -1,7 +1,8 @@
+import path from 'path';
+
 import { expect, galata, test } from '@jupyterlab/galata';
 import type { IJupyterLabPageFixture } from '@jupyterlab/galata';
 import type { Locator } from '@playwright/test';
-import path from 'path';
 
 const FILENAME = 'story_map.jGIS';
 const MOBILE_VIEWPORT = { width: 960, height: 844 };

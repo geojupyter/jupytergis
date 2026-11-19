@@ -30,7 +30,7 @@ function mockFetch(corsAllowed: (url: string) => boolean, reachable = true) {
 
 describe('maybeProxied', () => {
   it('proxies only the CDSE URLs that CORS blocks', async () => {
-    mockFetch(url => url.includes('/.well-known/'));
+    mockFetch((url) => url.includes('/.well-known/'));
     const wellKnown = `${CDSE}/.well-known/openid-configuration`;
     const device = `${CDSE}/protocol/openid-connect/auth/device`;
 

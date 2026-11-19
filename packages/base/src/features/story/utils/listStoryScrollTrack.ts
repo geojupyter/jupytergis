@@ -5,6 +5,7 @@ import type {
   StorySegmentDisplayMode,
   IStorySegmentViewItem,
 } from '@/src/features/story/types/types';
+
 import { getHandoffGapHeight } from './getHandoffGapHeight';
 
 const MARKDOWN_LINE_HEIGHT_PX = 28;
@@ -41,7 +42,7 @@ export function getScrollTrackSegmentHeight(
   layout: IListStoryScrollTrackLayout | null,
   index: number,
 ): number | undefined {
-  return layout?.segments.find(segment => segment.index === index)?.height;
+  return layout?.segments.find((segment) => segment.index === index)?.height;
 }
 
 /**
@@ -58,7 +59,7 @@ export function getTransitionTranslatePx(
   }
 
   const fromSegment = layout.segments.find(
-    segment => segment.index === transition.fromIndex,
+    (segment) => segment.index === transition.fromIndex,
   );
   if (!fromSegment) {
     return 0;
@@ -69,7 +70,7 @@ export function getTransitionTranslatePx(
   }
 
   const toSegment = layout.segments.find(
-    segment => segment.index === transition.toIndex,
+    (segment) => segment.index === transition.toIndex,
   );
   if (!toSegment) {
     return 0;
@@ -120,11 +121,11 @@ export function buildListStoryScrollTrack({
   }
 
   const mapHeight = mapViewportHeight ?? viewportHeight;
-  const heights: { height: number; measured: boolean }[] = items.map(item =>
+  const heights: { height: number; measured: boolean }[] = items.map((item) =>
     segmentHeightForItem(item, viewportHeight, mapHeight, heightsById),
   );
 
-  const modes: StorySegmentDisplayMode[] = items.map(item =>
+  const modes: StorySegmentDisplayMode[] = items.map((item) =>
     getSegmentDisplayMode(item.activeSlide),
   );
 

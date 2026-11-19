@@ -14,7 +14,7 @@ function OpacitySlider({ formData, onChange }: FieldProps<number>) {
         step={10}
         value={[opacityPercent]}
         aria-label="Opacity"
-        onValueChange={value => {
+        onValueChange={(value) => {
           const next = Array.isArray(value) ? value[0] : value;
           onChange(next / 100);
         }}

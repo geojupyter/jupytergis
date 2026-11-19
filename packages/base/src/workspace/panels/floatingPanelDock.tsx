@@ -42,12 +42,12 @@ export function FloatingPanelDock({
   const [openValues, setOpenValues] = React.useState<FloatingPanelId[]>([]);
 
   const registerOpen = React.useCallback((value: FloatingPanelId) => {
-    setOpenValues(current =>
+    setOpenValues((current) =>
       current.includes(value) ? current : [...current, value],
     );
 
     return () => {
-      setOpenValues(current => current.filter(item => item !== value));
+      setOpenValues((current) => current.filter((item) => item !== value));
     };
   }, []);
 
@@ -56,7 +56,7 @@ export function FloatingPanelDock({
       <Accordion
         multiple
         value={openValues}
-        onValueChange={nextValues =>
+        onValueChange={(nextValues) =>
           setOpenValues(nextValues as FloatingPanelId[])
         }
         className="jgis-floating-panel-dock w-auto"

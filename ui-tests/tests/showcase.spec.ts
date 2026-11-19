@@ -1,6 +1,7 @@
+import path from 'path';
+
 import { expect, galata, test } from '@jupyterlab/galata';
 import type { Page } from '@playwright/test';
-import path from 'path';
 
 /**
  * Showcase snapshots — wide-screen, visually rich renders used in documentation.

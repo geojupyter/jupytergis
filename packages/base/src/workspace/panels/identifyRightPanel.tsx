@@ -5,10 +5,10 @@ import {
 } from '@jupytergis/schema';
 import * as React from 'react';
 
-import { FloatingPanelId } from './floatingPanelDock';
-import { FloatingRightPanel } from './floatingRightPanel';
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
 import { infoIcon } from '../../shared/icons';
+import { FloatingPanelId } from './floatingPanelDock';
+import { FloatingRightPanel } from './floatingRightPanel';
 
 interface IIdentifyRightPanelProps {
   model: IJupyterGISModel;

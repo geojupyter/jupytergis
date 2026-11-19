@@ -78,7 +78,7 @@ export function withDataDomain(scale: IScale, values: number[]): IScale {
       params: {
         ...params,
         domain: [min, max],
-        colorStops: computed.map(s => ({
+        colorStops: computed.map((s) => ({
           stop: s.value as number,
           color: s.color as RGBA,
         })),

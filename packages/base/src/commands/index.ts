@@ -34,10 +34,7 @@ import {
   mapFeaturesChanged,
 } from '@/src/mainview/mapFeaturesRegistry';
 import { getLayerEditHandler } from '@/src/shared/formbuilder/editbehavior';
-import {
-  addLayerCreationCommands,
-  LayerCreationCommandIDs,
-} from './operationCommands';
+
 import { CommandIDs, icons } from '../constants';
 import { isFeatureStoreAvailable } from '../features/feature-store/availability';
 import { launchFollowable, registerFollowDialogs } from '../features/follow';
@@ -55,12 +52,12 @@ import {
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
 import { showMapRendererDialog } from '../features/map-renderer/mapRendererDialog';
 import { ObjectPropertiesWidget } from '../features/objectproperties/objectPropertiesDialog';
-import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
   getSingleSelectedLayer,
   selectedLayerIsOfType,
 } from '../features/processing/index';
 import { addProcessingCommands } from '../features/processing/processingCommands';
+import { ProcessingFormDialog } from '../features/processing/ProcessingFormDialog';
 import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
@@ -84,6 +81,10 @@ import keybindings from '../keybindings.json';
 import { getGeoJSONDataFromLayerSource, getUniqueFilePath } from '../tools';
 import { JupyterGISTracker, SYMBOLOGY_VALID_LAYER_TYPES } from '../types';
 import { JupyterGISDocumentWidget } from '../workspace/widget';
+import {
+  addLayerCreationCommands,
+  LayerCreationCommandIDs,
+} from './operationCommands';
 
 const POINT_SELECTION_TOOL_CLASS = 'jGIS-point-selection-tool';
 
@@ -368,7 +369,7 @@ interface ICreateEntry {
 }
 
 function loadKeybindings(commands: CommandRegistry, keybindings: any[]) {
-  keybindings.forEach(binding => {
+  keybindings.forEach((binding) => {
     commands.addKeyBinding({
       command: binding.command,
       keys: binding.keys,
@@ -500,7 +501,7 @@ export function addCommands(
   };
 
   const refreshAdapterCommands = () => {
-    Object.keys(ADAPTER_REQUIREMENTS).forEach(commandId => {
+    Object.keys(ADAPTER_REQUIREMENTS).forEach((commandId) => {
       if (commands.hasCommand(commandId)) {
         commands.notifyCommandChanged(commandId);
       }
@@ -515,7 +516,7 @@ export function addCommands(
     const filePath =
       typeof args?.filePath === 'string' ? args.filePath : undefined;
     return filePath
-      ? tracker.find(w => w.model.filePath === filePath)
+      ? tracker.find((w) => w.model.filePath === filePath)
       : tracker.currentWidget;
   };
 
@@ -525,12 +526,12 @@ export function addCommands(
       'Choose the map renderer for this document and compare what each supports.',
     ),
     describedBy: { args: { type: 'object', properties: {} } },
-    isEnabled: args => {
+    isEnabled: (args) => {
       const widget = resolveRendererWidget(args);
       return widget ? widget.model.sharedModel.editable : false;
     },
 
-    execute: args => {
+    execute: (args) => {
       const model = resolveRendererWidget(args)?.model;
       if (model) {
         void showMapRendererDialog(model);
@@ -666,7 +667,7 @@ export function addCommands(
       const { filePath, layerId } = args ?? {};
 
       const current = filePath
-        ? tracker.find(w => w.model.filePath === filePath)
+        ? tracker.find((w) => w.model.filePath === filePath)
         : tracker.currentWidget;
 
       if (!current) {
@@ -731,7 +732,7 @@ export function addCommands(
       const filePath = args?.filePath;
 
       const current = filePath
-        ? tracker.find(w => w.model.filePath === filePath)
+        ? tracker.find((w) => w.model.filePath === filePath)
         : tracker.currentWidget;
 
       if (current) {
@@ -767,7 +768,7 @@ export function addCommands(
       const filePath = args?.filePath;
 
       const current = filePath
-        ? tracker.find(w => w.model.filePath === filePath)
+        ? tracker.find((w) => w.model.filePath === filePath)
         : tracker.currentWidget;
 
       if (current) {
@@ -839,11 +840,11 @@ export function addCommands(
       ].includes(selectedLayer.type);
     },
 
-    execute: args => {
+    execute: (args) => {
       const filePath = args?.filePath;
 
       const current = filePath
-        ? tracker.find(w => w.model.filePath === filePath)
+        ? tracker.find((w) => w.model.filePath === filePath)
         : tracker.currentWidget;
 
       if (!current) {
@@ -915,7 +916,7 @@ export function addCommands(
       const filePath = args?.filePath;
 
       const current = filePath
-        ? tracker.find(w => w.model.filePath === filePath)
+        ? tracker.find((w) => w.model.filePath === filePath)
         : tracker.currentWidget;
 
       if (!current) {
@@ -1567,7 +1568,7 @@ export function addCommands(
         return false;
       }
 
-      return Object.values(selected).some(item => item.type === 'layer');
+      return Object.values(selected).some((item) => item.type === 'layer');
     },
 
     execute: () => {
@@ -1599,7 +1600,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.moveSelectedToGroup, {
-    label: args =>
+    label: (args) =>
       args['label']
         ? (args['label'] as string)
         : trans.__('Move Selection to Root Group'),
@@ -1630,7 +1631,7 @@ export function addCommands(
 
       // Resolve model based on filePath or current widget
       const model = filePath
-        ? tracker.find(w => w.model.filePath === filePath)?.model
+        ? tracker.find((w) => w.model.filePath === filePath)?.model
         : tracker.currentWidget?.model;
 
       if (!model || !model.sharedModel.editable) {
@@ -1678,7 +1679,7 @@ export function addCommands(
       const { filePath, groupName, layerIds } = args ?? {};
 
       const model = filePath
-        ? tracker.find(w => w.model.filePath === filePath)?.model
+        ? tracker.find((w) => w.model.filePath === filePath)?.model
         : tracker.currentWidget?.model;
 
       if (!model || !model.sharedModel.editable) {
@@ -1687,7 +1688,7 @@ export function addCommands(
 
       if (filePath && groupName && layerIds) {
         const layerMap: { [key: string]: any } = {};
-        layerIds.forEach(id => {
+        layerIds.forEach((id) => {
           layerMap[id] = { type: 'layer', selectedNodeId: id };
         });
 
@@ -1717,7 +1718,7 @@ export function addCommands(
         panel.appendChild(input);
         input.focus();
 
-        return new Promise<string>(resolve => {
+        return new Promise<string>((resolve) => {
           input.addEventListener('blur', () => {
             panel.removeChild(input);
             resolve(input.value);
@@ -1745,7 +1746,7 @@ export function addCommands(
 
       const layers: IJGISLayerItem[] = [];
 
-      Object.keys(selectedLayers).forEach(key => {
+      Object.keys(selectedLayers).forEach((key) => {
         layers.push(key);
       });
 
@@ -1759,7 +1760,7 @@ export function addCommands(
   });
 
   commands.addCommand(CommandIDs.compareLayers, {
-    label: args =>
+    label: (args) =>
       args['label'] ? (args['label'] as string) : trans.__('Compare With'),
     caption: 'Swipe to compare two layers in the current JupyterGIS document.',
     describedBy: {
@@ -1781,7 +1782,7 @@ export function addCommands(
       const { filePath, layerIdRight } = args ?? {};
 
       const model = filePath
-        ? tracker.find(w => w.model.filePath === filePath)?.model
+        ? tracker.find((w) => w.model.filePath === filePath)?.model
         : tracker.currentWidget?.model;
 
       if (!model || !model.sharedModel.editable || !layerIdRight) {
@@ -1814,7 +1815,7 @@ export function addCommands(
     isVisible: () => Private.isSelectedLayerCompared(tracker),
     execute: (args?: { filePath?: string }) => {
       const model = args?.filePath
-        ? tracker.find(w => w.model.filePath === args.filePath)?.model
+        ? tracker.find((w) => w.model.filePath === args.filePath)?.model
         : tracker.currentWidget?.model;
 
       if (!model) {
@@ -2003,7 +2004,7 @@ export function addCommands(
 
       // Determine model from provided file path or fallback to current widget
       const current = filePath
-        ? tracker.find(w => w.model.filePath === filePath)
+        ? tracker.find((w) => w.model.filePath === filePath)
         : tracker.currentWidget;
 
       if (!current || !current.model.sharedModel.editable) {
@@ -2097,7 +2098,7 @@ export function addCommands(
       const { filePath, layerId, exportFileName } = args ?? {};
 
       if (filePath && layerId && exportFileName) {
-        const widget = tracker.find(w => w.model.filePath === filePath);
+        const widget = tracker.find((w) => w.model.filePath === filePath);
         if (!widget || !widget.model.sharedModel.editable) {
           console.warn('Invalid or non-editable document');
           return;
@@ -2126,7 +2127,7 @@ export function addCommands(
           .get('ExportGeoJSONSchema') as IDict),
       };
 
-      const formValues = await new Promise<IDict>(resolve => {
+      const formValues = await new Promise<IDict>((resolve) => {
         const dialog = new ProcessingFormDialog({
           title: 'Export GeoJSON',
           schema: exportSchema,
@@ -2181,7 +2182,7 @@ export function addCommands(
 
       // Resolve widget once
       const current = filePath
-        ? tracker.find(w => w.model.filePath === filePath)
+        ? tracker.find((w) => w.model.filePath === filePath)
         : tracker.currentWidget;
 
       if (!current) {
@@ -2507,7 +2508,7 @@ export function addCommands(
       // TODO should check if at least one layer exists?
       return true;
     },
-    execute: args => {
+    execute: (args) => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
@@ -2661,7 +2662,7 @@ export function addCommands(
         !current.model.jgisSettings.storyMapsDisabled
       );
     },
-    execute: args => {
+    execute: (args) => {
       const current = tracker.currentWidget;
       if (!current) {
         return;
@@ -2942,7 +2943,7 @@ export function addCommands(
 
   let cleanup: (() => void) | null = null;
 
-  tracker.currentChanged.connect(_ => {
+  tracker.currentChanged.connect((_) => {
     cleanup?.();
     cleanup = null;
 
@@ -3217,7 +3218,7 @@ namespace Private {
     args: { filePath?: string; layerId?: string },
   ): { model: IJupyterGISModel; id: string; layer: IJGISLayer } | undefined {
     const model = args.filePath
-      ? tracker.find(w => w.model.filePath === args.filePath)?.model
+      ? tracker.find((w) => w.model.filePath === args.filePath)?.model
       : tracker.currentWidget?.model;
     const id = args.layerId ?? getSelectedLayerId(model);
     const layer = id ? model?.getLayer(id) : undefined;
@@ -3287,7 +3288,7 @@ namespace Private {
     model: IJupyterGISModel,
   ): string {
     const layers = model.getLayers();
-    const existingNames = Object.values(layers).map(l => l.name);
+    const existingNames = Object.values(layers).map((l) => l.name);
 
     const copyRegex = /(.*?)( Copy(_\d+)?)?$/;
     const match = baseName.match(copyRegex);
@@ -3300,7 +3301,7 @@ namespace Private {
 
     const pattern = new RegExp(`^${cleanBase} Copy_(\\d+)$`);
     const numbers = existingNames
-      .map(name => {
+      .map((name) => {
         const m = name.match(pattern);
         return m ? parseInt(m[1], 10) : null;
       })

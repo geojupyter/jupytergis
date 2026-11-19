@@ -46,7 +46,7 @@ export const FieldList: React.FC<{ fields: IMetadataField[] }> = ({
   fields,
 }) => (
   <dl className="m-0 grid grid-cols-[minmax(6rem,auto)_1fr] gap-x-4 gap-y-1.5 text-sm">
-    {fields.map(field => (
+    {fields.map((field) => (
       <React.Fragment key={`${field.label}-${field.value}`}>
         <dt className="text-muted-foreground">{field.label}</dt>
         <dd className="m-0 min-w-0 break-words text-foreground">
@@ -69,7 +69,10 @@ const FieldValue: React.FC<{ field: IMetadataField }> = ({ field }) => {
         className={`inline-flex items-baseline gap-1 text-primary hover:underline ${className ?? ''}`}
       >
         <span className="min-w-0 break-all">{field.value}</span>
-        <ExternalLink aria-hidden className="size-3 shrink-0 self-center" />
+        <ExternalLink
+          aria-hidden
+          className="size-3 shrink-0 self-center"
+        />
       </a>
     );
   }

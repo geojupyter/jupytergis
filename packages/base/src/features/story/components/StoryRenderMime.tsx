@@ -34,7 +34,7 @@ function wrapResolverSoftFail(
         return url;
       }
     },
-    getDownloadUrl: async urlPath => {
+    getDownloadUrl: async (urlPath) => {
       try {
         return await resolver.getDownloadUrl(urlPath);
       } catch {

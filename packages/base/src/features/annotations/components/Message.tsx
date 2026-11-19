@@ -18,7 +18,7 @@ interface IProps {
   user?: User.IIdentity;
 }
 
-export const Message: React.FC<IProps> = props => {
+export const Message: React.FC<IProps> = (props) => {
   const { self, message, user } = props;
   const color = user?.color ?? 'black';
   const author = user?.display_name ?? '';
@@ -45,7 +45,11 @@ export const Message: React.FC<IProps> = props => {
         title={author}
       >
         {showAvatar ? (
-          <img src={avatarUrl} alt="" onError={() => setAvatarFailed(true)} />
+          <img
+            src={avatarUrl}
+            alt=""
+            onError={() => setAvatarFailed(true)}
+          />
         ) : (
           <span style={{ width: 24, textAlign: 'center' }}>{initials}</span>
         )}

@@ -28,8 +28,8 @@ describe('buildPendingMeasureIds', () => {
     expect(pending).toEqual(['m2', 'm1', 'm3', 'm0', 'm4']);
     expect(
       segments
-        .filter(s => Math.abs(s.index - 2) > LIST_STORY_MEASURE_LOOKAHEAD)
-        .every(s => !pending.includes(s.id)),
+        .filter((s) => Math.abs(s.index - 2) > LIST_STORY_MEASURE_LOOKAHEAD)
+        .every((s) => !pending.includes(s.id)),
     ).toBe(true);
   });
 

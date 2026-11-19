@@ -75,7 +75,7 @@ export function SegmentMarkdownEditor({
       handleStorySegmentMarkdownPaste(event, {
         model,
         segmentId,
-        insertMarkdown: markdown => {
+        insertMarkdown: (markdown) => {
           editor.replaceSelection(markdown);
         },
       });
@@ -145,7 +145,7 @@ export function SegmentMarkdownEditor({
     <Tabs
       className={'gap-0'}
       value={tab}
-      onValueChange={nextTab => setTab(nextTab as MarkdownEditorTab)}
+      onValueChange={(nextTab) => setTab(nextTab as MarkdownEditorTab)}
     >
       <TabsList
         variant="underline"

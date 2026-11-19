@@ -6,6 +6,7 @@ import * as React from 'react';
 
 import { FollowMirrorContext } from '@/src/features/follow/useFollowedState';
 import type { IBaseFormProps } from '@/src/types';
+
 import { ClipRasterByExtentForm } from './forms/clipRasterByExtentForm';
 import { DissolveForm } from './forms/dissolveProcessForm';
 import { DefaultProcessingForm } from './forms/processingForm';
@@ -38,7 +39,9 @@ export interface IProcessingFormWrapperProps extends IProcessingFormDialogOption
   formErrorSignalPromise?: PromiseDelegate<Signal<Dialog<any>, boolean>>;
 }
 
-const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = props => {
+const ProcessingFormWrapper: React.FC<IProcessingFormWrapperProps> = (
+  props,
+) => {
   const [ready, setReady] = React.useState<boolean>(false);
 
   const okSignal = React.useRef<Signal<Dialog<any>, number>>();
@@ -90,36 +93,36 @@ export class ProcessingFormDialog extends Dialog<IDict> {
   constructor(options: IProcessingFormDialogOptions) {
     // Extract layers from the shared model
     const layers = options.model.sharedModel.layers ?? {};
-    const layerOptions = Object.keys(layers).map(layerId => ({
+    const layerOptions = Object.keys(layers).map((layerId) => ({
       value: layerId,
       label: layers[layerId].name,
     }));
 
     const vectorLayerOptions = Object.keys(layers)
-      .filter(layerId => layers[layerId].type === 'VectorLayer')
-      .map(layerId => ({ value: layerId, label: layers[layerId].name }));
+      .filter((layerId) => layers[layerId].type === 'VectorLayer')
+      .map((layerId) => ({ value: layerId, label: layers[layerId].name }));
 
     // Modify schema to include layer options and layer name field
     if (options.schema) {
       if (options.schema.properties?.inputLayer) {
         options.schema.properties.inputLayer.enum = layerOptions.map(
-          option => option.value,
+          (option) => option.value,
         );
         options.schema.properties.inputLayer.enumNames = layerOptions.map(
-          option => option.label,
+          (option) => option.label,
         );
       }
 
       if (options.schema.properties?.clipLayer) {
         const selectedInputLayer = options.sourceData?.inputLayer;
         const clipLayerOptions = selectedInputLayer
-          ? vectorLayerOptions.filter(o => o.value !== selectedInputLayer)
+          ? vectorLayerOptions.filter((o) => o.value !== selectedInputLayer)
           : vectorLayerOptions;
         options.schema.properties.clipLayer.enum = clipLayerOptions.map(
-          option => option.value,
+          (option) => option.value,
         );
         options.schema.properties.clipLayer.enumNames = clipLayerOptions.map(
-          option => option.label,
+          (option) => option.label,
         );
       }
 

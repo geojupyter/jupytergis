@@ -23,6 +23,7 @@ import {
 } from '@/src/features/objectproperties/objectPropertiesDialog';
 import { ProcessingFormDialog } from '@/src/features/processing/ProcessingFormDialog';
 import { StoryEditorWidget } from '@/src/features/story/storyEditorDialog';
+
 import { registerFollowDialog } from './followDialogs';
 
 export interface IRegisterFollowDialogsOptions {
@@ -78,7 +79,7 @@ export function registerFollowDialogs({
 
   registerFollowDialog(
     'layerBrowser',
-    model =>
+    (model) =>
       new LayerBrowserWidget({
         model,
         registry: layerBrowserRegistry.getRegistryLayers(),
@@ -124,7 +125,7 @@ export function registerFollowDialogs({
 
   registerFollowDialog(
     'storyEditor',
-    model =>
+    (model) =>
       new StoryEditorWidget({
         model,
         commands,

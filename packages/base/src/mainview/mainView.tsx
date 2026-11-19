@@ -47,8 +47,12 @@ import {
 import { useIsMobile } from '@/src/shared/hooks/useIsMobile';
 import { isLightTheme } from '@/src/tools';
 import StatusBar from '@/src/workspace/statusbar/StatusBar';
+
+import { getFeatureIdentifier } from '../features/identify/utils/getFeatureIdentifier';
+import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
+import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
+import type { IListStorySegmentTransition } from '../features/story/types/types';
 import { ClientPointer } from './CollaboratorPointers';
-import TemporalSlider from './TemporalSlider';
 import { MainViewMapSurface } from './components/MainViewMapSurface';
 import { MainViewOverlayLayer } from './components/MainViewOverlayLayer';
 import { MainViewSidePanels } from './components/MainViewSidePanels';
@@ -81,10 +85,7 @@ import {
   VIEWPORT_SYNC_INTERVAL,
 } from './mapAdapter';
 import { setMapFeatures } from './mapFeaturesRegistry';
-import { getFeatureIdentifier } from '../features/identify/utils/getFeatureIdentifier';
-import { openEOEvents } from '../features/layers/openeo/OpenEOTileLayer';
-import type { IStoryViewerPanelHandle } from '../features/story/StoryViewerPanel';
-import type { IListStorySegmentTransition } from '../features/story/types/types';
+import TemporalSlider from './TemporalSlider';
 
 /** Duration of the initial ease-in when you start following someone. */
 const FOLLOW_JUMP_DURATION = 500;
@@ -153,7 +154,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       //We need to observe the size to counteract
       //What the default jupyter plugin will try
       //To do dynamically with the width
-      const resizeObserver = new ResizeObserver(_ => {
+      const resizeObserver = new ResizeObserver((_) => {
         el.style.setProperty('width', '100%');
         el.style.setProperty('max-width', '100%');
         el?.style.setProperty('left', '0px');
@@ -191,7 +192,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._model.remoteUserChanged,
       this._model.viewportStateChanged,
     ];
-    remoteUserSignals.forEach(signal =>
+    remoteUserSignals.forEach((signal) =>
       signal.connect(this._handleRemoteUserChanged, this),
     );
     this._followDialogMirror = new FollowDialogMirror(this._model);
@@ -388,7 +389,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._model.remoteUserChanged,
       this._model.viewportStateChanged,
     ];
-    remoteUserSignals.forEach(signal =>
+    remoteUserSignals.forEach((signal) =>
       signal.disconnect(this._handleRemoteUserChanged, this),
     );
     this._followDialogMirror?.dispose();
@@ -460,7 +461,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const layers = this._model.getLayers();
 
     this._initialLayersCount = Object.values(layers).filter(
-      layer => layer.type !== 'StorySegmentLayer',
+      (layer) => layer.type !== 'StorySegmentLayer',
     ).length;
 
     if (!this.divRef.current) {
@@ -491,9 +492,9 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           }
           this._updateFeatureFloaters();
         },
-        onCursorChange: cursor => {
+        onCursorChange: (cursor) => {
           this._cursorReadout = cursor;
-          this.setState(old => ({
+          this.setState((old) => ({
             ...old,
             cursorDisplay: toCursorDisplay(
               cursor,
@@ -508,45 +509,45 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           }
           this._contextMenu.open(event);
         },
-        onDrawLayerIdChange: layerId => {
-          this.setState(old =>
+        onDrawLayerIdChange: (layerId) => {
+          this.setState((old) =>
             old.currentDrawLayerId === layerId
               ? old
               : { ...old, currentDrawLayerId: layerId },
           );
         },
-        onDrawGeometryLabelChange: label =>
-          this.setState(old => ({
+        onDrawGeometryLabelChange: (label) =>
+          this.setState((old) => ({
             ...old,
             drawGeometryLabel: label,
           })),
         onAllLayersSettled: () => {
-          this.setState(old => ({ ...old, loadingLayer: false }));
+          this.setState((old) => ({ ...old, loadingLayer: false }));
         },
-        onLayerInserted: layerCount => {
+        onLayerInserted: (layerCount) => {
           if (
             !this.state.initialLayersReady &&
             layerCount >= this._initialLayersCount
           ) {
-            this.setState(old => ({ ...old, initialLayersReady: true }));
+            this.setState((old) => ({ ...old, initialLayersReady: true }));
           }
         },
         onLayerAddStarted: () => {
-          this.setState(old => ({ ...old, loadingLayer: true }));
+          this.setState((old) => ({ ...old, loadingLayer: true }));
         },
-        onLayerAddSettled: id => {
-          this.setState(old => ({ ...old, loadingLayer: false }));
+        onLayerAddSettled: (id) => {
+          this.setState((old) => ({ ...old, loadingLayer: false }));
         },
         onLayerError: (id, message) => {
           // greys the layer out
           setLayerError(this._model, id, String(message));
           const isDuplicate = this.state.loadingErrors.find(
-            item => item.id === id && item.error === message,
+            (item) => item.id === id && item.error === message,
           );
           if (isDuplicate) {
             return;
           }
-          this.setState(old => ({
+          this.setState((old) => ({
             loadingErrors: [
               ...old.loadingErrors,
               { id, error: message, index: -1 },
@@ -554,13 +555,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           }));
           void showErrorMessage('Failed to load layer', message);
         },
-        onLayerLoaded: id => {
+        onLayerLoaded: (id) => {
           clearLayerError(this._model, id);
         },
-        onSourceDataError: sourceId => {
+        onSourceDataError: (sourceId) => {
           this._model.sharedModel
             .getLayersBySource(sourceId)
-            .forEach(id =>
+            .forEach((id) =>
               setLayerError(
                 this._model,
                 id,
@@ -569,10 +570,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               ),
             );
         },
-        onSourceDataLoaded: sourceId => {
+        onSourceDataLoaded: (sourceId) => {
           this._model.sharedModel
             .getLayersBySource(sourceId)
-            .forEach(id => clearLayerError(this._model, id, 'warning'));
+            .forEach((id) => clearLayerError(this._model, id, 'warning'));
         },
         onClientPointerPositionChanged: () => {
           if (!this._mapAdapter) {
@@ -597,7 +598,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     }
 
     const viewProjection = this._mapAdapter.getProjection();
-    this.setState(old => ({
+    this.setState((old) => ({
       ...old,
       loading: false,
       viewProjection: viewProjection,
@@ -660,7 +661,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           return;
         }
 
-        this.setState(old => ({ ...old, editedFeature: feature }));
+        this.setState((old) => ({ ...old, editedFeature: feature }));
       },
     });
 
@@ -811,7 +812,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   ): void => {
     const projectionInfo = this._mapAdapter?.setProjection(code);
     if (projectionInfo) {
-      this.setState(old => ({
+      this.setState((old) => ({
         ...old,
         viewProjection: projectionInfo,
         cursorDisplay: toCursorDisplay(
@@ -941,7 +942,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       isTemporalControllerActive && isSelectionValid;
 
     if (displayTemporalController !== this.state.displayTemporalController) {
-      this.setState(old => ({ ...old, displayTemporalController }));
+      this.setState((old) => ({ ...old, displayTemporalController }));
       this._mainViewModel.commands.notifyCommandChanged(
         CommandIDs.temporalController,
       );
@@ -972,7 +973,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
 
       if (remoteState.user?.username !== this.state.remoteUser?.username) {
-        this.setState(old => ({
+        this.setState((old) => ({
           ...old,
           remoteUser: remoteState.user,
         }));
@@ -1011,7 +1012,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     // If we are unfollowing, reset to local viewport and clear follow UI.
     if (this.state.remoteUser !== null) {
-      this.setState(old => ({
+      this.setState((old) => ({
         ...old,
         remoteUser: null,
       }));
@@ -1068,7 +1069,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       };
     });
 
-    this.setState(old => ({ ...old, clientPointers }));
+    this.setState((old) => ({ ...old, clientPointers }));
   }
 
   private _onStoryPreviewActiveChanged = (): void => {
@@ -1129,7 +1130,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       clearLayerErrors(this._model);
 
       // Reset the loading state that the new adapter will report again
-      this.setState(old => ({
+      this.setState((old) => ({
         ...old,
         loading: true,
         loadingLayer: false,
@@ -1182,7 +1183,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   private async updateOptions(options: IJGISOptions): Promise<void> {
     const projectionInfo = this._mapAdapter?.applyOptions(options);
     if (projectionInfo) {
-      this.setState(old => ({
+      this.setState((old) => ({
         ...old,
         viewProjection: projectionInfo,
         cursorDisplay: toCursorDisplay(
@@ -1205,7 +1206,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     _: IJupyterGISDoc,
     change: IJGISLayerDocChange,
   ): void {
-    change.layerChange?.forEach(change => {
+    change.layerChange?.forEach((change) => {
       const { id, oldValue: oldLayer, newValue: newLayer } = change;
       if (!this._mapAdapter) {
         return;
@@ -1264,7 +1265,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const current = this.state.comparison;
     // A compared layer may have been deleted since the comparison was stored.
     const isStoredComparisonUsable =
-      stored && stored.layers.every(id => this._model.getLayer(id));
+      stored && stored.layers.every((id) => this._model.getLayer(id));
 
     const comparison: IMapLayerComparison | null = isStoredComparisonUsable
       ? { layers: stored.layers, position: current?.position ?? 0.5 }
@@ -1335,7 +1336,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     _: IJupyterGISDoc,
     change: IJGISSourceDocChange,
   ): void {
-    change.sourceChange?.forEach(srcChange => {
+    change.sourceChange?.forEach((srcChange) => {
       if (!srcChange.newValue || Object.keys(srcChange.newValue).length === 0) {
         this._mapAdapter?.removeSource(srcChange.id);
         return;
@@ -1357,7 +1358,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       void this._mapAdapter?.updateSource(srcChange.id, source);
     });
 
-    this.setState(old => ({
+    this.setState((old) => ({
       ...old,
       identifyFeatureFloatersVersion: old.identifyFeatureFloatersVersion + 1,
     }));
@@ -1367,7 +1368,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     _: any,
     change: IJupyterGISDocChange,
   ) => {
-    const changedState = change.stateChange?.map(value => value.name);
+    const changedState = change.stateChange?.map((value) => value.name);
     if (!changedState?.includes('path') || !this._mapAdapter) {
       return;
     }
@@ -1382,7 +1383,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _handleIdentifiedFeaturesChanged = (): void => {
-    this.setState(old => ({
+    this.setState((old) => ({
       ...old,
       identifyFeatureFloatersVersion: old.identifyFeatureFloatersVersion + 1,
     }));
@@ -1611,7 +1612,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       }
     });
 
-    this.setState(old => ({ ...old, annotations: newState }));
+    this.setState((old) => ({ ...old, annotations: newState }));
   };
 
   private _computeAnnotationPosition(annotation: IAnnotation) {
@@ -1624,7 +1625,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   }
 
   private _updateAnnotation() {
-    Object.keys(this.state.annotations).forEach(key => {
+    Object.keys(this.state.annotations).forEach((key) => {
       const el = document.getElementById(key);
       if (el) {
         const annotation = this._model.annotationModel?.getAnnotation(key);
@@ -1645,11 +1646,11 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       this._model.localState?.identifiedFeatures?.value ?? [];
 
     const drawEntries = identifiedFeatures.filter(
-      entry => entry.floaterOpen === true,
+      (entry) => entry.floaterOpen === true,
     );
 
     const visibleFeatures = drawEntries
-      .map(entry => {
+      .map((entry) => {
         const featureId = getFeatureIdentifier(entry.feature);
         if (!featureId) {
           return undefined;
@@ -1703,7 +1704,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     // TODO SOMETHING
 
-    this.setState(old => ({ ...old, lightTheme }));
+    this.setState((old) => ({ ...old, lightTheme }));
   };
 
   private _handleWindowResize = (): void => {
@@ -1755,7 +1756,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
   private _handleModeChanged = (): void => {
     const isDrawing = this._model.currentMode === 'drawing';
-    this.setState(old => ({ ...old, isDrawing }));
+    this.setState((old) => ({ ...old, isDrawing }));
 
     this._mapAdapter?.handleDrawModeChanged(isDrawing);
     if (isDrawing) {
@@ -1795,7 +1796,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
   };
 
   private _handleEditedFeatureClose = (): void => {
-    this.setState(old => ({ ...old, editedFeature: null }));
+    this.setState((old) => ({ ...old, editedFeature: null }));
   };
 
   /**
@@ -1830,7 +1831,10 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           left={screenPosition.x}
           top={screenPosition.y}
         >
-          <AnnotationFloater itemId={key} annotationModel={annotationModel} />
+          <AnnotationFloater
+            itemId={key}
+            annotationModel={annotationModel}
+          />
         </PositionedFloater>
       );
     });
@@ -1920,9 +1924,15 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           />
         ) : null}
 
-        <div className="jGIS-Mainview-Container" ref={this.props.containerRef}>
+        <div
+          className="jGIS-Mainview-Container"
+          ref={this.props.containerRef}
+        >
           {displayTemporalController ? (
-            <TemporalSlider model={this._model} filterStates={filterStates} />
+            <TemporalSlider
+              model={this._model}
+              filterStates={filterStates}
+            />
           ) : null}
           <MainViewMapSurface
             mainViewRef={this.mainViewRef}
@@ -1980,14 +1990,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
               commands={this._mainViewModel.commands}
               loading={loadingLayer}
               projection={viewProjection}
-              onProjectionChange={code =>
+              onProjectionChange={(code) =>
                 this._model.projectionChangedSignal.emit(code)
               }
               cursor={cursorDisplay}
               cursorCoordMode={cursorCoordMode}
-              onCursorCoordModeChange={mode => {
+              onCursorCoordModeChange={(mode) => {
                 saveCursorCoordMode(mode);
-                this.setState(old => ({
+                this.setState((old) => ({
                   ...old,
                   cursorCoordMode: mode,
                   cursorDisplay: toCursorDisplay(
@@ -2092,7 +2102,11 @@ function MainViewWithObserver(
   }, [isMobile]);
 
   return (
-    <MainView {...props} isMobile={isMobile} containerRef={containerRef} />
+    <MainView
+      {...props}
+      isMobile={isMobile}
+      containerRef={containerRef}
+    />
   );
 }
 
