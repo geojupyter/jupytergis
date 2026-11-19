@@ -783,7 +783,7 @@ const Form: React.FC<IFormProps> = ({
     // (missing required args, wrong argument types, etc) without waiting
     // for the network. Stored in a ref so the backend pass can merge.
     localErrorsRef.current = [];
-    validateProcessGraphLocally(
+    void validateProcessGraphLocally(
       parsed,
       catalog?.processes,
       catalog?.userProcesses,
@@ -923,7 +923,7 @@ const Form: React.FC<IFormProps> = ({
       setCanSaveUdp(false);
       return;
     }
-    canSaveUserProcesses(connectionInfo).then((ok) => {
+    void canSaveUserProcesses(connectionInfo).then((ok) => {
       if (!cancelled) {
         setCanSaveUdp(ok);
       }

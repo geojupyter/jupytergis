@@ -143,7 +143,7 @@ export function GeoJSONSourcePropertiesForm(
       handleChangeBase(data);
 
       if (data.path !== undefined) {
-        validatePath(data.path);
+        void validatePath(data.path);
       }
     },
     [handleChangeBase, validatePath],
@@ -152,7 +152,7 @@ export function GeoJSONSourcePropertiesForm(
   const handleSubmit = useCallback(
     (data: IDict) => {
       if (extraErrors?.path?.__errors?.length >= 1) {
-        showErrorMessage('Invalid file', extraErrors.path.__errors[0]);
+        void showErrorMessage('Invalid file', extraErrors.path.__errors[0]);
 
         return;
       }
@@ -175,7 +175,7 @@ export function GeoJSONSourcePropertiesForm(
 
   useEffect(() => {
     if (formData?.path) {
-      validatePath(formData?.path);
+      void validatePath(formData?.path);
     }
   }, []);
 

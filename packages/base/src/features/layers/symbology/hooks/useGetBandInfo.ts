@@ -229,7 +229,7 @@ const useGetBandInfo = (
   };
 
   useEffect(() => {
-    fetchBandInfo();
+    void fetchBandInfo();
   }, []);
 
   return { bandRows, setBandRows, loading, error };

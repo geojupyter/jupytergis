@@ -1,6 +1,5 @@
-import path from 'path';
 
-import { expect, galata, test } from '@jupyterlab/galata';
+import { expect, test } from '@jupyterlab/galata';
 
 import {
   getLayerSummary,
@@ -30,7 +29,7 @@ test.describe('UI Test', () => {
               return;
             }
           }
-          console.log('CONSOLE ERROR', message);
+          
           errors += 1;
         }
       });

@@ -183,7 +183,7 @@ export const useGetProperties = ({
   };
 
   useEffect(() => {
-    getProperties();
+    void getProperties();
   }, [model, layerId]);
 
   useEffect(() => {
@@ -196,7 +196,7 @@ export const useGetProperties = ({
     }
     const handler = (_: IJupyterGISModel, changed: string) => {
       if (changed === sourceId) {
-        getProperties();
+        void getProperties();
       }
     };
     model.tileFeaturesChanged.connect(handler);

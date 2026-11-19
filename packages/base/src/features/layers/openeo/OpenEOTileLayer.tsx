@@ -307,7 +307,7 @@ export async function openEOConnect(
     window.location.protocol === 'https:' &&
     parsedUrl.protocol !== 'https:'
   ) {
-    showErrorMessage(
+    void showErrorMessage(
       errorTitle,
       'You are trying to connect to a server with HTTP instead of HTTPS, which is insecure and prohibited by web browsers. Please use HTTPS instead.',
     );
@@ -370,7 +370,7 @@ export async function openEOConnect(
     return connection;
   } catch (error) {
     if (!(error instanceof OpenEOSigninCancelled) && !connectionInfo.quiet) {
-      showErrorMessage(errorTitle, describeConnectionError(error, url));
+      void showErrorMessage(errorTitle, describeConnectionError(error, url));
     }
 
     throw error;
@@ -624,7 +624,7 @@ export class OpenEOTileSource extends DataTileSource {
 
     this.serverUrl = options.serverUrl;
 
-    this._initializeTileServiceURL(options);
+    void this._initializeTileServiceURL(options);
   }
 
   /**

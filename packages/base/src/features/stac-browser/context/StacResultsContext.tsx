@@ -140,7 +140,7 @@ export function StacResultsProvider({
       hasLoadedSelectedUrlRef.current = true;
     }
 
-    loadStacSelectedUrlFromDb();
+    void loadStacSelectedUrlFromDb();
   }, [stateDb]);
 
   // Save selected URL to StateDB on change, after the initial load.
@@ -154,7 +154,7 @@ export function StacResultsProvider({
       });
     }
 
-    saveStacSelectedUrlToDb();
+    void saveStacSelectedUrlToDb();
   }, [selectedUrl, stateDb]);
 
   // Keep ref in sync with state
@@ -373,7 +373,7 @@ export function StacResultsProvider({
         }
 
         setIsLoading(false);
-      } catch (error) {
+      } catch  {
         setResults([], '0', 0);
         setIsLoading(false);
       }

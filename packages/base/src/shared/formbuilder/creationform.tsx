@@ -191,7 +191,7 @@ export function CreationForm(props: ICreationFormProps) {
         currentSourceType === 'GeoPackageVectorSource' ||
         currentSourceType === 'GeoPackageRasterSource'
       ) {
-        (async () => {
+        void (async () => {
           if (!currentCreateSource) {
             console.error('GeoPackage handling requires source creation');
             return;
@@ -218,7 +218,7 @@ export function CreationForm(props: ICreationFormProps) {
             );
 
             if (invalid.length) {
-              showErrorMessage(
+              void showErrorMessage(
                 'Invalid GeoPackage Tables',
                 `Invalid: ${invalid.join(', ')}. Available: ${allTables.join(', ')}`,
               );

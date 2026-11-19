@@ -135,7 +135,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
 
   if (creatingCustomRaster) {
     // Disconnect any previous handler
-    okSignalPromise.promise.then((value) => {
+    void okSignalPromise.promise.then((value) => {
       value.disconnect(cancel, this);
     });
 
@@ -166,7 +166,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   }
 
   // Ok is like cancel in the case of gallery item selections
-  okSignalPromise.promise.then((value) => {
+  void okSignalPromise.promise.then((value) => {
     value.connect(cancel, this);
   });
 
