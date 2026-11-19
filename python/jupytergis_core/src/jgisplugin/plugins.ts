@@ -190,7 +190,6 @@ const activate = async (
   urlResolverFactory: IUrlResolverFactory | null,
   translator: ITranslator | null,
 ): Promise<void> => {
-  formSchemaRegistry && state;
   const trans = (translator ?? nullTranslator).load('jupyterlab');
 
   setOpenEOTokensProvider(openEOTokens);
@@ -266,7 +265,7 @@ const activate = async (
   widgetFactory.widgetCreated.connect((sender, widget) => {
     widget.title.icon = logoIcon;
     widget.context.pathChanged.connect(() => {
-      tracker.save(widget);
+      void tracker.save(widget);
     });
     themeManager.themeChanged.connect((_, changes) =>
       widget.model.themeChanged.emit(changes),
@@ -306,7 +305,7 @@ const activate = async (
       },
     },
     caption: 'Create a new JGIS Editor',
-    icon: (args) => logoIcon,
+    icon: () => logoIcon,
     execute: async (args) => {
       // Get the directory in which the JGIS file must be created;
       // otherwise take the current filebrowser directory
