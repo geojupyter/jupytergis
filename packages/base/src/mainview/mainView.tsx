@@ -1500,6 +1500,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     const handleScroll = (event: Event) => {
       const wheelEvent = event as WheelEvent;
 
+      // A map segment card taller than the stage scrolls its own text first;
+      // the story only takes the wheel once the card reaches its edge.
+      const card = (event.target as Element | null)?.closest?.(
+        '.jgis-story-map-overlay-content',
+      );
+      if (card && wheelEvent.deltaY !== 0 && !wheelEvent.ctrlKey) {
+        const canScroll =
+          wheelEvent.deltaY > 0
+            ? card.scrollTop + card.clientHeight < card.scrollHeight - 1
+            : card.scrollTop > 0;
+        if (canScroll) {
+          return;
+        }
+      }
+
       event.preventDefault();
 
       if (!scrollContainer || !document.contains(scrollContainer)) {
