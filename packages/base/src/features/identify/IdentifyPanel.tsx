@@ -132,14 +132,16 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   ): string => {
     for (const key of Object.keys(feature)) {
       const lowerCase = key.toLowerCase();
+      const value = feature[key];
 
       if (
         (lowerCase.includes('label') ||
           lowerCase.includes('name') ||
           lowerCase === 'id') &&
-        feature[key]
+        (typeof value === 'string' || typeof value === 'number') &&
+        value !== ''
       ) {
-        return String(feature[key]);
+        return String(value);
       }
     }
 

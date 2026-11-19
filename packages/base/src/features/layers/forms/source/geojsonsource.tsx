@@ -82,7 +82,13 @@ export function GeoJSONSourcePropertiesForm(
           }
         } catch (e) {
           valid = false;
-          error = `"${path}" is not a valid GeoJSON file: ${e}`;
+          const detail =
+            e instanceof Error
+              ? e.message
+              : typeof e === 'string'
+                ? e
+                : 'Unknown error';
+          error = `"${path}" is not a valid GeoJSON file: ${detail}`;
         }
       }
 

@@ -552,7 +552,6 @@ export class MapLibreAdapter implements IMapAdapter {
                     ])}`;
 
               featureMap.set(featureId || `${sourceLayer}:${index}`, {
-                ...feature,
                 getProperties: () => feature.properties ?? {},
               } as unknown as FeatureLike);
             });
@@ -1237,7 +1236,7 @@ export class MapLibreAdapter implements IMapAdapter {
     }
 
     // Every band is NaN where nothing is drawn (outside the file, nodata).
-    if (values.length === 0 || values.every((v) => Number.isNaN(v))) {
+    if (values.every((v) => Number.isNaN(v))) {
       this._publishIdentified([]);
       this._highlight?.clear();
       return;
@@ -1396,7 +1395,7 @@ export class MapLibreAdapter implements IMapAdapter {
         return;
       }
 
-      await this._buildMapLayer(id, layer, index);
+      await this._buildMapLayer(id, layer);
 
       if (sourceId) {
         this._sourceToLayerMap.set(sourceId, id);
@@ -1424,11 +1423,7 @@ export class MapLibreAdapter implements IMapAdapter {
     }
   }
 
-  private async _buildMapLayer(
-    id: string,
-    layer: IJGISLayer,
-    index?: number,
-  ): Promise<void> {
+  private async _buildMapLayer(id: string, layer: IJGISLayer): Promise<void> {
     const sourceId = layer.parameters?.source;
 
     if (!sourceId) {
@@ -1860,7 +1855,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
     // Remove layers that are no longer in the `layerIds` list.
     const target = new Set(layerIds);
-    for (const id of [...this._layerSubIds.keys()]) {
+    for (const id of this._layerSubIds.keys()) {
       if (!target.has(id) && !this._loadingLayers.has(id)) {
         this.removeLayer(id);
       }

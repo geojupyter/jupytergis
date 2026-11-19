@@ -356,6 +356,19 @@ export function buildDeckOverlayLayers(
   return layers;
 }
 
+// !TODO this is getting repeated a lot should centralize
+function errorDetail(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  return 'Unknown error';
+}
+
 export function makeCachedGetter(
   cache: Map<string, RecordGetter>,
   log: LogFn,
@@ -377,7 +390,10 @@ export function makeCachedGetter(
         } catch (error) {
           if (!logged) {
             logged = true;
-            log('error', `${prefix}: getter "${expression}" failed: ${error}`);
+            log(
+              'error',
+              `${prefix}: getter "${expression}" failed: ${errorDetail(error)}`,
+            );
           }
           return undefined;
         }
@@ -385,7 +401,7 @@ export function makeCachedGetter(
     } catch (error) {
       log(
         'error',
-        `${prefix}: getter "${expression}" is not a function: ${error}`,
+        `${prefix}: getter "${expression}" is not a function: ${errorDetail(error)}`,
       );
       getter = () => undefined;
     }

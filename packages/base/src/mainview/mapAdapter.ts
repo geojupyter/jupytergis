@@ -210,7 +210,7 @@ export async function createMapAdapter(
     }
 
     default: {
-      throw new Error(`Unknown map adapter type: ${type}`);
+      throw new Error(`Unknown map adapter type: ${JSON.stringify(type)}`);
     }
   }
 }
