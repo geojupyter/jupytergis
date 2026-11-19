@@ -6,7 +6,11 @@ interface IFeatureFloaterProps {
 }
 
 const FeatureFloater: React.FC<IFeatureFloaterProps> = ({ feature }) => {
-  const title = feature.label ?? 'Feature';
+  const label = feature.label;
+  const title =
+    typeof label === 'string' || typeof label === 'number'
+      ? String(label)
+      : 'Feature';
 
   const entries = Object.entries(feature)
     .filter(([key, value]) => {
@@ -19,7 +23,7 @@ const FeatureFloater: React.FC<IFeatureFloaterProps> = ({ feature }) => {
 
   return (
     <div className="jGIS-FeatureFloater">
-      <div className="jGIS-FeatureFloater-title">{String(title)}</div>
+      <div className="jGIS-FeatureFloater-title">{title}</div>
       {entries.map(([key, value]) => (
         <div
           className="jGIS-FeatureFloater-row"

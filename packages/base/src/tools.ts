@@ -338,7 +338,7 @@ export const openDatabase = () => {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open('GeoTIFFCache', 1);
 
-    request.onupgradeneeded = (event) => {
+    request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains('files')) {
         db.createObjectStore('files', { keyPath: 'url' });
@@ -385,7 +385,7 @@ export const getFromIndexedDB = async (key: string) => {
   return new Promise<
     | {
         file: any;
-        metadata?: any | undefined;
+      metadata?: any;
       }
     | undefined
   >((resolve, reject) => {
@@ -401,6 +401,22 @@ export const getFromIndexedDB = async (key: string) => {
 export const isJupyterLite = () => {
   return document.querySelectorAll('[data-jupyter-lite-root]')[0] !== undefined;
 };
+
+/**
+ * Text for a caught value. `catch` bindings are `unknown`, so this is the
+ * string that can go into a log message.
+ */
+export function errorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  return 'Unknown error';
+}
 
 type ConnectionErrorLike = {
   code?: string;
@@ -1182,7 +1198,7 @@ const fileToArrayBuffer = async (
 
 export const getFeatureAttributes = <T>(
   featureProperties: Record<string, Set<any>>,
-  predicate: (key: string, value: any) => boolean = (key: string, value) =>
+  predicate: (key: string, value: any) => boolean = () =>
     true,
 ): Record<string, Set<T>> => {
   const filteredRecord: Record<string, Set<T>> = {};

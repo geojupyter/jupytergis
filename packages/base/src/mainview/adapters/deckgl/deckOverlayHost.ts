@@ -8,7 +8,7 @@ import type {
 import { PathExt } from '@jupyterlab/coreutils';
 import type { Map as MlMap } from 'maplibre-gl';
 
-import { fetchWithProxies } from '@/src/tools';
+import { errorMessage, fetchWithProxies } from '@/src/tools';
 
 import {
   buildDeckOverlayLayers,
@@ -183,7 +183,7 @@ export class DeckOverlayHost {
     } catch (error) {
       this._log(
         'error',
-        `MapLibreDeck: ${label} source "${source.name ?? id}" could not be loaded: ${error}`,
+        `MapLibreDeck: ${label} source "${source.name ?? id}" could not be loaded: ${errorMessage(error)}`,
       );
       return undefined;
     }

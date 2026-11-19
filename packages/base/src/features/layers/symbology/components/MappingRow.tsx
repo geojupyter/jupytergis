@@ -453,7 +453,7 @@ function buildPredicate(p: INewPredicate): IPredicate | null {
       };
     }
     default:
-      throw new Error(`Invalid predicate type ${p.type}`);
+      throw new Error(`Invalid predicate type ${JSON.stringify(p.type)}`);
   }
 }
 

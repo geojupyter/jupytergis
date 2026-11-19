@@ -172,6 +172,8 @@ describe('getLayerMetadata', () => {
   });
 
   it('rejects an id that is neither a layer nor a source', async () => {
-    await expect(getLayerMetadata(fakeModel({}), 'nope')).rejects.toThrow();
+    await expect(getLayerMetadata(fakeModel({}), 'nope')).rejects.toThrow(
+      'Select a layer or source to see its information.',
+    );
   });
 });

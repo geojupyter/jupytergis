@@ -125,7 +125,11 @@ export function shadowedRowEncodings(
     // Sorted because the shared document does not keep a predicate's key order.
     const guard = when?.length
       ? JSON.stringify([
-          when.map((p) => Object.entries(p).sort()),
+        when.map((p) =>
+          Object.entries(p).sort(([keyA], [keyB]) =>
+            keyA.localeCompare(keyB),
+          ),
+        ),
           whenOp ?? 'all',
         ])
       : '';
