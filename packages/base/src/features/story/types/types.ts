@@ -35,7 +35,7 @@ export interface IStorySegmentViewItem {
   id: string;
   index: number;
   layerName: string;
-  activeSlide: IStorySegmentLayer['parameters'] | undefined;
+  activeSlide: IStorySegmentLayer | undefined;
 }
 
 export interface IListStoryTitleBarContentProps {

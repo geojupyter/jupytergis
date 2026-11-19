@@ -20,7 +20,7 @@ export interface IStoryPresentationChromeProps {
   storyData: IJGISStoryMap | null;
   currentIndex: number;
   setIndex: (index: number) => void;
-  activeSlide: IStorySegmentLayer['parameters'] | undefined;
+  activeSlide: IStorySegmentLayer | undefined;
   layerName: string;
   handlePrev: () => void;
   handleNext: () => void;

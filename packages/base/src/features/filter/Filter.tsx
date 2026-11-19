@@ -97,7 +97,7 @@ const FilterComponent: React.FC<IFilterComponentProps> = ({
     setFilterRows(layer.filters?.appliedFilters ?? []);
     setLogicalOp(layer.filters?.logicalOp ?? 'all');
 
-    buildFilterObject();
+    void buildFilterObject();
   }, [selectedLayer]);
 
   useEffect(() => {
@@ -140,9 +140,11 @@ const FilterComponent: React.FC<IFilterComponentProps> = ({
           model: model,
         });
         data?.features.forEach((feature: GeoJSONFeature1) => {
-          feature.properties &&
+          if (feature.properties) {
             addFeatureValue(feature.properties, aggregatedProperties);
+          }
         });
+
         break;
       }
       default: {

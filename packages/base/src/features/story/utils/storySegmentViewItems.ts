@@ -22,9 +22,7 @@ export function buildStorySegmentViewItems(
       id: segmentId,
       index,
       layerName: layer?.name ?? `Segment ${index + 1}`,
-      activeSlide: layer?.parameters as
-        | IStorySegmentLayer['parameters']
-        | undefined,
+      activeSlide: layer?.parameters as IStorySegmentLayer | undefined,
     };
   });
 
