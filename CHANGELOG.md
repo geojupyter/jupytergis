@@ -2,6 +2,35 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.18.3
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.18.2...415c2841d411e86fc1e835a508d9a14d06d7da12))
+
+### Enhancements made
+
+- Add Deck.gl integration with MapLibre [#1973](https://github.com/geojupyter/jupytergis/pull/1973) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Story maps python api [#1919](https://github.com/geojupyter/jupytergis/pull/1919) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+
+### Bugs fixed
+
+- Debug missing npm releases [#2011](https://github.com/geojupyter/jupytergis/pull/2011) ([@martinRenou](https://github.com/martinRenou), [@mistral-vibe](https://github.com/mistral-vibe))
+- Hide the black background in the ESA catalogue NDSI and SWBM examples [#2009](https://github.com/geojupyter/jupytergis/pull/2009) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+
+### Documentation improvements
+
+- OpenEO ESA example switch to using openeo.ds.io backend instead of requesting a local server [#2007](https://github.com/geojupyter/jupytergis/pull/2007) ([@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-11-16&to=2026-11-19&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-11-16..2026-11-19&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-11-16..2026-11-19&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-11-16..2026-11-19&type=Issues)) | @mistral-vibe ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Amistral-vibe+updated%3A2026-11-16..2026-11-19&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.18.2
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/v0.18.1...2441f57d76659e5c6b3b28da494d19d6632490ac))
@@ -32,8 +61,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-11-10&to=2026-11-16&type=c))
 
 @arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-11-10..2026-11-16&type=Issues)) | @costajohnt ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Acostajohnt+updated%3A2026-11-10..2026-11-16&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-11-10..2026-11-16&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-11-10..2026-11-16&type=Issues)) | @nakul-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Anakul-py+updated%3A2026-11-10..2026-11-16&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.18.1
 
