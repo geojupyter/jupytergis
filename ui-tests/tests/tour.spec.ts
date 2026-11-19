@@ -47,7 +47,7 @@ test.describe('#featureTour', () => {
     );
   });
 
-  test.afterEach(async ({ page, tmpPath }) => {
+  test.afterEach(async ({ page }) => {
     await page.activity.closeAll();
     if (await page.filebrowser.contents.fileExists(FILENAME)) {
       await page.filebrowser.contents.deleteFile(FILENAME);

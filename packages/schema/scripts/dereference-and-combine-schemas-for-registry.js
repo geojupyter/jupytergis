@@ -43,7 +43,7 @@ schemaFiles.forEach((file) => {
       console.error(`Error processing ${file}:`, err);
     } else {
       if (rschema['description']) {
-        const { description, title, ...props } = rschema;
+        const { description, _title, ...props } = rschema;
         allSchema[description] = props;
       }
       fs.writeFileSync(

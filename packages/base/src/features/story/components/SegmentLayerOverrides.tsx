@@ -1,5 +1,4 @@
 import type { IJupyterGISModel } from '@jupytergis/schema';
-import { IStateDB } from '@jupyterlab/statedb';
 import { CheckIcon, RotateCcw } from 'lucide-react';
 import React from 'react';
 
@@ -17,14 +16,12 @@ import { SYMBOLOGY_VALID_LAYER_TYPES } from '@/src/types';
 
 export interface ISegmentLayerOverridesProps {
   model: IJupyterGISModel;
-  state: IStateDB;
   segmentId: string;
   isMobile?: boolean;
 }
 
 export function SegmentLayerOverrides({
   model,
-  state,
   segmentId,
   isMobile = false,
 }: ISegmentLayerOverridesProps): JSX.Element {

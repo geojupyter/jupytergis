@@ -1,9 +1,9 @@
 declare module "*.svg" {
-  const value: string; // @ts-ignore
+  const value: string; 
   export default value;
 }
 
 declare module '*.png'{
-  const value: string; // @ts-ignore
+  const value: string; 
   export default value;
 }

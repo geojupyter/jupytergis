@@ -7,7 +7,6 @@ import type {
   IRenderMimeRegistry,
   IUrlResolverFactory,
 } from '@jupyterlab/rendermime';
-import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 
 import { CommandIDs } from '@/src/constants';
@@ -44,7 +43,6 @@ interface IModelEditorState {
 
 interface ISharedEditorContext {
   commands: CommandRegistry;
-  state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   tracker: JupyterGISTracker;
   editorServices: IEditorServices;
@@ -89,7 +87,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
     dialog: StoryEditorWidget,
     model: IJupyterGISModel,
     commands: CommandRegistry,
-    state: IStateDB,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     tracker: JupyterGISTracker,
     editorServices: IEditorServices,
@@ -98,7 +95,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
   ): void {
     this._context = {
       commands,
-      state,
       formSchemaRegistry,
       tracker,
       editorServices,
@@ -115,7 +111,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
   public async openEditor(
     model: IJupyterGISModel,
     commands: CommandRegistry,
-    state: IStateDB,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     tracker: JupyterGISTracker,
     editorServices: IEditorServices,
@@ -124,7 +119,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
   ): Promise<void> {
     this._context = {
       commands,
-      state,
       formSchemaRegistry,
       tracker,
       editorServices,
@@ -461,7 +455,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
     const dialog = new StoryEditorWidget({
       model,
       commands: this._context.commands,
-      state: this._context.state,
       formSchemaRegistry: this._context.formSchemaRegistry,
       editorServices: this._context.editorServices,
       rendermime: this._context.rendermime,

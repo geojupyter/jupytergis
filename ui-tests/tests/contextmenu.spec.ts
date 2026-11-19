@@ -61,11 +61,11 @@ test.describe('context menu', () => {
   });
 
   test('move selection to new group', async ({ page }) => {
-    const layer = await page
+    const layer = page
       .getByLabel('Layers', { exact: true })
       .getByText('Open Topo Map');
 
-    layer.click({ button: 'right' });
+    void layer.click({ button: 'right' });
 
     await page.getByText('Move Selection to Group').hover();
     await page
@@ -106,7 +106,7 @@ test.describe('context menu', () => {
 
     const layerTitle = 'Custom Raster Tile Layer';
     const layerInTree = page.getByText(layerTitle, { exact: true });
-    expect(layerInTree).toBeVisible();
+    void expect(layerInTree).toBeVisible();
 
     await layerInTree.click({
       button: 'right',
@@ -114,7 +114,7 @@ test.describe('context menu', () => {
 
     await page.getByRole('menu').getByText('Remove').click();
 
-    expect(layerInTree).not.toBeVisible();
+    void expect(layerInTree).not.toBeVisible();
   });
 
   test('clicking remove should remove the group from the tree', async ({

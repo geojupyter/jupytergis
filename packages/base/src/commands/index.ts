@@ -2706,7 +2706,6 @@ export function addCommands(
           current.model,
           commands,
           formSchemaRegistry,
-          state,
           tracker,
           editorServices,
           rendermime,
@@ -2971,7 +2970,6 @@ namespace Private {
     model: IJupyterGISModel,
     commands: CommandRegistry,
     formSchemaRegistry: IJGISFormSchemaRegistry,
-    state: IStateDB,
     tracker: JupyterGISTracker,
     editorServices: IEditorServices,
     rendermime: IRenderMimeRegistry,
@@ -2980,7 +2978,6 @@ namespace Private {
     await StoryEditorSession.getInstance().openEditor(
       model,
       commands,
-      state,
       formSchemaRegistry,
       tracker,
       editorServices,

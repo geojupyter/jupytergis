@@ -1,6 +1,5 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
-import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -56,14 +55,12 @@ import { JGIS_NARROW_BREAKPOINT } from '@/src/shared/hooks/useIsMobile';
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
   commands: CommandRegistry;
-  state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   editorServices: IEditorServices;
 }
 
 function SegmentEditor({
   model,
-  state,
   segment,
   editorServices,
   canRemoveSegment,
@@ -77,7 +74,6 @@ function SegmentEditor({
   isTextSegmentWidthFull,
 }: {
   model: IJupyterGISModel;
-  state: IStateDB;
   segment: IStorySegmentViewItem;
   editorServices: IEditorServices;
   canRemoveSegment: boolean;
@@ -230,7 +226,6 @@ function SegmentEditor({
                 segmentId={segment.id}
                 editorServices={editorServices}
                 initialMarkdown={markdown}
-                rows={4}
               />
             </div>
           </StoryEditorSection>
@@ -242,7 +237,6 @@ function SegmentEditor({
           >
             <SegmentLayerOverrides
               model={model}
-              state={state}
               segmentId={segment.id}
               isMobile={isMobile}
             />
@@ -301,7 +295,6 @@ function SegmentEditor({
             editorServices={editorServices}
             initialMarkdown={markdown}
             tall
-            rows={10}
           />
         </StoryEditorSection>
       )}
@@ -320,7 +313,6 @@ function SegmentEditorEmptyState(): JSX.Element {
 export function StoryEditorDialogBody({
   model,
   commands,
-  state,
   editorServices,
 }: IStoryEditorDialogBodyProps): JSX.Element {
   const {
@@ -392,7 +384,6 @@ export function StoryEditorDialogBody({
             <SegmentEditor
               key={selectedSegment.id}
               model={model}
-              state={state}
               segment={selectedSegment}
               editorServices={editorServices}
               canRemoveSegment={canRemoveSegment}

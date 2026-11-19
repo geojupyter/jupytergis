@@ -21,7 +21,7 @@ test.describe('UI Test', () => {
         // This error is related to plotly dependency, installed with qgis.
         "@jupyter-widgets/base doesn't exist in shared scope default",
       ];
-      page.setViewportSize({ width: 1920, height: 1080 });
+      void page.setViewportSize({ width: 1920, height: 1080 });
       page.on('console', (message) => {
         if (message.type() === 'error') {
           for (let pattern of unrelatedErrors) {
@@ -35,7 +35,7 @@ test.describe('UI Test', () => {
       });
     });
 
-    test.afterEach(async ({ page }) => {
+    test.afterEach(async () => {
       errors = 0;
     });
 
