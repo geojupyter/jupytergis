@@ -2,23 +2,23 @@
   "name": "@jupytergis/jupytergis-root",
   "version": "0.18.4",
   "private": true,
-  "workspaces": [
-    "packages/*",
-    "python/jupytergis_core",
-    "python/jupytergis_lab",
-    "python/jupytergis_qgis"
-  ],
-  "homepage": "https://github.com/geojupyter/jupytergis",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/geojupyter/jupytergis.git"
-  },
-  "license": "BSD-3-Clause",
   "description": "A JupyterLab extension for GIS.",
   "keywords": [
     "jupyter",
     "jupyterlab",
     "jupyterlab-extension"
+  ],
+  "homepage": "https://github.com/geojupyter/jupytergis",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/geojupyter/jupytergis.git"
+  },
+  "workspaces": [
+    "packages/*",
+    "python/jupytergis_core",
+    "python/jupytergis_lab",
+    "python/jupytergis_qgis"
   ],
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
