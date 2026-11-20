@@ -103,7 +103,7 @@ def bump():
     run(
         [
             "node",
-            f"{PACKAGE_ROOT.parent.parent / 'node_modules/prettier/bin/prettier.cjs'}",
+            f"{PACKAGE_ROOT.parent.parent / 'node_modules/oxfmt/bin/oxfmt'}",
             "--write",
             package_json,
         ],
