@@ -3040,7 +3040,7 @@ export class OpenLayersAdapter implements IMapAdapter {
         'error',
         `Tile load error for source "${id}"${url ? ': ' + url : ''}`,
       );
-      if (!hasLoadedData) {
+      if (!hasLoadedData && this._sources.get(id) === evt.target) {
         this._callbacks?.onSourceDataError?.(id);
       }
     });
