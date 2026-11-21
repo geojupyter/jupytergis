@@ -29,6 +29,7 @@ import { describeConnectionError } from '@/src/tools';
 import { OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
 import { ensureSaveResult } from './templates';
+import { rememberOpenEOServer, rememberedOpenEOServers } from './tokens';
 
 Environment.axios.defaults.xsrfCookieName = '_xsrf';
 Environment.axios.defaults.xsrfHeaderName = 'X-XSRFToken';
@@ -74,6 +75,16 @@ async function promptOpenEOLogin(serverUrl: string): Promise<void> {
   }
   _pendingLoginPrompts.add(serverUrl);
   try {
+    // A stored refresh token signs us back in without asking anything.
+    try {
+      const restored: IOpenEOConnectionInfo = { url: serverUrl, quiet: true };
+      await openEOConnect(restored);
+      openEOEvents.connected.emit({ serverUrl: restored.url ?? serverUrl });
+      return;
+    } catch {
+      // Nothing stored for this server, or it no longer works.
+    }
+
     const result = await showDialog({
       title: 'OpenEO session required',
       body: `Not signed in to ${serverUrl}. Log in to render this document's OpenEO layers.`,
@@ -269,6 +280,9 @@ export async function openEOConnect(
   // proxy url and which servers answer with a redirect we do not follow.
   url = url.replace(/\/+$/, '');
 
+  // The url to remember: the proxied form is only valid for this page.
+  const serverUrl = url;
+
   // TODO read the proxy setting too, which needs the model down here
   url = await maybeProxied(url);
 
@@ -322,9 +336,10 @@ export async function openEOConnect(
         }
 
         await authProvider.login(signIn.username, signIn.password);
-      } else {
-        const authenticate =
-          connectionInfo.authenticate ?? showOpenEOSigninDialog;
+      } else if (!(await resumeSession(providers))) {
+        const authenticate = connectionInfo.quiet
+          ? async () => false
+          : (connectionInfo.authenticate ?? showOpenEOSigninDialog);
         if (!(await authenticate(providers, connection))) {
           throw new OpenEOSigninCancelled(
             'Needs credentials to connect to OpenEO server.',
@@ -341,6 +356,7 @@ export async function openEOConnect(
     }
 
     CONNECTIONS[url] = connection;
+    rememberOpenEOServer(serverUrl);
 
     connectionInfo.url = url;
 
@@ -352,12 +368,53 @@ export async function openEOConnect(
 
     return connection;
   } catch (error) {
-    if (!(error instanceof OpenEOSigninCancelled)) {
+    if (!(error instanceof OpenEOSigninCancelled) && !connectionInfo.quiet) {
       showErrorMessage(errorTitle, describeConnectionError(error, url));
     }
 
     throw error;
   }
+}
+
+/** The server used last, live or not, to suggest when nothing is connected. */
+export function lastUsedOpenEOServer(): IOpenEOConnectionInfo | null {
+  const url = rememberedOpenEOServers().slice(-1)[0];
+  return url ? { url } : null;
+}
+
+/**
+ * Reconnects to a server we have a stored token for, so the layer dialogs
+ * open on the editor rather than the server picker after a reload. Null when
+ * nothing could be restored.
+ */
+export async function restoreOpenEOSession(
+  serverUrl?: string,
+): Promise<IOpenEOConnectionInfo | null> {
+  const servers = serverUrl ? [serverUrl] : rememberedOpenEOServers().slice(-1);
+
+  for (const url of servers) {
+    const info: IOpenEOConnectionInfo = { url, quiet: true };
+    try {
+      await openEOConnect(info);
+      return info;
+    } catch {
+      // Nothing to restore: the dialog asks for a server instead.
+    }
+  }
+  return null;
+}
+
+/** Signs in to whichever provider kept a usable refresh token. */
+async function resumeSession(providers: AuthProvider[]): Promise<boolean> {
+  for (const provider of providers) {
+    if (
+      provider instanceof OpenEODeviceProvider &&
+      (await provider.resumeSession())
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
 
 export interface IOpenEOConnectionInfo {
@@ -384,6 +441,12 @@ export interface IOpenEOConnectionInfo {
     providers: AuthProvider[],
     connection: Connection,
   ) => Promise<boolean>;
+
+  /**
+   * Connect without asking anything: no sign-in form, no error dialog. Used
+   * to restore a session from a stored token, where failing is normal.
+   */
+  quiet?: boolean;
 }
 
 /**
@@ -439,6 +502,26 @@ async function resultIsSavingUserProcess(
   }
 }
 
+/**
+ * openEO backends vary in how they format XYZ service URLs: some return raw
+ * `{z}/{x}/{y}` placeholders, others return them URL-encoded as `%7Bz%7D/...`.
+ * Handle both forms so the same code works against either kind of backend.
+ */
+export function openEOTileUrl(
+  url: string,
+  z: number,
+  x: number,
+  y: number,
+): string {
+  return url
+    .replace('%7Bz%7D', String(z))
+    .replace('{z}', String(z))
+    .replace('%7By%7D', String(y))
+    .replace('{y}', String(y))
+    .replace('%7Bx%7D', String(x))
+    .replace('{x}', String(x));
+}
+
 export class OpenEOTileLayer extends WebGLTileLayer {
   // Just an alias
 }
@@ -468,7 +551,7 @@ export class OpenEOTileSource extends DataTileSource {
       async (z, x, y, loaderOptions) => {
         await this._connected.promise;
 
-        let url = this._url;
+        const url = this._url;
 
         if (!url) {
           throw new Error('XYZ URL undefined');
@@ -480,17 +563,9 @@ export class OpenEOTileSource extends DataTileSource {
           return tileLoadFunction(retries)(z, x, y, loaderOptions);
         };
 
-        // openEO backends vary in how they format XYZ service URLs:
-        // some return raw `{z}/{x}/{y}` placeholders, others return them
-        // URL-encoded as `%7Bz%7D/...`. Handle both forms so the same
-        // code works against either kind of backend.
-        url = url.replace('%7Bz%7D', String(z)).replace('{z}', String(z));
-        url = url.replace('%7By%7D', String(y)).replace('{y}', String(y));
-        url = url.replace('%7Bx%7D', String(x)).replace('{x}', String(x));
-
         let res: Response;
         try {
-          res = await fetch(url, { method: 'GET' });
+          res = await fetch(openEOTileUrl(url, z, x, y), { method: 'GET' });
         } catch (err: any) {
           const errorMessage: string = err?.message ?? String(err);
 

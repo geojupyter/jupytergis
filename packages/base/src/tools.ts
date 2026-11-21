@@ -735,7 +735,8 @@ export const loadFile = async (fileInfo: {
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
-      case 'GeoJSONSource': {
+      case 'GeoJSONSource':
+      case 'PolygonSource': {
         const cached = await getFromIndexedDB(filepath);
         if (cached) {
           return cached.file;
@@ -829,7 +830,8 @@ export const loadFile = async (fileInfo: {
     }
 
     switch (type) {
-      case 'GeoJSONSource': {
+      case 'GeoJSONSource':
+      case 'PolygonSource': {
         switch (file.format) {
           case 'base64': {
             return JSON.parse(atob(file.content));
@@ -845,23 +847,22 @@ export const loadFile = async (fileInfo: {
       }
 
       case 'ShapefileSource': {
-        let buffer: ArrayBuffer;
-        switch (file.format) {
-          case 'base64': {
-            buffer = await base64ToArrayBuffer(file.content);
-            break;
-          }
-          case 'text': {
-            buffer = await stringToArrayBuffer(file.content);
-            break;
-          }
-          case 'json':
-          default: {
-            throw new Error(`Invalid Shapefile format: ${file.format}.`);
-          }
+        const buffer = await fileToArrayBuffer(file);
+        if (!absolutePath.toLowerCase().endsWith('.shp')) {
+          return await shp(buffer);
         }
-        const geojson = await shp(buffer);
-        return geojson;
+
+        const { contentsManager } = model;
+        const base = absolutePath.slice(0, -4);
+        const [dbf, prj, cpg] = await Promise.all(
+          ['.dbf', '.prj', '.cpg'].map(async ext => {
+            const sibling = await contentsManager
+              .get(base + ext, { content: true })
+              .catch(() => undefined);
+            return sibling ? fileToArrayBuffer(sibling) : undefined;
+          }),
+        );
+        return await shp({ shp: buffer, dbf, prj, cpg });
       }
 
       case 'ImageSource': {
@@ -1163,6 +1164,19 @@ const base64ToArrayBuffer = async (content: string): Promise<ArrayBuffer> => {
  */
 const stringToArrayBuffer = async (content: string): Promise<ArrayBuffer> => {
   return new TextEncoder().encode(content).buffer;
+};
+
+const fileToArrayBuffer = async (
+  file: Contents.IModel,
+): Promise<ArrayBuffer> => {
+  switch (file.format) {
+    case 'base64':
+      return base64ToArrayBuffer(file.content);
+    case 'text':
+      return stringToArrayBuffer(file.content);
+    default:
+      throw new Error(`Invalid file format: ${file.format}.`);
+  }
 };
 
 export const getFeatureAttributes = <T>(

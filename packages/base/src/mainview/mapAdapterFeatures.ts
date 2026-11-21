@@ -18,6 +18,7 @@ export interface IMapAdapterFeatures {
   readonly layerComparison: boolean;
   readonly heatmapSymbology: boolean;
   readonly clusterSymbology: boolean;
+  readonly zoomRangeSymbology: boolean;
   readonly customProjections: boolean;
   readonly requiresVectorTileSourceLayer: boolean;
 }
@@ -40,6 +41,7 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     WmsTileSource: true,
     OpenEOTileSource: false,
     FeatureStoreSource: false,
+    PolygonSource: true,
   },
   layers: {
     RasterLayer: true,
@@ -53,13 +55,16 @@ const MAPLIBRE_FEATURES: IMapAdapterFeatures = {
     GeoZarrLayer: false,
     OpenEOTileLayer: false,
     StacLayer: false,
+    PolygonLayer: true,
+    GeoJsonLayer: true,
   },
   drawTool: false,
   storyMaps: false,
   geolocation: false,
   layerComparison: false,
-  heatmapSymbology: false,
+  heatmapSymbology: true,
   clusterSymbology: false,
+  zoomRangeSymbology: false,
   customProjections: false,
   requiresVectorTileSourceLayer: true,
 };
@@ -82,6 +87,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     WmsTileSource: true,
     OpenEOTileSource: true,
     FeatureStoreSource: true,
+    PolygonSource: false,
   },
   layers: {
     RasterLayer: true,
@@ -95,6 +101,8 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
     GeoZarrLayer: true,
     OpenEOTileLayer: true,
     StacLayer: true,
+    PolygonLayer: false,
+    GeoJsonLayer: false,
   },
   drawTool: true,
   geolocation: true,
@@ -102,6 +110,7 @@ const OPENLAYERS_FEATURES: IMapAdapterFeatures = {
   layerComparison: true,
   heatmapSymbology: true,
   clusterSymbology: true,
+  zoomRangeSymbology: true,
   customProjections: true,
   requiresVectorTileSourceLayer: false,
 };
@@ -183,6 +192,12 @@ const LAYER_ENTRIES: ILayerEntry[] = [
     layer: 'VectorLayer',
     source: 'FeatureStoreSource',
   },
+  { label: 'Polygons', layer: 'PolygonLayer', source: 'PolygonSource' },
+  {
+    label: 'GeoJSON (Deck.gl)',
+    layer: 'GeoJsonLayer',
+    source: 'GeoJSONSource',
+  },
 ];
 
 type ToolKey =
@@ -200,11 +215,15 @@ const TOOL_LABELS: Record<ToolKey, string> = {
   customProjections: 'Custom projections',
 } as const;
 
-type SymbologyKey = 'heatmapSymbology' | 'clusterSymbology';
+type SymbologyKey =
+  | 'heatmapSymbology'
+  | 'clusterSymbology'
+  | 'zoomRangeSymbology';
 
 const SYMBOLOGY_LABELS: Record<SymbologyKey, string> = {
   heatmapSymbology: 'Heatmap (KDE)',
   clusterSymbology: 'Point Clustring',
+  zoomRangeSymbology: 'Zoom range conditions',
 };
 
 export interface ISupportRow {

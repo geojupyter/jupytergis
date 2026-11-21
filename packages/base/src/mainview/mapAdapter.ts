@@ -150,6 +150,7 @@ export interface IMapAdapterOptions {
   lonLat?: [number, number];
   zoom?: number;
   rotation?: number;
+  pitch?: number;
   layers?: IJGISLayers;
   sources?: IJGISSources;
   controlsTarget?: HTMLElement;
@@ -182,6 +183,8 @@ export interface IMapAdapterCallbacks {
   onLayerError?: (id: string, message: string) => void;
   onLayerLoaded?: (id: string) => void;
   onTileProgress?: (loaded: number, total: number) => void;
+  onSourceDataError?: (sourceId: string) => void;
+  onSourceDataLoaded?: (sourceId: string) => void;
   onClientPointerPositionChanged?: () => void;
 }
 

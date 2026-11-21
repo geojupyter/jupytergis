@@ -1514,11 +1514,22 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
       case 'OpenEOTileLayer': {
         layerParameters = layer.parameters as IOpenEOTileLayer;
+        const openEOSource = this._sources.get(layerParameters.source);
+
+        if (Array.isArray(layerParameters.symbologyState?.layers)) {
+          newMapLayer = grammarToOLLayer({
+            layer,
+            layerId: id,
+            source: openEOSource,
+            className,
+          }) as OlLayerTypes;
+          break;
+        }
 
         newMapLayer = new OpenEOTileLayer({
           opacity: layerParameters.opacity,
           visible: layer.visible,
-          source: this._sources.get(layerParameters.source),
+          source: openEOSource,
           className,
         });
         break;
@@ -1611,6 +1622,21 @@ export class OpenLayersAdapter implements IMapAdapter {
         // 3D terrain is only supported by the MapLibre adapter.
         return;
       }
+
+      case 'PolygonLayer': {
+        // Contour polygons are only supported by the MapLibre adapter.
+        return;
+      }
+
+      case 'GeoJsonLayer': {
+        // deck.gl GeoJsonLayer is only supported by the MapLibre adapter.
+        return;
+      }
+
+      default: {
+        // Removed or unknown layer types are skipped.
+        return;
+      }
     }
 
     // OpenLayers doesn't have name/id field so add it
@@ -1698,8 +1724,12 @@ export class OpenLayersAdapter implements IMapAdapter {
       source: olSource,
       featureValues,
       className,
+      resolutionForZoom: this._resolutionForZoom,
     }) as OlLayerTypes;
   }
+
+  private _resolutionForZoom = (zoom: number): number =>
+    this._map.getView().getResolutionForZoom(zoom);
 
   // Used by VectorTileLayer (which shares a flat-style API with Grammar output).
   vectorLayerStyleRuleBuilder = (layer: IJGISLayer) => {
@@ -1712,6 +1742,7 @@ export class OpenLayersAdapter implements IMapAdapter {
     const flatStyle = grammarToOLStyle(
       layerParams.symbologyState as IGrammarSymbologyState,
       [],
+      this._resolutionForZoom,
     );
 
     const layerStyle: Rule = { style: flatStyle };
@@ -2370,6 +2401,11 @@ export class OpenLayersAdapter implements IMapAdapter {
         break;
       }
       case 'OpenEOTileLayer': {
+        if (Array.isArray(layer?.parameters?.symbologyState?.layers)) {
+          this._syncGrammarSubLayers(id, layer, mapLayer as Layer | LayerGroup);
+          break;
+        }
+
         const layerParams = layer.parameters as IOpenEOTileLayer;
         const openeoLayer = mapLayer as OpenEOTileLayer;
 
@@ -2991,15 +3027,28 @@ export class OpenLayersAdapter implements IMapAdapter {
     // These errors (CORS failures, network errors, etc.) are written directly
     // by the browser to DevTools and cannot be captured by console patching —
     // OL's own events are the only reliable interception point.
+    let hasLoadedData = false;
+    newSource.on(['tileloadend', 'featuresloadend'], () => {
+      if (!hasLoadedData) {
+        hasLoadedData = true;
+        this._callbacks?.onSourceDataLoaded?.(id);
+      }
+    });
     newSource.on('tileloaderror', (evt: any) => {
       const url = evt?.tile?.getKey?.() ?? '';
       this._log(
         'error',
         `Tile load error for source "${id}"${url ? ': ' + url : ''}`,
       );
+      if (!hasLoadedData) {
+        this._callbacks?.onSourceDataError?.(id);
+      }
     });
     newSource.on('featuresloaderror', () => {
       this._log('error', `Features load error for source "${id}"`);
+      if (!hasLoadedData) {
+        this._callbacks?.onSourceDataError?.(id);
+      }
     });
 
     // _sources is a list of OpenLayers sources
@@ -3439,6 +3488,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       source,
       featureValues,
       className: comparisonLayerClass(id),
+      resolutionForZoom: this._resolutionForZoom,
     });
 
     if (mapLayer instanceof LayerGroup) {

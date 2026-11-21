@@ -49,6 +49,7 @@ import {
 } from '../features/layers/openeo';
 import {
   getLatestOpenEOConnection,
+  lastUsedOpenEOServer,
   listOpenEOConnections,
 } from '../features/layers/openeo/OpenEOTileLayer';
 import { SymbologyWidget } from '../features/layers/symbology/symbologyDialog';
@@ -205,6 +206,9 @@ const QGIS_UNSUPPORTED_COMMANDS = new Set<string>([
   CommandIDs.openNewGeoZarrDialog,
   // 3D terrain layers
   CommandIDs.openNewTerrainDialog,
+  // DeckGL layers
+  CommandIDs.openNewPolygonDialog,
+  CommandIDs.openNewGeoJsonLayerDialog,
   // Story maps
   CommandIDs.addStorySegment,
   CommandIDs.openStoryEditor,
@@ -241,6 +245,14 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   [CommandIDs.openNewGeoJSONDialog]: {
     source: 'GeoJSONSource',
     layer: 'VectorLayer',
+  },
+  [CommandIDs.openNewPolygonDialog]: {
+    source: 'PolygonSource',
+    layer: 'PolygonLayer',
+  },
+  [CommandIDs.openNewGeoJsonLayerDialog]: {
+    source: 'GeoJSONSource',
+    layer: 'GeoJsonLayer',
   },
   [CommandIDs.openNewShapefileDialog]: {
     source: 'ShapefileSource',
@@ -323,6 +335,14 @@ const ADAPTER_REQUIREMENTS: Record<string, IAdapterRequirement> = {
   [LayerCreationCommandIDs.newShapefileWithParams]: {
     source: 'ShapefileSource',
     layer: 'VectorLayer',
+  },
+  [LayerCreationCommandIDs.newPolygonWithParams]: {
+    source: 'PolygonSource',
+    layer: 'PolygonLayer',
+  },
+  [LayerCreationCommandIDs.newGeoJsonLayerWithParams]: {
+    source: 'GeoJSONSource',
+    layer: 'GeoJsonLayer',
   },
 
   // Interaction features
@@ -1050,6 +1070,62 @@ export function addCommands(
     ...icons.get(CommandIDs.openNewGeoJSONDialog),
   });
 
+  commands.addCommand(CommandIDs.openNewPolygonDialog, {
+    label: trans.__('Polygon'),
+    caption:
+      'Open a dialog to create a new polygon layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create Polygon Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom Polygon Layer' },
+      sourceType: 'PolygonSource',
+      layerType: 'PolygonLayer',
+    }),
+    ...icons.get(CommandIDs.openNewPolygonDialog),
+  });
+
+  commands.addCommand(CommandIDs.openNewGeoJsonLayerDialog, {
+    label: trans.__('GeoJSON (Deck.gl)'),
+    caption:
+      'Open a dialog to create a new deck.gl GeoJSON layer and source in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      return tracker.currentWidget
+        ? tracker.currentWidget.model.sharedModel.editable
+        : false;
+    },
+    execute: Private.createEntry({
+      tracker,
+      formSchemaRegistry,
+      title: 'Create GeoJSON Layer',
+      createLayer: true,
+      createSource: true,
+      layerData: { name: 'Custom GeoJSON Layer' },
+      sourceType: 'GeoJSONSource',
+      layerType: 'GeoJsonLayer',
+    }),
+    ...icons.get(CommandIDs.openNewGeoJsonLayerDialog),
+  });
+
   commands.addCommand(CommandIDs.openNewWmsDialog, {
     label: trans.__('WMS Layer'),
     caption:
@@ -1166,15 +1242,15 @@ export function addCommands(
       }
       // Seed the dialog from the global pool of live OpenEO connections
       // (shared across all documents): pre-fill with the most recently
-      // used server and offer the rest in the picker. The user
-      // picks/connects inside the dialog itself, so we don't
-      // pre-authenticate here.
+      // used server and offer the rest in the picker. With nothing live we
+      // suggest the server used last; the dialog opens right away and
+      // signs back in to it from the stored token.
       // Capture the current map viewport so the Code tab's exported
       // snippet opens on exactly what the user is looking at, rather than
       // the graph's (often arbitrary) spatial_extent.
       const viewOptions = current.model.getOptions();
       const result = await showAddOpenEOLayerDialog({
-        connectionInfo: getLatestOpenEOConnection(),
+        connectionInfo: getLatestOpenEOConnection() ?? lastUsedOpenEOServer(),
         knownServers: listOpenEOConnections(),
         mapView: {
           latitude: viewOptions.latitude,
@@ -1750,6 +1826,46 @@ export function addCommands(
     },
   });
 
+  commands.addCommand(CommandIDs.toggleDeclutter, {
+    label: trans.__('Declutter'),
+    caption:
+      'Skip drawing features of the layer that would overlap ones already drawn.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {
+          filePath: { type: 'string' },
+          layerId: { type: 'string' },
+        },
+      },
+    },
+    isVisible: (args: { filePath?: string; layerId?: string }) =>
+      !!Private.getDeclutterLayer(tracker, formSchemaRegistry, args),
+    isEnabled: (args: { filePath?: string; layerId?: string }) =>
+      !!Private.getDeclutterLayer(tracker, formSchemaRegistry, args)?.model
+        .sharedModel.editable,
+    isToggled: (args: { filePath?: string; layerId?: string }) =>
+      !!Private.getDeclutterLayer(tracker, formSchemaRegistry, args)?.layer
+        .parameters?.declutter,
+    execute: (args: { filePath?: string; layerId?: string }) => {
+      const target = Private.getDeclutterLayer(
+        tracker,
+        formSchemaRegistry,
+        args,
+      );
+
+      if (!target?.model.sharedModel.editable) {
+        return;
+      }
+
+      target.model.sharedModel.updateObjectParameters(target.id, {
+        declutter: !target.layer.parameters?.declutter,
+      });
+      commands.notifyCommandChanged(CommandIDs.toggleDeclutter);
+    },
+    ...icons.get(CommandIDs.toggleDeclutter),
+  });
+
   // Console commands
   commands.addCommand(CommandIDs.toggleConsole, {
     label: trans.__('Toggle console'),
@@ -2186,6 +2302,47 @@ export function addCommands(
     },
   });
 
+  commands.addCommand(CommandIDs.toggleStacBrowser, {
+    label: trans.__('Add STAC Layer'),
+    caption:
+      'Toggle the STAC browser panel in the current JupyterGIS document.',
+    describedBy: {
+      args: {
+        type: 'object',
+        properties: {},
+      },
+    },
+    isEnabled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      const { stacBrowserDisabled, rightPanelDisabled } =
+        current.model.jgisSettings;
+
+      return !stacBrowserDisabled && !rightPanelDisabled;
+    },
+    isToggled: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return false;
+      }
+
+      return current.model.getUIState().stacBrowserOpen === true;
+    },
+    execute: () => {
+      const current = tracker.currentWidget;
+      if (!current) {
+        return;
+      }
+
+      const open = current.model.getUIState().stacBrowserOpen === true;
+      current.model.setUIState({ stacBrowserOpen: !open });
+      commands.notifyCommandChanged(CommandIDs.toggleStacBrowser);
+    },
+  });
+
   commands.addCommand(CommandIDs.togglePanel, {
     label: trans.__('Toggle Panel'),
     caption: () => {
@@ -2273,6 +2430,7 @@ export function addCommands(
         false;
       await settings?.set('stacBrowserDisabled', !currentValue);
       commands.notifyCommandChanged(CommandIDs.showStacBrowserTab);
+      commands.notifyCommandChanged(CommandIDs.toggleStacBrowser);
     },
   });
 
@@ -3050,6 +3208,24 @@ namespace Private {
     const current = model?.getComparison()?.layers;
 
     return !!layerId && !!current && current.includes(layerId);
+  }
+
+  /** The given or selected layer, when its type has a `declutter` parameter. */
+  export function getDeclutterLayer(
+    tracker: JupyterGISTracker,
+    formSchemaRegistry: IJGISFormSchemaRegistry,
+    args: { filePath?: string; layerId?: string },
+  ): { model: IJupyterGISModel; id: string; layer: IJGISLayer } | undefined {
+    const model = args.filePath
+      ? tracker.find(w => w.model.filePath === args.filePath)?.model
+      : tracker.currentWidget?.model;
+    const id = args.layerId ?? getSelectedLayerId(model);
+    const layer = id ? model?.getLayer(id) : undefined;
+    const schema = layer && formSchemaRegistry.getSchemas().get(layer.type);
+
+    return model && id && layer && schema?.properties?.declutter
+      ? { model, id, layer }
+      : undefined;
   }
 
   export async function renameSelectedItem(

@@ -8,6 +8,11 @@
   z-index: 1000;
 }
 
+.jgis-status-bar-progress {
+  width: 16%;
+  padding: 0 6px;
+}
+
 .jgis-status-bar-item {
   flex: 0 0 content;
 }
@@ -21,7 +26,7 @@
   font-size: inherit;
 }
 
-.jgis-status-bar-coords[data-slot='select-trigger'],
+.jgis-status-bar-item[data-slot='select-trigger'],
 .jgis-status-bar-projection [data-slot='combobox-trigger'] {
   height: 16px;
   min-height: 0;

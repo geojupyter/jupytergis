@@ -5,6 +5,7 @@ import {
   layerBrowserRegistryPlugin,
   trackerPlugin,
   annotationPlugin,
+  openEOTokensPlugin,
 } from './plugin';
 import tourPlugin from './tour';
 
@@ -16,5 +17,6 @@ export default [
   externalCommandRegistryPlugin,
   layerBrowserRegistryPlugin,
   annotationPlugin,
+  openEOTokensPlugin,
   tourPlugin,
 ];

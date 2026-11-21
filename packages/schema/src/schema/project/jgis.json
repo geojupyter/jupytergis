@@ -6,7 +6,7 @@
   "properties": {
     "schemaVersion": {
       "type": "string",
-      "default": "0.7.1"
+      "default": "0.7.2"
     },
     "layers": {
       "$ref": "#/definitions/jGISLayers"
@@ -50,7 +50,9 @@
         "StacLayer",
         "StorySegmentLayer",
         "OpenEOTileLayer",
-        "TerrainLayer"
+        "TerrainLayer",
+        "PolygonLayer",
+        "GeoJsonLayer"
       ]
     },
     "sourceType": {
@@ -70,7 +72,8 @@
         "GeoParquetSource",
         "FeatureStoreSource",
         "MarkerSource",
-        "OpenEOTileSource"
+        "OpenEOTileSource",
+        "PolygonSource"
       ]
     },
     "jGISLayer": {

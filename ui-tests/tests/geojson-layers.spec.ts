@@ -59,7 +59,7 @@ test.describe('#geoJSONLayer', () => {
     await page.getByText('Add Vector Layer').hover();
     await page
       .locator('#jp-gis-toolbar-vector-menu')
-      .getByText('GeoJSON')
+      .getByText('GeoJSON', { exact: true })
       .click();
 
     const dialog = page.locator('.jp-Dialog-content');
