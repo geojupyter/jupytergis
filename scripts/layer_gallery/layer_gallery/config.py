@@ -500,7 +500,7 @@ gallery: GallerySpecification = {
             source_type="RasterSource",
             data_source=TileProvider(
                 name="MacroStrat.CartoRaster",
-                url="https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.png",
+                url="https://tiles.macrostrat.org/carto/{z}/{x}/{y}.png",
                 attribution="\u00a9 Geologic data \u00a9 <a href=https://macrostrat.org>Macrostrat raster layer</a> (CC\u2011BY 4.0)",
                 max_zoom=18,
             ),

@@ -7,9 +7,10 @@ import math
 import types
 import warnings
 import xml.etree.ElementTree as ET
+from enum import Enum
 from importlib.metadata import version
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, Self, cast
 from urllib.parse import unquote, urlparse
 from uuid import uuid4
 
@@ -17,6 +18,7 @@ import requests
 from IPython import get_ipython
 from IPython.display import display
 from jupytergis_core.schema import (
+    IGeoJsonLayer,
     IGeoJSONSource,
     IGeoPackageRasterSource,
     IGeoPackageVectorSource,
@@ -31,6 +33,8 @@ from jupytergis_core.schema import (
     IMarkerSource,
     IOpenEOTileLayer,
     IOpenEOTileSource,
+    IPolygonLayer,
+    IPolygonSource,
     IRasterDemSource,
     IRasterLayer,
     IRasterSource,
@@ -40,11 +44,26 @@ from jupytergis_core.schema import (
     IVectorTileLayer,
     IVectorTileSource,
     IWmsTileSource,
+    JGISStoryMap,
     LayerType,
     SourceType,
+    StoryType,
+)
+from jupytergis_core.schema.interfaces.project.layers.storySegmentLayer import (
+    ContentMode,
+    PaneAlignment,
+)
+from jupytergis_core.schema.interfaces.project.layers.storySegmentLayer import (
+    Type as TransitionType,
 )
 from pycrdt import Array, Map
-from pydantic import BaseModel
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    PrivateAttr,
+    ValidationError,
+    field_validator,
+)
 from sidecar import Sidecar
 from ypywidgets.comm import CommWidget
 
@@ -155,6 +174,47 @@ def _openeo_spatial_extent(graph: Any) -> list[float] | None:
     return None
 
 
+def _ensure_save_result(graph: dict, format: str = "PNG") -> dict:
+    """XYZ tiling needs the graph to end in ``save_result``.
+
+    ESA User-Defined Processes omit it so they can be extended, so synthesize
+    one over the result node (PNG) when absent. Returns the graph unchanged
+    when a ``save_result`` is already present or there's no result node to
+    wire onto. Mirrors ``ensureSaveResult`` in the frontend's openeo templates.
+    """
+    nodes = [
+        (node_id, node) for node_id, node in graph.items() if isinstance(node, dict)
+    ]
+    if any(node.get("process_id") == "save_result" for _, node in nodes):
+        return graph
+    result_id = next(
+        (node_id for node_id, node in nodes if node.get("result") is True),
+        None,
+    )
+    if result_id is None:
+        return graph
+    # Mint a non-colliding key.
+    n = 1
+    key = "saveresult1"
+    while key in graph:
+        n += 1
+        key = f"saveresult{n}"
+    demoted = {k: v for k, v in graph[result_id].items() if k != "result"}
+    return {
+        **graph,
+        result_id: demoted,
+        key: {
+            "arguments": {
+                "data": {"from_node": result_id},
+                "format": format,
+                "options": {},
+            },
+            "process_id": "save_result",
+            "result": True,
+        },
+    }
+
+
 def _lonlat_to_webmercator(lon: float, lat: float) -> tuple[float, float]:
     """Project a lon/lat pair (EPSG:4326) to web mercator (EPSG:3857)."""
     radius = 6378137
@@ -164,7 +224,7 @@ def _lonlat_to_webmercator(lon: float, lat: float) -> tuple[float, float]:
     return x, y
 
 
-def _openeo_view_extent(extent: list[float]) -> list[float]:
+def _lonlat_extent_to_view(extent: list[float]) -> list[float]:
     """Convert a ``[west, south, east, north]`` EPSG:4326 bbox to an EPSG:3857
     ``[minx, miny, maxx, maxy]`` extent suitable for ``options["extent"]``.
     """
@@ -172,6 +232,56 @@ def _openeo_view_extent(extent: list[float]) -> list[float]:
     minx, miny = _lonlat_to_webmercator(west, south)
     maxx, maxy = _lonlat_to_webmercator(east, north)
     return [minx, miny, maxx, maxy]
+
+
+def _find_by_name[T: JGISObject](objects: list[T], name: str, kind: str) -> T:
+    """Look an object up by its name, which must be unambiguous."""
+    matches = [obj for obj in objects if obj.name == name]
+
+    if not matches:
+        raise KeyError(f"No {kind} found with name: {name!r}")
+
+    if len(matches) > 1:
+        raise ValueError(f"{len(matches)} {kind}s are named {name!r}")
+
+    return matches[0]
+
+
+def _layer_id(layer: str | JGISLayer) -> str:
+    return layer if isinstance(layer, str) else str(layer._id)
+
+
+def _story_segment_name(segment_count: int) -> str:
+    return "Story Segment" if segment_count == 0 else f"Story Segment {segment_count}"
+
+
+def _story_segment_extent(
+    extent: list[float] | None,
+    center: tuple[float, float] | None,
+) -> list[float]:
+    """Build a story segment extent in the view projection.
+
+    ``extent`` is a ``[west, south, east, north]`` EPSG:4326 bbox, ``center`` a
+    ``(longitude, latitude)`` pair. A center becomes a zero-width extent: the
+    front end only reads the center of a segment extent when flying to it.
+    """
+    if extent is not None and center is not None:
+        raise ValueError(
+            "Cannot set a story segment extent and center at the same time",
+        )
+
+    if extent is not None:
+        if len(extent) != 4:
+            raise ValueError(
+                "A story segment extent must be [west, south, east, north]",
+            )
+        return _lonlat_extent_to_view(extent)
+
+    if center is None:
+        raise ValueError("A story segment needs either an extent or a center")
+
+    x, y = _lonlat_to_webmercator(*center)
+    return [x, y, x, y]
 
 
 class GISDocument(CommWidget):
@@ -236,6 +346,9 @@ class GISDocument(CommWidget):
         self._presets: Map = Map()
         self.ydoc["presets"] = self._presets
 
+        self._stories: Map = Map()
+        self.ydoc["stories"] = self._stories
+
         self._options: Map[str | float | bool | list[float]]
         self._featureStores: Map = Map()
         self.ydoc["featureStores"] = self._featureStores
@@ -278,9 +391,10 @@ class GISDocument(CommWidget):
             AWAIT_WARN_DONE = True
 
         def handle_doc_ready(self, *args, **kwargs):
-            if not self._ready_future.done():
-                self._ready_future.set_result(None)
-                self._is_ready = True
+            if self._ready_future.done():
+                return
+            self._ready_future.set_result(None)
+            self._is_ready = True
 
             self._options.unobserve(self._options_subscription)
 
@@ -304,7 +418,12 @@ class GISDocument(CommWidget):
         self._handle_doc_ready = types.MethodType(handle_doc_ready, self)
 
         # Listening to options change (assuming that when we receive the options it means the doc is synced)
-        self._options_subscription = self._options.observe(self._handle_doc_ready)
+        loop = self._ready_future.get_loop()
+
+        def on_options_change(_event: Any) -> None:
+            loop.call_soon_threadsafe(self._handle_doc_ready)
+
+        self._options_subscription = self._options.observe(on_options_change)
 
         # If it's an untitled doc, trigger doc ready
         if path is None:
@@ -322,9 +441,62 @@ class GISDocument(CommWidget):
             )
 
     @property
-    def layers(self) -> dict[str, Any] | None:
-        """Get the layer list"""
-        return self._layers.to_py()
+    def layers(self) -> list[JGISLayer | JGISLayerGroup]:
+        """Get the document layers in layer tree order, groups as sub-lists."""
+        layers = self._layer_objects()
+
+        def build(items: list[Any]) -> list[JGISLayer | JGISLayerGroup]:
+            result: list[JGISLayer | JGISLayerGroup] = []
+            for item in items:
+                if isinstance(item, str):
+                    if item in layers:
+                        result.append(layers[item])
+                else:
+                    result.append(
+                        JGISLayerGroup(
+                            build(item.get("layers", [])),
+                            name=item["name"],
+                            visible=item.get("visible", True),
+                        ),
+                    )
+            return result
+
+        return build(self.layer_tree or [])
+
+    def _layer_objects(self) -> dict[str, JGISLayer]:
+        return {
+            layer_id: OBJECT_FACTORY.read_layer(layer_id, layer, self)
+            for layer_id, layer in (self._layers.to_py() or {}).items()
+        }
+
+    def _source_objects(self) -> dict[str, JGISSource]:
+        return {
+            source_id: OBJECT_FACTORY.read_source(source_id, source, self)
+            for source_id, source in (self._sources.to_py() or {}).items()
+        }
+
+    @property
+    def sources(self) -> list[JGISSource]:
+        """Get the document sources."""
+        return list(self._source_objects().values())
+
+    def get_layer(self, name: str) -> JGISLayer:
+        """Find a layer by name.
+
+        :param name: The layer name.
+        :raises KeyError: If nothing matches.
+        :raises ValueError: If several layers share that name.
+        """
+        return _find_by_name(list(self._layer_objects().values()), name, "layer")
+
+    def get_source(self, name: str) -> JGISSource:
+        """Find a source by name.
+
+        :param name: The source name.
+        :raises KeyError: If nothing matches.
+        :raises ValueError: If several sources share that name.
+        """
+        return _find_by_name(self.sources, name, "source")
 
     @property
     def layer_tree(self) -> list[Any] | None:
@@ -351,6 +523,13 @@ class GISDocument(CommWidget):
                 del self._options["mapAdapter"]
         else:
             self._options["mapAdapter"] = value
+
+    @property
+    def story(self) -> JGISStory | None:
+        """Get the story map of the document, or ``None`` when it has no story."""
+        for story_id, story in (self._stories.to_py() or {}).items():
+            return JGISStory._build(self, story_id, **story)
+        return None
 
     @property
     def _is_qgis_document(self) -> bool:
@@ -485,6 +664,7 @@ class GISDocument(CommWidget):
         min_zoom: int = 0,
         max_zoom: int = 24,
         opacity: float = 1,
+        declutter: bool = False,
         symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
@@ -494,6 +674,8 @@ class GISDocument(CommWidget):
         :param url: The tiles url.
         :param attribution: The attribution.
         :param opacity: The opacity, between 0 and 1.
+        :param declutter: Skip drawing anything that would overlap something
+            already drawn on this layer. Off by default because it hides data.
         :param symbology: The symbology configuration to persist with the layer.
         :param zoom_to: When True, zoom the map to the layer once it is added.
         """
@@ -523,6 +705,7 @@ class GISDocument(CommWidget):
         layer_params: dict[str, Any] = {
             "source": source_id,
             "opacity": opacity,
+            "declutter": declutter,
         }
         layer = {
             "type": LayerType.VectorTileLayer,
@@ -546,6 +729,7 @@ class GISDocument(CommWidget):
         data: dict | None = None,
         name: str | None = None,
         opacity: float = 1,
+        declutter: bool = False,
         symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
@@ -555,6 +739,8 @@ class GISDocument(CommWidget):
         :param path: The path to the JSON file or URL to embed into the jGIS file.
         :param data: The raw GeoJSON data to embed into the jGIS file.
         :param opacity: The opacity, between 0 and 1.
+        :param declutter: Skip drawing anything that would overlap something
+            already drawn on this layer. Off by default because it hides data.
         :param symbology: The symbology configuration to persist with the layer.
         :param zoom_to: When True, zoom the map to the layer once it is added.
         """
@@ -601,6 +787,7 @@ class GISDocument(CommWidget):
         layer_params: dict[str, Any] = {
             "source": source_id,
             "opacity": opacity,
+            "declutter": declutter,
         }
         layer = {
             "type": LayerType.VectorLayer,
@@ -654,10 +841,16 @@ class GISDocument(CommWidget):
                 "The OpenEO backend does not allow XYZ services. We cannot show the OpenEO graph dynamically.",
             )
 
-        service = graph.connection.create_service(graph, "XYZ")
-        service_url = unquote(service.describe_service()["url"])
+        flat_graph = _ensure_save_result(graph.flat_graph())
 
-        flat_graph = graph.flat_graph()
+        errors = graph.connection.validate_process_graph(flat_graph)
+        if errors:
+            raise ValueError(
+                f"The OpenEO process graph is invalid: {'; '.join(e['message'] for e in errors)}",
+            )
+
+        service = graph.connection.create_service(flat_graph, "XYZ")
+        service_url = unquote(service.describe_service()["url"])
 
         source = {
             "type": SourceType.OpenEOTileSource,
@@ -678,7 +871,7 @@ class GISDocument(CommWidget):
             "parameters": {"source": source_id, "opacity": opacity},
         }
 
-        layer_id = self._add_layer(
+        new_layer = self._add_layer(
             OBJECT_FACTORY.create_layer(layer, self),
             zoom_to=zoom_to,
         )
@@ -690,10 +883,10 @@ class GISDocument(CommWidget):
         if zoom_to_extent:
             extent = _openeo_spatial_extent(flat_graph)
             if extent is not None:
-                self._options["extent"] = _openeo_view_extent(extent)
+                self._options["extent"] = _lonlat_extent_to_view(extent)
                 self._options["useExtent"] = True
 
-        return layer_id
+        return new_layer
 
     def add_image_layer(
         self,
@@ -961,6 +1154,7 @@ class GISDocument(CommWidget):
         path: str,
         name: str | None = None,
         opacity: float = 1,
+        declutter: bool = False,
         symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
@@ -969,6 +1163,8 @@ class GISDocument(CommWidget):
         :param path: The path to the GeoParquet file to embed into the jGIS file.
         :param name: The name that will be used for the object in the document.
         :param opacity: The opacity, between 0 and 1.
+        :param declutter: Skip drawing anything that would overlap something
+            already drawn on this layer. Off by default because it hides data.
         :param symbology: The symbology configuration to persist with the layer.
         :param zoom_to: When True, zoom the map to the layer once it is added.
         """
@@ -989,6 +1185,7 @@ class GISDocument(CommWidget):
         layer_params: dict[str, Any] = {
             "source": source_id,
             "opacity": opacity,
+            "declutter": declutter,
         }
         layer = {
             "type": LayerType.VectorLayer,
@@ -1015,6 +1212,7 @@ class GISDocument(CommWidget):
         name: str | None = None,
         type: Literal["circle", "fill", "line"] = "line",
         opacity: float = 1,
+        declutter: bool = False,
         symbology: SymbologyInput | None = None,
         zoom_to: bool = False,
     ):
@@ -1025,6 +1223,8 @@ class GISDocument(CommWidget):
         :param name: The name that will be used for the object in the document.
         :param type: The type of the vector layer to create.
         :param opacity: The opacity, between 0 and 1.
+        :param declutter: Skip drawing anything that would overlap something
+            already drawn on this layer. Off by default because it hides data.
         :param symbology: The symbology configuration to persist with the layers.
         :param zoom_to: When True, zoom the map to the last added layer.
         """
@@ -1041,7 +1241,7 @@ class GISDocument(CommWidget):
         if name is None:
             name = _extract_layer_name(path)
 
-        layer_ids = []
+        new_layers = []
 
         if "projection" in self._options:
             projection = self._options["projection"]
@@ -1069,6 +1269,7 @@ class GISDocument(CommWidget):
                 "source": source_id,
                 "type": type,
                 "opacity": opacity,
+                "declutter": declutter,
             }
             layer = {
                 "type": LayerType.VectorLayer,
@@ -1081,7 +1282,7 @@ class GISDocument(CommWidget):
                 layer_params["symbologyState"] = symbology_state
 
             layer_id = str(uuid4()) + "/" + str(table_name)
-            layer_ids.append(
+            new_layers.append(
                 self._add_layer(
                     OBJECT_FACTORY.create_layer(layer, self),
                     layer_id,
@@ -1089,7 +1290,7 @@ class GISDocument(CommWidget):
                 ),
             )
 
-        return layer_ids
+        return new_layers
 
     def add_geopackage_raster_layer(
         self,
@@ -1120,7 +1321,7 @@ class GISDocument(CommWidget):
         if name is None:
             name = _extract_layer_name(path)
 
-        layer_ids = []
+        new_layers = []
 
         for index, table_name in enumerate(table_names):
             source = {
@@ -1145,7 +1346,7 @@ class GISDocument(CommWidget):
             }
 
             layer_id = str(uuid4()) + "/" + str(table_name)
-            layer_ids.append(
+            new_layers.append(
                 self._add_layer(
                     OBJECT_FACTORY.create_layer(layer, self),
                     layer_id,
@@ -1153,7 +1354,7 @@ class GISDocument(CommWidget):
                 ),
             )
 
-        return layer_ids
+        return new_layers
 
     async def add_data_array_layer(
         self,
@@ -1335,7 +1536,7 @@ class GISDocument(CommWidget):
         opacity: float = 1,
         interpolate: bool = False,
         zoom_to: bool = False,
-    ) -> str:
+    ) -> JGISLayer:
         """Add a WMS tile layer to the document.
 
         url:
@@ -1400,19 +1601,164 @@ class GISDocument(CommWidget):
             zoom_to=zoom_to,
         )
 
-    def remove_layer(self, layer_id: str):
+    def create_story(
+        self,
+        title: str = "New Story",
+        story_type: StoryType = StoryType.guided,
+        show_gradient: bool | None = None,
+        markdown_segment_gap: bool | None = None,
+        markdown_segment_opacity: float | None = None,
+        story_panel_opacity: float | None = None,
+        overlay_content_width: str | None = None,
+    ) -> JGISStory:
+        """Create the story map of the document and return it.
+
+        A document presents a single story, so this raises when one already
+        exists; change that one through :py:attr:`story` instead.
+
+        :param title: The title shown in the story panel and in presentation mode.
+        :param story_type: ``"guided"`` to step through segments, ``"Vertical Scroll"`` to scroll them.
+        :param show_gradient: Whether to draw the gradient background in presentation mode.
+        :param markdown_segment_gap: Whether to insert a full-stage gap between consecutive markdown segments.
+        :param markdown_segment_opacity: The opacity of markdown segment backgrounds, between 0 and 1.
+        :param story_panel_opacity: The opacity of story panels over the map, between 0 and 1.
+        :param overlay_content_width: The CSS width of vertical scroll markdown overlays.
+        """
+        self._assert_is_ready()
+        self._ensure_qgis_supported(LayerType.StorySegmentLayer)
+
+        if self.story is not None:
+            raise ValueError(
+                "This document already has a story, change it through `doc.story`.",
+            )
+
+        story_id = str(uuid4())
+        story = JGISStoryMap(
+            title=title,
+            storyType=story_type,
+            storySegments=[],
+            showGradient=show_gradient,
+            markdownSegmentGap=markdown_segment_gap,
+            markdownSegmentOpacity=markdown_segment_opacity,
+            storyPanelOpacity=story_panel_opacity,
+            overlayContentWidth=overlay_content_width,
+        ).model_dump(mode="json", exclude_none=True)
+        self._stories[story_id] = story
+        return JGISStory._build(self, story_id, **story)
+
+    def add_story_segment(
+        self,
+        center: tuple[float, float] | None = None,
+        zoom: float | None = None,
+        extent: list[float] | None = None,
+        name: str | None = None,
+        markdown: str | None = None,
+        image: str | None = None,
+        image_caption: str | None = None,
+        content_mode: ContentMode = ContentMode.map,
+        pane_alignment: PaneAlignment | None = None,
+        panel_width: str | None = None,
+        transition: TransitionType = TransitionType.linear,
+        transition_time: float = 1,
+        enable_identify: bool = False,
+        layer_overrides: list[dict[str, Any]] | None = None,
+    ) -> JGISLayer:
+        """Append a story segment to the story map and return it.
+
+        The story is created on the fly when the document has no story yet.
+
+        :param center: The ``(longitude, latitude)`` the map flies to, defaulting to the current map center.
+        :param zoom: The zoom level the map flies to, defaulting to the current map zoom.
+        :param extent: A ``[west, south, east, north]`` EPSG:4326 bbox to use instead of ``center``.
+        :param name: The name of the segment, defaulting to its position in the story.
+        :param markdown: The markdown content shown while the segment is active.
+        :param image: A link to an image shown with the content.
+        :param image_caption: The caption of ``image``.
+        :param content_mode: ``"map"`` to show the content over the map, ``"markdown"`` to show it alone. Defaults to ``"map"``.
+        :param pane_alignment: The horizontal alignment of the content pane.
+        :param panel_width: The CSS width of the content pane.
+        :param transition: The animation used to reach this segment.
+        :param transition_time: The duration of the transition, in seconds.
+        :param enable_identify: Whether to show the identify control while the segment is active.
+        :param layer_overrides: Visibility, opacity and symbology overrides applied to other layers while the segment is active, each with the layer it applies to as ``targetLayer``.
+        """
+        self._assert_is_ready()
+        self._ensure_qgis_supported(LayerType.StorySegmentLayer)
+
+        if center is None and extent is None:
+            longitude = self._options.get("longitude")
+            latitude = self._options.get("latitude")
+            if longitude is None or latitude is None:
+                raise ValueError("A story segment needs either an extent or a center")
+            center = cast("tuple[float, float]", (longitude, latitude))
+
+        content: dict[str, Any] = {"contentMode": content_mode}
+        if markdown is not None:
+            content["markdown"] = markdown
+        if image is not None:
+            content["image"] = image
+        if image_caption is not None:
+            content["imageCaption"] = image_caption
+        if pane_alignment is not None:
+            content["paneAlignment"] = pane_alignment
+        if panel_width is not None:
+            content["panelWidth"] = panel_width
+
+        story = self.story or self.create_story()
+        segments = story.storySegments or []
+
+        layer = {
+            "type": LayerType.StorySegmentLayer,
+            "name": name or _story_segment_name(len(segments)),
+            "visible": True,
+            "parameters": {
+                "extent": _story_segment_extent(extent, center),
+                "zoom": zoom if zoom is not None else self._options.get("zoom", 0),
+                "enableIdentify": enable_identify,
+                "transition": {"type": transition, "time": transition_time},
+                "content": content,
+                "layerOverride": [
+                    {**override, "targetLayer": _layer_id(override["targetLayer"])}
+                    for override in layer_overrides or []
+                ],
+            },
+        }
+
+        segment = self._add_layer(OBJECT_FACTORY.create_layer(layer, self))
+        story.storySegments = [*segments, _layer_id(segment)]
+
+        return segment
+
+    def remove_layer(self, layer_id: str | JGISLayer):
         """Remove a layer from the GIS document.
 
-        :param layer_id: The ID of the layer to remove.
+        :param layer_id: The layer to remove, or its ID.
         :raises KeyError: If the layer does not exist.
         """
+        layer_id = _layer_id(layer_id)
         layer = self._layers.get(layer_id)
 
         if layer is None:
             raise KeyError(f"No layer found with ID: {layer_id}")
 
         del self._layers[layer_id]
+
+        if layer["type"] == LayerType.StorySegmentLayer.value:
+            self._remove_story_segment(layer_id)
+            return
+
         self._remove_source_if_orphaned(layer["parameters"]["source"])
+
+    def _remove_story_segment(self, segment_id: str):
+        story = self.story
+
+        if story is None:
+            return
+
+        segments = story.storySegments or []
+
+        if segment_id in segments:
+            story.storySegments = [other for other in segments if other != segment_id]
 
     def _remove_source_if_orphaned(self, source_id: str):
         source = self._sources.get(source_id)
@@ -1421,7 +1767,7 @@ class GISDocument(CommWidget):
             raise KeyError(f"No source found with ID: {source_id}")
 
         source_is_orphan = not any(
-            layer["parameters"]["source"] == source_id
+            layer["parameters"].get("source") == source_id
             for layer in self._layers.values()
         )
 
@@ -1432,6 +1778,7 @@ class GISDocument(CommWidget):
         self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
+        obj_dict["parameters"] = _as_stored(new_object._parameters)
         self._sources[_id] = obj_dict
         return _id
 
@@ -1440,10 +1787,11 @@ class GISDocument(CommWidget):
         new_object,
         id: str | None = None,
         zoom_to: bool = False,
-    ) -> str:
+    ) -> JGISLayer:
         self._ensure_qgis_supported(new_object.type)
         _id = str(uuid4()) if id is None else id
         obj_dict = json.loads(new_object.json())
+        obj_dict["parameters"] = _as_stored(new_object._parameters)
         self._ensure_symbology_qgis_supported(
             obj_dict.get("parameters", {}).get("symbologyState"),
         )
@@ -1451,9 +1799,9 @@ class GISDocument(CommWidget):
         self._layerTree.append(_id)
         if zoom_to:
             self.zoom_to_layer(_id)
-        return _id
+        return OBJECT_FACTORY.read_layer(_id, obj_dict, self)
 
-    def zoom_to_layer(self, layer_id: str) -> None:
+    def zoom_to_layer(self, layer_id: str | JGISLayer) -> None:
         """Zoom the map to the extent of ``layer_id``.
 
         This sends a one-off custom message over the widget comm channel; it is
@@ -1461,9 +1809,9 @@ class GISDocument(CommWidget):
         frontend listens for ``zoom-to`` messages on the comm and re-centers the
         map accordingly.
 
-        :param layer_id: The ID of the layer to zoom to.
+        :param layer_id: The layer to zoom to, or its ID.
         """
-        self._comm.send(data={"type": "zoom-to", "layerId": layer_id})
+        self._comm.send(data={"type": "zoom-to", "layerId": _layer_id(layer_id)})
 
     @classmethod
     def _make_comm(cls, *, path: str | None) -> dict:
@@ -1508,7 +1856,12 @@ class GISDocument(CommWidget):
             "metadata": self._metadata.to_py(),
         }
 
-    def apply_symbology(self, layer_id: str, symbology: SymbologyInput | None):
+    def apply_symbology(
+        self,
+        layer_id: str | JGISLayer,
+        symbology: SymbologyInput | None,
+    ):
+        layer_id = _layer_id(layer_id)
         layer = self._layers.get(layer_id)
 
         if layer is None:
@@ -1530,15 +1883,153 @@ class GISDocument(CommWidget):
         self._layers[layer_id] = layer
 
 
-class JGISLayer(BaseModel):
+def _as_stored(value: Any) -> Any:
+    """Turn a value into what the document stores for it."""
+    if isinstance(value, BaseModel):
+        return value.model_dump(mode="json")
+    if isinstance(value, Enum):
+        return value.value
+    return value
+
+
+class JGISObject(BaseModel):
+    """Base class for the layer and source objects read off a document."""
+
     class Config:
         arbitrary_types_allowed = True
         extra = "allow"
 
     name: str
-    type: LayerType
+    type: Any
+
+    _type_enum: ClassVar[type[Enum] | None] = None
+
+    _parent: Any = PrivateAttr(default=None)
+    _id: str | None = PrivateAttr(default=None)
+    _parameters: Any = PrivateAttr(default_factory=dict)
+
+    @classmethod
+    def _build(
+        cls,
+        parent: Any = None,
+        id: str | None = None,
+        parameters: Any = None,
+        **data: Any,
+    ) -> Self:
+        obj = cls(**data)
+        obj._parent = parent
+        obj._id = id
+        obj._parameters = {} if parameters is None else parameters
+        return obj
+
+    @field_validator("type", mode="plain", check_fields=False)
+    @classmethod
+    def _keep_type_as_stored(cls, object_type: Any) -> Any:
+        """Keep a type this version has no enum member for.
+
+        A document written against a newer schema still has to read back, so an
+        unknown type stays the raw string rather than failing validation.
+        """
+        if cls._type_enum is None:
+            return object_type
+        try:
+            return cls._type_enum(object_type)
+        except ValueError:
+            return object_type
+
+    @property
+    def document(self) -> GISDocument | None:
+        """The document this object was read from."""
+        return self._parent
+
+    def _get_parameter(self, name: str, default: Any = None) -> Any:
+        """Read a parameter, whether the parameters are typed or a raw dict."""
+        parameters = self._parameters
+        if isinstance(parameters, dict):
+            return parameters.get(name, default)
+        return getattr(parameters, name, default)
+
+    def _set_parameter(self, name: str, value: Any) -> None:
+        """Change one parameter and write it to the document."""
+        parameters = self._parameters
+        if isinstance(parameters, dict):
+            self._parameters = {**parameters, name: value}
+        else:
+            self._parameters = type(parameters)(
+                **{**parameters.model_dump(), name: value},
+            )
+
+        store = self._store()
+        if store is not None and self._id is not None:
+            stored = store[self._id].get("parameters") or {}
+            self._write("parameters", {**stored, name: _as_stored(value)})
+
+    def _store(self) -> Map | None:
+        return None
+
+    def _parameter_names(self) -> set[str]:
+        parameters = self._parameters
+        if isinstance(parameters, dict):
+            return set(parameters)
+        if isinstance(parameters, BaseModel):
+            return set(type(parameters).model_fields)
+        return set()
+
+    def __getattr__(self, name: str) -> Any:
+        """Fall back to the parameters, so ``layer.opacity`` reads a parameter."""
+        try:
+            return super().__getattr__(name)  # type: ignore[misc]
+        except AttributeError:
+            if not name.startswith("_") and name in self._parameter_names():
+                return self._get_parameter(name)
+            raise
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Write public field and parameter changes through to the document."""
+        if isinstance(getattr(type(self), name, None), property):
+            object.__setattr__(self, name, value)
+            return
+
+        if (
+            not name.startswith("_")
+            and name not in type(self).model_fields
+            and name not in (self.__pydantic_extra__ or {})
+        ):
+            if name not in self._parameter_names():
+                raise AttributeError(
+                    f"{type(self).__name__} has no attribute or parameter {name!r}",
+                )
+
+            self._set_parameter(name, value)
+            return
+
+        super().__setattr__(name, value)
+
+        if not name.startswith("_"):
+            self._write(name, value)
+
+    def __dir__(self) -> list[str]:
+        """List the parameters too, so they tab-complete."""
+        return sorted({*super().__dir__(), *self._parameter_names()})
+
+    def _write(self, name: str, value: Any) -> None:
+        store = self._store()
+        if store is not None and self._id is not None:
+            store[self._id] = {**store[self._id], name: _as_stored(value)}
+
+    def __repr__(self) -> str:
+        """Identify the object without printing all of its parameters."""
+        type_name = getattr(self.type, "value", self.type)
+        return (
+            f"{type(self).__name__}(name={self.name!r}, "
+            f"type={type_name!r}, id={self._id!r})"
+        )
+
+
+class JGISLayer(JGISObject):
+    type: LayerType | str
     visible: bool
-    parameters: (
+    _parameters: (
         IRasterLayer
         | IVectorLayer
         | IVectorTileLayer
@@ -1549,22 +2040,44 @@ class JGISLayer(BaseModel):
         | IStorySegmentLayer
         | IOpenEOTileLayer
         | ITerrainLayer
-    )
-    _parent = GISDocument | None
+        | IPolygonLayer
+        | IGeoJsonLayer
+        | dict[str, Any]
+    ) = PrivateAttr(default_factory=dict)
 
-    def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
-        super().__init__(**data)
-        __pydantic_self__._parent = parent
+    _type_enum = LayerType
+
+    def _store(self) -> Map | None:
+        return None if self._parent is None else self._parent._layers
+
+    @property
+    def symbology(self) -> Any:
+        """The layer symbology state."""
+        return self._get_parameter("symbologyState")
+
+    @symbology.setter
+    def symbology(self, symbology: SymbologyInput) -> None:
+        if self._parent is None or self._id is None:
+            raise ValueError("Only a layer in a document can have its symbology set")
+
+        self._parent.apply_symbology(self, symbology)
+
+        self._parameters = self._parent._layer_objects()[self._id]._parameters
+
+    @property
+    def source(self) -> JGISSource | None:
+        """The source this layer draws from, or ``None`` if it has none."""
+        source_id = self._get_parameter("source")
+
+        if source_id is None or self._parent is None:
+            return None
+
+        return self._parent._source_objects().get(source_id)
 
 
-class JGISSource(BaseModel):
-    class Config:
-        arbitrary_types_allowed = True
-        extra = "allow"
-
-    name: str
-    type: SourceType
-    parameters: (
+class JGISSource(JGISObject):
+    type: SourceType | str
+    _parameters: (
         IRasterSource
         | IVectorTileSource
         | IMarkerSource
@@ -1578,12 +2091,81 @@ class JGISSource(BaseModel):
         | IGeoPackageRasterSource
         | IWmsTileSource
         | IOpenEOTileSource
-    )
-    _parent = GISDocument | None
+        | IPolygonSource
+        | dict[str, Any]
+    ) = PrivateAttr(default_factory=dict)
 
-    def __init__(__pydantic_self__, parent, **data: Any) -> None:  # noqa
-        super().__init__(**data)
-        __pydantic_self__._parent = parent
+    _type_enum = SourceType
+
+    def _store(self) -> Map | None:
+        return None if self._parent is None else self._parent._sources
+
+    @property
+    def layers(self) -> list[JGISLayer]:
+        """The layers drawing from this source."""
+        if self._parent is None or self._id is None:
+            return []
+
+        return [
+            layer
+            for layer in self._parent._layer_objects().values()
+            if layer._get_parameter("source") == self._id
+        ]
+
+
+class JGISLayerGroup(list):
+    """A layer group: the list of its layers and sub-groups, plus its name."""
+
+    def __init__(self, layers: list[Any], name: str, visible: bool = True) -> None:
+        super().__init__(layers)
+        self.name = name
+        self.visible = visible
+
+    def __repr__(self) -> str:
+        """Show the group name alongside its layers."""
+        return f"JGISLayerGroup(name={self.name!r}, {list.__repr__(self)})"
+
+
+class JGISStory(JGISStoryMap):
+    """The story map of a document."""
+
+    model_config = ConfigDict(validate_assignment=True)
+
+    _parent: Any = PrivateAttr(default=None)
+    _id: str | None = PrivateAttr(default=None)
+
+    @classmethod
+    def _build(cls, parent: GISDocument, id: str, **data: Any) -> Self:
+        story = cls(**data)
+        story._parent = parent
+        story._id = id
+        return story
+
+    @property
+    def segments(self) -> list[JGISLayer]:
+        """The story segments, in presentation order."""
+        layers = self._parent._layer_objects()
+        return [
+            layers[segment_id]
+            for segment_id in self.storySegments or []
+            if segment_id in layers
+        ]
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Write field changes through to the document."""
+        if name.startswith("_"):
+            super().__setattr__(name, value)
+            return
+
+        if name not in type(self).model_fields:
+            raise AttributeError(f"JGISStory has no attribute {name!r}")
+
+        super().__setattr__(name, value)
+        stories = self._parent._stories
+        stories[self._id] = {
+            **stories[self._id],
+            name: _as_stored(getattr(self, name)),
+        }
 
 
 class SingletonMeta(type):
@@ -1608,6 +2190,74 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
         if shape_type not in self._factories:
             self._factories[shape_type] = cls
 
+    def _read_parameters(
+        self,
+        object_type: Any,
+        enum_cls: type[LayerType | SourceType],
+        parameters: dict,
+    ) -> Any:
+        """Validate stored parameters, falling back to the raw dict.
+
+        Types the factory has no model for, and parameters this version has no
+        field for, still have to read back rather than disappear.
+        """
+        # Stored documents hold the type as a string, while the factory is keyed
+        # by the enum, and these enums do not compare equal to their values.
+        if not isinstance(object_type, enum_cls):
+            try:
+                object_type = enum_cls(object_type)
+            except ValueError:
+                return parameters
+
+        Model = self._factories.get(object_type)
+
+        if Model is None:
+            return parameters
+
+        try:
+            return Model(**parameters)
+        except ValidationError:
+            return parameters
+
+    def read_layer(
+        self,
+        id: str,
+        data: dict,
+        parent: GISDocument | None = None,
+    ) -> JGISLayer:
+        rest = dict(data)
+        object_type = rest.pop("type", None)
+        parameters = rest.pop("parameters", None) or {}
+
+        return JGISLayer._build(
+            parent=parent,
+            id=id,
+            name=rest.pop("name", ""),
+            type=object_type,
+            visible=rest.pop("visible", True),
+            parameters=self._read_parameters(object_type, LayerType, parameters),
+            **rest,
+        )
+
+    def read_source(
+        self,
+        id: str,
+        data: dict,
+        parent: GISDocument | None = None,
+    ) -> JGISSource:
+        rest = dict(data)
+        object_type = rest.pop("type", None)
+        parameters = rest.pop("parameters", None) or {}
+
+        return JGISSource._build(
+            parent=parent,
+            id=id,
+            name=rest.pop("name", ""),
+            type=object_type,
+            parameters=self._read_parameters(object_type, SourceType, parameters),
+            **rest,
+        )
+
     def create_layer(
         self,
         data: dict,
@@ -1623,7 +2273,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
             # Only pass params that are present so Pydantic uses schema defaults for the rest
             args = {k: params[k] for k in Model.model_fields if k in params}
             obj_params = Model(**args)
-            return JGISLayer(
+            return JGISLayer._build(
                 parent=parent,
                 name=name,
                 visible=visible,
@@ -1647,7 +2297,7 @@ class ObjectFactoryManager(metaclass=SingletonMeta):
             # Only pass params that are present so Pydantic uses schema defaults for the rest
             args = {k: params[k] for k in Model.model_fields if k in params}
             obj_params = Model(**args)
-            return JGISSource(
+            return JGISSource._build(
                 parent=parent,
                 name=name,
                 type=object_type,
@@ -1669,6 +2319,8 @@ OBJECT_FACTORY.register_factory(LayerType.ImageLayer, IImageLayer)
 OBJECT_FACTORY.register_factory(LayerType.StorySegmentLayer, IStorySegmentLayer)
 OBJECT_FACTORY.register_factory(LayerType.OpenEOTileLayer, IOpenEOTileLayer)
 OBJECT_FACTORY.register_factory(LayerType.TerrainLayer, ITerrainLayer)
+OBJECT_FACTORY.register_factory(LayerType.PolygonLayer, IPolygonLayer)
+OBJECT_FACTORY.register_factory(LayerType.GeoJsonLayer, IGeoJsonLayer)
 
 OBJECT_FACTORY.register_factory(SourceType.VectorTileSource, IVectorTileSource)
 OBJECT_FACTORY.register_factory(SourceType.MarkerSource, IMarkerSource)
@@ -1689,3 +2341,4 @@ OBJECT_FACTORY.register_factory(
 )
 OBJECT_FACTORY.register_factory(SourceType.WmsTileSource, IWmsTileSource)
 OBJECT_FACTORY.register_factory(SourceType.OpenEOTileSource, IOpenEOTileSource)
+OBJECT_FACTORY.register_factory(SourceType.PolygonSource, IPolygonSource)

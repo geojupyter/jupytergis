@@ -63,7 +63,6 @@
         ],
         "httpHeaders": "",
         "url": "https://s3.explorer.eopf.copernicus.eu/esa-zarr-sentinel-explorer-fra/tests-output/sentinel-2-l2a/S2C_MSIL2A_20260120T084301_N0511_R064_T36UXA_20260120T122910.zarr/measurements/reflectance",
-        "useProxy": false,
         "wrapX": true
       },
       "type": "GeoZarrSource"
@@ -77,8 +76,7 @@
         "maxZoom": 19.0,
         "minZoom": 0.0,
         "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "urlParameters": {},
-        "useProxy": false
+        "urlParameters": {}
       },
       "type": "RasterSource"
     },
@@ -92,7 +90,6 @@
         ],
         "httpHeaders": "",
         "url": "https://s3.explorer.eopf.copernicus.eu/esa-zarr-sentinel-explorer-fra/tests-output/sentinel-2-l2a/S2B_MSIL2A_20260120T125339_N0511_R138_T27VWL_20260120T131151.zarr/measurements/reflectance",
-        "useProxy": false,
         "wrapX": true
       },
       "type": "GeoZarrSource"

@@ -9,10 +9,12 @@ import {
   IBackendCatalog,
 } from '@/src/tools';
 import {
+  createOpenEOTileService,
   openEOConnect,
   IOpenEOConnectionInfo,
   listOpenEOConnections,
   OpenEOSigninCancelled,
+  restoreOpenEOSession,
 } from './OpenEOTileLayer';
 import { CodeExportPanel } from './codeExportPanel';
 import { JsonEditor } from './jsonEditor';
@@ -36,6 +38,8 @@ export interface IOpenEODialogResult {
   layerName: string;
   serverUrl: string;
   processGraph: Record<string, any>;
+  /** The XYZ service created for the graph, when creating one worked. */
+  tileServiceURL?: string;
 }
 
 interface IBodyState {
@@ -75,6 +79,15 @@ type ValidationStatus =
   | { state: 'error'; message: string };
 
 const DRAG_MIME = 'application/x-openeo-node';
+
+/** The host alone: a proxied or deep openEO url is too long to read. */
+function serverHost(url: string): string {
+  try {
+    return new URL(url.trim()).host;
+  } catch {
+    return url.trim();
+  }
+}
 
 const DEFAULT_LAYER_NAME = 'OpenEO Layer';
 
@@ -446,10 +459,43 @@ const Form: React.FC<IFormProps> = ({
   // or already connected. The sign-in form is only visible in 'signin' so
   // it doesn't clutter the dialog when not needed.
   type ServerMode = 'select' | 'signin' | 'connected';
-  const [serverMode, setServerMode] = React.useState<ServerMode>(() =>
-    connectionInfo?.url ? 'connected' : 'select',
-  );
+  const [serverMode, setServerMode] = React.useState<ServerMode>(() => {
+    if (connectionInfo?.url) {
+      return 'connected';
+    }
+    // A server to try: show the connect state rather than the picker, and
+    // let the effect below settle it.
+    return initialConnection?.url ? 'signin' : 'select';
+  });
   React.useEffect(() => () => signinDone.current?.(false), []);
+
+  // Handed a server we are not connected to (a reload, or editing a layer):
+  // pick the session back up from the stored token before asking anything.
+  React.useEffect(() => {
+    const suggested = initialConnection?.url;
+    if (!suggested || connectionInfo?.url) {
+      return;
+    }
+    let cancelled = false;
+    setServerBusy(true);
+    void restoreOpenEOSession(suggested).then(restored => {
+      if (cancelled) {
+        return;
+      }
+      setServerBusy(false);
+      if (!restored?.url) {
+        setServerMode('select');
+        return;
+      }
+      const url = restored.url;
+      setConnectionInfo(restored);
+      setServers(prev => (prev.includes(url) ? prev : [...prev, url]));
+      setServerMode('connected');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const setConnectionInfo = (next: IOpenEOConnectionInfo | null) => {
     setConnectionInfoState(next);
@@ -1154,7 +1200,12 @@ const Form: React.FC<IFormProps> = ({
             </>
           ) : serverBusy || !authProviders ? (
             <div className="jp-openeo-connect-status">
-              {authProviders ? 'Finishing sign-in…' : 'Connecting…'}
+              <span className="jp-openeo-spinner" aria-label="Connecting">
+                ⟳
+              </span>
+              {authProviders
+                ? 'Finishing sign-in…'
+                : `Connecting to ${serverHost(serverInput) || 'the openEO server'}…`}
             </div>
           ) : (
             <OpenEOSignin
@@ -1692,8 +1743,20 @@ export async function showAddOpenEOLayerDialog(
   body.node.addEventListener('input', applyOk);
   const result = await resultPromise;
 
-  if (!result.button.accept) {
+  if (!result.button.accept || !result.value) {
     return null;
   }
-  return result.value ?? null;
+
+  // Create the service here, where we are signed in, so the url can be saved
+  // in the document. On failure the tile source tries again, as it used to.
+  try {
+    result.value.tileServiceURL = await createOpenEOTileService(
+      result.value.serverUrl,
+      result.value.processGraph,
+    );
+  } catch (error) {
+    console.warn('[openeo] could not create the tile service upfront:', error);
+  }
+
+  return result.value;
 }

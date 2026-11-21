@@ -12,6 +12,7 @@ export type { RgbaColor };
 interface IRgbaColorPickerProps {
   color: RgbaColor;
   onChange: (color: RgbaColor) => void;
+  disabled?: boolean;
 }
 
 /**
@@ -21,6 +22,7 @@ interface IRgbaColorPickerProps {
 const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
   color,
   onChange,
+  disabled = false,
 }) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -56,7 +58,8 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
     height: 28,
     borderRadius: 4,
     border: '1px solid var(--jp-border-color1, #ccc)',
-    cursor: 'pointer',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    opacity: disabled ? 0.5 : 1,
     flexShrink: 0,
     overflow: 'hidden',
     // Checkerboard to reveal transparency.
@@ -127,6 +130,9 @@ const RgbaColorPicker: React.FC<IRgbaColorPickerProps> = ({
         ref={swatchRef}
         style={swatchWrapStyle}
         onClick={() => {
+          if (disabled) {
+            return;
+          }
           if (!open && swatchRef.current) {
             const rect = swatchRef.current.getBoundingClientRect();
             // Prefer opening below; flip above if too close to bottom.

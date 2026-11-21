@@ -201,8 +201,7 @@
       "name": "Custom GeoJSON Layer Source",
       "parameters": {
         "httpHeaders": "",
-        "path": "data/eq.geojson",
-        "useProxy": false
+        "path": "data/eq.geojson"
       },
       "type": "GeoJSONSource"
     },
@@ -218,8 +217,7 @@
         "minZoom": 0.0,
         "provider": "OpenStreetMap",
         "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-        "urlParameters": {},
-        "useProxy": false
+        "urlParameters": {}
       },
       "type": "RasterSource"
     }

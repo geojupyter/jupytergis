@@ -6,6 +6,7 @@ import {
   IJGISFormSchemaRegistry,
   IJGISLayerBrowserRegistry,
   IJupyterGISTracker,
+  IOpenEOTokensProvider,
 } from './interfaces';
 
 export const IJupyterGISDocTracker = new Token<IJupyterGISTracker>(
@@ -24,4 +25,8 @@ export const IJGISLayerBrowserRegistryToken =
 
 export const IAnnotationToken = new Token<IAnnotationModel>(
   'jupytergisAnnotationModel',
+);
+
+export const IOpenEOTokensProviderToken = new Token<IOpenEOTokensProvider>(
+  'jupytergisOpenEOTokensProvider',
 );

@@ -212,20 +212,111 @@ doc.add_geopackage_vector_layer(
 doc
 ```
 
+## Story maps
+
+A story map walks the reader through a map one segment at a time. Each segment is a map view (a center and a zoom) plus optional markdown and an image. A document holds a single story, which is created for you the first time you add a segment.
+
+```python
+from jupytergis import GISDocument
+
+doc = GISDocument(zoom=5, latitude=47.0, longitude=2.0)
+await doc.ready()
+
+doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+
+doc.add_story_segment(
+    name="Paris",
+    center=(2.358213, 48.853757),
+    zoom=12,
+    markdown="# Paris\n\nWhere the story starts.",
+)
+doc.add_story_segment(
+    name="Marseille",
+    center=(5.369780, 43.296482),
+    zoom=11,
+    markdown="## Marseille\n\nDown to the Mediterranean.",
+    transition="smooth",
+    transition_time=2,
+)
+
+doc
+```
+
+`center` is a `(longitude, latitude)` pair, and defaults to the current map center. Pass a `[west, south, east, north]` bounding box as `extent` instead if that is what you have. Open the story panel in the map toolbar to present it.
+
+Use `create_story` first when you want to set the title or how the story is presented:
+
+```python
+doc.create_story(
+    title="A tour of France",
+    story_type="Vertical Scroll",
+    story_panel_opacity=0.9,
+)
+```
+
+`doc.story` reads the story back as an object, and setting an attribute writes it back to the document:
+
+```python
+doc.story.title = "A short tour of France"
+doc.story.storyPanelOpacity = 0.8
+
+print(doc.story.segments)  # segment layers, in presentation order
+```
+
+A segment can also override how other layers are drawn while it is on screen:
+
+```python
+quakes = doc.add_geojson_layer(name="Quakes", path="quakes.geojson")
+
+doc.add_story_segment(
+    name="Only the quakes",
+    center=(2.0, 47.0),
+    zoom=6,
+    layer_overrides=[{"targetLayer": quakes, "visible": True, "opacity": 0.5}],
+)
+```
+
+`add_story_segment` returns the segment layer. Segments are layers, so `doc.remove_layer(segment)` removes one and drops it from the story.
+
 ## Remove layers and inspect document content
 
 ```python
-layer_id = doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
+layer = doc.add_raster_layer(url="https://tile.openstreetmap.org/{z}/{x}/{y}.png")
 
-doc.remove_layer(layer_id)
+doc.remove_layer(layer)
 ```
 
 You can also inspect convenience properties:
 
 ```python
-print(doc.layers)  # dict keyed by layer id
+print(doc.layers)  # layer objects in layer tree order, groups as sub-lists
+print(doc.sources)  # source objects
 print(doc.layer_tree)  # ordered layer ids / groups
 ```
+
+Layers and sources read back as objects rather than nested dictionaries, and a layer reaches its own source:
+
+```python
+layer = doc.get_layer("Open Street Map")
+
+layer.name
+layer.visible
+layer.opacity
+layer.source.url
+```
+
+The `add_*_layer` methods return the new layer object. `remove_layer`, `zoom_to_layer` and `apply_symbology` take a layer object.
+
+Setting an attribute writes it back to the document, so the map updates:
+
+```python
+layer.visible = False
+layer.source.url = "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+```
+
+`get_layer` and `get_source` look a layer or source up by name. Looking a name up that several layers share raises a `ValueError`.
+
+Parameters read and write as attributes for every layer and source type, so a document written by a newer version still reads.
 
 ## Open in a sidecar
 

@@ -29,6 +29,8 @@ export const openNewWmsDialog = 'jupytergis:openNewWmsDialog';
 export const openNewVectorTileDialog = 'jupytergis:openNewVectorTileDialog';
 export const openNewShapefileDialog = 'jupytergis:openNewShapefileDialog';
 export const openNewGeoJSONDialog = 'jupytergis:openNewGeoJSONDialog';
+export const openNewPolygonDialog = 'jupytergis:openNewPolygonDialog';
+export const openNewGeoJsonLayerDialog = 'jupytergis:openNewGeoJsonLayerDialog';
 export const openNewHillshadeDialog = 'jupytergis:openNewHillshadeDialog';
 export const openNewTerrainDialog = 'jupytergis:openNewTerrainDialog';
 export const openNewImageDialog = 'jupytergis:openNewImageDialog';
@@ -56,6 +58,7 @@ export const moveSelectedToGroup = 'jupytergis:moveSelectedToGroup';
 export const moveSelectedToNewGroup = 'jupytergis:moveSelectedToNewGroup';
 export const compareLayers = 'jupytergis:compareLayers';
 export const stopComparing = 'jupytergis:stopComparing';
+export const toggleDeclutter = 'jupytergis:toggleDeclutter';
 
 // Console commands
 export const toggleConsole = 'jupytergis:toggleConsole';
@@ -73,6 +76,7 @@ export const exportGeoJSON = 'jupytergis:exportGeoJSON';
 export const toggleLeftPanel = 'jupytergis:toggleLeftPanel';
 export const toggleRightPanel = 'jupytergis:toggleRightPanel';
 export const togglePanel = 'jupytergis:togglePanel';
+export const toggleStacBrowser = 'jupytergis:toggleStacBrowser';
 
 // Left panel tabs
 export const showLayersTab = 'jupytergis:showLayersTab';

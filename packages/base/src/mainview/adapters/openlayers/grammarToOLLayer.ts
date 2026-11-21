@@ -12,7 +12,6 @@
  */
 
 import {
-  IEncodingRule,
   IGrammarLayer,
   IGrammarSymbologyState,
   IJGISLayer,
@@ -28,12 +27,12 @@ import LayerGroup from 'ol/layer/Group';
 import { Vector as VectorSource } from 'ol/source';
 import { Rule } from 'ol/style/flat';
 
-import { getColorMap } from '@/src/features/layers/symbology/colorRampUtils';
+import {
+  DEFAULT_HEATMAP_GRADIENT,
+  extractHeatmapGradient,
+} from '@/src/features/layers/symbology/heatmapGradient';
 import { DEFAULT_FLAT_STYLE } from '@/src/features/layers/symbology/styleBuilder';
 import { grammarToOLStyle } from './grammarToOLStyle';
-
-// Default OL heatmap gradient (cool → warm).
-const DEFAULT_GRADIENT = ['#00f', '#0ff', '#0f0', '#ff0', '#f00'];
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -60,19 +59,23 @@ export function grammarToOLLayer({
   source,
   featureValues = [],
   className,
+  resolutionForZoom,
 }: {
   layer: IJGISLayer;
   layerId: string;
   source: VectorSource | any;
   featureValues?: unknown[];
   className?: string;
+  resolutionForZoom?: (zoom: number) => number;
 }): Layer | LayerGroup {
   const parameters = layer.parameters ?? {};
   const state = (parameters.symbologyState ?? {}) as IGrammarSymbologyState;
   const opacity = parameters.opacity ?? 1;
   const visible = layer.visible ?? true;
   const isRaster =
-    layer.type === 'GeoTiffLayer' || layer.type === 'GeoZarrLayer';
+    layer.type === 'GeoTiffLayer' ||
+    layer.type === 'GeoZarrLayer' ||
+    layer.type === 'OpenEOTileLayer';
   const declutter = parameters.declutter ? layerId : false;
   const grammarLayers = state.layers ?? [];
 
@@ -116,6 +119,7 @@ export function grammarToOLLayer({
       featureValues,
       className,
       declutter,
+      resolutionForZoom,
     ),
   );
 
@@ -141,6 +145,7 @@ function compileGrammarLayer(
   featureValues: unknown[],
   className: string | undefined,
   declutter: string | false,
+  resolutionForZoom?: (zoom: number) => number,
 ): VectorImageLayer | HeatmapLayer {
   const kdeTransform = grammarLayer.preprocess?.find(
     (t): t is IKDETransform => t.type === 'kde',
@@ -165,6 +170,7 @@ function compileGrammarLayer(
     featureValues,
     className,
     declutter,
+    resolutionForZoom,
   );
 }
 
@@ -236,7 +242,8 @@ function compileKDELayer(
   visible: boolean,
   className?: string,
 ): HeatmapLayer {
-  const gradient = extractGradient(grammarLayer.rules) ?? DEFAULT_GRADIENT;
+  const gradient =
+    extractHeatmapGradient(grammarLayer.rules) ?? DEFAULT_HEATMAP_GRADIENT;
   const { weightField } = kdeTransform;
 
   return new HeatmapLayer({
@@ -258,56 +265,6 @@ function compileKDELayer(
   });
 }
 
-/**
- * Look for a pixel-color colorRamp mapping in the rules and convert it to an
- * OL HeatmapLayer gradient string array.  Returns undefined when absent.
- */
-function extractGradient(rules: IEncodingRule[]): string[] | undefined {
-  for (const rule of rules) {
-    for (const mapping of rule.mappings) {
-      const isPixelEncoding = (mapping.encodings as string[]).some(
-        ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
-      );
-      if (!isPixelEncoding || mapping.scale.scheme !== 'colorMap') {
-        continue;
-      }
-
-      // Prefer explicit colorStops when present (e.g. a heatmap round-tripped
-      // through QGIS, which stores the gradient as stops rather than a named
-      // ramp). Without this the unknown name falls through to DEFAULT_GRADIENT
-      // (a blue→red ramp), so a viridis heatmap would render with a red core.
-      const colorStops = (mapping.scale.params as any).colorStops as
-        | { stop: number; color: [number, number, number, number] }[]
-        | undefined;
-      if (Array.isArray(colorStops) && colorStops.length > 0) {
-        const stops = [...colorStops].sort((a, b) => a.stop - b.stop);
-        const gradient = stops.map(({ color: [r, g, b, a = 1] }) => {
-          return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`;
-        });
-        return mapping.scale.params.reverse
-          ? [...gradient].reverse()
-          : gradient;
-      }
-
-      const colorMap = getColorMap(mapping.scale.params.name as any);
-      if (!colorMap || colorMap.colors.length === 0) {
-        continue;
-      }
-
-      // Sample 5 evenly spaced stops from the 255-entry color array.
-      const n = 5;
-      const colors = colorMap.colors;
-      const step = (colors.length - 1) / (n - 1);
-      const gradient = Array.from(
-        { length: n },
-        (_, i) => colors[Math.round(i * step)],
-      );
-      return mapping.scale.params.reverse ? [...gradient].reverse() : gradient;
-    }
-  }
-  return undefined;
-}
-
 // ---------------------------------------------------------------------------
 // Non-KDE → VectorImageLayer
 // ---------------------------------------------------------------------------
@@ -320,11 +277,16 @@ function compileVectorLayer(
   featureValues: unknown[],
   className: string | undefined,
   declutter: string | false,
+  resolutionForZoom?: (zoom: number) => number,
 ): VectorImageLayer {
   const singleLayerState: IGrammarSymbologyState = {
     layers: [grammarLayer],
   };
-  const flatStyle = grammarToOLStyle(singleLayerState, featureValues);
+  const flatStyle = grammarToOLStyle(
+    singleLayerState,
+    featureValues,
+    resolutionForZoom,
+  );
   // If no rules produced output (e.g. empty rules list or all expressions dropped),
   // fall back to the default style so the layer is visible rather than invisible.
   const style =

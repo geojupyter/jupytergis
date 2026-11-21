@@ -15,6 +15,9 @@ export namespace LayerCreationCommandIDs {
   export const newGeoTiffWithParams = 'jupytergis:newGeoTiffWithParams';
   export const newGeoZarrWithParams = 'jupytergis:newGeoZarrWithParams';
   export const newShapefileWithParams = 'jupytergis:newShapefileWithParams';
+  export const newPolygonWithParams = 'jupytergis:newPolygonWithParams';
+  export const newGeoJsonLayerWithParams =
+    'jupytergis:newGeoJsonLayerWithParams';
 }
 
 type LayerCreationSpec = {
@@ -328,6 +331,60 @@ export function addLayerCreationCommands(options: {
         color: p.color ?? {},
         opacity: p.opacity ?? 1,
         symbologyState: p.symbologyState ?? { layers: [] },
+      }),
+    },
+    {
+      id: LayerCreationCommandIDs.newPolygonWithParams,
+      label: 'New Polygon Layer From Parameters',
+      caption:
+        'Add a new polygon layer (by file path or URL) and add it to the given JupyterGIS file',
+      sourceType: 'PolygonSource',
+      layerType: 'PolygonLayer',
+      sourceSchema: {
+        type: 'object',
+        required: ['path'],
+        properties: { path: { type: 'string' } },
+      },
+      layerParamsSchema: {
+        opacity: { type: 'number', default: 1 },
+        filled: { type: 'boolean', default: true },
+        stroked: { type: 'boolean', default: true },
+        extruded: { type: 'boolean', default: false },
+      },
+      buildParameters: (p, id) => ({
+        source: id,
+        opacity: p.opacity ?? 1,
+        filled: p.filled ?? true,
+        stroked: p.stroked ?? true,
+        extruded: p.extruded ?? false,
+      }),
+    },
+    {
+      id: LayerCreationCommandIDs.newGeoJsonLayerWithParams,
+      label: 'New GeoJSON Layer From Parameters',
+      caption:
+        'Add a new deck.gl GeoJSON layer (by file path or URL) and add it to the given JupyterGIS file',
+      sourceType: 'GeoJSONSource',
+      layerType: 'GeoJsonLayer',
+      sourceSchema: {
+        type: 'object',
+        required: ['path'],
+        properties: { path: { type: 'string' } },
+      },
+      layerParamsSchema: {
+        opacity: { type: 'number', default: 1 },
+        filled: { type: 'boolean', default: true },
+        stroked: { type: 'boolean', default: true },
+        extruded: { type: 'boolean', default: false },
+        wireframe: { type: 'boolean', default: false },
+      },
+      buildParameters: (p, id) => ({
+        source: id,
+        opacity: p.opacity ?? 1,
+        filled: p.filled ?? true,
+        stroked: p.stroked ?? true,
+        extruded: p.extruded ?? false,
+        wireframe: p.wireframe ?? false,
       }),
     },
   ];

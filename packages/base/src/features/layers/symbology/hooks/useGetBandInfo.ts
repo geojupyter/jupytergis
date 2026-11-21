@@ -1,8 +1,9 @@
 import { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
-import { fromUrl, fromBlob } from 'geotiff';
+import { fromArrayBuffer, fromUrl, fromBlob } from 'geotiff';
 import { useEffect, useState } from 'react';
 
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { openEOTileUrl } from '@/src/features/layers/openeo/OpenEOTileLayer';
+import { maybeProxied } from '@/src/shared/proxy';
 import { loadFile } from '@/src/tools';
 import { getBandInfoFromZarr } from '../zarrBandDiscovery';
 
@@ -63,43 +64,80 @@ const useGetBandInfo = (
         return;
       }
 
-      const sourceInfo = source?.parameters?.urls[0];
-
-      if (!sourceInfo?.url) {
-        setError('No source URL found.');
-        setLoading(false);
-        return;
-      }
-
       let tiff;
-      const isRemote =
-        sourceInfo.url.startsWith('http://') ||
-        sourceInfo.url.startsWith('https://');
 
-      if (isRemote) {
-        const url = buildProxyUrl(
-          model,
-          sourceInfo.url,
-          source?.parameters?.useProxy,
-          source?.parameters?.httpHeaders,
+      if (layer?.type === 'OpenEOTileLayer') {
+        const tileServiceURL = source?.parameters?.tileServiceURL;
+
+        if (!tileServiceURL) {
+          setError('No OpenEO tile service URL found.');
+          return;
+        }
+
+        const { longitude = 0, latitude = 0, zoom = 0 } = model.getOptions();
+        const z = Math.max(0, Math.round(zoom));
+        const n = 2 ** z;
+        const latRad = (latitude * Math.PI) / 180;
+        const x = Math.floor(((longitude + 180) / 360) * n);
+        const y = Math.floor(
+          ((1 - Math.asinh(Math.tan(latRad)) / Math.PI) / 2) * n,
         );
 
-        tiff = await fromUrl(url);
-      } else {
-        // Handle local GeoTIFF file
-        const preloadedFile = await loadFile({
-          filepath: sourceInfo.url,
-          type: 'GeoTiffSource',
-          model,
-        });
+        const res = await fetch(openEOTileUrl(tileServiceURL, z, x, y));
 
-        if (!preloadedFile.file) {
-          setError('Failed to load local file.');
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status} from OpenEO tile service`);
+        }
+
+        if (!res.headers.get('Content-Type')?.includes('tiff')) {
+          setBandRows(
+            [1, 2, 3, 4].map(band => ({
+              band,
+              name: `Band ${band}`,
+              stats: { minimum: 0, maximum: 1 },
+            })),
+          );
+          return;
+        }
+
+        tiff = await fromArrayBuffer(await res.arrayBuffer());
+      } else {
+        const sourceInfo = source?.parameters?.urls[0];
+
+        if (!sourceInfo?.url) {
+          setError('No source URL found.');
           setLoading(false);
           return;
         }
 
-        tiff = await fromBlob(preloadedFile.file);
+        const isRemote =
+          sourceInfo.url.startsWith('http://') ||
+          sourceInfo.url.startsWith('https://');
+
+        if (isRemote) {
+          const url = await maybeProxied(
+            sourceInfo.url,
+            model,
+            source?.parameters?.httpHeaders,
+          );
+
+          tiff = await fromUrl(url);
+        } else {
+          // Handle local GeoTIFF file
+          const preloadedFile = await loadFile({
+            filepath: sourceInfo.url,
+            type: 'GeoTiffSource',
+            model,
+          });
+
+          if (!preloadedFile.file) {
+            setError('Failed to load local file.');
+            setLoading(false);
+            return;
+          }
+
+          tiff = await fromBlob(preloadedFile.file);
+        }
       }
 
       const imageCount = await tiff.getImageCount();

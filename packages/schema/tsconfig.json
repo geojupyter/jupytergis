@@ -5,11 +5,7 @@
     "rootDir": "src",
     "paths": {
       "@/*": ["./*"]
-    },
-    "plugins": [
-      { "transform": "typescript-transform-paths" },
-      { "transform": "typescript-transform-paths", "afterDeclarations": true }
-    ]
+    }
   },
   "include": [
     "src/**/*",

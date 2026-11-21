@@ -41,14 +41,9 @@
       "description": "Source CRS. Use when the GeoTIFF omits a standard EPSG code in its metadata.",
       "default": ""
     },
-    "useProxy": {
-      "type": "boolean",
-      "description": "Route requests through the Jupyter server proxy to avoid CORS issues.",
-      "default": false
-    },
     "httpHeaders": {
       "type": "string",
-      "description": "HTTP headers forwarded to the upstream server when useProxy is true.",
+      "description": "HTTP headers forwarded to the upstream server when requests go through the CORS proxy.",
       "default": "",
       "additionalProperties": {
         "type": "string"

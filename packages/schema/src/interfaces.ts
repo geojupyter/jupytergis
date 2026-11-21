@@ -61,6 +61,9 @@ import type {
   IGeoZarrLayer,
   Modes,
   ITerrainLayer,
+  IPolygonLayer,
+  IPolygonSource,
+  IGeoJsonLayer,
   IJGISFeatureStores,
   IFeatureStoreFeature,
   IFeatureStoreGeometry,
@@ -71,10 +74,15 @@ import type {
 export type { IGeoJSONSource } from './_interface/project/sources/geoJsonSource';
 export type { IDrawCustomAttribute, IDrawCustomAttributePresets };
 
+/** MapLibre view projection. Local UI state, not stored in the document. */
+export type MapViewMode = 'mercator' | 'globe';
+
 export interface IJGISUIState {
   leftPanelOpen?: boolean;
   rightPanelOpen?: boolean;
+  stacBrowserOpen?: boolean;
   locationIndicatorActive?: boolean;
+  mapView?: MapViewMode;
 }
 
 export interface IJGISStoryMaps {
@@ -758,7 +766,9 @@ export type ILayerGalleryEntry = {
     | IGeoTiffLayer
     | IGeoZarrLayer
     | IOpenEOTileLayer
-    | ITerrainLayer;
+    | ITerrainLayer
+    | IPolygonLayer
+    | IGeoJsonLayer;
   sourceType: SourceType;
   sourceParameters:
     | IGeoJSONSource
@@ -772,7 +782,8 @@ export type ILayerGalleryEntry = {
     | IRasterSource
     | IShapefileSource
     | IVectorTileSource
-    | IOpenEOTileSource;
+    | IOpenEOTileSource
+    | IPolygonSource;
   provider: string;
   description: string;
 };
@@ -843,4 +854,11 @@ export interface IJupyterGISSettings {
 
   // Processing
   useServerGdalProcessing?: boolean | null;
+}
+
+/** Saves and loads the openEO OIDC refresh tokens, per issuer and client id. */
+export interface IOpenEOTokensProvider {
+  get(server: string, provider: string): Promise<string | null>;
+  set(server: string, provider: string, token: string): Promise<void>;
+  remove(server: string, provider: string): Promise<void>;
 }

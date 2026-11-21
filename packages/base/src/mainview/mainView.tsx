@@ -471,11 +471,14 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
     this._mapAdapterType = mapAdapterType;
     setMapFeatures(this._model, this._mapAdapter.supportedFeatures);
 
+    const { bearing = 0, pitch = 0 } = this._model.getOptions();
+
     await this._mapAdapter.initialize(this.divRef.current, {
       projection,
       lonLat: [center[0], center[1]],
       zoom,
-      rotation: 0,
+      rotation: bearing,
+      pitch,
       controlsTarget: this.controlsToolbarRef.current || undefined,
       zoomButtonsEnabled: this._model.jgisSettings.zoomButtonsEnabled,
       isSpectaMode: this._model.isSpectaMode(),
@@ -523,7 +526,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         onLayerInserted: layerCount => {
           if (
             !this.state.initialLayersReady &&
-            layerCount === this._initialLayersCount
+            layerCount >= this._initialLayersCount
           ) {
             this.setState(old => ({ ...old, initialLayersReady: true }));
           }
@@ -553,6 +556,23 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
         },
         onLayerLoaded: id => {
           clearLayerError(this._model, id);
+        },
+        onSourceDataError: sourceId => {
+          this._model.sharedModel
+            .getLayersBySource(sourceId)
+            .forEach(id =>
+              setLayerError(
+                this._model,
+                id,
+                "Could not load this layer's data.",
+                'warning',
+              ),
+            );
+        },
+        onSourceDataLoaded: sourceId => {
+          this._model.sharedModel
+            .getLayersBySource(sourceId)
+            .forEach(id => clearLayerError(this._model, id, 'warning'));
         },
         onClientPointerPositionChanged: () => {
           if (!this._mapAdapter) {
@@ -1479,6 +1499,21 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     const handleScroll = (event: Event) => {
       const wheelEvent = event as WheelEvent;
+
+      // A map segment card taller than the stage scrolls its own text first;
+      // the story only takes the wheel once the card reaches its edge.
+      const card = (event.target as Element | null)?.closest?.(
+        '.jgis-story-map-overlay-content',
+      );
+      if (card && wheelEvent.deltaY !== 0 && !wheelEvent.ctrlKey) {
+        const canScroll =
+          wheelEvent.deltaY > 0
+            ? card.scrollTop + card.clientHeight < card.scrollHeight - 1
+            : card.scrollTop > 0;
+        if (canScroll) {
+          return;
+        }
+      }
 
       event.preventDefault();
 

@@ -269,8 +269,7 @@
       "parameters": {
         "attribution": "Natural Earth",
         "httpHeaders": "",
-        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson",
-        "useProxy": false
+        "path": "https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_50m_admin_0_countries.geojson"
       },
       "type": "GeoJSONSource"
     },
@@ -282,8 +281,7 @@
         "maxZoom": 18.0,
         "minZoom": 0.0,
         "url": "https://tiles.macrostrat.org/carto-slim/{z}/{x}/{y}.mvt",
-        "urlParameters": {},
-        "useProxy": false
+        "urlParameters": {}
       },
       "type": "VectorTileSource"
     }

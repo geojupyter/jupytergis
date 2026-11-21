@@ -1,5 +1,11 @@
 {
   "npmClient": "pnpm",
   "version": "independent",
-  "$schema": "node_modules/lerna/schemas/lerna-schema.json"
+  "$schema": "node_modules/lerna/schemas/lerna-schema.json",
+  "packages": [
+    "packages/*",
+    "python/jupytergis_core",
+    "python/jupytergis_lab",
+    "python/jupytergis_qgis"
+  ]
 }

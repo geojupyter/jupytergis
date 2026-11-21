@@ -29,6 +29,7 @@ import scrollSvgStr from '../../style/icons/scroll.svg';
 import targetWithCenterSvgStr from '../../style/icons/target_with_center.svg';
 import targetWithoutCenterSvgStr from '../../style/icons/target_without_center.svg';
 import terminalToolbarSvgStr from '../../style/icons/terminal_toolbar.svg';
+import ungroupSvgStr from '../../style/icons/ungroup.svg';
 import vectorSquareSvgStr from '../../style/icons/vector_square.svg';
 import visibilitySvgStr from '../../style/icons/visibility.svg';
 
@@ -150,4 +151,9 @@ export const scrollIcon = new LabIcon({
 export const helpIcon = new LabIcon({
   name: 'jupytergis::help',
   svgstr: helpSvgStr,
+});
+
+export const ungroupIcon = new LabIcon({
+  name: 'jupytergis::ungroup',
+  svgstr: ungroupSvgStr,
 });

@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/schema",
-  "version": "0.17.1",
+  "version": "0.18.4",
   "description": "A JupyterGIS schema package.",
   "keywords": [
     "jupytergis"
@@ -56,10 +56,11 @@
   },
   "devDependencies": {
     "@types/node": "^18.15.11",
+    "@typescript/native": "npm:typescript@^7.0.2",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "rimraf": "^3.0.2",
     "source-map-loader": "^3.0.0",
-    "ts-loader": "^9.2.6",
-    "typescript": "^5"
+    "ts-loader": "^9.2.6"
   },
   "publishConfig": {
     "access": "public"

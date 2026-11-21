@@ -12,7 +12,9 @@ import { UUID } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useMemo, useRef } from 'react';
 
-import { deepCopy, getGeoPackageTableNames } from '@/src/';
+import { deepCopy, getGeoPackageTableNames } from '@/src/index';
+import { paletteSymbology } from '@/src/features/layers/symbology/paletteSymbology';
+import { openGeoTiff } from '@/src/features/metadata/providers/geoTiffProvider';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 
 export interface ICreationFormProps {
@@ -154,7 +156,7 @@ export function CreationForm(props: ICreationFormProps) {
       return;
     }
 
-    registerConfirmHandler(() => {
+    registerConfirmHandler(async () => {
       const currentModel = modelRef.current;
       const currentCreateSource = createSourceRef.current;
       const currentCreateLayer = createLayerRef.current;
@@ -181,7 +183,7 @@ export function CreationForm(props: ICreationFormProps) {
 
       sourceFormDataRef.current = sourceData;
 
-      const layerData = layerFormDataRef.current ?? {};
+      let layerData = layerFormDataRef.current ?? {};
 
       // GeoPackage handling
       if (
@@ -199,6 +201,7 @@ export function CreationForm(props: ICreationFormProps) {
           const allTables = await getGeoPackageTableNames(
             sourceParams.path,
             currentSourceType,
+            currentModel,
           );
 
           let tableNames: string[];
@@ -264,6 +267,22 @@ export function CreationForm(props: ICreationFormProps) {
         })();
 
         return;
+      }
+
+      if (
+        currentCreateSource &&
+        currentCreateLayer &&
+        currentSourceType === 'GeoTiffSource'
+      ) {
+        const tiff = await openGeoTiff(
+          sourceData.urls[0].url,
+          currentModel,
+        ).catch(() => undefined);
+        const symbologyState = tiff && paletteSymbology(await tiff.getImage());
+        if (symbologyState) {
+          sourceData = { ...sourceData, normalize: false };
+          layerData = { ...layerData, symbologyState };
+        }
       }
 
       // Normal flow

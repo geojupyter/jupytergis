@@ -1535,7 +1535,13 @@ export class JupyterGISModel implements IJupyterGISModel {
       return;
     }
 
+    const previousMode = this._currentMode;
     this._currentMode = value;
+
+    if (previousMode === 'identifying' && value !== 'identifying') {
+      this.syncIdentifiedFeatures([], this.getClientId().toString());
+    }
+
     this.modeChanged.emit(value);
   }
 

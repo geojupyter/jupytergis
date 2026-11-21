@@ -7,11 +7,11 @@ import {
   detectVectorTileLayers,
   resolveTileUrlTemplate,
 } from '@/src/shared/detectVectorTileLayers';
-import { buildProxyUrl } from '@/src/shared/proxy';
+import { maybeProxied } from '@/src/shared/proxy';
 
 interface ISourceLayerFieldProps extends WidgetProps {
   model: IJupyterGISModel;
-  /** Latest form values (url, urlParameters, zoom range, proxy settings). */
+  /** Latest form values (url, urlParameters, zoom range, HTTP headers). */
   getSource: () => IDict;
 }
 
@@ -47,20 +47,10 @@ export function SourceLayerField(props: ISourceLayerFieldProps): JSX.Element {
             ? { longitude, latitude, zoom }
             : undefined,
         signal: controller.signal,
-        fetchTile: source.useProxy
-          ? tileUrl =>
-              fetch(
-                buildProxyUrl(
-                  model,
-                  tileUrl,
-                  source.useProxy,
-                  source.httpHeaders,
-                ),
-                {
-                  signal: controller.signal,
-                },
-              )
-          : undefined,
+        fetchTile: async tileUrl =>
+          fetch(await maybeProxied(tileUrl, model, source.httpHeaders), {
+            signal: controller.signal,
+          }),
       });
 
       if (controller.signal.aborted) {
