@@ -4,6 +4,7 @@
 // - Auto-provide `process` and `Buffer` globals
 // - Emit .wasm files as separate assets so `import wasmURL` yields the correct URL
 
+const path = require('path');
 // @jupyter/builder bundles labextensions with rspack, so the ProvidePlugin
 // must come from @rspack/core rather than webpack (the webpack instance is
 // incompatible with the rspack compiler this config is merged into).
@@ -36,6 +37,12 @@ class HideRspackNativeRulesFromVueLoader {
 
 module.exports = {
   resolve: {
+    alias: {
+      'geotiff/dist-module': path.resolve(
+        require.resolve('geotiff'),
+        '../../dist-module'
+      )
+    },
     fallback: {
       fs: false,
       path: false,
@@ -100,6 +107,12 @@ module.exports = {
       process: 'process/browser',
       Buffer: ['buffer', 'Buffer']
     }),
+    // geotiff starts its decoder workers from a data: URL, which a strict
+    // worker-src CSP (e.g. notebook.link) blocks. Serve the worker as a file.
+    new rspack.NormalModuleReplacementPlugin(
+      /geotiff[\\/]dist-module[\\/]worker[\\/]create\.js$/,
+      path.resolve(__dirname, 'geotiff-worker.js')
+    ),
     new HideRspackNativeRulesFromVueLoader(),
     new VueLoaderPlugin()
   ]
