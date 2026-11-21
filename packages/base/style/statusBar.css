@@ -8,6 +8,11 @@
   z-index: 1000;
 }
 
+.jgis-status-bar-progress {
+  width: 16%;
+  padding: 0 6px;
+}
+
 .jgis-status-bar-item {
   flex: 0 0 content;
 }

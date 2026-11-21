@@ -4,7 +4,6 @@ import {
   faMap,
 } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { Progress } from '@jupyter/react-components';
 import {
   type IJGISUIState,
   type IJupyterGISModel,
@@ -23,6 +22,7 @@ import {
 import { MAP_ADAPTER_FEATURES } from '@/src/mainview/mapAdapterFeatures';
 import { wrapToInterval } from '@/src/mainview/utils/wrapToInterval';
 import { Button } from '@/src/shared/components/Button';
+import { Progress } from '@/src/shared/components/Progress';
 import {
   Select,
   SelectContent,
@@ -100,8 +100,8 @@ const StatusBar: React.FC<IStatusBarProps> = ({
   return (
     <div className="jgis-status-bar">
       {loading && (
-        <div style={{ width: '16%', padding: '0 6px' }}>
-          <Progress height={14} />
+        <div className="jgis-status-bar-progress">
+          <Progress value={null} className="w-full" />
         </div>
       )}
       <Select
