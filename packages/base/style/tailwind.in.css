@@ -95,6 +95,17 @@
   --color-ring: var(--jp-brand-color2);
   --radius: var(--jp-border-radius, 0.625rem);
   --text-base: var(--jp-ui-font-size1);
+  --animate-progress-indeterminate: progress-indeterminate 1.5s ease-in-out
+    infinite;
+
+  @keyframes progress-indeterminate {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(300%);
+    }
+  }
 }
 
 @theme inline {
