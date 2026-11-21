@@ -623,7 +623,10 @@ export class OpenEOTileSource extends DataTileSource {
 
     this.serverUrl = options.serverUrl;
 
-    this._initializeTileServiceURL(options);
+    this._initializeTileServiceURL(options).catch(error => {
+      this._connected.reject(error);
+      throw error;
+    });
   }
 
   /**
