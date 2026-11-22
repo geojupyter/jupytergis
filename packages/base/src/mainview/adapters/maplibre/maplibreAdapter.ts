@@ -2074,6 +2074,17 @@ export class MapLibreAdapter implements IMapAdapter {
       ...(bearing == null ? {} : { bearing }),
     };
 
+    // After an animated move MapLibre keeps the center elevation it had before
+    // the terrain tiles loaded (often 0), which aims the camera into the ground.
+    if (this._map.getTerrain()) {
+      this._map.once('idle', () => {
+        const elevation = this._map.queryTerrainElevation(this._map.getCenter());
+        if (elevation !== null) {
+          this._map.jumpTo({ elevation });
+        }
+      });
+    }
+
     if (transitionType === 'linear') {
       this._map.easeTo({
         center: targetCenter,
