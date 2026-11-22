@@ -22,6 +22,7 @@ const STEPS: IMigrationStep[] = [
   { from: '0.6.0', to: '0.7.0', migrate: migrateV0_6ToV0_7 },
   { from: '0.7.0', to: '0.7.1', migrate: migrateV0_7_0ToV0_7_1 },
   { from: '0.7.1', to: '0.7.2', migrate: doc => doc },
+  { from: '0.7.2', to: '0.7.3', migrate: doc => doc },
 ];
 
 const DEFAULT_OVERLAY_CONTENT_WIDTH = '100%';
