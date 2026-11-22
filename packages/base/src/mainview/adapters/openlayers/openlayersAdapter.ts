@@ -90,6 +90,7 @@ import {
 } from 'ol/layer';
 import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
+import { toRadians } from 'ol/math';
 import {
   fromLonLat,
   get as getProjection,
@@ -3190,6 +3191,8 @@ export class OpenLayersAdapter implements IMapAdapter {
     zoom: number,
     duration = 1000,
     transitionType?: 'linear' | 'immediate' | 'smooth',
+    _pitch?: number,
+    bearing?: number,
   ) {
     const view = this._map.getView();
 
@@ -3197,12 +3200,14 @@ export class OpenLayersAdapter implements IMapAdapter {
     view.cancelAnimations();
 
     const targetCenter: Coordinate = [center.x, center.y];
+    const rotation = bearing == null ? undefined : -toRadians(bearing);
 
     if (transitionType === 'linear') {
       // Linear: direct zoom
       view.animate({
         center: targetCenter,
         zoom: zoom,
+        rotation,
         duration,
       });
 
@@ -3218,6 +3223,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       // Start centering (full duration) and zoom out (50% duration) simultaneously
       view.animate({
         center: targetCenter,
+        rotation,
         duration: duration,
       });
       // Chain zoom out -> zoom in (zoom in starts when zoom out completes)
@@ -3238,6 +3244,9 @@ export class OpenLayersAdapter implements IMapAdapter {
     // Immediate move
     view.setCenter(targetCenter);
     view.setZoom(zoom);
+    if (rotation !== undefined) {
+      view.setRotation(rotation);
+    }
   }
 
   moveToPosition(
@@ -3612,6 +3621,8 @@ export class OpenLayersAdapter implements IMapAdapter {
           params.zoom,
           (params.transition.time ?? 1) * 1000,
           params.transition.type,
+          params.pitch,
+          params.bearing,
         );
       }
 
