@@ -618,6 +618,19 @@ class TestStoryMap(TestDocument):
         assert parameters["transition"] == {"type": "smooth", "time": 2.5}
         assert parameters["enableIdentify"] is True
 
+    def test_pitch_and_bearing_are_persisted(self):
+        self.doc._is_ready = True
+        segment = self.doc.add_story_segment(
+            center=(2.0, 47.0),
+            zoom=5,
+            pitch=60,
+            bearing=-30,
+        )
+
+        parameters = self.doc._layers[segment._id]["parameters"]
+        assert parameters["pitch"] == 60
+        assert parameters["bearing"] == -30
+
     def test_layer_overrides_are_persisted(self):
         self.doc._is_ready = True
         layer = self.doc.add_geojson_layer(data=SAMPLE_GEOJSON, name="Quakes")
