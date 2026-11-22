@@ -1662,6 +1662,8 @@ class GISDocument(CommWidget):
         transition_time: float = 1,
         enable_identify: bool = False,
         layer_overrides: list[dict[str, Any]] | None = None,
+        pitch: float | None = None,
+        bearing: float | None = None,
     ) -> JGISLayer:
         """Append a story segment to the story map and return it.
 
@@ -1681,6 +1683,8 @@ class GISDocument(CommWidget):
         :param transition_time: The duration of the transition, in seconds.
         :param enable_identify: Whether to show the identify control while the segment is active.
         :param layer_overrides: Visibility, opacity and symbology overrides applied to other layers while the segment is active, each with the layer it applies to as ``targetLayer``.
+        :param pitch: The camera tilt in degrees. The current tilt is kept when not set.
+        :param bearing: The compass direction at the top of the map, in degrees. The current rotation is kept when not set.
         """
         self._assert_is_ready()
         self._ensure_qgis_supported(LayerType.StorySegmentLayer)
@@ -1714,6 +1718,8 @@ class GISDocument(CommWidget):
             "parameters": {
                 "extent": _story_segment_extent(extent, center),
                 "zoom": zoom if zoom is not None else self._options.get("zoom", 0),
+                "pitch": pitch,
+                "bearing": bearing,
                 "enableIdentify": enable_identify,
                 "transition": {"type": transition, "time": transition_time},
                 "content": content,
