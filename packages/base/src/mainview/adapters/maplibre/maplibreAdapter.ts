@@ -1995,8 +1995,9 @@ export class MapLibreAdapter implements IMapAdapter {
     this._map.setTerrain({ source: terrainSourceId, exaggeration });
     this._terrainLayerId = layerId;
 
-    // Terrain looks flat from straight above, so tilt when first enabled.
-    if (!wasActive && this._map.getPitch() === 0) {
+    // Terrain looks flat from straight above, so tilt when first enabled,
+    // unless a camera move (e.g. a story segment) is already running.
+    if (!wasActive && this._map.getPitch() === 0 && !this._map.isMoving()) {
       this._map.easeTo({ pitch: 60, duration: 800 });
     }
   }
