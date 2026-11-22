@@ -23,6 +23,7 @@ import type {
   IRasterLayer,
   IRasterSource,
   IRasterDemSource,
+  IStorySegmentLayer,
   ITerrainLayer,
   IVectorLayer,
   IVectorTileLayer,
@@ -54,8 +55,9 @@ import {
   setWorkerUrl,
   MapGeoJSONFeature,
 } from 'maplibre-gl';
+import { getCenter } from 'ol/extent';
 import { FeatureLike } from 'ol/Feature';
-import { transformExtent } from 'ol/proj';
+import { toLonLat, transformExtent } from 'ol/proj';
 import proj4 from 'proj4';
 
 import { IDrawToolAdapter } from '@/src/features/draw-tool';
@@ -2212,6 +2214,20 @@ export class MapLibreAdapter implements IMapAdapter {
     const annotation = this._model.annotationModel?.getAnnotation(id);
     if (annotation) {
       this.flyToPosition(annotation.position, annotation.zoom);
+      return;
+    }
+
+    const layer = this._model.getLayer(id);
+    if (layer?.type === 'StorySegmentLayer') {
+      const { extent, zoom, transition } =
+        layer.parameters as IStorySegmentLayer;
+      const [lng, lat] = toLonLat(getCenter(extent));
+      this.flyToPosition(
+        { x: lng, y: lat },
+        zoom,
+        (transition.time ?? 1) * 1000,
+        transition.type,
+      );
       return;
     }
 
