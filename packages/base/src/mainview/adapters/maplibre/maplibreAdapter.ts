@@ -2074,8 +2074,9 @@ export class MapLibreAdapter implements IMapAdapter {
       ...(bearing == null ? {} : { bearing }),
     };
 
-    // After an animated move MapLibre keeps the center elevation it had before
-    // the terrain tiles loaded (often 0), which aims the camera into the ground.
+    // Animated moves keep the center elevation frozen unless `freezeElevation`
+    // is set, and it can be stale (often 0) before the terrain tiles load,
+    // which aims the camera into the ground. Correct it once they have loaded.
     if (this._map.getTerrain()) {
       this._map.once('idle', () => {
         const elevation = this._map.queryTerrainElevation(
@@ -2094,6 +2095,7 @@ export class MapLibreAdapter implements IMapAdapter {
         ...angles,
         duration,
         easing: t => t,
+        freezeElevation: true,
       });
       return;
     }
@@ -2105,6 +2107,7 @@ export class MapLibreAdapter implements IMapAdapter {
         ...angles,
         duration,
         curve: 1.8,
+        freezeElevation: true,
       });
       return;
     }
