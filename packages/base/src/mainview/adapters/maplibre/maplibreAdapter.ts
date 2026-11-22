@@ -2064,13 +2064,20 @@ export class MapLibreAdapter implements IMapAdapter {
     zoom: number,
     duration = 1000,
     transitionType?: 'linear' | 'immediate' | 'smooth',
+    pitch?: number,
+    bearing?: number,
   ): void {
     const targetCenter: MLCoordinates = [center.x, center.y];
+    const angles = {
+      ...(pitch == null ? {} : { pitch }),
+      ...(bearing == null ? {} : { bearing }),
+    };
 
     if (transitionType === 'linear') {
       this._map.easeTo({
         center: targetCenter,
         zoom,
+        ...angles,
         duration,
         easing: t => t,
       });
@@ -2081,13 +2088,14 @@ export class MapLibreAdapter implements IMapAdapter {
       this._map.flyTo({
         center: targetCenter,
         zoom,
+        ...angles,
         duration,
         curve: 1.8,
       });
       return;
     }
 
-    this._map.jumpTo({ center: targetCenter, zoom });
+    this._map.jumpTo({ center: targetCenter, zoom, ...angles });
   }
 
   moveToPosition(center: JgisCoordinates, zoom: number, duration = 1000): void {
@@ -2219,7 +2227,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
     const layer = this._model.getLayer(id);
     if (layer?.type === 'StorySegmentLayer') {
-      const { extent, zoom, transition } =
+      const { extent, zoom, transition, pitch, bearing } =
         layer.parameters as IStorySegmentLayer;
       const [lng, lat] = toLonLat(getCenter(extent));
       this.flyToPosition(
@@ -2227,6 +2235,8 @@ export class MapLibreAdapter implements IMapAdapter {
         zoom,
         (transition.time ?? 1) * 1000,
         transition.type,
+        pitch,
+        bearing,
       );
       return;
     }
