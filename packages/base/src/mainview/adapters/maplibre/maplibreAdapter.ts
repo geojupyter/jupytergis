@@ -55,6 +55,7 @@ import {
   MapGeoJSONFeature,
 } from 'maplibre-gl';
 import { FeatureLike } from 'ol/Feature';
+import { transformExtent } from 'ol/proj';
 import proj4 from 'proj4';
 
 import { IDrawToolAdapter } from '@/src/features/draw-tool';
@@ -340,12 +341,16 @@ export class MapLibreAdapter implements IMapAdapter {
         pitch,
         projection: 'EPSG:3857',
         zoom,
-        extent: [
-          bounds.getWest(),
-          bounds.getSouth(),
-          bounds.getEast(),
-          bounds.getNorth(),
-        ],
+        extent: transformExtent(
+          [
+            bounds.getWest(),
+            bounds.getSouth(),
+            bounds.getEast(),
+            bounds.getNorth(),
+          ],
+          'EPSG:4326',
+          'EPSG:3857',
+        ),
       };
 
       this._model.setOptions({
