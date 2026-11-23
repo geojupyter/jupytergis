@@ -2191,11 +2191,14 @@ export class MapLibreAdapter implements IMapAdapter {
         enable: () => void;
         disable: () => void;
       };
-      enabled ? handler.enable() : handler.disable();
+      enabled && !this._inPresentationMode
+        ? handler.enable()
+        : handler.disable();
     });
   }
 
   enterPresentationMode(): void {
+    this._inPresentationMode = true;
     this.setNavigationEnabled(false);
     if (this._navigationControl) {
       this._presentationHadNavigationControl = true;
@@ -2204,6 +2207,7 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   exitPresentationMode(): void {
+    this._inPresentationMode = false;
     this.setNavigationEnabled(true);
     if (this._presentationHadNavigationControl && this._navigationControl) {
       this._mountControl(this._navigationControl);
@@ -2621,6 +2625,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _loggerRegistry?: ILoggerRegistry;
   private _navigationControl?: NavigationControl;
   private _presentationHadNavigationControl = false;
+  private _inPresentationMode = false;
   private _layerVisibility = new Map<string, boolean>();
   private _loadingLayers: Set<string>;
   private _settledLayers = new Set<string>();
