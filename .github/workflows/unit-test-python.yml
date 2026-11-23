@@ -36,6 +36,8 @@ jobs:
         uses: mamba-org/setup-micromamba@f457c30a868e4760d3a6fcea5f25dc655b8edf39 # v3.2.1
         with:
           environment-name: gis
+          # qgis 4.2.3 links libdraco.so.9. libpdal-draco builds after
+          # 2026-11-17 pull draco 1.5.9, which only ships libdraco.so.11.
           create-args: >-
             python=${{ matrix.python-version }}
             qgis
