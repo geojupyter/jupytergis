@@ -1,6 +1,6 @@
 {
   "name": "@jupytergis/jupytergis-lab",
-  "version": "0.18.4",
+  "version": "0.18.5",
   "description": "JupyterGIS Lab extension.",
   "keywords": [
     "jupyter",
@@ -52,8 +52,8 @@
   },
   "dependencies": {
     "@jupyter/collaborative-drive": "^4.1.2 || ^5.0.0-alpha.0",
-    "@jupytergis/base": "^0.18.4",
-    "@jupytergis/schema": "^0.18.4",
+    "@jupytergis/base": "^0.18.5",
+    "@jupytergis/schema": "^0.18.5",
     "@jupyterlab/application": "^4.6",
     "@jupyterlab/apputils": "^4.6",
     "@jupyterlab/completer": "^4.6",
@@ -73,11 +73,11 @@
   "devDependencies": {
     "@jupyter/builder": "^1.2.2",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "css-loader": "^6.7.1",
     "mkdirp": "^1.0.3",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.2",
+    "typescript": "npm:@typescript/typescript6@^6.0.2",
     "yjs": "^13.5.0"
   },
   "sideEffects": [

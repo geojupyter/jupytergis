@@ -2,6 +2,37 @@
 
 <!-- <START NEW CHANGELOG ENTRY> -->
 
+## 0.18.5
+
+([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.18.4...a38645b555a7de1bf48fa17121c42d9aaf648511))
+
+### Enhancements made
+
+- Save pitch and bearing in story segments [#2019](https://github.com/geojupyter/jupytergis/pull/2019) ([@arjxn-py](https://github.com/arjxn-py))
+- Enable story maps in Maplibre [#2017](https://github.com/geojupyter/jupytergis/pull/2017) ([@arjxn-py](https://github.com/arjxn-py))
+- Add progress bar component [#1989](https://github.com/geojupyter/jupytergis/pull/1989) ([@gjmooney](https://github.com/gjmooney), [@arjxn-py](https://github.com/arjxn-py))
+- Show OpenEO tile load progress in the status bar [#1988](https://github.com/geojupyter/jupytergis/pull/1988) ([@arjxn-py](https://github.com/arjxn-py))
+
+### Bugs fixed
+
+- Serve the geotiff worker from the extension [#2014](https://github.com/geojupyter/jupytergis/pull/2014) ([@arjxn-py](https://github.com/arjxn-py), [@martinRenou](https://github.com/martinRenou))
+- Make the story map side card scroll its overflowing text [#2008](https://github.com/geojupyter/jupytergis/pull/2008) ([@costajohnt](https://github.com/costajohnt), [@arjxn-py](https://github.com/arjxn-py), [@gjmooney](https://github.com/gjmooney))
+
+### Maintenance and upkeep improvements
+
+- Replace ESLint/Prettier with Oxlint/Oxfmt and update TypeScript to v7 [#2010](https://github.com/geojupyter/jupytergis/pull/2010) ([@gjmooney](https://github.com/gjmooney), [@martinRenou](https://github.com/martinRenou))
+
+### Contributors to this release
+
+The following people contributed discussions, new ideas, code and documentation contributions, and review.
+See [our definition of contributors](https://github-activity.readthedocs.io/en/latest/use/#how-does-this-tool-define-contributions-in-the-reports).
+
+([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-11-19&to=2026-11-23&type=c))
+
+@arjxn-py ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Aarjxn-py+updated%3A2026-11-19..2026-11-23&type=Issues)) | @costajohnt ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Acostajohnt+updated%3A2026-11-19..2026-11-23&type=Issues)) | @gjmooney ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3Agjmooney+updated%3A2026-11-19..2026-11-23&type=Issues)) | @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-11-19..2026-11-23&type=Issues))
+
+<!-- <END NEW CHANGELOG ENTRY> -->
+
 ## 0.18.4
 
 ([Full Changelog](https://github.com/geojupyter/jupytergis/compare/@jupytergis/base@0.18.3...6948fb66d37ee307e6faa6d481a38c60b3c5ce27))
@@ -18,8 +49,6 @@ See [our definition of contributors](https://github-activity.readthedocs.io/en/l
 ([GitHub contributors page for this release](https://github.com/geojupyter/jupytergis/graphs/contributors?from=2026-11-19&to=2026-11-19&type=c))
 
 @martinRenou ([activity](https://github.com/search?q=repo%3Ageojupyter%2Fjupytergis+involves%3AmartinRenou+updated%3A2026-11-19..2026-11-19&type=Issues))
-
-<!-- <END NEW CHANGELOG ENTRY> -->
 
 ## 0.18.3
 
