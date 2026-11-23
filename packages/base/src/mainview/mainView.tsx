@@ -541,7 +541,7 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           this.setState((old) => ({ ...old, loadingLayer: false }));
         },
         onTileProgress: (loaded, total) => {
-          this.setState(old => ({ ...old, tileProgress: { loaded, total } }));
+          this.setState((old) => ({ ...old, tileProgress: { loaded, total } }));
         },
         onLayerError: (id, message) => {
           // greys the layer out

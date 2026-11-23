@@ -104,7 +104,10 @@ const StatusBar: React.FC<IStatusBarProps> = ({
     <div className="jgis-status-bar">
       {loading && (
         <div className="jgis-status-bar-progress">
-          <Progress value={null} className="w-full" />
+          <Progress
+            value={null}
+            className="w-full"
+          />
         </div>
       )}
       {!loading && tileProgress.total > 0 && (
