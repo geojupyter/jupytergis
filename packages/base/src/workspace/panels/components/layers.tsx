@@ -730,6 +730,7 @@ const LayerGroupComponent: React.FC<ILayerGroupProps> = props => {
             onKeyDown={handleRenameKeyDown}
             onBlur={handleRenameSave}
             className={LAYER_TEXT_CLASS}
+            data-lm-suppress-shortcuts="true"
             style={{
               flex: 1,
               border: '1px solid var(--jp-border-color1)',
@@ -1151,6 +1152,7 @@ const LayerComponent: React.FC<ILayerProps> = props => {
             onKeyDown={handleRenameKeyDown}
             onBlur={handleRenameSave}
             className={LAYER_TEXT_CLASS}
+            data-lm-suppress-shortcuts="true"
             style={{
               flex: 1,
               border: '1px solid var(--jp-border-color1)',

@@ -2,12 +2,12 @@
   {
     "command": "jupytergis:storyPrev",
     "keys": ["ArrowLeft"],
-    "selector": ".data-jgis-keybinding"
+    "selector": ".jgis-story-presentation .data-jgis-keybinding"
   },
   {
     "command": "jupytergis:storyNext",
     "keys": ["ArrowRight"],
-    "selector": ".data-jgis-keybinding"
+    "selector": ".jgis-story-presentation .data-jgis-keybinding"
   },
   {
     "command": "jupytergis:undo",
