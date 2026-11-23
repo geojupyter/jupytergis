@@ -74,9 +74,5 @@
     "webpack": "^5.76.3",
     "zarrita": "^0.7.3"
   },
-  "packageManager": "pnpm@11.17.0",
-  "dependencies": {
-    "@types/jest": "^30.0.0",
-    "ts-jest": "^29.4.15"
-  }
+  "packageManager": "pnpm@11.17.0"
 }

@@ -43,8 +43,8 @@ module.exports = {
     alias: {
       'geotiff/dist-module': path.resolve(
         require.resolve('geotiff'),
-        '../../dist-module'
-      )
+        '../../dist-module',
+      ),
     },
     fallback: {
       fs: false,
@@ -114,7 +114,7 @@ module.exports = {
     // worker-src CSP (e.g. notebook.link) blocks. Serve the worker as a file.
     new rspack.NormalModuleReplacementPlugin(
       /geotiff[\\/]dist-module[\\/]worker[\\/]create\.js$/,
-      path.resolve(__dirname, 'geotiff-worker.js')
+      path.resolve(__dirname, 'geotiff-worker.js'),
     ),
     new HideRspackNativeRulesFromVueLoader(),
     new VueLoaderPlugin(),

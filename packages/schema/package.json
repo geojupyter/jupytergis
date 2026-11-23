@@ -24,6 +24,9 @@
   ],
   "main": "lib/index.js",
   "types": "lib/types.d.ts",
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "jest",
     "build": "pnpm run build:schema && pnpm run build:lib",
@@ -61,8 +64,5 @@
     "source-map-loader": "^3.0.0",
     "ts-loader": "^9.2.6",
     "typescript": "npm:@typescript/typescript6@^6.0.2"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }
