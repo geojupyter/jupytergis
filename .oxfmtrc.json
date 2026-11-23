@@ -8,5 +8,10 @@
   },
   "printWidth": 80,
   "singleAttributePerLine": true,
-  "ignorePatterns": ["**/*.d.ts", "**/examples/**", "**/paper/**"]
+  "ignorePatterns": [
+    "**/*.d.ts",
+    "**/CITATION.cff",
+    "**/examples/**",
+    "**/paper/**"
+  ]
 }
