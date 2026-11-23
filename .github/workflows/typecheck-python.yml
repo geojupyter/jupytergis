@@ -31,13 +31,10 @@ jobs:
         with:
           cache-environment: true
           environment-name: 'gis'
-          # qgis 4.2.3 links libdraco.so.9. libpdal-draco builds after
-          # 2026-11-17 pull draco 1.5.9, which only ships libdraco.so.11.
           create-args: >-
             python=3.13
             pip
             qgis
-            draco=1.5.7
 
       - name: 'Setup pip cache'
         uses: 'actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9' # v6.1.0
