@@ -10,7 +10,7 @@ export function updateSegmentMapView(
     return false;
   }
 
-  const { zoom, extent } = model.getOptions();
+  const { zoom, extent, pitch, bearing } = model.getOptions();
 
   if (zoom === undefined || !extent?.length) {
     return false;
@@ -22,6 +22,8 @@ export function updateSegmentMapView(
       ...layer.parameters,
       zoom,
       extent,
+      pitch,
+      bearing,
     },
   });
 

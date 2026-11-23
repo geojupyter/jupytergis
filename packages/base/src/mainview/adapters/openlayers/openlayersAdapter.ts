@@ -90,7 +90,7 @@ import {
 } from 'ol/layer';
 import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
-import { toRadians } from 'ol/math';
+import { toDegrees, toRadians } from 'ol/math';
 import {
   fromLonLat,
   get as getProjection,
@@ -403,7 +403,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       view: new View({
         center: initialCenter,
         zoom,
-        rotation,
+        rotation: -toRadians(rotation),
         projection: proj,
       }),
       controls,
@@ -565,7 +565,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       const currentProjection =
         getProjection(currentOptions.projection) ?? moveEndView.getProjection();
       const latLng = toLonLat(center, currentProjection);
-      const bearing = moveEndView.getRotation();
+      const bearing = -toDegrees(moveEndView.getRotation());
 
       const updatedOptions: Partial<IJGISOptions> = {
         latitude: latLng[1],
@@ -935,7 +935,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       longitude: lonLat[0],
       latitude: lonLat[1],
       zoom: nextView.getZoom() ?? currentOptions.zoom,
-      bearing: rotation,
+      bearing: -toDegrees(rotation),
       extent: nextView.calculateExtent(this._map.getSize()),
     });
 
@@ -1362,7 +1362,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
     }
 
-    view.setRotation(bearing || 0);
+    view.setRotation(-toRadians(bearing || 0));
     map.setView(view);
 
     // Use the extent only if explicitly requested (QGIS files).
