@@ -15,6 +15,16 @@
         "type": "number"
       }
     },
+    "pitch": {
+      "type": "number",
+      "description": "The camera tilt in degrees. The current tilt is kept when not set.",
+      "minimum": 0,
+      "maximum": 85
+    },
+    "bearing": {
+      "type": "number",
+      "description": "The compass direction at the top of the map, in degrees. The current rotation is kept when not set."
+    },
     "enableIdentify": {
       "type": "boolean",
       "title": "Enable identify",

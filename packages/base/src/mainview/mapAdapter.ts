@@ -99,6 +99,8 @@ export interface IMapAdapter {
     zoom: number,
     duration?: number,
     transitionType?: 'linear' | 'immediate' | 'smooth',
+    pitch?: number,
+    bearing?: number,
   ): void;
   moveToPosition(
     center: JgisCoordinates,

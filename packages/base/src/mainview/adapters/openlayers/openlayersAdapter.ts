@@ -90,6 +90,7 @@ import {
 } from 'ol/layer';
 import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
+import { toDegrees, toRadians } from 'ol/math';
 import {
   fromLonLat,
   get as getProjection,
@@ -402,7 +403,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       view: new View({
         center: initialCenter,
         zoom,
-        rotation,
+        rotation: -toRadians(rotation),
         projection: proj,
       }),
       controls,
@@ -564,7 +565,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       const currentProjection =
         getProjection(currentOptions.projection) ?? moveEndView.getProjection();
       const latLng = toLonLat(center, currentProjection);
-      const bearing = moveEndView.getRotation();
+      const bearing = -toDegrees(moveEndView.getRotation());
 
       const updatedOptions: Partial<IJGISOptions> = {
         latitude: latLng[1],
@@ -934,7 +935,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       longitude: lonLat[0],
       latitude: lonLat[1],
       zoom: nextView.getZoom() ?? currentOptions.zoom,
-      bearing: rotation,
+      bearing: -toDegrees(rotation),
       extent: nextView.calculateExtent(this._map.getSize()),
     });
 
@@ -1361,7 +1362,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       }
     }
 
-    view.setRotation(bearing || 0);
+    view.setRotation(-toRadians(bearing || 0));
     map.setView(view);
 
     // Use the extent only if explicitly requested (QGIS files).
@@ -3190,6 +3191,8 @@ export class OpenLayersAdapter implements IMapAdapter {
     zoom: number,
     duration = 1000,
     transitionType?: 'linear' | 'immediate' | 'smooth',
+    _pitch?: number,
+    bearing?: number,
   ) {
     const view = this._map.getView();
 
@@ -3197,12 +3200,14 @@ export class OpenLayersAdapter implements IMapAdapter {
     view.cancelAnimations();
 
     const targetCenter: Coordinate = [center.x, center.y];
+    const rotation = bearing == null ? undefined : -toRadians(bearing);
 
     if (transitionType === 'linear') {
       // Linear: direct zoom
       view.animate({
         center: targetCenter,
         zoom: zoom,
+        rotation,
         duration,
       });
 
@@ -3218,6 +3223,7 @@ export class OpenLayersAdapter implements IMapAdapter {
       // Start centering (full duration) and zoom out (50% duration) simultaneously
       view.animate({
         center: targetCenter,
+        rotation,
         duration: duration,
       });
       // Chain zoom out -> zoom in (zoom in starts when zoom out completes)
@@ -3238,6 +3244,9 @@ export class OpenLayersAdapter implements IMapAdapter {
     // Immediate move
     view.setCenter(targetCenter);
     view.setZoom(zoom);
+    if (rotation !== undefined) {
+      view.setRotation(rotation);
+    }
   }
 
   moveToPosition(
@@ -3612,6 +3621,8 @@ export class OpenLayersAdapter implements IMapAdapter {
           params.zoom,
           (params.transition.time ?? 1) * 1000,
           params.transition.type,
+          params.pitch,
+          params.bearing,
         );
       }
 

@@ -1995,8 +1995,9 @@ export class MapLibreAdapter implements IMapAdapter {
     this._map.setTerrain({ source: terrainSourceId, exaggeration });
     this._terrainLayerId = layerId;
 
-    // Terrain looks flat from straight above, so tilt when first enabled.
-    if (!wasActive && this._map.getPitch() === 0) {
+    // Terrain looks flat from straight above, so tilt when first enabled,
+    // unless a camera move (e.g. a story segment) is already running.
+    if (!wasActive && this._map.getPitch() === 0 && !this._map.isMoving()) {
       this._map.easeTo({ pitch: 60, duration: 800 });
     }
   }
@@ -2064,15 +2065,37 @@ export class MapLibreAdapter implements IMapAdapter {
     zoom: number,
     duration = 1000,
     transitionType?: 'linear' | 'immediate' | 'smooth',
+    pitch?: number,
+    bearing?: number,
   ): void {
     const targetCenter: MLCoordinates = [center.x, center.y];
+    const angles = {
+      ...(pitch == null ? {} : { pitch }),
+      ...(bearing == null ? {} : { bearing }),
+    };
+
+    // Animated moves keep the center elevation frozen unless `freezeElevation`
+    // is set, and it can be stale (often 0) before the terrain tiles load,
+    // which aims the camera into the ground. Correct it once they have loaded.
+    if (this._map.getTerrain()) {
+      this._map.once('idle', () => {
+        const elevation = this._map.queryTerrainElevation(
+          this._map.getCenter(),
+        );
+        if (elevation !== null) {
+          this._map.jumpTo({ elevation });
+        }
+      });
+    }
 
     if (transitionType === 'linear') {
       this._map.easeTo({
         center: targetCenter,
         zoom,
+        ...angles,
         duration,
         easing: t => t,
+        freezeElevation: true,
       });
       return;
     }
@@ -2081,13 +2104,15 @@ export class MapLibreAdapter implements IMapAdapter {
       this._map.flyTo({
         center: targetCenter,
         zoom,
+        ...angles,
         duration,
         curve: 1.8,
+        freezeElevation: true,
       });
       return;
     }
 
-    this._map.jumpTo({ center: targetCenter, zoom });
+    this._map.jumpTo({ center: targetCenter, zoom, ...angles });
   }
 
   moveToPosition(center: JgisCoordinates, zoom: number, duration = 1000): void {
@@ -2219,7 +2244,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
     const layer = this._model.getLayer(id);
     if (layer?.type === 'StorySegmentLayer') {
-      const { extent, zoom, transition } =
+      const { extent, zoom, transition, pitch, bearing } =
         layer.parameters as IStorySegmentLayer;
       const [lng, lat] = toLonLat(getCenter(extent));
       this.flyToPosition(
@@ -2227,6 +2252,8 @@ export class MapLibreAdapter implements IMapAdapter {
         zoom,
         (transition.time ?? 1) * 1000,
         transition.type,
+        pitch,
+        bearing,
       );
       return;
     }
