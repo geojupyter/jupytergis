@@ -3,6 +3,6 @@
   "compilerOptions": {
     "module": "commonjs",
     "allowJs": true,
-    "rootDir": "src"
+    "rootDir": "../.."
   }
 }
