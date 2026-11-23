@@ -554,9 +554,9 @@ export class MapLibreAdapter implements IMapAdapter {
                 feature.id !== undefined
                   ? `${features.sourceLayer ?? sourceLayer}:${feature.id}`
                   : `${features.sourceLayer ?? sourceLayer}:${JSON.stringify([
-                    feature.geometry,
-                    feature.properties,
-                  ])}`;
+                      feature.geometry,
+                      feature.properties,
+                    ])}`;
 
               featureMap.set(featureId || `${sourceLayer}:${index}`, {
                 getProperties: () => feature.properties ?? {},
@@ -783,7 +783,7 @@ export class MapLibreAdapter implements IMapAdapter {
         this._callbacks?.onLayerError?.(
           layerId,
           this._sourceErrors.get(sourceId) ??
-          `Source "${source.name ?? sourceId}" could not be reloaded.`,
+            `Source "${source.name ?? sourceId}" could not be reloaded.`,
         );
       }
       return;
@@ -1457,7 +1457,7 @@ export class MapLibreAdapter implements IMapAdapter {
         this._callbacks?.onLayerError?.(
           id,
           this._sourceErrors.get(sourceId) ??
-          `Source "${source.name ?? sourceId}" could not be added.`,
+            `Source "${source.name ?? sourceId}" could not be added.`,
         );
         return;
       }
@@ -1494,7 +1494,7 @@ export class MapLibreAdapter implements IMapAdapter {
       this._callbacks?.onLayerError?.(
         id,
         this._sourceErrors.get(sourceId) ??
-        `Source "${source.name ?? sourceId}" could not be added.`,
+          `Source "${source.name ?? sourceId}" could not be added.`,
       );
       return;
     }
@@ -1736,7 +1736,7 @@ export class MapLibreAdapter implements IMapAdapter {
           // Opacity drags also land here; only repaint for a style change.
           const styleChanged =
             JSON.stringify(previous?.symbologyState) !==
-            JSON.stringify(next.symbologyState) ||
+              JSON.stringify(next.symbologyState) ||
             JSON.stringify(previous?.color) !== JSON.stringify(next.color);
 
           if (styleChanged) {
@@ -2090,7 +2090,7 @@ export class MapLibreAdapter implements IMapAdapter {
         zoom,
         ...angles,
         duration,
-        easing: t => t,
+        easing: (t) => t,
         freezeElevation: true,
       });
       return;
@@ -2339,8 +2339,8 @@ export class MapLibreAdapter implements IMapAdapter {
       case 'MarkerSource': {
         const coords = (
           this._model.getSource(sourceId)?.parameters as
-          | IMarkerSource
-          | undefined
+            | IMarkerSource
+            | undefined
         )?.feature?.coords;
         if (!coords) {
           return undefined;

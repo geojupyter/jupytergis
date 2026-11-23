@@ -1764,9 +1764,9 @@ export class OpenLayersAdapter implements IMapAdapter {
         layer.filters.appliedFilters.length === 1
           ? buildCondition(layer.filters.appliedFilters[0])
           : [
-            layer.filters.logicalOp,
-            ...layer.filters.appliedFilters.map(buildCondition),
-          ];
+              layer.filters.logicalOp,
+              ...layer.filters.appliedFilters.map(buildCondition),
+            ];
     }
 
     return [layerStyle];
@@ -1981,9 +1981,9 @@ export class OpenLayersAdapter implements IMapAdapter {
     const parsedGeometry = isOlGeometry
       ? geometry
       : new GeoJSON().readGeometry(geometry, {
-        dataProjection: 'EPSG:4326',
-        featureProjection: this._map.getView().getProjection(),
-      });
+          dataProjection: 'EPSG:4326',
+          featureProjection: this._map.getView().getProjection(),
+        });
 
     if (!parsedGeometry) {
       this._log('warning', 'Failed to parse geometry for highlighting');
