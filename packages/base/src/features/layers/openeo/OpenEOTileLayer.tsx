@@ -522,11 +522,90 @@ export function openEOTileUrl(
     .replace('{x}', String(x));
 }
 
-export class OpenEOTileLayer extends WebGLTileLayer {
-  // Just an alias
+/**
+ * Surface a tile-load failure as a JupyterLab toast, deduped so a
+ * panned area with N broken tiles doesn't fire N notifications. Each
+ * distinct error message reappears at most once per cooldown window.
+ */
+const _lastTileErrors = new Map<string, number>();
+function reportOpenEOTileError(message: string): void {
+  const now = Date.now();
+  const last = _lastTileErrors.get(message) ?? 0;
+  if (now - last < 5000) {
+    return;
+  }
+  _lastTileErrors.set(message, now);
+  Notification.error(`OpenEO layer: ${message}`, { autoClose: 6000 });
+  // eslint-disable-next-line no-console
+  console.warn('[openeo] tile load error:', message);
 }
 
-export interface IOpenEOTileSourceOptions extends DataTileOptions {
+/**
+ * Fetch one tile of an OpenEO XYZ service: the band values of a GeoTIFF
+ * tile, interleaved, or the image of any other tile.
+ */
+export async function loadOpenEOTile(
+  url: string,
+  retries = TILE_MAX_RETRY,
+): Promise<Float32Array | ImageBitmap> {
+  retries -= 1;
+  const retry = async () => {
+    await new Promise(resolve => setTimeout(resolve, TILE_RETRY_RATE));
+    return loadOpenEOTile(url, retries);
+  };
+
+  let res: Response;
+  try {
+    res = await fetch(url, { method: 'GET' });
+  } catch (err: any) {
+    const errorMessage: string = err?.message ?? String(err);
+
+    if (errorMessage.toLowerCase().includes('rate limit')) {
+      return retry();
+    }
+
+    reportOpenEOTileError(`Tile request failed: ${errorMessage}`);
+    throw err;
+  }
+
+  if (!res.ok) {
+    // Try to surface the backend's actual message rather than a
+    // bare HTTP status — titiler-openeo, like most openEO
+    // backends, returns JSON `{ message: ... }` on errors.
+    let detail = '';
+    try {
+      const text = await res.text();
+      try {
+        const parsed = JSON.parse(text);
+        detail = parsed?.message ?? parsed?.detail ?? parsed?.error ?? text;
+      } catch {
+        detail = text;
+      }
+    } catch {
+      /* response body unreadable */
+    }
+
+    if (detail.toLowerCase().includes('rate limit')) {
+      return retry();
+    }
+
+    reportOpenEOTileError(
+      `HTTP ${res.status} from OpenEO tile service${detail ? `: ${detail}` : ''}`,
+    );
+    throw new Error(`HTTP ${res.status}`);
+  }
+
+  if (res.headers.get('Content-Type')?.includes('tiff')) {
+    const tiff = await fromArrayBuffer(await res.arrayBuffer());
+    const image = await tiff.getImage();
+    const raster = await image.readRasters({ interleave: true });
+    return new Float32Array(raster as TypedArray);
+  }
+
+  return createImageBitmap(await res.blob());
+}
+
+export interface IOpenEOTileServiceOptions {
   /**
    * The process graph value.
    */
@@ -544,80 +623,57 @@ export interface IOpenEOTileSourceOptions extends DataTileOptions {
   tileServiceURL?: string;
 }
 
+/**
+ * The XYZ tile url of an OpenEO source: its saved service, or a new one,
+ * which needs a session on its server and asks to sign in without one.
+ */
+export async function openEOTileServiceUrl(
+  options: IOpenEOTileServiceOptions,
+): Promise<string> {
+  // If we already have a tile service URL, use it
+  // This happens when e.g. the service was created Python side, or we are refreshing the page.
+  if (options.tileServiceURL) {
+    // TODO Frequently make sure the tile service is still up?
+    // If not up, we should prompt the user for reconnecting
+    return options.tileServiceURL;
+  }
+
+  // Otherwise create the service ourselves, which needs a session.
+  try {
+    getOpenEOConnection(options.serverUrl);
+  } catch {
+    // Signing in makes mainView rebuild this source, so give up here.
+    await promptOpenEOLogin(options.serverUrl);
+    throw new Error('Failed to get OpenEO service connection');
+  }
+
+  return createOpenEOTileService(options.serverUrl, options.processGraph);
+}
+
+export class OpenEOTileLayer extends WebGLTileLayer {
+  // Just an alias
+}
+
+export interface IOpenEOTileSourceOptions
+  extends DataTileOptions, IOpenEOTileServiceOptions {}
+
 export class OpenEOTileSource extends DataTileSource {
   constructor(options: IOpenEOTileSourceOptions) {
-    const tileLoadFunction =
-      (retries: number): Loader =>
-      async (z, x, y, loaderOptions) => {
-        await this._connected.promise;
+    const tileLoadFunction: Loader = async (z, x, y) => {
+      await this._connected.promise;
 
-        const url = this._url;
+      const url = this._url;
 
-        if (!url) {
-          throw new Error('XYZ URL undefined');
-        }
+      if (!url) {
+        throw new Error('XYZ URL undefined');
+      }
 
-        retries -= 1;
-        const retry = async () => {
-          await new Promise(resolve => setTimeout(resolve, TILE_RETRY_RATE));
-          return tileLoadFunction(retries)(z, x, y, loaderOptions);
-        };
-
-        let res: Response;
-        try {
-          res = await fetch(openEOTileUrl(url, z, x, y), { method: 'GET' });
-        } catch (err: any) {
-          const errorMessage: string = err?.message ?? String(err);
-
-          if (errorMessage.toLowerCase().includes('rate limit')) {
-            return retry();
-          }
-
-          this._reportTileError(`Tile request failed: ${errorMessage}`);
-          throw err;
-        }
-
-        if (!res.ok) {
-          // Try to surface the backend's actual message rather than a
-          // bare HTTP status — titiler-openeo, like most openEO
-          // backends, returns JSON `{ message: ... }` on errors.
-          let detail = '';
-          try {
-            const text = await res.text();
-            try {
-              const parsed = JSON.parse(text);
-              detail =
-                parsed?.message ?? parsed?.detail ?? parsed?.error ?? text;
-            } catch {
-              detail = text;
-            }
-          } catch {
-            /* response body unreadable */
-          }
-
-          if (detail.toLowerCase().includes('rate limit')) {
-            return retry();
-          }
-
-          this._reportTileError(
-            `HTTP ${res.status} from OpenEO tile service${detail ? `: ${detail}` : ''}`,
-          );
-          throw new Error(`HTTP ${res.status}`);
-        }
-
-        if (res.headers.get('Content-Type')?.includes('tiff')) {
-          const tiff = await fromArrayBuffer(await res.arrayBuffer());
-          const image = await tiff.getImage();
-          const raster = await image.readRasters({ interleave: true });
-          return new Float32Array(raster as TypedArray);
-        }
-
-        return createImageBitmap(await res.blob());
-      };
+      return loadOpenEOTile(openEOTileUrl(url, z, x, y));
+    };
 
     super({
       ...options,
-      loader: tileLoadFunction(TILE_MAX_RETRY),
+      loader: tileLoadFunction,
       wrapX: true,
     });
 
@@ -629,52 +685,8 @@ export class OpenEOTileSource extends DataTileSource {
     });
   }
 
-  /**
-   * Surface a tile-load failure as a JupyterLab toast, deduped so a
-   * panned area with N broken tiles doesn't fire N notifications. Each
-   * distinct error message reappears at most once per cooldown window.
-   */
-  private _reportTileError(message: string): void {
-    const now = Date.now();
-    const last = this._lastTileErrors.get(message) ?? 0;
-    if (now - last < 5000) {
-      return;
-    }
-    this._lastTileErrors.set(message, now);
-    Notification.error(`OpenEO layer: ${message}`, { autoClose: 6000 });
-    // eslint-disable-next-line no-console
-    console.warn('[openeo] tile load error:', message);
-  }
-  private _lastTileErrors = new Map<string, number>();
-
   private async _initializeTileServiceURL(options: IOpenEOTileSourceOptions) {
-    // If we already have a tile service URL, use it
-    // This happens when e.g. the service was created Python side, or we are refreshing the page.
-    if (options.tileServiceURL) {
-      // TODO Frequently make sure the tile service is still up?
-      // If not up, we should prompt the user for reconnecting
-      this._url = options.tileServiceURL;
-
-      this._connected.resolve();
-
-      this.refresh();
-
-      return;
-    }
-
-    // Otherwise create the service ourselves, which needs a session.
-    try {
-      getOpenEOConnection(options.serverUrl);
-    } catch {
-      // Signing in makes mainView rebuild this source, so give up here.
-      await promptOpenEOLogin(options.serverUrl);
-      throw new Error('Failed to get OpenEO service connection');
-    }
-
-    this._url = await createOpenEOTileService(
-      options.serverUrl,
-      options.processGraph,
-    );
+    this._url = await openEOTileServiceUrl(options);
 
     this._connected.resolve();
 
