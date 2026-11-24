@@ -687,6 +687,10 @@ export class MapLibreAdapter implements IMapAdapter {
     if (!JSON_RECORD_SOURCES.has(source.type)) {
       this._trackSourceExtZoom(id, source.type);
     }
+
+    if (this._map.getSource(id)?.type === 'raster') {
+      this._map.setSourceTileLodParams(1, 3, id);
+    }
   }
 
   removeSource(id: string): void {
