@@ -21,6 +21,7 @@ import {
 import React, { useEffect, useRef, useState } from 'react';
 
 import { useGetProperties } from '@/src/features/layers/symbology/hooks/useGetProperties';
+import { withTemporalPredicate } from '@/src/mainview/utils/temporalPredicate';
 
 interface ITemporalSliderProps {
   model: IJupyterGISModel;
@@ -293,9 +294,19 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
       appliedFilters.push(newFilter);
     }
 
-    // Apply the updated filters to the layer
+    // Apply the updated filters to the layer. Grammar-styled layers only
+    // honour their `when` guards, so the window also goes there; `filters`
+    // stays for the paths that still read it. Nothing is saved to the document.
     layer.filters = { logicalOp, appliedFilters };
-    model.triggerLayerUpdate(layerId, layer);
+    model.triggerLayerUpdate(
+      layerId,
+      withTemporalPredicate(
+        layer,
+        newFilter.feature,
+        newFilter.betweenMin,
+        newFilter.betweenMax,
+      ),
+    );
   };
 
   const removeFilter = () => {
