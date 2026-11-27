@@ -48,6 +48,32 @@ test.describe('#geoJSONLayer', () => {
     }
   });
 
+  test('Add layer dialog shows the layer name first and focuses it', async ({
+    page,
+    tmpPath,
+  }) => {
+    await openGIS(page, tmpPath, FILENAME);
+
+    await page.getByTestId('new-entry-button').click();
+    await page.getByText('Add Vector Layer').hover();
+    await page
+      .locator('#jp-gis-toolbar-vector-menu')
+      .getByText('GeoJSON', { exact: true })
+      .click();
+
+    const dialog = page.locator('.jp-Dialog-content');
+    await expect(dialog).toBeAttached();
+
+    await expect(dialog.locator('h3')).toHaveText([
+      'Layer Properties',
+      'Source Properties',
+    ]);
+    await expect(dialog.locator('input#root_name')).toBeFocused();
+
+    await dialog.getByText('Cancel', { exact: true }).first().click();
+    await expect(dialog).not.toBeAttached();
+  });
+
   test('Add a GeoJSON layer', async ({ page, tmpPath }) => {
     await openGIS(page, tmpPath, FILENAME);
 
