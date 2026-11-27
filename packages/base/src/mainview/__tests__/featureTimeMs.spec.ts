@@ -77,7 +77,7 @@ const ascending = (a: number, b: number) => a - b;
 function timesMs(source: VectorSource): number[] {
   return source
     .getFeatures()
-    .map(f => f.get('timems') as number)
+    .map((f) => f.get('timems') as number)
     .sort(ascending);
 }
 

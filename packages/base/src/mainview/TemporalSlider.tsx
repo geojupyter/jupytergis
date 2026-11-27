@@ -98,7 +98,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
     ) => {
       // Get the changes for the selected layer
       const selectedLayer = change.layerChange?.find(
-        layer => layer.id === layerIdRef.current,
+        (layer) => layer.id === layerIdRef.current,
       );
 
       // Bail if there's no relevant change
@@ -196,7 +196,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
     let convertedValues: number[];
 
     if (isString) {
-      convertedValues = values.map(value => Date.parse(value)); // Convert all strings to milliseconds
+      convertedValues = values.map((value) => Date.parse(value)); // Convert all strings to milliseconds
     } else {
       convertedValues = values; // Keep numbers as they are
     }
@@ -281,7 +281,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
     // This is the only way to add a 'between' filter so
     // find the index of the existing 'between' filter
     const betweenFilterIndex = appliedFilters.findIndex(
-      filter => filter.operator === 'between',
+      (filter) => filter.operator === 'between',
     );
 
     if (betweenFilterIndex !== -1) {
@@ -321,7 +321,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
     // This is the only way to add a 'between' filter so
     // find the index of the existing 'between' filter
     const betweenFilterIndex = appliedFilters.findIndex(
-      filter => filter.operator === 'between',
+      (filter) => filter.operator === 'between',
     );
 
     if (betweenFilterIndex !== -1) {
@@ -341,7 +341,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
     }
 
     const incrementValue = () => {
-      setCurrentValue(prev => {
+      setCurrentValue((prev) => {
         // Calculate next value with safety bounds
         const nextValue = prev + step;
 
@@ -374,13 +374,16 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
           <label htmlFor="time-feature-select">Feature: </label>
           <select
             id="time-feature-select"
-            onChange={e => {
+            onChange={(e) => {
               setSelectedFeature(e.target.value);
             }}
           >
-            {validFeatures.map(feature => {
+            {validFeatures.map((feature) => {
               return (
-                <option value={feature} selected={selectedFeature === feature}>
+                <option
+                  value={feature}
+                  selected={selectedFeature === feature}
+                >
                   {feature}
                 </option>
               );
@@ -405,7 +408,11 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
             >
               <FontAwesomeIcon icon={faPause} />
             </Button>
-            <Button appearance="neutral" scale="medium" onClick={playAnimation}>
+            <Button
+              appearance="neutral"
+              scale="medium"
+              onClick={playAnimation}
+            >
               <FontAwesomeIcon icon={faPlay} />
             </Button>
           </div>
@@ -418,7 +425,7 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
               name="fps-number-input"
               type="number"
               value={fps}
-              onChange={e => setFps(+e.target.value)}
+              onChange={(e) => setFps(+e.target.value)}
             />
           </div>
         </div>
@@ -447,12 +454,16 @@ const TemporalSlider: React.FC<ITemporalSliderProps> = ({
           <label htmlFor="time-step-select">Step: </label>
           <select
             id="time-step-select"
-            onChange={e => {
+            onChange={(e) => {
               setStep(+e.target.value);
             }}
           >
             {Object.entries(validSteps).map(([key, val]) => (
-              <option key={key} selected={val === step} value={val}>
+              <option
+                key={key}
+                selected={val === step}
+                value={val}
+              >
                 {key}
               </option>
             ))}

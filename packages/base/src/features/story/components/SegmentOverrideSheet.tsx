@@ -45,10 +45,17 @@ export function SegmentOverrideSheet({
   };
 
   return (
-    <Sheet open={open} onOpenChange={setOpen} modal={false}>
+    <Sheet
+      open={open}
+      onOpenChange={setOpen}
+      modal={false}
+    >
       <SheetTrigger
         render={
-          <Button size={'xs'} variant="outline">
+          <Button
+            size={'xs'}
+            variant="outline"
+          >
             Edit
           </Button>
         }
@@ -71,7 +78,10 @@ export function SegmentOverrideSheet({
           />
         </div>
         <SheetFooter className="jgis-story-editor-sheet-footer">
-          <Button type="button" onClick={handleSave}>
+          <Button
+            type="button"
+            onClick={handleSave}
+          >
             Save changes
           </Button>
           <SheetClose render={<Button variant="outline">Close</Button>} />

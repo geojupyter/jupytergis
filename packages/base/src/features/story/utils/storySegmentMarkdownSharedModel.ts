@@ -5,6 +5,7 @@ import { removeAwarenessStates } from 'y-protocols/awareness';
 import { Text, YTextEvent } from 'yjs';
 
 import { debounce } from '@/src/tools';
+
 import { updateSegmentContent } from './storySegmentContent';
 
 const PARAMETER_SYNC_DEBOUNCE_MS = 300;

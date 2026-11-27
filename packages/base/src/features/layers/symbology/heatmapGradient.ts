@@ -29,7 +29,7 @@ export function extractHeatmapGradient(
   for (const rule of rules) {
     for (const mapping of rule.mappings) {
       const isPixelEncoding = (mapping.encodings as string[]).some(
-        ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
+        (ch) => ch === 'pixel-color' || ch.startsWith('pixel-'),
       );
       if (!isPixelEncoding || mapping.scale.scheme !== 'colorMap') {
         continue;

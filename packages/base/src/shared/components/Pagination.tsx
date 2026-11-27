@@ -34,7 +34,12 @@ function PaginationContent({
 }
 
 function PaginationItem({ ...props }: React.ComponentProps<'li'>) {
-  return <li data-slot="pagination-item" {...props} />;
+  return (
+    <li
+      data-slot="pagination-item"
+      {...props}
+    />
+  );
 }
 
 type PaginationLinkProps = {
@@ -78,7 +83,10 @@ function PaginationPrevious({
       className={cn('pl-2!', className)}
       {...props}
     >
-      <ChevronLeftIcon data-icon="inline-start" className="cn-rtl-flip" />
+      <ChevronLeftIcon
+        data-icon="inline-start"
+        className="cn-rtl-flip"
+      />
       <span className="block max-sm:hidden">{text}</span>
     </PaginationLink>
   );
@@ -97,7 +105,10 @@ function PaginationNext({
       {...props}
     >
       <span className="block max-sm:hidden">{text}</span>
-      <ChevronRightIcon data-icon="inline-end" className="cn-rtl-flip" />
+      <ChevronRightIcon
+        data-icon="inline-end"
+        className="cn-rtl-flip"
+      />
     </PaginationLink>
   );
 }

@@ -7,6 +7,7 @@ import React, { useEffect, useState } from 'react';
 import { FollowMirrorContext } from '@/src/features/follow/useFollowedState';
 import { EditorAwareDialog } from '@/src/shared/editorAwareDialog';
 import { SymbologyTab, SymbologyValue } from '@/src/types';
+
 import Grammar from './Grammar';
 
 export interface ISymbologyDialogProps {

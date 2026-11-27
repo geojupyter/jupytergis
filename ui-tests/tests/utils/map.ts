@@ -47,13 +47,13 @@ export async function mapKeyForFile(
   timeout = DEFAULT_TIMEOUT,
 ): Promise<string> {
   const handle = await page.waitForFunction(
-    name => {
+    (name) => {
       const maps = (window as any).jupytergisMaps;
       if (!maps) {
         return null;
       }
       const keys = Object.keys(maps).filter(
-        key => key === name || key.endsWith(`/${name}`),
+        (key) => key === name || key.endsWith(`/${name}`),
       );
       return keys.length === 1 ? keys[0] : null;
     },
@@ -88,7 +88,7 @@ export async function mapKeyInCell(
 
 async function mapHandle(page: Page, key: string): Promise<JSHandle> {
   return page.evaluateHandle(
-    mapKey => (window as any).jupytergisMaps[mapKey],
+    (mapKey) => (window as any).jupytergisMaps[mapKey],
     key,
   );
 }
@@ -212,7 +212,7 @@ export async function getTileLoadStats(
 
     instance.getLayers().getArray().forEach(collect);
 
-    await new Promise<void>(resolve => {
+    await new Promise<void>((resolve) => {
       const done = () => {
         clearTimeout(timer);
         resolve();

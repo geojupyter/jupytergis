@@ -55,7 +55,7 @@ function circleColorEvaluator(paint: unknown) {
   ] as StylePropertySpecification;
   const compiled = createPropertyExpression(paint, 'circle-color', spec);
   if (compiled.result !== 'success') {
-    throw new Error(compiled.value.map(e => e.message).join('; '));
+    throw new Error(compiled.value.map((e) => e.message).join('; '));
   }
   const expression = compiled.value;
   return (properties: Record<string, unknown>) =>

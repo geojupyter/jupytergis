@@ -18,7 +18,7 @@ export function buildPendingMeasureIds({
 }: IBuildPendingMeasureIdsParams): string[] {
   const pending = markdownSegments
     .filter(
-      segment =>
+      (segment) =>
         Math.abs(segment.index - currentSegmentIndex) <=
           LIST_STORY_MEASURE_LOOKAHEAD && heightsById[segment.id] === undefined,
     )
@@ -27,11 +27,11 @@ export function buildPendingMeasureIds({
         Math.abs(a.index - currentSegmentIndex) -
         Math.abs(b.index - currentSegmentIndex),
     )
-    .map(segment => segment.id);
+    .map((segment) => segment.id);
 
   if (!measuringSegmentId) {
     return pending;
   }
 
-  return pending.filter(id => id !== measuringSegmentId);
+  return pending.filter((id) => id !== measuringSegmentId);
 }

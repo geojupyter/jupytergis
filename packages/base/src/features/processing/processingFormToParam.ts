@@ -15,7 +15,7 @@ export function processingFormToParam(
   }
 
   const processingElement = ProcessingMerge.find(
-    e => e.description === processingType,
+    (e) => e.description === processingType,
   );
 
   if (!processingElement) {

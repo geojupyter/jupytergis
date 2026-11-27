@@ -3,6 +3,7 @@ import React from 'react';
 
 import { IStopRow } from '@/src/features/layers/symbology/symbologyDialog';
 import { Button } from '@/src/shared/components/Button';
+
 import StopRow from './StopRow';
 
 interface IStopContainerProps {
@@ -37,7 +38,10 @@ const StopContainer: React.FC<IStopContainerProps> = ({
   return (
     <>
       <div className="jp-gis-stop-container">
-        <div className="jp-gis-stop-labels" style={{ display: 'flex', gap: 6 }}>
+        <div
+          className="jp-gis-stop-labels"
+          style={{ display: 'flex', gap: 6 }}
+        >
           <span style={{ flex: '0 0 18%' }}>Value</span>
           <span>Output Value</span>
         </div>
@@ -55,7 +59,11 @@ const StopContainer: React.FC<IStopContainerProps> = ({
         ))}
       </div>
       <div className="jp-gis-symbology-button-container">
-        <Button variant="outline" size="sm" onClick={addStopRow}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={addStopRow}
+        >
           Add Stop
         </Button>
       </div>

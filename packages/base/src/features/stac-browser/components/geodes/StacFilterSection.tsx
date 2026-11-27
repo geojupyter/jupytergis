@@ -56,21 +56,21 @@ const StacFilterSection = ({
     if (section === 'Collection') {
       return (
         <DropdownMenuGroup>
-          {data.map(entry => (
+          {data.map((entry) => (
             <DropdownMenuSub key={entry.collection}>
               <DropdownMenuSubTrigger>
                 {entry.collection}
               </DropdownMenuSubTrigger>
               <DropdownMenuPortal>
                 <DropdownMenuSubContent>
-                  {entry.datasets.map(dataset => (
+                  {entry.datasets.map((dataset) => (
                     <DropdownMenuCheckboxItem
                       key={dataset}
                       checked={selectedData.includes(dataset)}
                       onCheckedChange={() => {
                         handleCheckedChange(dataset, entry.collection);
                       }}
-                      onSelect={e => {
+                      onSelect={(e) => {
                         e.preventDefault();
                       }}
                     >
@@ -88,17 +88,17 @@ const StacFilterSection = ({
     if (section === 'Platform') {
       return (
         <>
-          {selectedCollections.map(collection => (
+          {selectedCollections.map((collection) => (
             <DropdownMenuGroup key={collection}>
               <DropdownMenuLabel>{collection}</DropdownMenuLabel>
-              {data[collection as keyof typeof data]?.map(platform => (
+              {data[collection as keyof typeof data]?.map((platform) => (
                 <DropdownMenuCheckboxItem
                   key={platform}
                   checked={selectedData.includes(platform)}
                   onCheckedChange={() => {
                     handleCheckedChange(platform, '');
                   }}
-                  onSelect={e => {
+                  onSelect={(e) => {
                     e.preventDefault();
                   }}
                 >
@@ -114,19 +114,19 @@ const StacFilterSection = ({
     if (section === 'Data / Product') {
       return (
         <>
-          {selectedCollections.map(collection => (
+          {selectedCollections.map((collection) => (
             <DropdownMenuGroup key={collection}>
               <DropdownMenuLabel>{collection}</DropdownMenuLabel>
               {data
-                .filter(product => product.collections.includes(collection))
-                .map(product => (
+                .filter((product) => product.collections.includes(collection))
+                .map((product) => (
                   <DropdownMenuCheckboxItem
                     key={product.productCode}
                     checked={selectedData.includes(product.productCode)}
                     onCheckedChange={() => {
                       handleCheckedChange(product.productCode, collection);
                     }}
-                    onSelect={e => {
+                    onSelect={(e) => {
                       e.preventDefault();
                     }}
                   >
@@ -157,8 +157,11 @@ const StacFilterSection = ({
         <DropdownMenuContent side="right">{items}</DropdownMenuContent>
       </DropdownMenu>
       <div className="jgis-stac-filter-section-badges">
-        {selectedData.map(data => (
-          <Badge key={data} className="jgis-stac-badge">
+        {selectedData.map((data) => (
+          <Badge
+            key={data}
+            className="jgis-stac-badge"
+          >
             <span>{data}</span>
             <Button
               variant="ghost"

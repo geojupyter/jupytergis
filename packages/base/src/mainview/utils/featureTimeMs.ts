@@ -31,7 +31,7 @@ export function vectorSourceForLayer(
  * the source, so a `between` guard can compare the time as a number.
  */
 export function setFeatureTimeMs(source: VectorSource, field: string): void {
-  source.forEachFeature(feature => {
+  source.forEachFeature((feature) => {
     const time = feature.get(field);
     const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
     feature.set(`${field}ms`, parsedTime);

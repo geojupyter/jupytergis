@@ -31,11 +31,11 @@ function sharedFixtureNames(fromV: string, toV: string): string[] {
     return [];
   }
   const fromNames = new Set(
-    fs.readdirSync(fromDir).filter(n => n.endsWith('.jGIS')),
+    fs.readdirSync(fromDir).filter((n) => n.endsWith('.jGIS')),
   );
   return fs
     .readdirSync(toDir)
-    .filter(n => n.endsWith('.jGIS') && fromNames.has(n))
+    .filter((n) => n.endsWith('.jGIS') && fromNames.has(n))
     .sort();
 }
 

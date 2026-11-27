@@ -18,7 +18,7 @@ function SegmentImageCaptionField({
         value={value}
         placeholder="Enter Image Caption..."
         aria-label="Image caption"
-        onChange={caption => {
+        onChange={(caption) => {
           onChange(caption);
         }}
       />

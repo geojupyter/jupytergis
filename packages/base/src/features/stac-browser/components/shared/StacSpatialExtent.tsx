@@ -17,7 +17,10 @@ const StacSpatialExtent: React.FC<IStacSpatialExtentProps> = ({
     <>
       <label className="jgis-stac-filter-extension-label">Spatial Extent</label>
       <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-        <Checkbox checked={checked} onCheckedChange={onCheckedChange} />
+        <Checkbox
+          checked={checked}
+          onCheckedChange={onCheckedChange}
+        />
         {label}
       </span>
     </>

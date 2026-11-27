@@ -2,9 +2,9 @@
  * Dereference all schemas and combine into a single file for building the
  * schema registry (see `python/jupytergis_core/src/schemaregistry.ts`).
  */
-const path = require("path");
-const fs = require("fs");
-const $RefParser = require("@apidevtools/json-schema-ref-parser");
+const path = require('path');
+const fs = require('fs');
+const $RefParser = require('@apidevtools/json-schema-ref-parser');
 
 function getSchemaFiles(dir) {
   let results = [];
@@ -17,7 +17,7 @@ function getSchemaFiles(dir) {
     if (stat && stat.isDirectory()) {
       // Recursively read from subdirectories
       results = results.concat(getSchemaFiles(fullPath));
-    } else if (file.endsWith(".json")) {
+    } else if (file.endsWith('.json')) {
       results.push(fullPath);
     }
   });
@@ -26,12 +26,12 @@ function getSchemaFiles(dir) {
 }
 
 // Dereference all schema files and combine into `forms.json`
-const packagePath = path.resolve(path.join(__dirname, "../"));
-const schemaPath = path.join(packagePath, "src/schema");
-const interfacePath = path.join(packagePath, "lib/_interface");
+const packagePath = path.resolve(path.join(__dirname, '../'));
+const schemaPath = path.join(packagePath, 'src/schema');
+const interfacePath = path.join(packagePath, 'lib/_interface');
 const schemaFiles = getSchemaFiles(schemaPath);
 
-fs.mkdirSync(interfacePath, {recursive: true});
+fs.mkdirSync(interfacePath, { recursive: true });
 
 const allSchema = {};
 schemaFiles.forEach((file) => {
@@ -42,12 +42,12 @@ schemaFiles.forEach((file) => {
     if (err) {
       console.error(`Error processing ${file}:`, err);
     } else {
-      if (rschema["description"]) {
+      if (rschema['description']) {
         const { description, title, ...props } = rschema;
         allSchema[description] = props;
       }
       fs.writeFileSync(
-        path.join(interfacePath, "forms.json"),
+        path.join(interfacePath, 'forms.json'),
         JSON.stringify(allSchema, null, 2),
       );
     }

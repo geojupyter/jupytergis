@@ -49,7 +49,7 @@ export function useStoryMap({
       return [];
     }
     return storyData.storySegments
-      .map(segmentId => model.getLayer(segmentId))
+      .map((segmentId) => model.getLayer(segmentId))
       .filter((layer): layer is IJGISLayer => layer !== undefined);
   }, [storyData, model]);
 
@@ -167,7 +167,7 @@ export function useStoryMap({
   useEffect(() => {
     return () => {
       clearOverrideLayers();
-      storyData?.storySegments?.forEach(segmentId => {
+      storyData?.storySegments?.forEach((segmentId) => {
         const segment = model.getLayer(segmentId);
         const overrides = segment?.parameters?.layerOverride;
         if (Array.isArray(overrides)) {

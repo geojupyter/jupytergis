@@ -126,13 +126,13 @@ function overlayPaneHeight(
   }
 
   const layoutHeight =
-    layout?.segments.find(segment => segment.index === segmentIndex)?.height ??
-    0;
+    layout?.segments.find((segment) => segment.index === segmentIndex)
+      ?.height ?? 0;
   if (layoutHeight > 0) {
     return layoutHeight;
   }
 
-  const item = items.find(entry => entry.index === segmentIndex);
+  const item = items.find((entry) => entry.index === segmentIndex);
   const markdown = getStoryMarkdownFromSlide(item?.activeSlide);
   return estimateMarkdownHeight(markdown, Math.max(viewportHeight, 1));
 }
@@ -156,7 +156,7 @@ function appendMarkdownLookaheadPanes({
     return;
   }
 
-  const current = items.find(item => item.index === afterIndex);
+  const current = items.find((item) => item.index === afterIndex);
   if (!current || getSegmentDisplayMode(current.activeSlide) !== 'markdown') {
     return;
   }
@@ -165,7 +165,7 @@ function appendMarkdownLookaheadPanes({
   // Outgoing `from` + handoff gap sit above the translate and must not
   // suppress lookahead into a short markdown run.
   let mountedHeight = panes
-    .filter(pane => pane.segmentIndex >= afterIndex)
+    .filter((pane) => pane.segmentIndex >= afterIndex)
     .reduce(
       (sum, pane) =>
         sum +
@@ -184,7 +184,7 @@ function appendMarkdownLookaheadPanes({
   let prevIndex = afterIndex;
 
   while (mountedHeight < fillUntil) {
-    const next = items.find(item => item.index === prevIndex + 1);
+    const next = items.find((item) => item.index === prevIndex + 1);
     if (!next || getSegmentDisplayMode(next.activeSlide) !== 'markdown') {
       break;
     }
@@ -225,7 +225,7 @@ function buildOverlayStack({
   viewportHeight: number;
   layout: IListStoryScrollTrackLayout | null;
 }): IOverlayStack {
-  const fromItem = items.find(item => item.index === transition.fromIndex);
+  const fromItem = items.find((item) => item.index === transition.fromIndex);
 
   const fromPane: IOverlayStackPane = {
     role: 'from',
@@ -248,7 +248,7 @@ function buildOverlayStack({
     return { panes, includeGap: false };
   }
 
-  const toItem = items.find(item => item.index === transition.toIndex);
+  const toItem = items.find((item) => item.index === transition.toIndex);
   const panes: IOverlayStackPane[] = [
     fromPane,
     {
@@ -481,7 +481,7 @@ export function ListStoryStageOverlay({
     story?.overlayContentWidth,
   );
 
-  const activeItem = items.find(item => item.index === currentIndex);
+  const activeItem = items.find((item) => item.index === currentIndex);
 
   const transition = useMemo((): IListStorySegmentTransition | null => {
     if (segmentTransition) {
@@ -535,7 +535,7 @@ export function ListStoryStageOverlay({
     scrollTrackLayout,
   ]);
 
-  const fromStackPane = overlayStack.panes.find(pane => pane.role === 'from');
+  const fromStackPane = overlayStack.panes.find((pane) => pane.role === 'from');
 
   const overlayHeight = Math.max(stageHeight, 0);
   const transitionProgress = transition?.progress ?? 0;
@@ -554,7 +554,7 @@ export function ListStoryStageOverlay({
 
     const update = (): void => {
       const next = parent.clientHeight;
-      setStageHeight(prev => (prev === next ? prev : next));
+      setStageHeight((prev) => (prev === next ? prev : next));
     };
 
     update();
@@ -578,7 +578,7 @@ export function ListStoryStageOverlay({
 
       if (paneEl instanceof HTMLElement) {
         const stackPane = overlayStack.panes.find(
-          p => p.segmentIndex === segmentIndex,
+          (p) => p.segmentIndex === segmentIndex,
         );
 
         const segmentId =
@@ -688,7 +688,10 @@ export function ListStoryStageOverlay({
         } as React.CSSProperties
       }
     >
-      <div ref={stackRef} className="jgis-story-segment-transition-stack">
+      <div
+        ref={stackRef}
+        className="jgis-story-segment-transition-stack"
+      >
         {overlayStack.panes.flatMap((stackPane, paneOrder) => {
           const nodes: React.ReactNode[] = [];
 

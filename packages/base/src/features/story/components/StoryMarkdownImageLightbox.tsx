@@ -113,7 +113,7 @@ export function StoryMarkdownImageLightbox({
   return (
     <Dialog
       open={open}
-      onOpenChange={nextOpen => {
+      onOpenChange={(nextOpen) => {
         if (!nextOpen) {
           onClose();
         }

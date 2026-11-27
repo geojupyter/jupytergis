@@ -2,14 +2,14 @@ import { LabIcon } from '@jupyterlab/ui-components';
 import React, { ReactNode, useEffect } from 'react';
 
 import {
-  type FloatingPanelId,
-  useFloatingPanelAccordion,
-} from './floatingPanelDock';
-import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from '../../shared/components/Accordion';
+import {
+  type FloatingPanelId,
+  useFloatingPanelAccordion,
+} from './floatingPanelDock';
 
 interface IFloatingRightPanelProps {
   value: FloatingPanelId;
@@ -41,7 +41,10 @@ export function FloatingRightPanel({
           title={title}
         >
           {icon ? (
-            <icon.react tag="span" className="jgis-floating-right-panel-icon" />
+            <icon.react
+              tag="span"
+              className="jgis-floating-right-panel-icon"
+            />
           ) : null}
           <span
             className="jgis-floating-right-panel-title jgis-underline-indicator"

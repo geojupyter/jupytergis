@@ -71,7 +71,7 @@ export function withTemporalPredicate(
       ...layer.parameters,
       symbologyState: {
         ...state,
-        layers: state.layers.map(gl => guardGrammarLayer(gl, predicate)),
+        layers: state.layers.map((gl) => guardGrammarLayer(gl, predicate)),
       },
     },
   };

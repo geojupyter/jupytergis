@@ -40,9 +40,9 @@ export interface ICreationFormDialogOptions extends ICreationFormProps {
   followMirror?: boolean;
 }
 
-export const CreationFormWrapper: React.FC<
-  ICreationFormWrapperProps
-> = props => {
+export const CreationFormWrapper: React.FC<ICreationFormWrapperProps> = (
+  props,
+) => {
   const [ready, setReady] = React.useState<boolean>(false);
 
   const okSignal = React.useRef<Signal<Dialog<any>, number>>();

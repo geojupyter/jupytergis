@@ -3,11 +3,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { Encoding, IScale } from '@jupytergis/schema';
 import React from 'react';
 
-import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
-import { TEXT_ENUM_OPTIONS } from '@/src/features/layers/symbology/components/ScaleEditor';
 import RgbaColorPicker, {
   RgbaColor,
 } from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
+import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
+import { TEXT_ENUM_OPTIONS } from '@/src/features/layers/symbology/components/ScaleEditor';
 import { Button } from '@/src/shared/components/Button';
 import { Input } from '@/src/shared/components/Input';
 import {
@@ -90,7 +90,7 @@ const InlineConstant: React.FC<IInlineConstantProps> = ({
           className="jp-gis-inline-constant-num"
           value={scale.params.value}
           disabled={disabled}
-          onChange={value =>
+          onChange={(value) =>
             onChange({ scheme: 'constant_num', params: { value } })
           }
         />
@@ -105,7 +105,7 @@ const InlineConstant: React.FC<IInlineConstantProps> = ({
         <RgbaColorPicker
           color={scale.params.value as RgbaColor}
           disabled={disabled}
-          onChange={value =>
+          onChange={(value) =>
             onChange({ scheme: 'constant_rgba', params: { value } })
           }
         />
@@ -115,7 +115,7 @@ const InlineConstant: React.FC<IInlineConstantProps> = ({
   }
 
   if (scale.scheme === 'constant_str') {
-    const enumEncoding = encodings.find(c => c in TEXT_ENUM_OPTIONS);
+    const enumEncoding = encodings.find((c) => c in TEXT_ENUM_OPTIONS);
     const options = enumEncoding
       ? TEXT_ENUM_OPTIONS[enumEncoding]
       : encodings.includes('text-font-family')
@@ -132,10 +132,13 @@ const InlineConstant: React.FC<IInlineConstantProps> = ({
             className="jp-gis-inline-constant-select"
             value={scale.params.value}
             disabled={disabled}
-            onChange={e => set(e.target.value)}
+            onChange={(e) => set(e.target.value)}
           >
-            {options.map(o => (
-              <NativeSelectOption key={o} value={o}>
+            {options.map((o) => (
+              <NativeSelectOption
+                key={o}
+                value={o}
+              >
                 {o}
               </NativeSelectOption>
             ))}
@@ -145,7 +148,7 @@ const InlineConstant: React.FC<IInlineConstantProps> = ({
             className="jp-mod-styled jp-gis-inline-constant-text"
             value={scale.params.value}
             disabled={disabled}
-            onChange={e => set(e.target.value)}
+            onChange={(e) => set(e.target.value)}
           />
         )}
         {promote}

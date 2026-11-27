@@ -33,7 +33,7 @@ export const FeatureRow: React.FC<IFeatureRowProps> = ({
       <span className="jgis-attribute-col-value">{String(value)}</span>
       {showActions && (
         <AttributeActionsMenu
-          onContentClick={event => event.stopPropagation()}
+          onContentClick={(event) => event.stopPropagation()}
           items={[
             {
               label: 'Edit',

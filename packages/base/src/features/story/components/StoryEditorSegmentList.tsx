@@ -53,7 +53,7 @@ function SegmentListItem({
         <div
           className="jgis-story-editor-segment-drag-handle"
           draggable
-          onDragStart={event => {
+          onDragStart={(event) => {
             onDragStart(index, event);
           }}
           title="Drag to reorder"
@@ -104,14 +104,17 @@ function MobileSegmentPicker({
           className="jgis-story-editor-segment-picker"
           aria-label="Segment"
           value={selectedSegmentId ?? ''}
-          onChange={event => {
+          onChange={(event) => {
             if (event.target.value) {
               onSelectSegment(event.target.value);
             }
           }}
         >
-          {segments.map(segment => (
-            <NativeSelectOption key={segment.id} value={segment.id}>
+          {segments.map((segment) => (
+            <NativeSelectOption
+              key={segment.id}
+              value={segment.id}
+            >
               {formatSegmentOptionLabel(segment)}
             </NativeSelectOption>
           ))}

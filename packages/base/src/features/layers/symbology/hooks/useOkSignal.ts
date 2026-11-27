@@ -22,7 +22,7 @@ export function useOkSignal(
   useEffect(() => {
     let disposed = false;
 
-    okSignalPromise.promise.then(okSignal => {
+    okSignalPromise.promise.then((okSignal) => {
       if (disposed) {
         return;
       }
@@ -31,7 +31,7 @@ export function useOkSignal(
 
     return () => {
       disposed = true;
-      okSignalPromise.promise.then(okSignal => {
+      okSignalPromise.promise.then((okSignal) => {
         okSignal.disconnect(slot);
       });
     };

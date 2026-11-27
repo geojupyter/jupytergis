@@ -325,14 +325,14 @@ function kdeToLegendEntries(
   for (const rule of grammarLayer.rules) {
     for (const mapping of rule.mappings) {
       const isPixelEncoding = (mapping.encodings as string[]).some(
-        ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
+        (ch) => ch === 'pixel-color' || ch.startsWith('pixel-'),
       );
       if (!isPixelEncoding || mapping.scale.scheme !== 'colorMap') {
         continue;
       }
       const p = mapping.scale.params;
       if (p.colorStops && p.colorStops.length >= 2) {
-        const colorStrs = p.colorStops.map(s => rgbaToString(s.color));
+        const colorStrs = p.colorStops.map((s) => rgbaToString(s.color));
         entries.push({
           type: 'gradient',
           field: densityLabel,
@@ -396,9 +396,9 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
     // Look for a pixel-alpha scalar mapping anywhere in this grammar layer.
     // It is often in a separate rule from the color mapping (e.g. COG layers).
     const layerAlphaMapping = grammarLayer.rules
-      .flatMap(r => r.mappings)
+      .flatMap((r) => r.mappings)
       .find(
-        m =>
+        (m) =>
           (m.encodings as string[]).includes('pixel-alpha') &&
           m.scale.scheme === 'scalar' &&
           (m.scale.params?.scalarStops?.length ?? 0) >= 2,
@@ -416,9 +416,11 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
         const { scale, encodings } = mapping;
 
         // Determine which logical encoding family this mapping targets.
-        const isColor = encodings.some(ch => COLOR_ENCODINGS.has(ch as string));
-        const isSize = encodings.some(ch => SIZE_ENCODINGS.has(ch as string));
-        const isStrokeWidth = encodings.some(ch =>
+        const isColor = encodings.some((ch) =>
+          COLOR_ENCODINGS.has(ch as string),
+        );
+        const isSize = encodings.some((ch) => SIZE_ENCODINGS.has(ch as string));
+        const isStrokeWidth = encodings.some((ch) =>
           STROKE_WIDTH_ENCODINGS.has(ch as string),
         );
         const isElevation = (encodings as string[]).includes('elevation');
@@ -430,7 +432,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
 
         const encodingLbl = deriveEncodingLabel(encodings as string[]);
         const isPixelEncoding = (encodings as string[]).some(
-          ch => ch === 'pixel-color' || ch.startsWith('pixel-'),
+          (ch) => ch === 'pixel-color' || ch.startsWith('pixel-'),
         );
         const withAlpha = isPixelEncoding && layerAlphaScalarStops.length >= 2;
 
@@ -450,13 +452,13 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
                     layerAlphaScalarStops[layerAlphaScalarStops.length - 1]
                       .stop;
                   const clipped = p.colorStops.filter(
-                    s => s.stop >= alphaMin && s.stop <= alphaMax,
+                    (s) => s.stop >= alphaMin && s.stop <= alphaMax,
                   );
                   if (clipped.length >= 2) {
                     displayStops = clipped;
                   }
                 }
-                const colorStrs = displayStops.map(s => {
+                const colorStrs = displayStops.map((s) => {
                   const [r, g, b] = s.color;
                   const a = withAlpha
                     ? interpolateScalar(layerAlphaScalarStops, s.stop)
@@ -508,7 +510,7 @@ function grammarToLegendEntries(state: IGrammarSymbologyState): LegendEntry[] {
                   field,
                   encoding: encodingLbl,
                   when: whenLbl,
-                  stops: p.colorStops.map(s => ({
+                  stops: p.colorStops.map((s) => ({
                     label: String(s.stop),
                     color: rgbaToString(s.color),
                   })),
@@ -707,7 +709,7 @@ const GradientLegend: React.FC<GradientEntry> = ({
     if (!el) {
       return;
     }
-    const ro = new ResizeObserver(entries => {
+    const ro = new ResizeObserver((entries) => {
       setBarWidth(entries[0].contentRect.width);
     });
     ro.observe(el);
@@ -723,7 +725,9 @@ const GradientLegend: React.FC<GradientEntry> = ({
     const charPx = 6;
     const minGapPx = 4;
     const maxLabelPx =
-      Math.max(...stops.map(s => formatTickValue(s.value, sigDigits).length)) *
+      Math.max(
+        ...stops.map((s) => formatTickValue(s.value, sigDigits).length),
+      ) *
         charPx +
       minGapPx;
     const maxTicks = Math.max(2, Math.floor(barWidth / maxLabelPx));
@@ -742,8 +746,15 @@ const GradientLegend: React.FC<GradientEntry> = ({
 
   return (
     <div style={{ padding: '6px 6px 10px' }}>
-      <EntryHeader field={field} encoding={encoding} when={when} />
-      <div ref={barRef} style={{ marginBottom: 4 }}>
+      <EntryHeader
+        field={field}
+        encoding={encoding}
+        when={when}
+      />
+      <div
+        ref={barRef}
+        style={{ marginBottom: 4 }}
+      >
         <div style={{ position: 'relative', height: 12 }}>
           {withAlpha && <div style={CHECKERBOARD} />}
           <div
@@ -819,7 +830,11 @@ const CategoricalLegend: React.FC<CategoricalEntry> = ({
   stops,
 }) => (
   <div style={{ padding: 6 }}>
-    <EntryHeader field={field} encoding={encoding} when={when} />
+    <EntryHeader
+      field={field}
+      encoding={encoding}
+      when={when}
+    />
     <div
       style={{
         display: 'grid',
@@ -830,7 +845,10 @@ const CategoricalLegend: React.FC<CategoricalEntry> = ({
       }}
     >
       {stops.map((s, i) => (
-        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div
+          key={i}
+          style={{ display: 'flex', alignItems: 'center', gap: 8 }}
+        >
           <ColorSwatch color={s.color || '#ccc'} />
           <span
             style={{
@@ -849,7 +867,11 @@ const CategoricalLegend: React.FC<CategoricalEntry> = ({
 
 const SwatchLegend: React.FC<SwatchEntry> = ({ field, label, color, when }) => (
   <div style={{ padding: '4px 6px' }}>
-    <EntryHeader field={field} encoding={label} when={when} />
+    <EntryHeader
+      field={field}
+      encoding={label}
+      when={when}
+    />
     <ColorSwatch color={color} />
   </div>
 );
@@ -863,7 +885,11 @@ const SizeLegend: React.FC<SizeEntry> = ({
   domain,
 }) => (
   <div style={{ padding: 6 }}>
-    <EntryHeader field={field} encoding={encoding} when={when} />
+    <EntryHeader
+      field={field}
+      encoding={encoding}
+      when={when}
+    />
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       <div
         style={{
@@ -920,7 +946,11 @@ const StrokeWidthLegend: React.FC<StrokeWidthEntry> = ({
   domain,
 }) => (
   <div style={{ padding: 6 }}>
-    <EntryHeader field={field} encoding={encoding} when={when} />
+    <EntryHeader
+      field={field}
+      encoding={encoding}
+      when={when}
+    />
     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       {[
         { w: minWidth, v: domain[0] },
@@ -999,7 +1029,11 @@ const ExpressionLegend: React.FC<ExpressionEntry> = ({
 
   return (
     <div style={{ padding: 6 }}>
-      <EntryHeader field={field} encoding={encoding} when={when} />
+      <EntryHeader
+        field={field}
+        encoding={encoding}
+        when={when}
+      />
 
       <div
         ref={editorRef}
@@ -1011,7 +1045,7 @@ const ExpressionLegend: React.FC<ExpressionEntry> = ({
       {isLong && (
         <div style={{ marginTop: 2 }}>
           <span
-            onClick={() => setExpanded(v => !v)}
+            onClick={() => setExpanded((v) => !v)}
             style={{
               fontSize: '0.90em',
               cursor: 'pointer',
@@ -1118,7 +1152,10 @@ export const LegendItem: React.FC<{
 
   if (heatmapColors) {
     return (
-      <HeatmapLegend gradient={heatmapColors} reversed={heatmapReversed} />
+      <HeatmapLegend
+        gradient={heatmapColors}
+        reversed={heatmapReversed}
+      />
     );
   }
 
@@ -1131,17 +1168,47 @@ export const LegendItem: React.FC<{
       {entries.map((entry, i) => {
         switch (entry.type) {
           case 'gradient':
-            return <GradientLegend key={i} {...entry} />;
+            return (
+              <GradientLegend
+                key={i}
+                {...entry}
+              />
+            );
           case 'categorical':
-            return <CategoricalLegend key={i} {...entry} />;
+            return (
+              <CategoricalLegend
+                key={i}
+                {...entry}
+              />
+            );
           case 'swatch':
-            return <SwatchLegend key={i} {...entry} />;
+            return (
+              <SwatchLegend
+                key={i}
+                {...entry}
+              />
+            );
           case 'size':
-            return <SizeLegend key={i} {...entry} />;
+            return (
+              <SizeLegend
+                key={i}
+                {...entry}
+              />
+            );
           case 'stroke-width':
-            return <StrokeWidthLegend key={i} {...entry} />;
+            return (
+              <StrokeWidthLegend
+                key={i}
+                {...entry}
+              />
+            );
           case 'expression': {
-            return <ExpressionLegend key={i} {...entry} />;
+            return (
+              <ExpressionLegend
+                key={i}
+                {...entry}
+              />
+            );
           }
         }
       })}

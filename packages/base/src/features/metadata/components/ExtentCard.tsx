@@ -1,9 +1,9 @@
 import * as React from 'react';
 
 import { IExtentMetadata } from '../types';
+import { formatNumber } from '../utils/format';
 import { MetadataSection } from './MetadataSection';
 import { Table, tableCellClass, tableHeaderClass } from './MetadataTables';
-import { formatNumber } from '../utils/format';
 
 interface IExtentCardProps {
   extent: IExtentMetadata;
@@ -55,8 +55,11 @@ export const ExtentCard: React.FC<IExtentCardProps> = ({ extent }) => {
           </tr>
         </thead>
         <tbody>
-          {rows.map(row => (
-            <tr key={row.crs} className="border-b border-border/50">
+          {rows.map((row) => (
+            <tr
+              key={row.crs}
+              className="border-b border-border/50"
+            >
               <td className={tableCellClass}>{row.crs}</td>
               {row.bounds.map((bound, index) => (
                 <td

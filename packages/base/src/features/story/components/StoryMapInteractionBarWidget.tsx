@@ -5,6 +5,7 @@ import {
   StoryMapInteractionBar,
   type IStoryMapInteractionBarProps,
 } from '@/src/features/story/components/StoryMapInteractionBar';
+
 import type { StoryMapInteractionBarPlacement } from '../types/types';
 
 interface IStoryMapInteractionBarWidgetOptions extends IStoryMapInteractionBarProps {

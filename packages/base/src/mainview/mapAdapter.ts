@@ -15,6 +15,7 @@ import { ILoggerRegistry } from '@jupyterlab/logconsole';
 import type { Feature as GeoJSONFeature, Geometry } from 'geojson';
 
 import type { IDrawToolAdapter } from '@/src/features/draw-tool';
+
 import { ClientPointer } from './CollaboratorPointers';
 import { IMapAdapterFeatures } from './mapAdapterFeatures';
 

@@ -9,8 +9,8 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 import * as React from 'react';
 import Draggable from 'react-draggable';
 
-import { ITabConfig, TabbedPanel } from './components/TabbedPanel';
 import { LayersBodyComponent } from './components/layers';
+import { ITabConfig, TabbedPanel } from './components/TabbedPanel';
 import { useLayerTree } from './hooks/useLayerTree';
 import { useUIState } from './hooks/useUIState';
 
@@ -31,7 +31,7 @@ const MIN_PANEL_WIDTH = 200;
 const MAX_PANEL_WIDTH = 600;
 const DEFAULT_PANEL_WIDTH = 320;
 
-export const LeftPanel: React.FC<ILeftPanelProps> = props => {
+export const LeftPanel: React.FC<ILeftPanelProps> = (props) => {
   const nodeRef = React.useRef<HTMLDivElement>(null);
   const [leftPanelOpen] = useUIState('leftPanelOpen', props.model);
   const [panelWidth, setPanelWidth] = React.useState(DEFAULT_PANEL_WIDTH);
@@ -108,7 +108,9 @@ export const LeftPanel: React.FC<ILeftPanelProps> = props => {
         <TabbedPanel
           tabs={tabs}
           curTab={curTab}
-          onTabClick={name => setCurTab(prev => (prev === name ? '' : name))}
+          onTabClick={(name) =>
+            setCurTab((prev) => (prev === name ? '' : name))
+          }
         />
         <div
           className="jgis-left-panel-resize-handle"

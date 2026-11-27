@@ -42,12 +42,12 @@ function StacCatalogQueryPanel({ model }: IStacCatalogQueryPanelProps) {
     collectionsError,
   } = useStacCatalogQuery({ model, baseUrl: selectedUrl });
 
-  const collectionItems: CollectionItem[] = collections.map(collection => ({
+  const collectionItems: CollectionItem[] = collections.map((collection) => ({
     value: collection.id,
     label: collection.title || collection.id,
   }));
   const selectedItem =
-    collectionItems.find(item => item.value === selectedCollection) ?? null;
+    collectionItems.find((item) => item.value === selectedCollection) ?? null;
 
   if (!model) {
     return null;
@@ -101,7 +101,10 @@ function StacCatalogQueryPanel({ model }: IStacCatalogQueryPanelProps) {
             <ComboboxEmpty>No collection found.</ComboboxEmpty>
             <ComboboxList>
               {(item: CollectionItem) => (
-                <ComboboxItem key={item.value} value={item}>
+                <ComboboxItem
+                  key={item.value}
+                  value={item}
+                >
                   {item.label}
                 </ComboboxItem>
               )}

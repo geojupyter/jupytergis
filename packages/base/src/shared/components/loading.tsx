@@ -24,7 +24,7 @@ interface ILoadingIcon {
   style?: React.CSSProperties;
   className?: string;
 }
-export const LoadingIcon: React.FC<ILoadingIcon> = props => (
+export const LoadingIcon: React.FC<ILoadingIcon> = (props) => (
   <FontAwesomeIcon
     icon={faSpinner}
     spin
@@ -34,7 +34,7 @@ export const LoadingIcon: React.FC<ILoadingIcon> = props => (
   />
 );
 
-export const LoadingOverlay: React.FC<{ loading: boolean }> = props => (
+export const LoadingOverlay: React.FC<{ loading: boolean }> = (props) => (
   <div
     className={'jGIS-Spinner'}
     style={{ display: props.loading ? 'flex' : 'none' }}

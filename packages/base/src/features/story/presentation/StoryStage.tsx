@@ -32,10 +32,16 @@ export function StoryStage(props: IStoryStageProps): JSX.Element {
         position: 'relative',
       }}
     >
-      <ListStoryScrollTrackProvider model={model} enabled={verticalScroll}>
+      <ListStoryScrollTrackProvider
+        model={model}
+        enabled={verticalScroll}
+      >
         {verticalScroll ? (
           <>
-            <ListStoryTitleBar model={model} isMobile={isMobile} />
+            <ListStoryTitleBar
+              model={model}
+              isMobile={isMobile}
+            />
             <ListStoryStageOverlay
               model={model}
               segmentTransition={segmentTransition}
@@ -67,7 +73,10 @@ export function StoryStage(props: IStoryStageProps): JSX.Element {
             />
           </div>
         ) : null}
-        <div ref={controlsToolbarRef} className="jgis-controls-toolbar" />
+        <div
+          ref={controlsToolbarRef}
+          className="jgis-controls-toolbar"
+        />
       </ListStoryScrollTrackProvider>
     </div>
   );

@@ -165,7 +165,7 @@ describe('TemporalSlider', () => {
 
     // The guards of the layers the model handed out were left alone; the
     // window only lives on the copy given to triggerLayerUpdate.
-    const handedOut = model.getLayer.mock.results.map(r => r.value);
+    const handedOut = model.getLayer.mock.results.map((r) => r.value);
     expect(handedOut.length).toBeGreaterThan(0);
     for (const docLayer of handedOut) {
       expect(docLayer.parameters.symbologyState.layers[0].when).toHaveLength(1);

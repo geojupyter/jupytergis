@@ -26,6 +26,7 @@ import React from 'react';
 
 import { maybeProxied } from '@/src/shared/proxy';
 import { describeConnectionError } from '@/src/tools';
+
 import { OpenEODeviceProvider } from './deviceLogin';
 import { showOpenEOSigninDialog } from './signin';
 import { ensureSaveResult } from './templates';
@@ -198,7 +199,7 @@ class SigninWidget extends ReactWidget {
             className="jp-mod-styled"
             type="text"
             defaultValue={this._serverUrl}
-            onChange={e => {
+            onChange={(e) => {
               this._serverUrl = e.target.value;
             }}
             style={{ width: '100%' }}
@@ -210,7 +211,7 @@ class SigninWidget extends ReactWidget {
           <input
             className="jp-mod-styled"
             type="text"
-            onChange={e => {
+            onChange={(e) => {
               this._username = e.target.value;
             }}
             style={{ width: '100%' }}
@@ -222,7 +223,7 @@ class SigninWidget extends ReactWidget {
           <input
             className="jp-mod-styled"
             type="password"
-            onChange={e => {
+            onChange={(e) => {
               this._password = e.target.value;
             }}
             style={{ width: '100%' }}
@@ -322,14 +323,14 @@ export async function openEOConnect(
     connection.baseUrl = await maybeProxied(connection.baseUrl);
 
     if (!connection.isAuthenticated()) {
-      connection.setOidcProviderFactory(info =>
+      connection.setOidcProviderFactory((info) =>
         OpenEODeviceProvider.create(connection, info),
       );
       const providers = await connection.listAuthProviders();
 
       if (signIn) {
         const authProvider = providers.find(
-          provider => provider.type === 'basic',
+          (provider) => provider.type === 'basic',
         );
         if (!authProvider) {
           throw new Error('Failed to get "basic" OpenEO provider.');
@@ -559,7 +560,7 @@ export class OpenEOTileSource extends DataTileSource {
 
         retries -= 1;
         const retry = async () => {
-          await new Promise(resolve => setTimeout(resolve, TILE_RETRY_RATE));
+          await new Promise((resolve) => setTimeout(resolve, TILE_RETRY_RATE));
           return tileLoadFunction(retries)(z, x, y, loaderOptions);
         };
 
@@ -623,7 +624,7 @@ export class OpenEOTileSource extends DataTileSource {
 
     this.serverUrl = options.serverUrl;
 
-    this._initializeTileServiceURL(options).catch(error => {
+    this._initializeTileServiceURL(options).catch((error) => {
       this._connected.reject(error);
       throw error;
     });
