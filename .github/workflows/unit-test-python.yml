@@ -39,6 +39,7 @@ jobs:
           create-args: >-
             python=${{ matrix.python-version }}
             qgis
+            draco>=1.5.9
 
       - name: Install
         shell: bash -l {0}
