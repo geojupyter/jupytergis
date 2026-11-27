@@ -68,7 +68,7 @@ function ObjectPropertiesBody({
   return (
     <Tabs
       value={tab}
-      onValueChange={(value) => setTab(value as ObjectPropertiesTab)}
+      onValueChange={value => setTab(value as ObjectPropertiesTab)}
       className="min-h-0 w-full"
       style={{ boxShadow: 'none' }}
     >
@@ -76,24 +76,15 @@ function ObjectPropertiesBody({
         variant="underline"
         className="w-full shrink-0 rounded-tl-[8px] rounded-tr-[8px]"
       >
-        <TabsTrigger
-          className="text-sm"
-          value="properties"
-        >
+        <TabsTrigger className="text-sm" value="properties">
           <span className="jgis-underline-indicator">Properties</span>
         </TabsTrigger>
-        <TabsTrigger
-          className="text-sm"
-          value="metadata"
-        >
+        <TabsTrigger className="text-sm" value="metadata">
           <span className="jgis-underline-indicator">Metadata</span>
         </TabsTrigger>
       </TabsList>
 
-      <TabsContent
-        value="properties"
-        className={panelClass}
-      >
+      <TabsContent value="properties" className={panelClass}>
         <EditForm
           layer={layerId}
           source={sourceId}
@@ -104,15 +95,8 @@ function ObjectPropertiesBody({
 
       {/* keepMounted so metadata starts loading when the dialog opens and
           switching tabs does not remount into a loading flash. */}
-      <TabsContent
-        value="metadata"
-        keepMounted
-        className={panelClass}
-      >
-        <MetadataView
-          model={model}
-          selectedId={selectedId}
-        />
+      <TabsContent value="metadata" keepMounted className={panelClass}>
+        <MetadataView model={model} selectedId={selectedId} />
       </TabsContent>
     </Tabs>
   );

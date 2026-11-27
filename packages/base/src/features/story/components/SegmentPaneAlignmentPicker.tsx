@@ -33,18 +33,15 @@ export function SegmentPaneAlignmentPicker({
         className="[&_[data-slot=toggle-group-item]:first-child]:rounded-l-[0.5rem] [&_[data-slot=toggle-group-item]:last-child]:rounded-r-[0.5rem]"
         aria-label="Pane alignment"
         value={[value]}
-        onValueChange={(next) => {
+        onValueChange={next => {
           const alignment = next[0] as StorySegmentPaneAlignment | undefined;
           if (alignment) {
             onChange(alignment);
           }
         }}
       >
-        {PANE_ALIGNMENT_OPTIONS.map((option) => (
-          <ToggleGroupItem
-            key={option.value}
-            value={option.value}
-          >
+        {PANE_ALIGNMENT_OPTIONS.map(option => (
+          <ToggleGroupItem key={option.value} value={option.value}>
             {option.label}
           </ToggleGroupItem>
         ))}

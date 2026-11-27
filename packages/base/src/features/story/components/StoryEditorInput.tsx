@@ -29,10 +29,10 @@ export function StoryEditorInput({
       disabled={disabled}
       aria-label={ariaLabel}
       data-lm-suppress-shortcuts="true"
-      onChange={(event) => {
+      onChange={event => {
         setDraft(event.target.value);
       }}
-      onKeyDown={(event) => {
+      onKeyDown={event => {
         if (disabled) {
           return;
         }

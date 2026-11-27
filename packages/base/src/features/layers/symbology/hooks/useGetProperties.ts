@@ -118,7 +118,7 @@ function getVectorTileProperties({
   const result: Record<string, Set<any>> = {};
   const features = model.getFeaturesForCurrentTile({ sourceId });
 
-  features.forEach((feature) => {
+  features.forEach(feature => {
     const props = feature.getProperties?.();
     if (props) {
       for (const [key, value] of Object.entries(props)) {

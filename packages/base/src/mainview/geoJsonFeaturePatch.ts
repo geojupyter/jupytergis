@@ -60,7 +60,7 @@ async function patchGeoJSONFeatureAttributes(
 
   const featureId = target.featureId;
   const index = features.findIndex(
-    (feature) => feature.properties?._id === featureId,
+    feature => feature.properties?._id === featureId,
   );
 
   if (index < 0 || index >= features.length) {

@@ -20,7 +20,7 @@ function ensureOpenEOModelBuilder(): Promise<void> {
       .then(({ registerOpenEOModelBuilder }) => {
         registerOpenEOModelBuilder();
       })
-      .catch((err) => {
+      .catch(err => {
         // Drop the cached promise so a later mount can retry the load.
         _registerPromise = null;
         throw err;
@@ -280,10 +280,7 @@ export const ProcessGraphView: React.FC<IProcessGraphViewProps> = ({
   };
 
   return (
-    <div
-      className="jp-openeo-pg-canvas"
-      style={{ position: 'relative' }}
-    >
+    <div className="jp-openeo-pg-canvas" style={{ position: 'relative' }}>
       {editable && (
         <button
           type="button"

@@ -29,7 +29,6 @@ import {
   SelectItem,
   SelectTrigger,
 } from '@/src/shared/components/Select';
-
 import { ProjectionCombobox } from './ProjectionCombobox';
 
 const CURSOR_COORD_MODES: { value: CursorCoordMode; label: string }[] = [
@@ -104,10 +103,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
     <div className="jgis-status-bar">
       {loading && (
         <div className="jgis-status-bar-progress">
-          <Progress
-            value={null}
-            className="w-full"
-          />
+          <Progress value={null} className="w-full" />
         </div>
       )}
       {!loading && tileProgress.total > 0 && (
@@ -122,7 +118,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
       )}
       <Select
         value={cursorCoordMode}
-        onValueChange={(value) => {
+        onValueChange={value => {
           value && onCursorCoordModeChange?.(value);
         }}
       >
@@ -130,26 +126,14 @@ const StatusBar: React.FC<IStatusBarProps> = ({
           className="jgis-status-bar-item jgis-status-bar-coords justify-start gap-1 border-0 bg-transparent px-1 text-inherit shadow-none focus-visible:border-0 focus-visible:ring-0"
           title="Coordinate units"
           aria-label={`Coordinates (${cursorCoordMode}). Click to change units.`}
-          render={
-            <Button
-              variant="ghost"
-              size="xs"
-            />
-          }
+          render={<Button variant="ghost" size="xs" />}
         >
           <FontAwesomeIcon icon={faLocationDot} />
           <span className="w-[32ch]">{formatCursor(cursor)}</span>
         </SelectTrigger>
-        <SelectContent
-          side="top"
-          align="center"
-          className="w-auto min-w-44"
-        >
-          {CURSOR_COORD_MODES.map((option) => (
-            <SelectItem
-              key={option.value}
-              value={option.value}
-            >
+        <SelectContent side="top" align="center" className="w-auto min-w-44">
+          {CURSOR_COORD_MODES.map(option => (
+            <SelectItem key={option.value} value={option.value}>
               {option.label}
             </SelectItem>
           ))}
@@ -174,7 +158,7 @@ const StatusBar: React.FC<IStatusBarProps> = ({
       {rendererName === 'MapLibre' ? (
         <Select
           value={mapView}
-          onValueChange={(value) => {
+          onValueChange={value => {
             if (value !== 'mercator' && value !== 'globe') {
               return;
             }
@@ -185,21 +169,12 @@ const StatusBar: React.FC<IStatusBarProps> = ({
             className="jgis-status-bar-item justify-start gap-1 border-0 bg-transparent px-1 text-inherit shadow-none focus-visible:border-0 focus-visible:ring-0"
             title="MapLibre view"
             aria-label={`View: ${mapView === 'globe' ? 'Globe' : 'Map'}. Click to change.`}
-            render={
-              <Button
-                variant="ghost"
-                size="xs"
-              />
-            }
+            render={<Button variant="ghost" size="xs" />}
           >
             <FontAwesomeIcon icon={faGlobe} />
             <span>{mapView === 'globe' ? 'Globe' : 'Map'}</span>
           </SelectTrigger>
-          <SelectContent
-            side="top"
-            align="center"
-            className="w-auto min-w-44"
-          >
+          <SelectContent side="top" align="center" className="w-auto min-w-44">
             <SelectItem value="mercator">Map</SelectItem>
             <SelectItem value="globe">Globe</SelectItem>
           </SelectContent>

@@ -13,18 +13,11 @@ export function MapViewBarActions({
 }: IMapViewBarActionsProps): JSX.Element {
   return (
     <>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onBack}
-      >
+      <Button variant="outline" size="sm" onClick={onBack}>
         Back to editor
       </Button>
 
-      <Button
-        size={'sm'}
-        onClick={onApply}
-      >
+      <Button size={'sm'} onClick={onApply}>
         Apply view
       </Button>
     </>
@@ -39,10 +32,7 @@ export function MapPreviewBarActions({
   onBack,
 }: IMapPreviewBarActionsProps): JSX.Element {
   return (
-    <Button
-      size="sm"
-      onClick={onBack}
-    >
+    <Button size="sm" onClick={onBack}>
       Back to editor
     </Button>
   );

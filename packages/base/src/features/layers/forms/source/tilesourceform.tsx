@@ -9,9 +9,8 @@ import {
 } from '@/src/shared/formbuilder/objectform/schemaUtils';
 import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
-
-import type { ISourceFormProps } from './sourceform';
 import { SourceLayerField } from './SourceLayerField';
+import type { ISourceFormProps } from './sourceform';
 
 function getUrlParameters(url: string | undefined): string[] {
   if (!url || typeof url !== 'string') {

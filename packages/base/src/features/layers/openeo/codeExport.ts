@@ -338,7 +338,7 @@ class CodeGenerator {
       );
     }
     if (Array.isArray(value)) {
-      const items = value.map((v) => this.lit(v, scope));
+      const items = value.map(v => this.lit(v, scope));
       return this.lang === 'python'
         ? `[${items.join(', ')}]`
         : `list(${items.join(', ')})`;
@@ -386,7 +386,7 @@ class CodeGenerator {
     for (const p of paramNames) {
       scope.params.set(p, makeVar(p, this.reserved, localNames));
     }
-    const signature = paramNames.map((p) => scope.params.get(p)).join(', ');
+    const signature = paramNames.map(p => scope.params.get(p)).join(', ');
     const body: string[] = [];
     // Inside a callback everything is a builder, so use the generic
     // `process(...)` form (Python) / `p$<id>(...)` form (R) uniformly.
@@ -401,11 +401,11 @@ class CodeGenerator {
 
     if (this.lang === 'python') {
       lines.push(`def ${name}(${signature}):`);
-      body.forEach((l) => lines.push(`    ${l}`));
+      body.forEach(l => lines.push(`    ${l}`));
       lines.push(`    return ${retVar ?? 'None'}`);
     } else {
       lines.push(`${name} = function(${signature}) {`);
-      body.forEach((l) => lines.push(`  ${l}`));
+      body.forEach(l => lines.push(`  ${l}`));
       lines.push('}');
     }
     return name;

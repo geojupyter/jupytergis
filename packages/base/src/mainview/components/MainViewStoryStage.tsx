@@ -1,9 +1,9 @@
 import type { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import React, { type RefObject } from 'react';
 
+import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { StoryStage } from '@/src/features/story/presentation/StoryStage';
 import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
-import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 
 export interface IMainViewStoryStageProps {

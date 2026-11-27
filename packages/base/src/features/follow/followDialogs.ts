@@ -98,7 +98,7 @@ function makeReadOnly(dialog: Dialog<any>): void {
     }
   };
 
-  BLOCKED_EVENTS.forEach((name) => body.addEventListener(name, block, true));
+  BLOCKED_EVENTS.forEach(name => body.addEventListener(name, block, true));
 }
 
 const POINTER_INTERVAL = 33;

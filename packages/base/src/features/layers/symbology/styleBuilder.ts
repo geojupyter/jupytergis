@@ -55,7 +55,7 @@ export function computeGraduatedColorStops(
   const parsedVmin = state.vmin !== undefined ? state.vmin : undefined;
   const parsedVmax = state.vmax !== undefined ? state.vmax : undefined;
 
-  const values = numericValues.filter((v) => {
+  const values = numericValues.filter(v => {
     if (parsedVmin !== undefined && v < parsedVmin) {
       return false;
     }
@@ -136,7 +136,7 @@ export function computeCategorizedColorStops(
 
   const uniqueValues = [
     ...new Set(
-      featureValues.map((v) =>
+      featureValues.map(v =>
         v === null ? STOP_NULL : v === undefined ? STOP_UNDEFINED : v,
       ),
     ),
@@ -156,7 +156,7 @@ export function computeCategorizedColorStops(
     return [];
   }
 
-  const colorRamp = getColorMapList().find((c) => c.name === rampName);
+  const colorRamp = getColorMapList().find(c => c.name === rampName);
   if (!colorRamp) {
     return [];
   }
@@ -177,7 +177,7 @@ function mapStopsToColors(
   nClasses: number,
   reverse: boolean,
 ): IComputedStop[] {
-  const colorRamp = getColorMapList().find((c) => c.name === rampName);
+  const colorRamp = getColorMapList().find(c => c.name === rampName);
   if (!colorRamp) {
     return [];
   }
@@ -210,7 +210,7 @@ function generateColors(
     // Parse categorical colors to RGBA.  D3 categorical schemes produce hex
     // strings (#rrggbb); continuous colormaps produce rgb() strings.
     // colorToRgba handles both formats.
-    colorMap = rawColors.map((c) =>
+    colorMap = rawColors.map(c =>
       typeof c === 'string' ? colorToRgba(c) : (c as RgbaColor),
     );
   } else {

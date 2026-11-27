@@ -69,24 +69,15 @@ const StacPanelContent = ({ model }: IStacViewProps) => {
   const ProviderPanel = URL_TO_PANEL_MAP[selectedUrl] ?? StacCatalogQueryPanel;
 
   return (
-    <Tabs
-      defaultValue="filters"
-      style={{ boxShadow: 'none' }}
-    >
-      <TabsList
-        variant="underline"
-        className="jgis-stac-panel-tabs-list"
-      >
+    <Tabs defaultValue="filters" style={{ boxShadow: 'none' }}>
+      <TabsList variant="underline" className="jgis-stac-panel-tabs-list">
         <TabsTrigger
           className="jgis-underline-indicator text-sm"
           value="filters"
         >
           Filters
         </TabsTrigger>
-        <TabsTrigger
-          className="jgis-underline-indicator"
-          value="results"
-        >
+        <TabsTrigger className="jgis-underline-indicator" value="results">
           {resultsTabLabel(isLoading, wmsLayerCount, totalResults)}
         </TabsTrigger>
       </TabsList>
@@ -140,7 +131,7 @@ function resultsTabLabel(
 }
 
 function isPresetUrl(url: string): boolean {
-  return PROVIDERS.some((provider) => provider.url === url);
+  return PROVIDERS.some(provider => provider.url === url);
 }
 
 function CatalogUrlField() {
@@ -169,11 +160,11 @@ function CatalogUrlField() {
         value={urlDraft}
         spellCheck={false}
         placeholder="https://"
-        onChange={(event) => {
+        onChange={event => {
           setUrlDraft(event.target.value);
         }}
         onBlur={commitUrl}
-        onKeyDown={(event) => {
+        onKeyDown={event => {
           if (event.key === 'Enter') {
             commitUrl();
           }
@@ -199,7 +190,7 @@ function ProviderSelect() {
         id="stac-provider-select"
         className="w-full"
         value={isPreset ? selectedUrl : CATALOG_URL_PRESET}
-        onChange={(event) => {
+        onChange={event => {
           const next = event.target.value;
           if (next === CATALOG_URL_PRESET) {
             setSelectedUrl('');
@@ -208,11 +199,8 @@ function ProviderSelect() {
           setSelectedUrl(next);
         }}
       >
-        {PROVIDERS.map((provider) => (
-          <NativeSelectOption
-            key={provider.url}
-            value={provider.url}
-          >
+        {PROVIDERS.map(provider => (
+          <NativeSelectOption key={provider.url} value={provider.url}>
             {provider.name}
           </NativeSelectOption>
         ))}

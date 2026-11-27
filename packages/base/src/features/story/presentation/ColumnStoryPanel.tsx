@@ -1,10 +1,10 @@
 import type { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import React, { type RefObject, useEffect, useRef } from 'react';
 
+import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { useStoryMap } from '@/src/features/story/hooks/useStoryMap';
 import { ColumnPresentationDesktop } from '@/src/features/story/presentation/modes/column/ColumnPresentationDesktop';
 import { ColumnPresentationMobile } from '@/src/features/story/presentation/modes/column/ColumnPresentationMobile';
-import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import type { IOverrideLayerEntry } from '@/src/features/story/types/types';
 
 export interface IColumnStoryPanelProps {

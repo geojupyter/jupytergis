@@ -120,7 +120,7 @@ describe('VectorClassifications.calculatePrettyBreaks', () => {
 
   it('includes zero when the range crosses zero', () => {
     const breaks = calculatePrettyBreaks([-50, 50], 5);
-    expect(breaks.some((b) => b === 0)).toBe(true);
+    expect(breaks.some(b => b === 0)).toBe(true);
     // endpoints should also be snapped to round values
     // toBeCloseTo avoids Object.is(-0, 0) === false when JS % returns -0
     expect(breaks[0] % 10).toBeCloseTo(0);

@@ -21,7 +21,7 @@ export function DrawCustomAttributesPreview({
 
   const presetName = findMatchingPresetName(attributes, presets);
   const summary = attributes
-    .map((attribute) => `${attribute.key} = ${attribute.value}`)
+    .map(attribute => `${attribute.key} = ${attribute.value}`)
     .join(', ');
 
   return (

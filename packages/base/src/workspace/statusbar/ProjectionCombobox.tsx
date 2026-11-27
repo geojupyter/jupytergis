@@ -13,7 +13,6 @@ import {
   createComboboxVirtualHighlightHandler,
   type ComboboxVirtualizer,
 } from '@/src/shared/components/Combobox';
-
 import {
   getProjectionOption,
   PROJECTION_OPTIONS,
@@ -57,20 +56,11 @@ export function ProjectionCombobox({
     >
       <ComboboxTrigger
         className="h-4 min-h-0 border-0 bg-transparent px-1 text-inherit shadow-none"
-        render={
-          <Button
-            variant="ghost"
-            size="xs"
-          />
-        }
+        render={<Button variant="ghost" size="xs" />}
       >
         <ComboboxValue placeholder="EPSG" />
       </ComboboxTrigger>
-      <ComboboxContent
-        side="top"
-        align="center"
-        className="w-80"
-      >
+      <ComboboxContent side="top" align="center" className="w-80">
         <ComboboxInput
           aria-label="Projection"
           placeholder="Search projections"

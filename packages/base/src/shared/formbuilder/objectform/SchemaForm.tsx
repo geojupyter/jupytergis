@@ -7,7 +7,6 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useFollowedFocus } from '@/src/features/follow/useFollowedState';
 import { IDict, type IJupyterGISFormContext } from '@/src/types';
-
 import OpacitySlider from './components/OpacitySlider';
 
 const defaultFields: RegistryFieldsType = {
@@ -162,7 +161,7 @@ export function SchemaForm(props: ISchemaFormProps): React.ReactElement {
     >
       <div
         className="jGIS-property-outer"
-        onKeyUp={(e) => handleKeyUp(e, submitRef)}
+        onKeyUp={e => handleKeyUp(e, submitRef)}
       >
         <FormComponent
           schema={schemaWithExtra}
@@ -179,7 +178,7 @@ export function SchemaForm(props: ISchemaFormProps): React.ReactElement {
           extraErrors={extraErrors}
           children={
             <button
-              ref={(el) => {
+              ref={el => {
                 (
                   submitRef as React.MutableRefObject<HTMLButtonElement | null>
                 ).current = el;

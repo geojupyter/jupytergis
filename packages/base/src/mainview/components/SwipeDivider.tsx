@@ -73,8 +73,8 @@ export function SwipeDivider({
         className="jgis-swipe-divider-stop"
         title="Stop comparing"
         aria-label="Stop comparing"
-        onPointerDown={(event) => event.stopPropagation()}
-        onClick={(event) => {
+        onPointerDown={event => event.stopPropagation()}
+        onClick={event => {
           event.stopPropagation();
           onStop();
         }}

@@ -59,7 +59,7 @@ export function ListStoryScrollTrackProvider({
 
   useLayoutEffect(() => {
     const bump = (): void => {
-      setStoryRevision((value) => value + 1);
+      setStoryRevision(value => value + 1);
       setHeightsById({});
     };
 
@@ -210,7 +210,7 @@ export function ListStoryScrollTrackProvider({
     (segmentId: string, height: number) => {
       const measuredHeightPx = Math.ceil(height);
 
-      setHeightsById((prev) => {
+      setHeightsById(prev => {
         if (prev[segmentId] === measuredHeightPx) {
           return prev;
         }
@@ -237,7 +237,7 @@ export function ListStoryScrollTrackProvider({
         const next = { ...prev, [segmentId]: measuredHeightPx };
 
         if (scroller && oldLayout) {
-          const oldSegment = oldLayout.segments.find((s) => s.id === segmentId);
+          const oldSegment = oldLayout.segments.find(s => s.id === segmentId);
           if (oldSegment && !oldSegment.measured) {
             const scrollCompensation = measuredHeightPx - oldSegment.height;
             // Only shift scroll when the user is already past this segment so
@@ -283,7 +283,7 @@ export function ListStoryScrollTrackProvider({
       const safeIndex = Math.max(0, index);
       const scroller = scrollerRef.current;
       const segment = scrollTrackLayout?.segments.find(
-        (s) => s.index === safeIndex,
+        s => s.index === safeIndex,
       );
 
       if (scroller && segment !== undefined) {

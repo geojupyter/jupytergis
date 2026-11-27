@@ -1,6 +1,5 @@
-import path from 'path';
-
 import { expect, galata, test } from '@jupyterlab/galata';
+import path from 'path';
 
 /**
  * The Information tab of the Layer Properties dialog.

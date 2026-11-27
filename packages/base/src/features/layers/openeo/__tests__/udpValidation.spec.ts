@@ -16,7 +16,7 @@ const PROCESSES = [
 ];
 
 function hasUnsupported(errors: { code?: string; message: string }[]): boolean {
-  return errors.some((e) => e.code === 'ProcessUnsupported');
+  return errors.some(e => e.code === 'ProcessUnsupported');
 }
 
 describe('validateProcessGraphLocally — UDP support', () => {

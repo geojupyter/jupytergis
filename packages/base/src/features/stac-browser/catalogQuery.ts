@@ -57,7 +57,7 @@ export function pickCollectionPreview(
 ): string | null {
   for (const role of PREVIEW_ROLES) {
     const match = Object.values(assets ?? {}).find(
-      (asset) => Boolean(asset.href) && asset.roles?.includes(role),
+      asset => Boolean(asset.href) && asset.roles?.includes(role),
     );
 
     if (match?.href) {
@@ -66,7 +66,7 @@ export function pickCollectionPreview(
   }
 
   const previewLink = links.find(
-    (link) => link.rel === 'preview' && Boolean(link.href),
+    link => link.rel === 'preview' && Boolean(link.href),
   );
 
   return previewLink?.href ?? null;
@@ -98,7 +98,7 @@ export function listCollectionWms(
     .filter((endpoint): endpoint is ICatalogWmsEndpoint => endpoint !== null);
 
   return [
-    ...endpoints.filter((endpoint) => endpoint.layers.endsWith('_wse')),
-    ...endpoints.filter((endpoint) => !endpoint.layers.endsWith('_wse')),
+    ...endpoints.filter(endpoint => endpoint.layers.endsWith('_wse')),
+    ...endpoints.filter(endpoint => !endpoint.layers.endsWith('_wse')),
   ];
 }

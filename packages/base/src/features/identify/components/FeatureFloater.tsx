@@ -21,10 +21,7 @@ const FeatureFloater: React.FC<IFeatureFloaterProps> = ({ feature }) => {
     <div className="jGIS-FeatureFloater">
       <div className="jGIS-FeatureFloater-title">{String(title)}</div>
       {entries.map(([key, value]) => (
-        <div
-          className="jGIS-FeatureFloater-row"
-          key={key}
-        >
+        <div className="jGIS-FeatureFloater-row" key={key}>
           <strong className="jGIS-FeatureFloater-key">{key}</strong>
           <span className="jGIS-FeatureFloater-value">{String(value)}</span>
         </div>

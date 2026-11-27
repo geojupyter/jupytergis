@@ -39,7 +39,7 @@ export class JupyterGISLayerBrowserRegistry implements IJGISLayerBrowserRegistry
    * @param name - The name of the raster layer gallery entry to remove.
    */
   removeRegistryLayer(name: string): void {
-    this._registry = this._registry.filter((item) => item.name !== name);
+    this._registry = this._registry.filter(item => item.name !== name);
   }
 
   /**

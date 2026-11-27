@@ -128,7 +128,7 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._viewState = {};
 
-    this.settingsReady = new Promise((resolve) => {
+    this.settingsReady = new Promise(resolve => {
       this._settingsReadyResolve = resolve;
     });
     this.initSettings();
@@ -155,7 +155,7 @@ export class JupyterGISModel implements IJupyterGISModel {
             DEFAULT_SETTINGS,
           ) as (keyof IJupyterGISSettings)[];
 
-          keys.forEach((key) => {
+          keys.forEach(key => {
             if (oldSettings[key] !== newSettings[key]) {
               this._settingsChanged.emit(key);
             }
@@ -225,7 +225,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._tileFeatureCache.set(sourceId, featureSet);
     }
     const before = featureSet.size;
-    features.forEach((feature) => featureSet.add(feature));
+    features.forEach(feature => featureSet.add(feature));
     if (featureSet.size > before) {
       this._tileFeaturesChanged.emit(sourceId);
     }
@@ -244,7 +244,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const keysUnchanged =
       previousKeys !== undefined &&
       previousKeys.size === nextKeys.size &&
-      [...previousKeys].every((key) => nextKeys.has(key));
+      [...previousKeys].every(key => nextKeys.has(key));
 
     this._tileFeatureCache.set(sourceId, new Set(features.values()));
     this._tileFeatureCacheKeys.set(sourceId, nextKeys);
@@ -734,7 +734,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         ([storyMapId, storyMap]) => {
           if (storyMap.storySegments?.includes(layer_id)) {
             const updatedStorySegments = storyMap.storySegments.filter(
-              (id) => id !== layer_id,
+              id => id !== layer_id,
             );
             this.sharedModel.updateStoryMap(storyMapId, {
               ...storyMap,
@@ -1648,11 +1648,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     const fields: readonly AwarenessFieldKey[] = AWARENESS_FIELD_KEYS;
     const localClientId = this.getClientId();
 
-    changedClientIds.forEach((clientId) => {
+    changedClientIds.forEach(clientId => {
       const previousState = this._previousClientStates.get(clientId);
       const currentState = clients.get(clientId);
 
-      fields.forEach((field) => {
+      fields.forEach(field => {
         const previousValue = previousState?.[field];
         const currentValue = currentState?.[field];
 

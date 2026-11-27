@@ -126,7 +126,7 @@ function symbologyValueHasContent(value: unknown, key?: string): boolean {
   }
 
   if (Array.isArray(value)) {
-    return value.some((item) => symbologyValueHasContent(item));
+    return value.some(item => symbologyValueHasContent(item));
   }
 
   if (typeof value === 'object') {
@@ -153,7 +153,7 @@ export function hasMeaningfulGrammarSymbologyState(
     return false;
   }
 
-  return symbologyState.layers.some((layer) => symbologyValueHasContent(layer));
+  return symbologyState.layers.some(layer => symbologyValueHasContent(layer));
 }
 
 export function symbologyStatesEqual(

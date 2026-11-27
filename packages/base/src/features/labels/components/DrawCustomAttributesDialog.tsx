@@ -144,10 +144,7 @@ export function DrawCustomAttributesDialog({
   }, [model, drawLayerId, open]);
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={setOpen}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         render={
           <Button
@@ -258,10 +255,7 @@ export function DrawCustomAttributesDialogContent({
         </DialogDescription>
       </DialogHeader>
 
-      <div
-        className="jgis-draw-custom-attributes-dialog"
-        ref={contentRef}
-      >
+      <div className="jgis-draw-custom-attributes-dialog" ref={contentRef}>
         <div className="jgis-attribute-rows jgis-draw-custom-attributes-list">
           {attributes.length === 0 && draftMode === null ? (
             <p className="jgis-draw-custom-attributes-empty">
@@ -353,8 +347,8 @@ export function DrawCustomAttributesDialogContent({
                 type="text"
                 placeholder="Preset name"
                 value={presetName}
-                onChange={(event) => handlePresetNameChange(event.target.value)}
-                onKeyDown={(event) => {
+                onChange={event => handlePresetNameChange(event.target.value)}
+                onKeyDown={event => {
                   if (event.key !== 'Enter') {
                     return;
                   }

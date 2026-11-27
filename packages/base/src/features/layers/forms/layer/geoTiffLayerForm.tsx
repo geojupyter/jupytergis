@@ -9,7 +9,6 @@ import {
 } from '@/src/shared/formbuilder/objectform/schemaUtils';
 import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy } from '@/src/tools';
-
 import type { ILayerProps } from './layerform';
 
 export function GeoTiffLayerPropertiesForm(

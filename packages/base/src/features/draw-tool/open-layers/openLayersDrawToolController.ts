@@ -10,9 +10,9 @@ import type {
 import { showErrorMessage } from '@jupyterlab/apputils';
 import { UUID } from '@lumino/coreutils';
 import type { Map as OlMap } from 'ol';
+import Feature, { type FeatureLike } from 'ol/Feature';
 import { Coordinate } from 'ol/coordinate';
 import { primaryAction, singleClick, click } from 'ol/events/condition';
-import Feature, { type FeatureLike } from 'ol/Feature';
 import { GeoJSON } from 'ol/format';
 import { Type } from 'ol/geom/Geometry';
 import Draw, { DrawEvent } from 'ol/interaction/Draw';
@@ -25,7 +25,6 @@ import RenderFeature from 'ol/render/Feature';
 import { Vector as VectorSource } from 'ol/source';
 
 import { applyDrawCustomAttributesToFeature } from '@/src/features/labels/drawCustomAttributes';
-
 import type {
   IDrawFeatureAttributes,
   IDrawToolAdapter,
@@ -145,7 +144,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
 
     const hits = map.getFeaturesAtPixel(pixel, {
       hitTolerance: 10,
-      layerFilter: (layer) => this._isDrawLayerFilter(layer),
+      layerFilter: layer => this._isDrawLayerFilter(layer),
     });
 
     if (hits.length === 0) {
@@ -170,7 +169,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
 
     const hits = map.getFeaturesAtPixel(pixel, {
       hitTolerance: 10,
-      layerFilter: (layer) => this._isDrawLayerFilter(layer),
+      layerFilter: layer => this._isDrawLayerFilter(layer),
     });
 
     for (const hit of hits) {
@@ -200,7 +199,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     const source = this._resolveVectorSource(this._currentDrawLayerId);
     const feature = source
       ?.getFeatures()
-      .find((candidate) => candidate.get('_id') === featureId);
+      .find(candidate => candidate.get('_id') === featureId);
 
     if (!source || !feature) {
       return false;
@@ -260,7 +259,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
 
     return map.hasFeatureAtPixel(pixel, {
       hitTolerance: 10,
-      layerFilter: (layer) => this._isDrawLayerFilter(layer),
+      layerFilter: layer => this._isDrawLayerFilter(layer),
     });
   }
 
@@ -291,7 +290,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
         featureId !== undefined
           ? source
               .getFeatures()
-              .find((feature) => feature.get('_id') === featureId)
+              .find(feature => feature.get('_id') === featureId)
           : hit;
 
       const target = onSource ?? hit;
@@ -406,10 +405,10 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
 
   private _resolveVectorSource(layerId: string): VectorSource | undefined {
     this._currentVectorSource = getVectorSourceFromLayer(
-      (id) => this._host.getLayer(id),
+      id => this._host.getLayer(id),
       layerId,
       this._host.getModel(),
-      (storeId) => this._host.getFeatureStoreOverlay(storeId),
+      storeId => this._host.getFeatureStoreOverlay(storeId),
     );
 
     return this._currentVectorSource;
@@ -417,7 +416,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
 
   private _isDrawLayerFilter(layer: Layer): boolean {
     return isDrawLayer(
-      (id) => this._host.getLayer(id),
+      id => this._host.getLayer(id),
       this._currentDrawLayerId,
       layer,
     );
@@ -459,7 +458,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
         ? [...liveFeatures, pendingFeature]
         : liveFeatures;
 
-    const features = featuresToSerialize.map((feature) =>
+    const features = featuresToSerialize.map(feature =>
       geojsonWriter.writeFeatureObject(feature, {
         dataProjection: 'EPSG:4326',
         featureProjection: viewProjection,
@@ -539,7 +538,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
 
     if (this._deleting) {
       this._deleteClick = new Interaction({
-        handleEvent: (event) => {
+        handleEvent: event => {
           if (!singleClick(event)) {
             return true;
           }
@@ -556,7 +555,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     if (!this._currentDrawGeometry) {
       this._select = new Select({
         condition: click,
-        layers: (layer) => this._isDrawLayerFilter(layer),
+        layers: layer => this._isDrawLayerFilter(layer),
         style: drawInteractionStyle,
       });
       map.addInteraction(this._select);
@@ -573,7 +572,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
       }
 
       const highlights: Feature[] = [];
-      event.features.forEach((feature) => {
+      event.features.forEach(feature => {
         const geometry = feature.getGeometry();
         if (geometry) {
           // Share the geometry so the highlight follows the drag.
@@ -669,7 +668,7 @@ export class OpenLayersDrawToolController implements IDrawToolAdapter {
     }) as IFeatureStoreGeometry;
 
     const props = Object.fromEntries(
-      customAttributes.map((attribute) => [attribute.key, attribute.value]),
+      customAttributes.map(attribute => [attribute.key, attribute.value]),
     );
 
     const result = model.addFeatureStoreFeature({

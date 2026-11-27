@@ -37,15 +37,12 @@ function QueryableRow({
       <span>{qVal.title || qKey}</span>
       <NativeSelect
         value={String(currentFilter.operator)}
-        onChange={(event) => {
+        onChange={event => {
           onOperatorChange(event.target.value as Operator);
         }}
       >
-        {operators.map((operator) => (
-          <NativeSelectOption
-            key={operator.value}
-            value={operator.value}
-          >
+        {operators.map(operator => (
+          <NativeSelectOption key={operator.value} value={operator.value}>
             {operator.label}
           </NativeSelectOption>
         ))}

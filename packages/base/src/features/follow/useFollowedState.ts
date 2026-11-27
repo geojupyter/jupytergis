@@ -193,7 +193,7 @@ export function useFollowedFocus(
     },
     onBlur: (id: string) => {
       if (!isMirror) {
-        setFocusedId((current) => (current === id ? null : current));
+        setFocusedId(current => (current === id ? null : current));
       }
     },
   };

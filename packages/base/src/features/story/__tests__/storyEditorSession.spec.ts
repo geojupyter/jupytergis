@@ -59,15 +59,9 @@ jest.mock('@/src/constants', () => ({
 import { Widget } from '@lumino/widgets';
 
 import { STORY_TYPE } from '@/src/types';
-
 import { StoryMapInteractionBarWidget } from '../components/StoryMapInteractionBarWidget';
 import { StoryEditorWidget } from '../storyEditorDialog';
 import { StoryEditorMode, StoryEditorSession } from '../storyEditorSession';
-import { updateSegmentMapView } from '../utils/storySegmentMapView';
-import {
-  applySegmentLayerOverrides,
-  clearSegmentLayerOverrideEntries,
-} from '../utils/storySegmentOverrides';
 import {
   attachSession,
   createCommands,
@@ -76,6 +70,11 @@ import {
   createTracker,
   notifyTrackerTabChange,
 } from './storyTestFixtures';
+import { updateSegmentMapView } from '../utils/storySegmentMapView';
+import {
+  applySegmentLayerOverrides,
+  clearSegmentLayerOverrideEntries,
+} from '../utils/storySegmentOverrides';
 
 const TOGGLE_PANEL_COMMAND = 'jupytergis:togglePanel';
 
@@ -272,7 +271,7 @@ describe('StoryEditorSession', () => {
       attachSession(session, dialog, modelB, commands, tracker);
       session.enterStoryPreviewMode();
 
-      tracker.configureMainViewParents((model) =>
+      tracker.configureMainViewParents(model =>
         model === modelA ? parentA : parentB,
       );
       tracker.setActiveModel(modelA);
@@ -316,7 +315,7 @@ describe('StoryEditorSession', () => {
       const mapBarA = (StoryMapInteractionBarWidget as jest.Mock).mock
         .results[0].value as { show: jest.Mock };
 
-      tracker.configureMainViewParents((model) =>
+      tracker.configureMainViewParents(model =>
         model === modelA ? parentA : parentB,
       );
       tracker.setActiveModel(modelB);
@@ -398,7 +397,7 @@ describe('StoryEditorSession', () => {
       session.enterStoryPreviewMode();
       modelA.setStoryPreviewActive(true);
 
-      tracker.configureMainViewParents((model) =>
+      tracker.configureMainViewParents(model =>
         model === modelA ? parentA : document.createElement('div'),
       );
       tracker.setActiveModel(modelB);

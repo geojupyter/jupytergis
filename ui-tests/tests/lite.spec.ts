@@ -1,6 +1,5 @@
-import path from 'path';
-
 import { expect, galata, test } from '@jupyterlab/galata';
+import path from 'path';
 
 import {
   getLayerSummary,
@@ -23,7 +22,7 @@ test.describe('UI Test', () => {
         "@jupyter-widgets/base doesn't exist in shared scope default",
       ];
       page.setViewportSize({ width: 1920, height: 1080 });
-      page.on('console', (message) => {
+      page.on('console', message => {
         if (message.type() === 'error') {
           for (let pattern of unrelatedErrors) {
             if (message.text().includes(pattern)) {
@@ -70,9 +69,7 @@ test.describe('UI Test', () => {
         // loaded, which is what the screenshot used to stand in for.
         const layers = await getLayerSummary(page, map);
         expect(layers.length).toBeGreaterThan(0);
-        expect(layers.some((layer) => (layer.featureCount ?? 0) > 0)).toBe(
-          true,
-        );
+        expect(layers.some(layer => (layer.featureCount ?? 0) > 0)).toBe(true);
 
         // Tile sources report 'ready' whatever their URL answers, so the only
         // way to know the basemap arrived is to count the tiles.

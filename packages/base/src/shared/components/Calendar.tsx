@@ -41,7 +41,7 @@ function Calendar({
       captionLayout={captionLayout}
       locale={locale}
       formatters={{
-        formatMonthDropdown: (date) =>
+        formatMonthDropdown: date =>
           date.toLocaleString(locale?.code, { month: 'short' }),
         ...formatters,
       }}
@@ -166,17 +166,11 @@ function Calendar({
           }
 
           return (
-            <ChevronDownIcon
-              className={cn('size-4', className)}
-              {...props}
-            />
+            <ChevronDownIcon className={cn('size-4', className)} {...props} />
           );
         },
         DayButton: ({ ...props }) => (
-          <CalendarDayButton
-            locale={locale}
-            {...props}
-          />
+          <CalendarDayButton locale={locale} {...props} />
         ),
         WeekNumber: ({ children, ...props }) => {
           return (

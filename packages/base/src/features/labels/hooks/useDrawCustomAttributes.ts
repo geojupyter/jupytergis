@@ -6,7 +6,6 @@ import type {
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useFollowedState } from '@/src/features/follow/useFollowedState';
-
 import {
   normalizeDrawCustomAttributeKey,
   validateDrawCustomAttributeKey,
@@ -77,14 +76,14 @@ export function useDrawCustomAttributes(
   });
 
   const getKeysForValidation = useCallback((): string[] => {
-    const existingKeys = attributes.map((attribute) => attribute.key);
+    const existingKeys = attributes.map(attribute => attribute.key);
     const originalKey =
       draftMode === 'edit' && editingIndex !== null
         ? attributes[editingIndex]?.key
         : undefined;
 
     return originalKey
-      ? existingKeys.filter((key) => key !== originalKey)
+      ? existingKeys.filter(key => key !== originalKey)
       : existingKeys;
   }, [attributes, draftMode, editingIndex]);
 
@@ -191,7 +190,7 @@ export function useDrawCustomAttributes(
   const savePreset = (name: string): void => {
     model.setDrawCustomAttributePreset(
       name.trim(),
-      attributes.map((attribute) => ({ ...attribute })),
+      attributes.map(attribute => ({ ...attribute })),
     );
   };
 

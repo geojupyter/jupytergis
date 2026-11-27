@@ -9,7 +9,7 @@ module.exports = {
     command: 'pnpm run start:lite',
     url: 'http://localhost:8000/',
     timeout: 10 * 1000,
-    reuseExistingServer: false,
+    reuseExistingServer: false
   },
   retries: 1,
   use: {

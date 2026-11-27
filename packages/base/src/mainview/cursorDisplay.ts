@@ -4,7 +4,6 @@ import {
   getProj4Definition,
   normalizeCrsCode,
 } from '@/src/features/metadata/utils/crs';
-
 import { CursorCoordMode, ICursorDisplay, ICursorReadout } from './mapAdapter';
 import { wrapToInterval } from './utils/wrapToInterval';
 

@@ -23,7 +23,7 @@ export function applySegmentLayerOverrides(
     return;
   }
 
-  layerOverrides.forEach((override) => {
+  layerOverrides.forEach(override => {
     const {
       color,
       opacity,

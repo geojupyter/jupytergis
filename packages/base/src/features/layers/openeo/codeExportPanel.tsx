@@ -56,7 +56,7 @@ export const CodeExportPanel: React.FC<ICodeExportPanelProps> = ({
   };
 
   const onDownload = () => {
-    const ext = LANGUAGES.find((l) => l.id === lang)?.ext ?? 'txt';
+    const ext = LANGUAGES.find(l => l.id === lang)?.ext ?? 'txt';
     const blob = new Blob([code], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -75,7 +75,7 @@ export const CodeExportPanel: React.FC<ICodeExportPanelProps> = ({
     <div className="jp-openeo-code-export">
       <div className="jp-openeo-code-export-controls">
         <div className="jp-openeo-segmented">
-          {LANGUAGES.map((l) => (
+          {LANGUAGES.map(l => (
             <button
               key={l.id}
               type="button"
@@ -90,7 +90,7 @@ export const CodeExportPanel: React.FC<ICodeExportPanelProps> = ({
           <input
             type="checkbox"
             checked={includeJupyterGIS}
-            onChange={(e) => setIncludeJupyterGIS(e.target.checked)}
+            onChange={e => setIncludeJupyterGIS(e.target.checked)}
           />
           <span>Add to a JupyterGIS document</span>
         </label>

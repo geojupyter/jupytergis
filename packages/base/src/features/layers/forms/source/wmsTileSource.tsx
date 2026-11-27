@@ -2,8 +2,8 @@ import { IDict } from '@jupytergis/schema';
 import { UiSchema } from '@rjsf/utils';
 import React, { ReactElement, useEffect, useMemo, useState } from 'react';
 
-import { WmsTileSourceUrlInput } from '@/src/shared/formbuilder/objectform/components/WmsTileSourceUrlInput';
 import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
+import { WmsTileSourceUrlInput } from '@/src/shared/formbuilder/objectform/components/WmsTileSourceUrlInput';
 import {
   processBaseSchema,
   removeFormEntry,
@@ -12,7 +12,6 @@ import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchem
 import { GlobalStateDbManager } from '@/src/shared/store';
 import { deepCopy } from '@/src/tools';
 import { IWmsLayerInfo } from '@/src/types';
-
 import type { ISourceFormProps } from './sourceform';
 
 export const WMS_AVAILABLE_LAYERS_CACHE = 'jgis:wmsTileSource:availableLayers';
@@ -118,8 +117,8 @@ export function WmsTileSourceForm(
     );
 
     const layerNames = wmsAvailableLayers
-      .map((layer) => layer.name)
-      .filter((name) => name !== '');
+      .map(layer => layer.name)
+      .filter(name => name !== '');
     const hasAvailableLayers = layerNames.length > 0;
 
     // Populate schema enum dynamically so RJSF renders a select for params.layers
@@ -138,7 +137,7 @@ export function WmsTileSourceForm(
     // A layer can only be picked once the server has been contacted, so don't
     // report it as missing before then; the disabled dropdown says what to do.
     const requiredParams = ((params.required ?? []) as string[]).filter(
-      (key) => key !== 'layers',
+      key => key !== 'layers',
     );
     params.required = hasAvailableLayers
       ? [...requiredParams, 'layers']
@@ -163,7 +162,7 @@ export function WmsTileSourceForm(
         'ui:description': hasAvailableLayers
           ? undefined
           : 'Connect to the WMS server to get the list of available layers.',
-        'ui:enumNames': wmsAvailableLayers.map((layer) => layer.title),
+        'ui:enumNames': wmsAvailableLayers.map(layer => layer.title),
       },
     };
 

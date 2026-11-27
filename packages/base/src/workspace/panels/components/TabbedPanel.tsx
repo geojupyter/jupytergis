@@ -31,7 +31,7 @@ export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
   onTabListMouseDown,
   onTabListTouchStart,
 }) => {
-  const enabledTabs = tabs.filter((tab) => tab.enabled);
+  const enabledTabs = tabs.filter(tab => tab.enabled);
   const tabsListRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -45,17 +45,14 @@ export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
   }, [curTab]);
 
   return (
-    <Tabs
-      className="jgis-panel-tabs"
-      value={curTab || null}
-    >
+    <Tabs className="jgis-panel-tabs" value={curTab || null}>
       <TabsList
         ref={tabsListRef}
         variant="underline"
         onMouseDown={onTabListMouseDown}
         onTouchStart={onTabListTouchStart}
       >
-        {enabledTabs.map((tab) => (
+        {enabledTabs.map(tab => (
           <TabsTrigger
             key={tab.name}
             value={tab.name}
@@ -66,7 +63,7 @@ export const TabbedPanel: React.FC<ITabbedPanelProps> = ({
           </TabsTrigger>
         ))}
       </TabsList>
-      {enabledTabs.map((tab) => (
+      {enabledTabs.map(tab => (
         <TabsContent
           key={tab.name}
           value={tab.name}

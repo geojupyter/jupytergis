@@ -1,7 +1,6 @@
+import { expect, galata, test } from '@jupyterlab/galata';
 import fs from 'fs';
 import path from 'path';
-
-import { expect, galata, test } from '@jupyterlab/galata';
 
 const FILENAME = 'story_map_long_text.jGIS';
 
@@ -53,7 +52,7 @@ test.describe('Vertical scroll story map card', () => {
     await expect(card).toBeVisible();
 
     const scrollTop = (locator: typeof card) =>
-      locator.evaluate((el) => el.scrollTop);
+      locator.evaluate(el => el.scrollTop);
 
     // The card fits in the stage and overflows, rather than running off it.
     const stage = await page.locator('.jgis-story-stage').boundingBox();
@@ -62,7 +61,7 @@ test.describe('Vertical scroll story map card', () => {
       stage!.y + stage!.height + 1,
     );
     expect(
-      await card.evaluate((el) => el.scrollHeight > el.clientHeight),
+      await card.evaluate(el => el.scrollHeight > el.clientHeight),
     ).toBeTruthy();
 
     // Wheel over the card scrolls the card, not the story.
@@ -72,7 +71,7 @@ test.describe('Vertical scroll story map card', () => {
     expect(await scrollTop(scrollHost)).toBe(0);
 
     // Once the card is at its end, the wheel moves the story on.
-    await card.evaluate((el) => {
+    await card.evaluate(el => {
       el.scrollTop = el.scrollHeight;
     });
     await page.mouse.wheel(0, 200);
@@ -86,7 +85,7 @@ test.describe('Vertical scroll story map card', () => {
     const scrollHost = page.getByTestId('jgis-story-stage-scroll-host');
     await expect(card).toBeVisible();
 
-    const { scrollbarWidth, clientHeight } = await card.evaluate((el) => ({
+    const { scrollbarWidth, clientHeight } = await card.evaluate(el => ({
       scrollbarWidth: (el as HTMLElement).offsetWidth - el.clientWidth,
       clientHeight: el.clientHeight,
     }));
@@ -103,9 +102,9 @@ test.describe('Vertical scroll story map card', () => {
     await page.mouse.up();
 
     // Further than a click on the track, which only pages by one card height.
-    expect(await card.evaluate((el) => el.scrollTop)).toBeGreaterThan(
+    expect(await card.evaluate(el => el.scrollTop)).toBeGreaterThan(
       clientHeight,
     );
-    expect(await scrollHost.evaluate((el) => el.scrollTop)).toBe(0);
+    expect(await scrollHost.evaluate(el => el.scrollTop)).toBe(0);
   });
 });

@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { openEOTileUrl } from '@/src/features/layers/openeo/OpenEOTileLayer';
 import { maybeProxied } from '@/src/shared/proxy';
 import { loadFile } from '@/src/tools';
-
 import { getBandInfoFromZarr } from '../zarrBandDiscovery';
 
 export interface IBandRow {
@@ -44,7 +43,7 @@ const useGetBandInfo = (
 
           const bands = await getBandInfoFromZarr(zarrUrl);
 
-          const bandsArr: IBandRow[] = bands.map((b) => ({
+          const bandsArr: IBandRow[] = bands.map(b => ({
             band: b.band,
             name: b.name,
             colorInterpretation: b.colorInterpretation,
@@ -92,7 +91,7 @@ const useGetBandInfo = (
 
         if (!res.headers.get('Content-Type')?.includes('tiff')) {
           setBandRows(
-            [1, 2, 3, 4].map((band) => ({
+            [1, 2, 3, 4].map(band => ({
               band,
               name: `Band ${band}`,
               stats: { minimum: 0, maximum: 1 },

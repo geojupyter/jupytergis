@@ -5,15 +5,14 @@ import { UiSchema } from '@rjsf/utils';
 import { Ajv, type ValidateFunction } from 'ajv';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { FileSelectorWidget } from '@/src/shared/formbuilder/objectform/fileselectorwidget';
 import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
+import { FileSelectorWidget } from '@/src/shared/formbuilder/objectform/fileselectorwidget';
 import {
   processBaseSchema,
   removeFormEntry,
 } from '@/src/shared/formbuilder/objectform/schemaUtils';
 import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy, loadFile } from '@/src/tools';
-
 import type { ISourceFormProps } from './sourceform';
 
 export function GeoJSONSourcePropertiesForm(
@@ -90,7 +89,7 @@ export function GeoJSONSourcePropertiesForm(
         nextErrors.path = { __errors: [error] };
 
         if (validateGeoJSON.errors?.length) {
-          validateGeoJSON.errors.reverse().forEach((err) => {
+          validateGeoJSON.errors.reverse().forEach(err => {
             (nextErrors.path.__errors as string[]).push(err.message ?? '');
           });
         }

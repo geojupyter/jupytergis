@@ -67,7 +67,7 @@ function createLayerCommand(
       parameters: Record<string, any>;
     }) => {
       const { filePath, name, parameters } = args;
-      const current = tracker.find((w) => w.model.filePath === filePath);
+      const current = tracker.find(w => w.model.filePath === filePath);
       if (!current || !current.model.sharedModel.editable) {
         console.warn('Invalid or non-editable document for', filePath);
         return;
@@ -389,5 +389,5 @@ export function addLayerCreationCommands(options: {
     },
   ];
 
-  specs.forEach((spec) => createLayerCommand(commands, tracker, trans, spec));
+  specs.forEach(spec => createLayerCommand(commands, tracker, trans, spec));
 }

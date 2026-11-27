@@ -43,16 +43,13 @@ export function DrawCustomAttributesPresetsMenu({
         }
       >
         Presets
-        <ChevronDown
-          data-icon="inline-end"
-          className="jgis-inline-icon"
-        />
+        <ChevronDown data-icon="inline-end" className="jgis-inline-icon" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
         className="jgis-draw-custom-attributes-presets-menu"
       >
-        {presetNames.map((name) => {
+        {presetNames.map(name => {
           const attributeCount = presets[name]?.length ?? 0;
 
           return (

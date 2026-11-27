@@ -25,7 +25,7 @@ function getSlideDirection(
   }
 
   const prevPosition = segmentItems.findIndex(
-    (item) => item.id === prevSegmentId,
+    item => item.id === prevSegmentId,
   );
 
   if (prevPosition < 0) {
@@ -43,7 +43,7 @@ export function ListStoryTitleBarMobile({
   const [menuOpen, setMenuOpen] = useState(false);
 
   const currentPosition = segmentItems.findIndex(
-    (item) => item.index === currentIndex,
+    item => item.index === currentIndex,
   );
   const activeSegment =
     currentPosition >= 0 ? segmentItems[currentPosition] : undefined;
@@ -73,10 +73,7 @@ export function ListStoryTitleBarMobile({
       className="jgis-story-title-bar jgis-story-title-bar--mobile"
       aria-label="Story segments"
     >
-      <Popover
-        open={menuOpen}
-        onOpenChange={setMenuOpen}
-      >
+      <Popover open={menuOpen} onOpenChange={setMenuOpen}>
         <PopoverTrigger
           render={
             <Button
@@ -96,7 +93,7 @@ export function ListStoryTitleBarMobile({
           side="bottom"
           className="max-h-64 w-[calc(100vw-1rem)] max-w-sm items-center gap-1 overflow-y-auto"
         >
-          {segmentItems.map((item) => {
+          {segmentItems.map(item => {
             const isActive = item.index === currentIndex;
             return (
               <ListStoryTitleBarSegmentButton

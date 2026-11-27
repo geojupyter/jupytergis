@@ -1,11 +1,11 @@
 import { IJupyterGISModel, IJupyterGISSettings } from '@jupytergis/schema';
 import * as React from 'react';
 
-import StacPanel from '../../features/stac-browser/components/StacPanel';
-import { bookOpenIcon } from '../../shared/icons';
 import { FloatingPanelId } from './floatingPanelDock';
 import { FloatingRightPanel } from './floatingRightPanel';
 import { useUIState } from './hooks/useUIState';
+import StacPanel from '../../features/stac-browser/components/StacPanel';
+import { bookOpenIcon } from '../../shared/icons';
 
 interface IStacRightPanelProps {
   model: IJupyterGISModel;

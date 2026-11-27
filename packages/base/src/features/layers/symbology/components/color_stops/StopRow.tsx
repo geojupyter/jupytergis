@@ -118,10 +118,7 @@ const StopRow: React.FC<{
         id={`jp-gis-remove-color-${index}`}
         className="jp-Button jp-gis-filter-icon"
       >
-        <FontAwesomeIcon
-          icon={faTrash}
-          onClick={deleteRow}
-        />
+        <FontAwesomeIcon icon={faTrash} onClick={deleteRow} />
       </Button>
     </div>
   );

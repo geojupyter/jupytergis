@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
-import type { IStoryPresentationMobileChromeProps } from '@/src/features/story/presentation/types';
 import StoryViewerPanel from '@/src/features/story/StoryViewerPanel';
+import type { IStoryPresentationMobileChromeProps } from '@/src/features/story/presentation/types';
 import { getSpectaPresentationCssVars } from '@/src/features/story/utils/spectaPresentation';
 import { Button } from '@/src/shared/components/Button';
 import {
@@ -71,7 +71,7 @@ export function ColumnPresentationMobile({
 
   useEffect(() => {
     const isInSnapPoints = snapPoints.some(
-      (p) =>
+      p =>
         p === snap ||
         (typeof p === 'number' &&
           typeof snap === 'number' &&
@@ -146,7 +146,7 @@ export function ColumnPresentationMobile({
       <Drawer
         snapPoints={snapPoints}
         snapPoint={snap}
-        onSnapPointChange={(snapPoint) => {
+        onSnapPointChange={snapPoint => {
           setSnap(typeof snapPoint === 'number' ? snapPoint : null);
         }}
         swipeDirection="down"
@@ -158,10 +158,7 @@ export function ColumnPresentationMobile({
           container={container}
           style={presentationStyle}
         >
-          <div
-            id={SEGMENT_PANEL_ID}
-            className="jgis-story-viewer-panel"
-          >
+          <div id={SEGMENT_PANEL_ID} className="jgis-story-viewer-panel">
             <StoryViewerPanel
               model={model}
               isSpecta={true}

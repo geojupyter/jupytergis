@@ -32,7 +32,7 @@ export function WmsTileSourceUrlInput(
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
-  const namedLayerCount = layers.filter((layer) => layer.name !== '').length;
+  const namedLayerCount = layers.filter(layer => layer.name !== '').length;
   // handleConnect sets the layers before its cache save resolves, so wait for
   // isLoading to clear; a Disconnect in that window would be undone by the save.
   const isConnected = namedLayerCount > 0 && !isLoading;
@@ -96,14 +96,14 @@ export function WmsTileSourceUrlInput(
       );
 
       const parsed = layerEls
-        .map((layerEl) => {
+        .map(layerEl => {
           const name = layerEl.querySelector('Name')?.textContent?.trim() ?? '';
           const title =
             layerEl.querySelector('Title')?.textContent?.trim() ?? name;
 
           return { name, title };
         })
-        .filter((layer) => layer.name !== '' || layer.title !== '');
+        .filter(layer => layer.name !== '' || layer.title !== '');
 
       setWmsAvailableLayers(parsed);
 
@@ -134,8 +134,8 @@ export function WmsTileSourceUrlInput(
           type="text"
           value={text}
           onChange={handleChange}
-          onBlur={(e) => onBlur(id, e.target.value)}
-          onFocus={(e) => onFocus(id, e.target.value)}
+          onBlur={e => onBlur(id, e.target.value)}
+          onFocus={e => onFocus(id, e.target.value)}
           disabled={disabled}
           readOnly={readonly}
           placeholder="Enter WMS URL"
@@ -143,10 +143,7 @@ export function WmsTileSourceUrlInput(
         />
         {isConnected ? (
           <>
-            <span
-              role="status"
-              style={{ whiteSpace: 'nowrap' }}
-            >
+            <span role="status" style={{ whiteSpace: 'nowrap' }}>
               {`Connected (${namedLayerCount} layer${namedLayerCount === 1 ? '' : 's'})`}
             </span>
             <Button

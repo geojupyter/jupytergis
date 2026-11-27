@@ -40,11 +40,8 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
         aria-label="Map renderer"
         style={{ marginBottom: 12 }}
       >
-        {RENDERERS.map((type) => (
-          <label
-            key={type}
-            style={{ display: 'block', margin: '4px 0' }}
-          >
+        {RENDERERS.map(type => (
+          <label key={type} style={{ display: 'block', margin: '4px 0' }}>
             <input
               type="radio"
               name="jgis-map-renderer"
@@ -60,8 +57,8 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
       {selected !== current && skipped.length > 0 && (
         <p style={{ color: 'var(--jp-warn-color1)' }}>
           Switching to {name(selected)} will skip {skipped.length} layer
-          {skipped.length > 1 ? 's' : ''}:{' '}
-          {skipped.map((s) => s.name).join(', ')}.
+          {skipped.length > 1 ? 's' : ''}: {skipped.map(s => s.name).join(', ')}
+          .
         </p>
       )}
 
@@ -69,7 +66,7 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
         <thead>
           <tr>
             <th style={{ textAlign: 'left' }}>Feature</th>
-            {RENDERERS.map((type) => (
+            {RENDERERS.map(type => (
               <th key={type}>
                 {name(type)}
                 {type === 'openlayers' ? ' ' : ' (experimental)'}
@@ -77,7 +74,7 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
             ))}
           </tr>
         </thead>
-        {table.map((group) => (
+        {table.map(group => (
           <tbody key={group.title}>
             <tr>
               <th
@@ -87,17 +84,14 @@ function MapRendererDialog(props: IMapRendererProps): JSX.Element {
                 {group.title}
               </th>
             </tr>
-            {group.rows.map((r) => (
+            {group.rows.map(r => (
               <tr key={r.label}>
                 <td>{r.label}</td>
-                {RENDERERS.map((type) => {
+                {RENDERERS.map(type => {
                   const supported = r.support[type];
 
                   return (
-                    <td
-                      key={type}
-                      style={{ textAlign: 'center' }}
-                    >
+                    <td key={type} style={{ textAlign: 'center' }}>
                       <span
                         aria-label={supported ? 'Supported' : 'Not supported'}
                         title={supported ? 'Supported' : 'Not supported'}
@@ -149,7 +143,7 @@ class MapRendererBody
         model={this._model}
         current={this._current}
         selected={this._selected}
-        onSelect={(type) => {
+        onSelect={type => {
           this._selected = type;
           this.update();
         }}

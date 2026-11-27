@@ -30,7 +30,6 @@ import {
   NativeSelectOption,
 } from '@/src/shared/components/NativeSelect';
 import { debounce } from '@/src/tools';
-
 import SingleDatePicker from '../../../../shared/components/SingleDatePicker';
 
 interface IQueryableComboProps {
@@ -119,7 +118,7 @@ export function QueryableComboBox({
     if (isCurrentlySelected) {
       // Remove if already selected - pass null to explicitly remove
       delete debouncedCommitByKeyRef.current[key];
-      setDraftValues((prev) => {
+      setDraftValues(prev => {
         const { [key]: _, ...rest } = prev;
         return rest;
       });
@@ -195,19 +194,13 @@ export function QueryableComboBox({
             <NativeSelect
               className="w-full"
               value={String(currentValue ?? '')}
-              onChange={(event) => onChange(String(event.target.value))}
+              onChange={event => onChange(String(event.target.value))}
             >
-              <NativeSelectOption
-                value=""
-                disabled
-              >
+              <NativeSelectOption value="" disabled>
                 Select option...
               </NativeSelectOption>
-              {val.enum.map((option) => (
-                <NativeSelectOption
-                  key={String(option)}
-                  value={String(option)}
-                >
+              {val.enum.map(option => (
+                <NativeSelectOption key={String(option)} value={String(option)}>
                   {String(option)}
                 </NativeSelectOption>
               ))}
@@ -253,7 +246,7 @@ export function QueryableComboBox({
           <Input
             type="text"
             value={(currentValue as string) || ''}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={e => onChange(e.target.value)}
           />
         );
       case 'number':
@@ -263,19 +256,13 @@ export function QueryableComboBox({
             <NativeSelect
               className="w-full"
               value={String(currentValue ?? '')}
-              onChange={(event) => onChange(Number(event.target.value))}
+              onChange={event => onChange(Number(event.target.value))}
             >
-              <NativeSelectOption
-                value=""
-                disabled
-              >
+              <NativeSelectOption value="" disabled>
                 Select option...
               </NativeSelectOption>
-              {val.enum.map((option) => (
-                <NativeSelectOption
-                  key={String(option)}
-                  value={String(option)}
-                >
+              {val.enum.map(option => (
+                <NativeSelectOption key={String(option)} value={String(option)}>
                   {String(option)}
                 </NativeSelectOption>
               ))}
@@ -288,7 +275,7 @@ export function QueryableComboBox({
             min={val.minimum !== undefined ? val.minimum : undefined}
             max={val.maximum !== undefined ? val.maximum : undefined}
             value={(currentValue as number) || ''}
-            onChange={(e) => onChange(Number(e.target.value))}
+            onChange={e => onChange(Number(e.target.value))}
           />
         );
       default:
@@ -296,7 +283,7 @@ export function QueryableComboBox({
           <Input
             type="text"
             value={(currentValue as string) || ''}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={e => onChange(e.target.value)}
           />
         );
     }
@@ -323,13 +310,12 @@ export function QueryableComboBox({
   );
 
   const selectedOptions = useMemo(
-    () =>
-      queryableOptions.filter((option) => option.value in selectedQueryables),
+    () => queryableOptions.filter(option => option.value in selectedQueryables),
     [queryableOptions, selectedQueryables],
   );
 
   const handleComboboxValueChange = (newSelected: IQueryableOption[]) => {
-    const newKeys = new Set(newSelected.map((option) => option.value));
+    const newKeys = new Set(newSelected.map(option => option.value));
     const currentKeys = Object.keys(selectedQueryables);
 
     for (const key of currentKeys) {
@@ -359,12 +345,7 @@ export function QueryableComboBox({
       >
         <ComboboxTrigger
           className={'border-input'}
-          render={
-            <Button
-              variant="outline"
-              className="justify-between"
-            />
-          }
+          render={<Button variant="outline" className="justify-between" />}
         >
           <span className="truncate">{getButtonText()}</span>
         </ComboboxTrigger>
@@ -376,10 +357,7 @@ export function QueryableComboBox({
           <ComboboxEmpty>No queryable found.</ComboboxEmpty>
           <ComboboxList>
             {(option: IQueryableOption) => (
-              <ComboboxItem
-                key={option.value}
-                value={option}
-              >
+              <ComboboxItem key={option.value} value={option}>
                 {option.label}
               </ComboboxItem>
             )}
@@ -400,7 +378,7 @@ export function QueryableComboBox({
 
           const handleInputChange = (value: string | number) => {
             const normalizedValue = normalizeInputValue(val, value);
-            setDraftValues((prev) => ({
+            setDraftValues(prev => ({
               ...prev,
               [key]: normalizedValue,
             }));

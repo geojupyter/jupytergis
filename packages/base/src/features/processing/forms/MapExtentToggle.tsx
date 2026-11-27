@@ -28,11 +28,7 @@ export function MapExtentToggle({
           fontSize: 'var(--jp-ui-font-size1)',
         }}
       >
-        <input
-          type="checkbox"
-          checked={isActive}
-          onChange={onChange}
-        />
+        <input type="checkbox" checked={isActive} onChange={onChange} />
         Use current map extent
       </label>
 

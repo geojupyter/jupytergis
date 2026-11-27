@@ -67,10 +67,7 @@ export function VectorDrawControls({
       }
       data-tool={drawGeometryLabel || undefined}
     >
-      <p
-        className="jgis-vector-draw-controls-status"
-        role="status"
-      >
+      <p className="jgis-vector-draw-controls-status" role="status">
         {status}
       </p>
       <div className="jgis-vector-draw-controls-row">
@@ -125,10 +122,7 @@ export function VectorDrawControls({
         ) : null}
       </div>
       {drawLayerId ? (
-        <DrawCustomAttributesPreview
-          model={model}
-          drawLayerId={drawLayerId}
-        />
+        <DrawCustomAttributesPreview model={model} drawLayerId={drawLayerId} />
       ) : null}
     </div>
   );

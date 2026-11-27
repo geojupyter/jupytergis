@@ -74,7 +74,7 @@ export function useQueuedMarkdownHeightMeasure({
       return;
     }
 
-    const segment = markdownSegments.find((item) => item.id === nextId);
+    const segment = markdownSegments.find(item => item.id === nextId);
     if (segment) {
       setSegmentBeingMeasured(segment);
     }

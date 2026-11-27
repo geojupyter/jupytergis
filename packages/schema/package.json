@@ -13,19 +13,16 @@
   "author": {
     "name": "JupyterGIS contributors"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/geojupyter/jupytergis.git"
-  },
-  "style": "style/index.css",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "main": "lib/index.js",
   "types": "lib/types.d.ts",
-  "publishConfig": {
-    "access": "public"
+  "style": "style/index.css",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/geojupyter/jupytergis.git"
   },
   "scripts": {
     "test": "jest",
@@ -64,5 +61,8 @@
     "source-map-loader": "^3.0.0",
     "ts-loader": "^9.2.6",
     "typescript": "npm:@typescript/typescript6@^6.0.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

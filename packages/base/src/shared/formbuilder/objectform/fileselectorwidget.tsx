@@ -5,7 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 
 import { LayerCreationFormDialog } from '@/src/features/layers/layerCreationFormDialog';
 
-export const FileSelectorWidget: React.FC<any> = (props) => {
+export const FileSelectorWidget: React.FC<any> = props => {
   const { options } = props;
   const { docManager, formOptions } = options;
 
@@ -35,8 +35,7 @@ export const FileSelectorWidget: React.FC<any> = (props) => {
 
       const dialogElement = document.querySelector('dialog[aria-modal="true"]');
       const dialogInstance = dialogElement
-        ? (Dialog.tracker.find((dialog) => dialog.node === dialogElement) ??
-          null)
+        ? (Dialog.tracker.find(dialog => dialog.node === dialogElement) ?? null)
         : null;
 
       // Editing an existing object inside the Layer Properties dialog.

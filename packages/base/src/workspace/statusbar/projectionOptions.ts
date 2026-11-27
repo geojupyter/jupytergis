@@ -15,7 +15,7 @@ export const PROJECTION_OPTIONS: IProjectionOption[] = Object.entries(
 }));
 
 const PROJECTION_BY_CODE = new Map(
-  PROJECTION_OPTIONS.map((option) => [option.code, option]),
+  PROJECTION_OPTIONS.map(option => [option.code, option]),
 );
 
 export function getProjectionOption(

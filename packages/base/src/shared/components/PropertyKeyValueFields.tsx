@@ -30,7 +30,7 @@ export function PropertyKeyValueFields({
         type="text"
         placeholder={keyPlaceholder}
         value={propertyKey}
-        onChange={(event) => onPropertyKeyChange(event.target.value)}
+        onChange={event => onPropertyKeyChange(event.target.value)}
         onKeyDown={onKeyDown}
         disabled={disabled}
       />
@@ -39,7 +39,7 @@ export function PropertyKeyValueFields({
         type="text"
         placeholder={valuePlaceholder}
         value={propertyValue}
-        onChange={(event) => onPropertyValueChange(event.target.value)}
+        onChange={event => onPropertyValueChange(event.target.value)}
         onKeyDown={onKeyDown}
         disabled={disabled}
       />

@@ -70,7 +70,7 @@ export const NumericInput: React.FC<INumericInputProps> = ({
       disabled={disabled}
       value={raw}
       aria-invalid={!isValid}
-      onChange={(e) => setRaw(e.target.value)}
+      onChange={e => setRaw(e.target.value)}
       onFocus={() => {
         focused.current = true;
       }}

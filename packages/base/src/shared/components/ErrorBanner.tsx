@@ -56,10 +56,7 @@ export function ErrorBanner({
       className={cn('jgis-error-banner', className)}
       {...props}
     >
-      <span
-        className="jgis-error-banner-icon"
-        aria-hidden="true"
-      >
+      <span className="jgis-error-banner-icon" aria-hidden="true">
         {variantIcon[variant]}
       </span>
       <span className="sr-only">{variantLabel[variant]}:</span>

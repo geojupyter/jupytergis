@@ -32,7 +32,6 @@ import {
   extractHeatmapGradient,
 } from '@/src/features/layers/symbology/heatmapGradient';
 import { DEFAULT_FLAT_STYLE } from '@/src/features/layers/symbology/styleBuilder';
-
 import { grammarToOLStyle } from './grammarToOLStyle';
 
 // ---------------------------------------------------------------------------
@@ -81,7 +80,7 @@ export function grammarToOLLayer({
   const grammarLayers = state.layers ?? [];
 
   if (isRaster) {
-    const subLayers = grammarLayers.map((grammarLayer) =>
+    const subLayers = grammarLayers.map(grammarLayer =>
       compileRasterLayer(
         grammarLayer,
         source,
@@ -111,7 +110,7 @@ export function grammarToOLLayer({
     return new VectorImageLayer({ opacity, visible, source, className });
   }
 
-  const subLayers = grammarLayers.map((grammarLayer) =>
+  const subLayers = grammarLayers.map(grammarLayer =>
     compileGrammarLayer(
       grammarLayer,
       source,

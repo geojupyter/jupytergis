@@ -95,7 +95,7 @@ function elevationAccessor(
     return elevation;
   }
 
-  return (feature) => {
+  return feature => {
     const height = elevation(feature);
     return height;
   };
@@ -118,7 +118,7 @@ function sourceParameters<T>(
 }
 
 function readProperties(keys: string[]): RecordGetter {
-  return (record) => {
+  return record => {
     let value = record;
     for (const key of keys) {
       if (value === null || typeof value !== 'object') {
@@ -210,7 +210,7 @@ export function createPolygonLayer(
     DEFAULT_POLYGON_FIELD,
   );
   const getPolygon = ctx.getter(polygonField);
-  const polygons = records.filter((record) => isRing(getPolygon(record), 3));
+  const polygons = records.filter(record => isRing(getPolygon(record), 3));
   if (polygons.length === 0) {
     ctx.log(
       'warning',
@@ -226,7 +226,7 @@ export function createPolygonLayer(
   return new PolygonLayer({
     id,
     data: polygons,
-    getPolygon: (record) => getPolygon(record) as LngLat[],
+    getPolygon: record => getPolygon(record) as LngLat[],
     ...(getElevation !== undefined ? { getElevation } : {}),
     filled: parameters?.filled,
     stroked: parameters?.stroked,
@@ -371,7 +371,7 @@ export function makeCachedGetter(
     try {
       const compiled = compileGetter(expression);
       let logged = false;
-      getter = (record) => {
+      getter = record => {
         try {
           return compiled(record);
         } catch (error) {

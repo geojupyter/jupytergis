@@ -70,10 +70,7 @@ export function MainViewSidePanels({
             settings={settings}
           />
         ) : null}
-        <StacRightPanel
-          model={model}
-          settings={settings}
-        />
+        <StacRightPanel model={model} settings={settings} />
         <IdentifyRightPanel
           model={model}
           settings={settings}

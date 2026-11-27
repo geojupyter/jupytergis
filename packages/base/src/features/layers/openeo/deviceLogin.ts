@@ -8,7 +8,6 @@ import {
 import Environment from '@openeo/js-client/src/env';
 
 import { maybeProxied } from '@/src/shared/proxy';
-
 import { getOpenEOTokensProvider } from './tokens';
 
 const DEVICE_GRANT = 'urn:ietf:params:oauth:grant-type:device_code';
@@ -78,8 +77,8 @@ export class OpenEODeviceProvider extends AuthProvider {
     this._scope = (info.scopes?.length ? info.scopes : ['openid']).join(' ');
     this._clients = info.default_clients ?? [];
     this._clientId =
-      this._clients.find((c) =>
-        c.grant_types.some((grant) => grant.startsWith(DEVICE_GRANT)),
+      this._clients.find(c =>
+        c.grant_types.some(grant => grant.startsWith(DEVICE_GRANT)),
       )?.id ?? '';
   }
 
@@ -125,7 +124,7 @@ export class OpenEODeviceProvider extends AuthProvider {
     };
     if (
       this._clients.some(
-        (c) =>
+        c =>
           c.id === this._clientId &&
           c.grant_types.includes(`${DEVICE_GRANT}+pkce`),
       )

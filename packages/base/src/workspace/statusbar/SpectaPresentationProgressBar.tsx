@@ -62,7 +62,7 @@ function SpectaPresentationProgressBar({
     >
       <div className="jgis-specta-progress-bar">
         {Array.from({ length: safeCount }, (_, i) => safeCount - 1 - i).map(
-          (segmentIndex) => (
+          segmentIndex => (
             <div
               key={segmentIndex}
               className="jgis-specta-bar-segment"

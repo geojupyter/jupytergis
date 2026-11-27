@@ -1,8 +1,8 @@
 {
   "name": "jupytergis-ui-tests",
   "version": "1.0.0",
-  "private": true,
   "description": "JupyterGIS Integration Tests",
+  "private": true,
   "scripts": {
     "start": "JGIS_EXPOSE_MAPS=1 jupyter lab --config jupyter_server_test_config.py",
     "start:lite": "cd ../dist && python -m http.server -b 127.0.0.1 8000",

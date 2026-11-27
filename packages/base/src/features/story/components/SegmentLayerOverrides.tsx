@@ -56,7 +56,7 @@ export function SegmentLayerOverrides({
         </div>
       ) : null}
       <ul className="jgis-story-editor-segment-layer-list">
-        {rows.map((row) => {
+        {rows.map(row => {
           const layer = model.getLayer(row.layerId);
           const canEditSymbology =
             layer !== undefined &&
@@ -76,7 +76,7 @@ export function SegmentLayerOverrides({
               <span className="jgis-story-editor-segment-layer-visibility">
                 <Switch
                   checked={row.effectiveVisible}
-                  onCheckedChange={(checked) => {
+                  onCheckedChange={checked => {
                     setSegmentLayerVisibility(
                       model,
                       segmentId,
@@ -94,7 +94,7 @@ export function SegmentLayerOverrides({
                   step={1}
                   value={[Math.round(row.effectiveOpacity * 100)]}
                   aria-label={`Opacity for ${row.layerName}`}
-                  onValueChange={(value) => {
+                  onValueChange={value => {
                     const opacity = Array.isArray(value) ? value[0] : value;
                     setSegmentLayerOpacity(
                       model,

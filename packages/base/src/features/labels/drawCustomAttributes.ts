@@ -78,18 +78,18 @@ export function findMatchingPresetName(
   }
 
   const current = new Map(
-    attributes.map((attribute) => [attribute.key, attribute.value]),
+    attributes.map(attribute => [attribute.key, attribute.value]),
   );
 
   return Object.keys(presets)
     .sort((left, right) => left.localeCompare(right))
-    .find((name) => {
+    .find(name => {
       const preset = presets[name];
 
       return (
         preset.length === current.size &&
         preset.every(
-          (attribute) => current.get(attribute.key) === attribute.value,
+          attribute => current.get(attribute.key) === attribute.value,
         )
       );
     });

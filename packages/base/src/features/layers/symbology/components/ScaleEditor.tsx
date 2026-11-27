@@ -38,12 +38,12 @@ import {
   COLOR_RAMP_DEFAULTS,
   ColorRampName,
 } from '@/src/features/layers/symbology/colorRampUtils';
+import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
 import ColorRampSelector from '@/src/features/layers/symbology/components/color_ramp/ColorRampSelector';
 import RgbaColorPicker, {
   RgbaColor,
 } from '@/src/features/layers/symbology/components/color_ramp/RgbaColorPicker';
 import StopContainer from '@/src/features/layers/symbology/components/color_stops/StopContainer';
-import { NumericInput } from '@/src/features/layers/symbology/components/NumericInput';
 import {
   hasPlaceholderDomain,
   numericValuesFor,
@@ -66,7 +66,7 @@ import {
 function stopsToRows(
   stops: Array<{ stop: number | string; color: RGBA }>,
 ): IStopRow[] {
-  return stops.map((s) => ({
+  return stops.map(s => ({
     id: UUID.uuid4(),
     stop: s.stop,
     output: s.color as RgbaColor,
@@ -77,8 +77,8 @@ function rowsToColorStops(
   rows: IStopRow[],
 ): Array<{ stop: number | string; color: RGBA }> {
   return rows
-    .filter((r) => r.output !== undefined)
-    .map((r) => ({ stop: r.stop, color: r.output as RGBA }));
+    .filter(r => r.output !== undefined)
+    .map(r => ({ stop: r.stop, color: r.output as RGBA }));
 }
 
 const MODE_OPTIONS: ClassificationMode[] = [
@@ -117,7 +117,7 @@ export const ConstantEditor: React.FC<IConstantEditorProps> = ({
   encodings = [],
 }) => {
   if (scale.scheme === 'constant_str') {
-    const enumEncoding = encodings.find((c) => c in TEXT_ENUM_OPTIONS);
+    const enumEncoding = encodings.find(c => c in TEXT_ENUM_OPTIONS);
     const options = enumEncoding ? TEXT_ENUM_OPTIONS[enumEncoding] : undefined;
 
     return (
@@ -126,18 +126,15 @@ export const ConstantEditor: React.FC<IConstantEditorProps> = ({
         {options ? (
           <NativeSelect
             value={scale.params.value}
-            onChange={(e) =>
+            onChange={e =>
               onChange({
                 scheme: 'constant_str',
                 params: { value: e.target.value },
               })
             }
           >
-            {options.map((o) => (
-              <NativeSelectOption
-                key={o}
-                value={o}
-              >
+            {options.map(o => (
+              <NativeSelectOption key={o} value={o}>
                 {o}
               </NativeSelectOption>
             ))}
@@ -146,7 +143,7 @@ export const ConstantEditor: React.FC<IConstantEditorProps> = ({
           <Input
             className="jp-mod-styled"
             value={scale.params.value}
-            onChange={(e) =>
+            onChange={e =>
               onChange({
                 scheme: 'constant_str',
                 params: { value: e.target.value },
@@ -165,7 +162,7 @@ export const ConstantEditor: React.FC<IConstantEditorProps> = ({
         <NumericInput
           className="jp-mod-styled"
           value={scale.params.value}
-          onChange={(v) =>
+          onChange={v =>
             onChange({ scheme: 'constant_num', params: { value: v } })
           }
         />
@@ -178,7 +175,7 @@ export const ConstantEditor: React.FC<IConstantEditorProps> = ({
       <label>Color</label>
       <RgbaColorPicker
         color={scale.params.value as RgbaColor}
-        onChange={(color) =>
+        onChange={color =>
           onChange({ scheme: 'constant_rgba', params: { value: color } })
         }
       />
@@ -266,14 +263,14 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
       } as any,
       values,
     );
-    const rows = computed.map((s) => ({
+    const rows = computed.map(s => ({
       id: UUID.uuid4(),
       stop: s.value as number,
       output: s.color as RgbaColor,
     }));
     setStopRows(rows);
     update({
-      colorStops: computed.map((s) => ({
+      colorStops: computed.map(s => ({
         stop: s.value as number,
         color: s.color as RGBA,
       })),
@@ -296,7 +293,7 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
         <label>Color map</label>
         <ColorRampSelector
           selectedRamp={params.name as ColorRampName}
-          setSelected={(name) => {
+          setSelected={name => {
             const min = COLOR_RAMP_DEFAULTS[name];
             update({
               name,
@@ -304,7 +301,7 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
             });
           }}
           reverse={params.reverse}
-          setReverse={(v) =>
+          setReverse={v =>
             update({ reverse: typeof v === 'function' ? v(params.reverse) : v })
           }
         />
@@ -315,15 +312,12 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
           <select
             className="jp-mod-styled"
             value={params.mode}
-            onChange={(e) =>
+            onChange={e =>
               update({ mode: e.target.value as ClassificationMode })
             }
           >
-            {MODE_OPTIONS.map((m) => (
-              <option
-                key={m}
-                value={m}
-              >
+            {MODE_OPTIONS.map(m => (
+              <option key={m} value={m}>
                 {m}
               </option>
             ))}
@@ -335,7 +329,7 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
         <NumericInput
           className="jp-mod-styled"
           value={params.nShades}
-          onChange={(v) => update({ nShades: v })}
+          onChange={v => update({ nShades: v })}
         />
       </div>
       <div className="jp-gis-symbology-row">
@@ -345,13 +339,13 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
             className="jp-mod-styled"
             placeholder="min"
             value={params.domain?.[0] ?? 0}
-            onChange={(v) => update({ domain: [v, params.domain?.[1] ?? v] })}
+            onChange={v => update({ domain: [v, params.domain?.[1] ?? v] })}
           />
           <NumericInput
             className="jp-mod-styled"
             placeholder="max"
             value={params.domain?.[1] ?? 0}
-            onChange={(v) => update({ domain: [params.domain?.[0] ?? v, v] })}
+            onChange={v => update({ domain: [params.domain?.[0] ?? v, v] })}
           />
         </div>
       </div>
@@ -359,7 +353,7 @@ export const ColorMapEditor: React.FC<IColorMapEditorProps> = ({
         <label>Fallback</label>
         <RgbaColorPicker
           color={params.fallback as RgbaColor}
-          onChange={(color) => update({ fallback: color as RGBA })}
+          onChange={color => update({ fallback: color as RGBA })}
         />
       </div>
       <button
@@ -424,14 +418,14 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
       } as any,
       values,
     );
-    const rows = computed.map((s) => ({
+    const rows = computed.map(s => ({
       id: UUID.uuid4(),
       stop: s.value as string | number,
       output: s.color as RgbaColor,
     }));
     setStopRows(rows);
     update({
-      colorStops: computed.map((s) => ({
+      colorStops: computed.map(s => ({
         stop: s.value as string | number,
         color: s.color as RGBA,
       })),
@@ -449,9 +443,9 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
         <label>Ramp</label>
         <ColorRampSelector
           selectedRamp={params.colorRamp as ColorRampName}
-          setSelected={(colorRamp) => update({ colorRamp })}
+          setSelected={colorRamp => update({ colorRamp })}
           reverse={params.reverse ?? false}
-          setReverse={(v) =>
+          setReverse={v =>
             update({
               reverse: typeof v === 'function' ? v(params.reverse ?? false) : v,
             })
@@ -462,7 +456,7 @@ export const CategoricalEditor: React.FC<ICategoricalEditorProps> = ({
         <label>Fallback</label>
         <RgbaColorPicker
           color={params.fallback as RgbaColor}
-          onChange={(color) => update({ fallback: color as RGBA })}
+          onChange={color => update({ fallback: color as RGBA })}
         />
       </div>
       <button
@@ -497,7 +491,7 @@ interface IExpressionEditorProps {
 function vegaExprCompletion(fieldsRef: React.MutableRefObject<string[]>) {
   // 'indexof' is excluded: it's handled as a special-case pattern
   const functionNames = Object.keys(FUNCTION_MAPPING).filter(
-    (name) => name !== 'indexof',
+    name => name !== 'indexof',
   );
 
   const constantNames = Object.keys(CONSTANTS_MAPPING);
@@ -507,10 +501,9 @@ function vegaExprCompletion(fieldsRef: React.MutableRefObject<string[]>) {
     if (datumMatch) {
       return {
         from: datumMatch.from + 6,
-        options: fieldsRef.current.map((f): Completion => ({
-          label: f,
-          type: 'property',
-        })),
+        options: fieldsRef.current.map(
+          (f): Completion => ({ label: f, type: 'property' }),
+        ),
         validFor: /^\w*$/,
       };
     }
@@ -526,14 +519,12 @@ function vegaExprCompletion(fieldsRef: React.MutableRefObject<string[]>) {
         type: 'variable',
         detail: 'current data object',
       },
-      ...functionNames.map((name): Completion => ({
-        label: name,
-        type: 'function',
-      })),
-      ...constantNames.map((name): Completion => ({
-        label: name,
-        type: 'constant',
-      })),
+      ...functionNames.map(
+        (name): Completion => ({ label: name, type: 'function' }),
+      ),
+      ...constantNames.map(
+        (name): Completion => ({ label: name, type: 'constant' }),
+      ),
     ];
 
     return { from: word.from, options, validFor: /^\w*$/ };
@@ -609,7 +600,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
           keymap.of([{ key: 'Tab', run: acceptCompletion }, indentWithTab]),
         ),
         keymap.of(completionKeymap),
-        EditorView.updateListener.of((updateView) => {
+        EditorView.updateListener.of(updateView => {
           if (updateView.docChanged) {
             const value = updateView.state.doc.toString();
             onChange({
@@ -736,7 +727,7 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
               overflow: 'hidden',
             }}
           >
-            {(['vega', 'python'] as const).map((lang) => (
+            {(['vega', 'python'] as const).map(lang => (
               <button
                 key={lang}
                 role="tab"
@@ -811,13 +802,13 @@ export const ExpressionEditor: React.FC<IExpressionEditorProps> = ({
         {Array.isArray(params.fallback) ? (
           <RgbaColorPicker
             color={params.fallback as RgbaColor}
-            onChange={(color) => update({ fallback: color as RGBA })}
+            onChange={color => update({ fallback: color as RGBA })}
           />
         ) : (
           <NumericInput
             className="jp-mod-styled"
             value={params.fallback}
-            onChange={(v) => update({ fallback: v })}
+            onChange={v => update({ fallback: v })}
           />
         )}
       </div>
@@ -852,7 +843,7 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
 
   const [stopRows, setStopRows] = useState<IStopRow[]>(
     params.scalarStops
-      ? params.scalarStops.map((s) => ({
+      ? params.scalarStops.map(s => ({
           id: UUID.uuid4(),
           stop: s.stop,
           output: s.output,
@@ -882,11 +873,7 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
     }
     const stops = (fitted as IScalarScale).params.scalarStops ?? [];
     setStopRows(
-      stops.map((st) => ({
-        id: UUID.uuid4(),
-        stop: st.stop,
-        output: st.output,
-      })),
+      stops.map(st => ({ id: UUID.uuid4(), stop: st.stop, output: st.output })),
     );
     onChange(fitted);
   }, [field, featureValues]); // intentionally omits onChange to avoid loop
@@ -912,7 +899,7 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
   const handleStopRowsChange = (rows: IStopRow[]) => {
     setStopRows(rows);
     update({
-      scalarStops: rows.map((r) => ({
+      scalarStops: rows.map(r => ({
         stop: r.stop as number,
         output: r.output as number,
       })),
@@ -928,13 +915,13 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
             className="jp-mod-styled"
             placeholder="min"
             value={params.domain[0]}
-            onChange={(v) => update({ domain: [v, params.domain[1]] })}
+            onChange={v => update({ domain: [v, params.domain[1]] })}
           />
           <NumericInput
             className="jp-mod-styled"
             placeholder="max"
             value={params.domain[1]}
-            onChange={(v) => update({ domain: [params.domain[0], v] })}
+            onChange={v => update({ domain: [params.domain[0], v] })}
           />
         </div>
       </div>
@@ -945,13 +932,13 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
             className="jp-mod-styled"
             placeholder="min"
             value={params.range[0]}
-            onChange={(v) => update({ range: [v, params.range[1]] })}
+            onChange={v => update({ range: [v, params.range[1]] })}
           />
           <NumericInput
             className="jp-mod-styled"
             placeholder="max"
             value={params.range[1]}
-            onChange={(v) => update({ range: [params.range[0], v] })}
+            onChange={v => update({ range: [params.range[0], v] })}
           />
         </div>
       </div>
@@ -960,7 +947,7 @@ export const ScalarEditor: React.FC<IScalarEditorProps> = ({
         <NumericInput
           className="jp-mod-styled"
           value={params.fallback}
-          onChange={(v) => update({ fallback: v })}
+          onChange={v => update({ fallback: v })}
         />
       </div>
       <button

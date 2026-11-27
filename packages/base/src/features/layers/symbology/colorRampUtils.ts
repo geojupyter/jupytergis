@@ -183,7 +183,7 @@ export type ColorRampName = (typeof COLOR_RAMP_NAMES)[number] | D3SchemeName;
 export const getColorMapList = (): IColorMap[] => {
   const colorMapList: IColorMap[] = [];
 
-  COLOR_RAMP_NAMES.forEach((name) => {
+  COLOR_RAMP_NAMES.forEach(name => {
     const colorRamp = colormap({
       colormap: name,
       nshades: 255,
@@ -196,7 +196,7 @@ export const getColorMapList = (): IColorMap[] => {
   objectEntries(D3_CATEGORICAL_SCHEMES).forEach(([name, colors]) => {
     colorMapList.push({
       name,
-      colors: colors.map((c) => c.toString()),
+      colors: colors.map(c => c.toString()),
       type: 'categorical',
     });
   });
@@ -223,7 +223,7 @@ export const getColorMap = (name: ColorRampName): IColorMap | undefined => {
   if (!colorMapCache) {
     colorMapCache = getColorMapList();
   }
-  return colorMapCache.find((c) => c.name === name);
+  return colorMapCache.find(c => c.name === name);
 };
 
 /**

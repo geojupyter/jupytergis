@@ -10,7 +10,6 @@ import {
   DropdownMenuTrigger,
 } from '@/src/shared/components/DropdownMenu';
 import { PropertyKeyValueFields } from '@/src/shared/components/PropertyKeyValueFields';
-
 import {
   IAttributeEditorActions,
   IAttributeEditorState,
@@ -59,11 +58,8 @@ export const AttributeActionsMenu: React.FC<IAttributeActionsMenuProps> = ({
           </Button>
         }
       />
-      <DropdownMenuContent
-        side={side}
-        onClick={onContentClick}
-      >
-        {items.map((item) => (
+      <DropdownMenuContent side={side} onClick={onContentClick}>
+        {items.map(item => (
           <DropdownMenuItem
             key={item.label}
             disabled={item.disabled}

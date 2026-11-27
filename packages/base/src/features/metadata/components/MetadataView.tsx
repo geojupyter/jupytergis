@@ -3,12 +3,11 @@ import * as React from 'react';
 
 import { ErrorBanner } from '@/src/shared/components/ErrorBanner';
 import { LoadingIcon } from '@/src/shared/components/loading';
-
-import { useLayerMetadata } from '../hooks/useLayerMetadata';
 import { CrsCard } from './CrsCard';
 import { ExtentCard } from './ExtentCard';
 import { FieldList, MetadataSection } from './MetadataSection';
 import { BandTable, PyramidTable, VectorTable } from './MetadataTables';
+import { useLayerMetadata } from '../hooks/useLayerMetadata';
 
 interface IMetadataViewProps {
   model: IJupyterGISModel;
@@ -71,7 +70,7 @@ export const MetadataView: React.FC<IMetadataViewProps> = ({
 
       {metadata.notes?.length ? (
         <ul className="m-0 flex list-none flex-col gap-1 p-0 text-xs text-muted-foreground">
-          {metadata.notes.map((note) => (
+          {metadata.notes.map(note => (
             <li key={note}>{note}</li>
           ))}
         </ul>

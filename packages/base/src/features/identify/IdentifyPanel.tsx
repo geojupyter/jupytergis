@@ -47,7 +47,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       if (remoteUserId) {
         const remoteState = clients.get(remoteUserId);
         if (remoteState) {
-          setRemoteUser((previousUser) =>
+          setRemoteUser(previousUser =>
             previousUser?.username === remoteState.user?.username
               ? previousUser
               : remoteState.user,
@@ -58,7 +58,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
         return;
       }
 
-      setRemoteUser((previousUser) => (previousUser ? null : previousUser));
+      setRemoteUser(previousUser => (previousUser ? null : previousUser));
 
       // If not following a collaborator
       const identifiedFeatures = model?.localState?.identifiedFeatures?.value;
@@ -81,11 +81,11 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       model?.remoteUserChanged,
     ];
 
-    signals.forEach((signal) => signal.connect(handleIdentifyFeaturesChanged));
+    signals.forEach(signal => signal.connect(handleIdentifyFeaturesChanged));
     handleIdentifyFeaturesChanged();
 
     return () => {
-      signals.forEach((signal) =>
+      signals.forEach(signal =>
         signal.disconnect(handleIdentifyFeaturesChanged),
       );
     };
@@ -99,7 +99,7 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
   };
 
   const toggleFeatureVisibility = (rowIndex: number, isOpen: boolean) => {
-    setVisibleRows((prev) => ({
+    setVisibleRows(prev => ({
       ...prev,
       [rowIndex]: isOpen,
     }));
@@ -111,8 +111,8 @@ export const IdentifyPanelComponent: React.FC<IIdentifyComponentProps> = ({
       return;
     }
 
-    setFeatures((previous) => {
-      const nextFeatures = previous.map((item) =>
+    setFeatures(previous => {
+      const nextFeatures = previous.map(item =>
         getFeatureIdentifier(item.feature) === featureId
           ? { ...item, floaterOpen: !item.floaterOpen }
           : item,

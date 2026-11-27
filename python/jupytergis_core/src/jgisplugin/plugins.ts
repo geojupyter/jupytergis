@@ -276,19 +276,19 @@ const activate = async (
     tracker
       .add(widget)
       .then(() => {
-        Object.values(CommandIDs).forEach((id) => {
+        Object.values(CommandIDs).forEach(id => {
           if (app.commands.hasCommand(id)) {
             app.commands.notifyCommandChanged(id);
           }
         });
       })
-      .catch((e) => {
+      .catch(e => {
         console.error('Cannot update JupyterGIS commands', e);
       });
   });
 
   app.commands.addCommand(CommandIDs.createNew, {
-    label: (args) => (args['label'] as string) ?? 'GIS Project',
+    label: args => (args['label'] as string) ?? 'GIS Project',
     describedBy: {
       args: {
         type: 'object',
@@ -306,8 +306,8 @@ const activate = async (
       },
     },
     caption: 'Create a new JGIS Editor',
-    icon: (args) => logoIcon,
-    execute: async (args) => {
+    icon: args => logoIcon,
+    execute: async args => {
       // Get the directory in which the JGIS file must be created;
       // otherwise take the current filebrowser directory
       const cwd = (args['cwd'] ||

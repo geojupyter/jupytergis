@@ -47,7 +47,7 @@ export function SourceLayerField(props: ISourceLayerFieldProps): JSX.Element {
             ? { longitude, latitude, zoom }
             : undefined,
         signal: controller.signal,
-        fetchTile: async (tileUrl) =>
+        fetchTile: async tileUrl =>
           fetch(await maybeProxied(tileUrl, model, source.httpHeaders), {
             signal: controller.signal,
           }),
@@ -83,7 +83,7 @@ export function SourceLayerField(props: ISourceLayerFieldProps): JSX.Element {
           className="form-control"
           value={value ?? ''}
           disabled={inactive}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
         />
         <Button
           className="jp-mod-styled jp-mod-accept"
@@ -100,19 +100,13 @@ export function SourceLayerField(props: ISourceLayerFieldProps): JSX.Element {
           className="form-control"
           style={{ marginTop: 6 }}
           value={candidates.includes(value) ? value : ''}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
         >
-          <option
-            value=""
-            disabled
-          >
+          <option value="" disabled>
             {candidates.length} layers found, pick one…
           </option>
-          {candidates.map((name) => (
-            <option
-              key={name}
-              value={name}
-            >
+          {candidates.map(name => (
+            <option key={name} value={name}>
               {name}
             </option>
           ))}

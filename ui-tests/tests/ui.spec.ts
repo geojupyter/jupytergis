@@ -1,6 +1,5 @@
-import path from 'path';
-
 import { expect, galata, test } from '@jupyterlab/galata';
+import path from 'path';
 
 test.use({ autoGoto: false });
 
@@ -26,7 +25,7 @@ test.describe('UI Test', () => {
         'https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/',
       ];
       page.setViewportSize({ width: 1920, height: 1080 });
-      page.on('console', (message) => {
+      page.on('console', message => {
         if (message.type() === 'error') {
           for (let pattern of unrelatedErrors) {
             if (message.text().includes(pattern)) {

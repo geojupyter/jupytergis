@@ -134,10 +134,7 @@ const FilterRow: React.FC<{
         id={`jp-gis-remove-filter-${index}`}
         className="jp-Button jp-gis-filter-icon"
       >
-        <FontAwesomeIcon
-          icon={faTrash}
-          onClick={deleteRow}
-        />
+        <FontAwesomeIcon icon={faTrash} onClick={deleteRow} />
       </Button>
     </div>
   );

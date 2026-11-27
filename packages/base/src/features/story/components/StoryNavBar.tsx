@@ -2,7 +2,6 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import React from 'react';
 
 import { Button } from '@/src/shared/components/Button';
-
 import type { StoryNavPlacement } from '../StoryViewerPanel';
 
 interface IStoryNavBarProps {

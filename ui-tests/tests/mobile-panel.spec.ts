@@ -1,6 +1,5 @@
-import path from 'path';
-
 import { expect, galata, test } from '@jupyterlab/galata';
+import path from 'path';
 
 const FILENAME = 'panel-test.jGIS';
 const MOBILE_VIEWPORT = { width: 390, height: 844 };

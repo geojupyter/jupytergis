@@ -50,7 +50,7 @@ function collectUpdates(
   const updates: IDict<any> = {};
   const keptKeys = new Set<string>();
 
-  rows.forEach((row) => {
+  rows.forEach(row => {
     const key = normalizeDrawCustomAttributeKey(row.key);
     if (!key) {
       return;
@@ -75,8 +75,8 @@ function collectUpdates(
   });
 
   Object.keys(attributes)
-    .filter((key) => !isReservedDrawCustomAttributeKey(key))
-    .forEach((key) => {
+    .filter(key => !isReservedDrawCustomAttributeKey(key))
+    .forEach(key => {
       if (!keptKeys.has(key)) {
         updates[key] = undefined;
       }
@@ -97,7 +97,7 @@ export function EditFeatureAttributesDialog({
     for (const [index, row] of rows.entries()) {
       const others = rows
         .filter((_, otherIndex) => otherIndex !== index)
-        .map((other) => normalizeDrawCustomAttributeKey(other.key));
+        .map(other => normalizeDrawCustomAttributeKey(other.key));
 
       const validation = validateDrawCustomAttributeKey(row.key, others);
       if (!validation.valid) {
@@ -109,28 +109,25 @@ export function EditFeatureAttributesDialog({
   }, [rows]);
 
   const updateRow = (id: string, patch: Partial<IAttributeRow>): void => {
-    setRows((previous) =>
-      previous.map((row) => (row.id === id ? { ...row, ...patch } : row)),
+    setRows(previous =>
+      previous.map(row => (row.id === id ? { ...row, ...patch } : row)),
     );
   };
 
   const addRow = (): void => {
-    setRows((previous) => [
+    setRows(previous => [
       ...previous,
       { id: `new-${nextRowId}`, key: '', value: '' },
     ]);
-    setNextRowId((previous) => previous + 1);
+    setNextRowId(previous => previous + 1);
   };
 
   const removeRow = (id: string): void => {
-    setRows((previous) => previous.filter((row) => row.id !== id));
+    setRows(previous => previous.filter(row => row.id !== id));
   };
 
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => (open ? undefined : onClose())}
-    >
+    <Dialog open onOpenChange={open => (open ? undefined : onClose())}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Edit feature</DialogTitle>
@@ -146,7 +143,7 @@ export function EditFeatureAttributesDialog({
                 No attributes yet.
               </p>
             ) : null}
-            {rows.map((row) => (
+            {rows.map(row => (
               <div
                 key={row.id}
                 className="jgis-attribute-row jgis-attribute-row-editor"
@@ -154,10 +151,8 @@ export function EditFeatureAttributesDialog({
                 <PropertyKeyValueFields
                   propertyKey={row.key}
                   propertyValue={row.value}
-                  onPropertyKeyChange={(key) => updateRow(row.id, { key })}
-                  onPropertyValueChange={(value) =>
-                    updateRow(row.id, { value })
-                  }
+                  onPropertyKeyChange={key => updateRow(row.id, { key })}
+                  onPropertyValueChange={value => updateRow(row.id, { value })}
                 />
                 <Button
                   type="button"
@@ -190,12 +185,7 @@ export function EditFeatureAttributesDialog({
         </div>
 
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={onClose}
-          >
+          <Button type="button" variant="outline" size="sm" onClick={onClose}>
             Cancel
           </Button>
           <Button

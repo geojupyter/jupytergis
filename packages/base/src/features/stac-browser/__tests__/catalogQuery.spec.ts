@@ -54,7 +54,7 @@ describe('listCollectionWms', () => {
       thumb: asset('https://example.test/thumb.png', ['thumbnail']),
     };
 
-    expect(listCollectionWms(assets).map((layer) => layer.layers)).toEqual([
+    expect(listCollectionWms(assets).map(layer => layer.layers)).toEqual([
       'river_wse',
       'river_area',
     ]);

@@ -1,12 +1,12 @@
 import { IIdentifiedFeature } from '@jupytergis/schema';
 import React from 'react';
 
+import { AttributeRowEditor } from './AttributeEditors';
+import { FeatureRow } from './FeatureRow';
 import {
   IAttributeEditorActions,
   IAttributeEditorState,
 } from '../types/editorTypes';
-import { AttributeRowEditor } from './AttributeEditors';
-import { FeatureRow } from './FeatureRow';
 
 interface IFeatureAttributeListProps {
   feature: IIdentifiedFeature;

@@ -1,5 +1,4 @@
 import { loadFile } from '@/src/tools';
-
 import { ILayerMetadata, ISourceMetadataContext } from '../types';
 import { buildCrsMetadata, transformExtent } from '../utils/crs';
 

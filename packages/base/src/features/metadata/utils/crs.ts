@@ -204,18 +204,18 @@ export function transformExtent(
   try {
     const transformer = proj4(fromCode, toCode);
     const transformed = points
-      .map((point) => transformer.forward(point))
-      .filter((point) => point.every(Number.isFinite));
+      .map(point => transformer.forward(point))
+      .filter(point => point.every(Number.isFinite));
 
     if (!transformed.length) {
       return undefined;
     }
 
     return [
-      Math.min(...transformed.map((p) => p[0])),
-      Math.min(...transformed.map((p) => p[1])),
-      Math.max(...transformed.map((p) => p[0])),
-      Math.max(...transformed.map((p) => p[1])),
+      Math.min(...transformed.map(p => p[0])),
+      Math.min(...transformed.map(p => p[1])),
+      Math.max(...transformed.map(p => p[0])),
+      Math.max(...transformed.map(p => p[1])),
     ];
   } catch {
     return undefined;

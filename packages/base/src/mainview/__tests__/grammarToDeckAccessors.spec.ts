@@ -8,7 +8,6 @@ import {
   computeCategorizedColorStops,
   computeGraduatedColorStops,
 } from '@/src/features/layers/symbology/styleBuilder';
-
 import {
   DeckColor,
   DeckColorAccessor,

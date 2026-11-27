@@ -14,11 +14,6 @@ import { Notification, showErrorMessage } from '@jupyterlab/apputils';
 import { PathExt } from '@jupyterlab/coreutils';
 import { UUID } from '@lumino/coreutils';
 
-import { getGdal } from '../../gdal';
-import { maybeProxied } from '../../shared/proxy';
-import { getGeoJSONDataFromLayerSource, getUniqueFilePath } from '../../tools';
-import { JupyterGISTracker } from '../../types';
-import { launchFollowable } from '../follow';
 import { ProcessingFormDialog } from './ProcessingFormDialog';
 import { processingFormToParam } from './processingFormToParam';
 import {
@@ -27,6 +22,11 @@ import {
   runServerProcessingUrl,
   runServerProcessingUrlWithCutline,
 } from './serverProcessing';
+import { getGdal } from '../../gdal';
+import { maybeProxied } from '../../shared/proxy';
+import { getGeoJSONDataFromLayerSource, getUniqueFilePath } from '../../tools';
+import { JupyterGISTracker } from '../../types';
+import { launchFollowable } from '../follow';
 
 /**
  * Get the currently selected layer from the shared model. Returns null if there is no selection or multiple layer is selected.
@@ -117,7 +117,7 @@ export async function processLayer(
 ) {
   // Resolve widget
   const widget = filePath
-    ? tracker.find((w) => w.model.filePath === filePath)
+    ? tracker.find(w => w.model.filePath === filePath)
     : tracker.currentWidget;
 
   if (!widget) {
@@ -164,7 +164,7 @@ export async function processLayer(
     )[0];
 
     // Open ProcessingFormDialog
-    const formValues = await new Promise<IDict>((resolve) => {
+    const formValues = await new Promise<IDict>(resolve => {
       const followableOptions = {
         title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
         sourceData: {
@@ -250,7 +250,7 @@ export async function rasterizeLayer(
   processingInputs?: Record<string, any>,
 ) {
   const widget = filePath
-    ? tracker.find((w) => w.model.filePath === filePath)
+    ? tracker.find(w => w.model.filePath === filePath)
     : tracker.currentWidget;
   if (!widget) {
     return;
@@ -291,7 +291,7 @@ export async function rasterizeLayer(
       model.sharedModel.awareness.getLocalState()?.selected?.value || {},
     )[0];
 
-    const formValues = await new Promise<IDict>((resolve) => {
+    const formValues = await new Promise<IDict>(resolve => {
       const followableOptions = {
         title: processingType.charAt(0).toUpperCase() + processingType.slice(1),
         sourceData: {
@@ -586,7 +586,7 @@ export async function clipRasterByExtent(
   processingInputs?: Record<string, any>,
 ) {
   const widget = filePath
-    ? tracker.find((w) => w.model.filePath === filePath)
+    ? tracker.find(w => w.model.filePath === filePath)
     : tracker.currentWidget;
   if (!widget) {
     return;
@@ -641,7 +641,7 @@ export async function clipRasterByExtent(
       model.sharedModel.awareness.getLocalState()?.selected?.value || {},
     )[0];
 
-    const formValues = await new Promise<IDict>((resolve) => {
+    const formValues = await new Promise<IDict>(resolve => {
       const followableOptions = {
         title: 'Clip Raster by Extent',
         sourceData: {
@@ -879,7 +879,7 @@ export async function clipRasterByVector(
   processingInputs?: Record<string, any>,
 ) {
   const widget = filePath
-    ? tracker.find((w) => w.model.filePath === filePath)
+    ? tracker.find(w => w.model.filePath === filePath)
     : tracker.currentWidget;
   if (!widget) {
     return;
@@ -932,7 +932,7 @@ export async function clipRasterByVector(
       ...(formSchemaRegistry.getSchemas().get('ClipRasterByVector') as IDict),
     };
 
-    const formValues = await new Promise<IDict>((resolve) => {
+    const formValues = await new Promise<IDict>(resolve => {
       const followableOptions = {
         title: 'Clip Raster by Vector',
         sourceData: {
@@ -1297,7 +1297,7 @@ export async function clipVectorByMaskLayer(
   processingInputs?: Record<string, any>,
 ) {
   const widget = filePath
-    ? tracker.find((w) => w.model.filePath === filePath)
+    ? tracker.find(w => w.model.filePath === filePath)
     : tracker.currentWidget;
   if (!widget) {
     return;
@@ -1342,7 +1342,7 @@ export async function clipVectorByMaskLayer(
         .getSchemas()
         .get('ClipVectorByMaskLayer') as IDict),
     };
-    const formValues = await new Promise<IDict>((resolve) => {
+    const formValues = await new Promise<IDict>(resolve => {
       const followableOptions = {
         title: 'Clip',
         sourceData: {
@@ -1497,7 +1497,7 @@ export async function executeSQLProcessing(
       }
 
       const dataset = result.datasets[0] as any;
-      const wasmOptions = options.map((o) =>
+      const wasmOptions = options.map(o =>
         o.replace('{outputName}', 'output.geojson'),
       );
       const outputFilePath = await Gdal[gdalFunction](dataset, wasmOptions);

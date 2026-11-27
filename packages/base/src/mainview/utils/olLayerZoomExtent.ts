@@ -9,7 +9,7 @@ import type { Source } from 'ol/source';
 export function isValidExtent(
   extent: number[] | undefined,
 ): extent is number[] {
-  return !!extent && extent.every((value) => Number.isFinite(value));
+  return !!extent && extent.every(value => Number.isFinite(value));
 }
 
 export function transformExtentToViewProjection(

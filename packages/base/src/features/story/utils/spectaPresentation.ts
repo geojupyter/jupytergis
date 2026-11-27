@@ -5,7 +5,6 @@ import {
   getStoryPresentationMode,
   isVerticalScrollPresentation,
 } from '@/src/features/story/presentation/getStoryPresentationMode';
-
 import { resolveCssWidth } from './cssWidth';
 
 /** Clamp story overlay opacity to the schema range [0, 1]. */

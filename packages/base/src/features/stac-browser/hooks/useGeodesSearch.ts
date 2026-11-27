@@ -98,14 +98,11 @@ function useGeodesSearch({
   });
 
   const filterSetters: StacFilterSetters = {
-    collections: (val) =>
-      setFilterState((s) => ({ ...s, collections: new Set(val) })),
-    datasets: (val) =>
-      setFilterState((s) => ({ ...s, datasets: new Set(val) })),
-    platforms: (val) =>
-      setFilterState((s) => ({ ...s, platforms: new Set(val) })),
-    products: (val) =>
-      setFilterState((s) => ({ ...s, products: new Set(val) })),
+    collections: val =>
+      setFilterState(s => ({ ...s, collections: new Set(val) })),
+    datasets: val => setFilterState(s => ({ ...s, datasets: new Set(val) })),
+    platforms: val => setFilterState(s => ({ ...s, platforms: new Set(val) })),
+    products: val => setFilterState(s => ({ ...s, products: new Set(val) })),
   };
 
   // On mount, fetch filterState and times from StateDB (if present)
@@ -150,15 +147,15 @@ function useGeodesSearch({
       const processingLevel = new Set<string>();
       const productType = new Set<string>();
 
-      filterState.products.forEach((productCode) => {
+      filterState.products.forEach(productCode => {
         products
-          .filter((product) => product.productCode === productCode)
-          .forEach((product) => {
+          .filter(product => product.productCode === productCode)
+          .forEach(product => {
             if (product.processingLevel) {
               processingLevel.add(product.processingLevel);
             }
             if (product.productType) {
-              product.productType.forEach((type) => productType.add(type));
+              product.productType.forEach(type => productType.add(type));
             }
           });
       });

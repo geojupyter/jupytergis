@@ -22,7 +22,7 @@ export function ListStoryMapOverlayPanel({
   panelWidth,
   isMobile,
 }: IListStoryMapOverlayPanelProps): JSX.Element | null {
-  const item = items.find((entry) => entry.index === segmentIndex);
+  const item = items.find(entry => entry.index === segmentIndex);
   if (!item) {
     return null;
   }
@@ -31,10 +31,7 @@ export function ListStoryMapOverlayPanel({
     !isMobile && panelWidth ? { width: panelWidth } : undefined;
 
   return (
-    <div
-      className="jgis-story-map-overlay-content"
-      style={widthStyle}
-    >
+    <div className="jgis-story-map-overlay-content" style={widthStyle}>
       <StoryViewerPanel
         model={model}
         isSpecta

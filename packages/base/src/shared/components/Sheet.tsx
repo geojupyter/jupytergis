@@ -6,39 +6,19 @@ import { Button } from '@/src/shared/components/Button';
 import { cn } from '@/src/shared/components/utils';
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
-  return (
-    <SheetPrimitive.Root
-      data-slot="sheet"
-      {...props}
-    />
-  );
+  return <SheetPrimitive.Root data-slot="sheet" {...props} />;
 }
 
 function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
-  return (
-    <SheetPrimitive.Trigger
-      data-slot="sheet-trigger"
-      {...props}
-    />
-  );
+  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
 }
 
 function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
-  return (
-    <SheetPrimitive.Close
-      data-slot="sheet-close"
-      {...props}
-    />
-  );
+  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
 }
 
 function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
-  return (
-    <SheetPrimitive.Portal
-      data-slot="sheet-portal"
-      {...props}
-    />
-  );
+  return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />;
 }
 
 function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {

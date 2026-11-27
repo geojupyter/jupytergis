@@ -13,24 +13,17 @@
   },
   "license": "BSD-3-Clause",
   "author": "JupyterGIS contributors",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/geojupyter/jupytergis.git"
-  },
-  "style": "style/index.css",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}",
     "schema/**/*.{json,js,ts}"
   ],
-  "sideEffects": [
-    "style/*.css",
-    "style/index.js"
-  ],
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
-  "publishConfig": {
-    "access": "public"
+  "style": "style/index.css",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/geojupyter/jupytergis.git"
   },
   "scripts": {
     "build": "pnpm run build:lib && pnpm run build:labextension:dev",
@@ -104,6 +97,14 @@
     "webpack": "^5.76.3",
     "yjs": "^13.5.0"
   },
+  "sideEffects": [
+    "style/*.css",
+    "style/index.js"
+  ],
+  "styleModule": "style/index.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "jupyterlab": {
     "schemaDir": "schema",
     "discovery": {
@@ -145,6 +146,5 @@
         "bundled": false
       }
     }
-  },
-  "styleModule": "style/index.js"
+  }
 }

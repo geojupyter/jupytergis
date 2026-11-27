@@ -60,11 +60,11 @@ export function getDefaultRGBBands(bandInfo: any[]): string[] {
   }
 
   const findBand = (keywords: string[]) =>
-    bandInfo.find((b) => {
+    bandInfo.find(b => {
       const ci = b.colorInterpretation?.toLowerCase() || '';
       const name = b.name?.toLowerCase() || '';
 
-      return keywords.some((k) => ci.includes(k) || name.includes(k));
+      return keywords.some(k => ci.includes(k) || name.includes(k));
     });
 
   const red = findBand(['red', 'b04']);
@@ -77,7 +77,7 @@ export function getDefaultRGBBands(bandInfo: any[]): string[] {
 
   // fallback
   if (bandInfo.length >= 3) {
-    return bandInfo.slice(0, 3).map((b) => b.name);
+    return bandInfo.slice(0, 3).map(b => b.name);
   }
 
   if (bandInfo.length === 1) {
@@ -113,7 +113,7 @@ export function buildZarrColorStyle(
   if (bandIndices.length === 3) {
     return [
       'color',
-      ...bandIndices.map((i) => [
+      ...bandIndices.map(i => [
         'interpolate',
         ['linear'],
         ['band', i + 1],

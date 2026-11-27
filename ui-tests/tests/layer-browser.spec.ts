@@ -1,5 +1,3 @@
-import path from 'path';
-
 import {
   IJupyterLabPageFixture,
   expect,
@@ -7,6 +5,7 @@ import {
   test,
 } from '@jupyterlab/galata';
 import { Locator } from '@playwright/test';
+import path from 'path';
 
 const TEST_REGISTRY = {
   OpenStreetMap: {

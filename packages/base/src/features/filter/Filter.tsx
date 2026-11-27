@@ -12,7 +12,6 @@ import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 
 import { useOkSignal } from '@/src/features/layers/symbology/hooks/useOkSignal';
 import { debounce, loadFile } from '@/src/tools';
-
 import FilterRow from './FilterRow';
 
 interface IFilterComponentProps {
@@ -124,7 +123,7 @@ const FilterComponent: React.FC<IFilterComponentProps> = ({
     // We want to populate it with the values from the
     // selected layers filter so they show up  on the panel
     if (layer.filters) {
-      layer.filters.appliedFilters.map((filterItem) => {
+      layer.filters.appliedFilters.map(filterItem => {
         if (!(filterItem.feature in aggregatedProperties)) {
           aggregatedProperties[filterItem.feature] = new Set();
         }
@@ -213,10 +212,7 @@ const FilterComponent: React.FC<IFilterComponentProps> = ({
     <>
       {shouldDisplay && (
         <div className="jp-gis-filter-main">
-          <div
-            id="filter-container"
-            className="jp-gis-filter-select-container"
-          >
+          <div id="filter-container" className="jp-gis-filter-select-container">
             <select
               className="jp-mod-styled rjsf jp-gis-logical-select"
               value={logicalOp}

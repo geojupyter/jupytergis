@@ -55,10 +55,10 @@ export interface IGrammarToMapLibreOptions {
 const isGeom = (...types: string[]) =>
   types.length === 1
     ? ['==', ['geometry-type'], types[0]]
-    : ['any', ...types.map((t) => ['==', ['geometry-type'], t])];
+    : ['any', ...types.map(t => ['==', ['geometry-type'], t])];
 
 const isNumberArray = (v: unknown[]): v is number[] =>
-  v.length >= 3 && v.length <= 4 && v.every((x) => typeof x === 'number');
+  v.length >= 3 && v.length <= 4 && v.every(x => typeof x === 'number');
 
 const ORDER_OPS = new Set(['<', '<=', '>', '>=']);
 
@@ -124,7 +124,7 @@ export function toMapLibreExpr(value: any): any {
       return ['case', ['has', args[0][1]], numericRamp, fallback];
     }
     const translated = args.map(toMapLibreExpr);
-    if (translated.some((a) => a === undefined)) {
+    if (translated.some(a => a === undefined)) {
       return undefined;
     }
     return [op === 'color' ? 'rgba' : op, ...translated];
@@ -150,7 +150,7 @@ function transparentVariant(color: string): string {
       hex[1].length === 3
         ? hex[1]
             .split('')
-            .map((c) => c + c)
+            .map(c => c + c)
             .join('')
         : hex[1];
     return `rgba(${parseInt(h.slice(0, 2), 16)}, ${parseInt(h.slice(2, 4), 16)}, ${parseInt(h.slice(4, 6), 16)}, 0)`;

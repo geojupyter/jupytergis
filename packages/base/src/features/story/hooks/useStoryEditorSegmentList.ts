@@ -56,7 +56,7 @@ export function useStoryEditorSegmentList(
 
   useEffect(() => {
     const bump = (): void => {
-      setRevision((value) => value + 1);
+      setRevision(value => value + 1);
     };
 
     model.sharedModel.layersChanged.connect(bump);
@@ -132,7 +132,7 @@ export function useStoryEditorSegmentList(
   }, [model, story, revision]);
 
   const selectedSegment = useMemo(
-    () => segments.find((segment) => segment.id === selectedSegmentId) ?? null,
+    () => segments.find(segment => segment.id === selectedSegmentId) ?? null,
     [segments, selectedSegmentId],
   );
 

@@ -9,7 +9,6 @@ import { PathExt } from '@jupyterlab/coreutils';
 import type { Map as MlMap } from 'maplibre-gl';
 
 import { fetchWithProxies } from '@/src/tools';
-
 import {
   buildDeckOverlayLayers,
   DECK_OVERLAY_LAYER_TYPES,
@@ -124,7 +123,7 @@ export class DeckOverlayHost {
       return;
     }
 
-    this._layerIds = layerIds.filter((id) => {
+    this._layerIds = layerIds.filter(id => {
       const layer = this._model.getLayer(id);
       return layer && this.isDeckLayerType(layer.type);
     });
@@ -139,7 +138,7 @@ export class DeckOverlayHost {
 
     const layers = buildDeckOverlayLayers(
       this._layerIds,
-      (id) => this._model.getLayer(id),
+      id => this._model.getLayer(id),
       ctx,
     );
 
@@ -170,7 +169,7 @@ export class DeckOverlayHost {
     let data: unknown;
     try {
       if (path.startsWith('http://') || path.startsWith('https://')) {
-        data = await fetchWithProxies(path, this._model, async (response) =>
+        data = await fetchWithProxies(path, this._model, async response =>
           response.json(),
         );
       } else {

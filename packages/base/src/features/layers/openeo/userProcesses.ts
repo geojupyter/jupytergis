@@ -1,5 +1,4 @@
 import { invalidateBackendCatalog } from '@/src/tools';
-
 import { openEOConnect, IOpenEOConnectionInfo } from './OpenEOTileLayer';
 
 /**

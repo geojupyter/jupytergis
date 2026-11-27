@@ -13,8 +13,8 @@ import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
 import { GeoPackageAPI, GeoPackageTileRetriever } from '@ngageoint/geopackage';
 import { compressors } from 'hyparquet-compressors';
-import loadGpkg from 'ol-load-geopackage';
 import { Source } from 'ol/source';
+import loadGpkg from 'ol-load-geopackage';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
@@ -25,7 +25,6 @@ import {
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
 import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
 import { maybeProxied } from '@/src/shared/proxy';
-
 import { getGdal } from './gdal';
 
 export const debounce = (
@@ -168,7 +167,7 @@ export function createDefaultLayerRegistry(
    * Generate object to hold thumbnail URLs
    */
   const importAll = (r: __WebpackModuleApi.RequireContext) => {
-    r.keys().forEach((key) => {
+    r.keys().forEach(key => {
       const imageName = key.replace('./', '').replace(/\.\w+$/, '');
       LAYER_THUMBNAILS[imageName] = r(key);
     });
@@ -190,7 +189,7 @@ export function createDefaultLayerRegistry(
       layerBrowserRegistry.addRegistryLayer(tile);
     } else {
       /* nested layer provider */
-      Object.keys(layerProvider).forEach((mapName) => {
+      Object.keys(layerProvider).forEach(mapName => {
         const tile = convertToRegistryEntry(
           layerProvider[mapName]['name'],
           layerProvider[mapName],
@@ -338,7 +337,7 @@ export const openDatabase = () => {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open('GeoTIFFCache', 1);
 
-    request.onupgradeneeded = (event) => {
+    request.onupgradeneeded = event => {
       const db = request.result;
       if (!db.objectStoreNames.contains('files')) {
         db.createObjectStore('files', { keyPath: 'url' });
@@ -494,7 +493,7 @@ export const loadGeoTiff = async (
   let fileBlob: Blob | null = null;
 
   if (!file) {
-    fileBlob = await fetchWithProxies(url, model, async (response) =>
+    fileBlob = await fetchWithProxies(url, model, async response =>
       response.blob(),
     );
     if (!fileBlob) {
@@ -607,7 +606,7 @@ async function loadGeoPackageRasterFile(
       const tileTables = await geoPackage.getTileTables();
       const tableMap: GpkgTable = {};
 
-      tileTables.forEach((tableName) => {
+      tileTables.forEach(tableName => {
         const tileDao = geoPackage.getTileDao(tableName);
 
         const tileWidth = tileDao.tileMatrices[0].tile_width;
@@ -637,7 +636,7 @@ async function loadGkpgFromUrl(
   filepath: string,
   model: IJupyterGISModel,
 ): Promise<Uint8Array> {
-  const response = await fetchWithProxies(filepath, model, async (response) => {
+  const response = await fetchWithProxies(filepath, model, async response => {
     const arrayBuffer = await response.arrayBuffer();
     return new Uint8Array(arrayBuffer);
   });
@@ -721,7 +720,7 @@ export const loadFile = async (fileInfo: {
         const geojson = await fetchWithProxies(
           filepath,
           model,
-          async (response) => {
+          async response => {
             const arrayBuffer = await response.arrayBuffer();
             return shp(arrayBuffer);
           },
@@ -746,7 +745,7 @@ export const loadFile = async (fileInfo: {
         const geojson = await fetchWithProxies(
           filepath,
           model,
-          async (response) => response.json(),
+          async response => response.json(),
         );
 
         if (geojson) {
@@ -767,7 +766,7 @@ export const loadFile = async (fileInfo: {
         const fileBlob = await fetchWithProxies(
           filepath,
           model,
-          async (response) => response.blob(),
+          async response => response.blob(),
         );
 
         if (!fileBlob) {
@@ -856,7 +855,7 @@ export const loadFile = async (fileInfo: {
         const { contentsManager } = model;
         const base = absolutePath.slice(0, -4);
         const [dbf, prj, cpg] = await Promise.all(
-          ['.dbf', '.prj', '.cpg'].map(async (ext) => {
+          ['.dbf', '.prj', '.cpg'].map(async ext => {
             const sibling = await contentsManager
               .get(base + ext, { content: true })
               .catch(() => undefined);
@@ -1393,7 +1392,7 @@ export async function fetchBackendCatalog(
       (typeof formats?.getOutputTypes === 'function'
         ? formats.getOutputTypes()
         : formats?.data?.output) ?? {};
-    const outputFormats: IFileFormat[] = Object.keys(outputRaw).map((id) => ({
+    const outputFormats: IFileFormat[] = Object.keys(outputRaw).map(id => ({
       id,
       ...(outputRaw[id] ?? {}),
     }));

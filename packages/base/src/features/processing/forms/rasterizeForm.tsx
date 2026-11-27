@@ -48,7 +48,7 @@ async function fetchNumericFieldNames(
   }
   // gdal_rasterize -a needs a numeric attribute. Filter accordingly.
   const props = jsonData.features[0].properties ?? {};
-  return Object.keys(props).filter((k) => typeof props[k] === 'number');
+  return Object.keys(props).filter(k => typeof props[k] === 'number');
 }
 
 export function RasterizeForm(
