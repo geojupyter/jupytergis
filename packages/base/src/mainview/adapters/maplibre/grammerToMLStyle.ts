@@ -60,6 +60,8 @@ const isGeom = (...types: string[]) =>
 const isNumberArray = (v: unknown[]): v is number[] =>
   v.length >= 3 && v.length <= 4 && v.every(x => typeof x === 'number');
 
+const ORDER_OPS = new Set(['<', '<=', '>', '>=']);
+
 /**
  * Translate an OL expression to a MapLibre one.
  *  - ['color', r, g, b, a]   ->   ['rgba', r, g, b, a]
@@ -77,6 +79,23 @@ export function toMapLibreExpr(value: any): any {
     // condition cannot be expressed here. Let it pass so the layer still draws.
     if (Array.isArray(args[0]) && args[0][0] === 'resolution') {
       return true;
+    }
+    // OL evaluates an ordering comparison against a missing property to
+    // false. MapLibre throws on the type mismatch instead, and a paint
+    // expression that throws falls back to the property default (opaque
+    // black) rather than the guard's else branch. Guard the type so such
+    // features count as outside the range and stay hidden.
+    if (
+      ORDER_OPS.has(op) &&
+      Array.isArray(args[0]) &&
+      args[0][0] === 'get' &&
+      (typeof args[1] === 'number' || typeof args[1] === 'string')
+    ) {
+      return [
+        'all',
+        ['==', ['typeof', args[0]], typeof args[1]],
+        [op, args[0], args[1]],
+      ];
     }
     if (
       op === 'case' &&

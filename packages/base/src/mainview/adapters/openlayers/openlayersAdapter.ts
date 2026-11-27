@@ -151,6 +151,10 @@ import {
   IMapAdapterOptions,
   VIEWPORT_SYNC_INTERVAL,
 } from '@/src/mainview/mapAdapter';
+import {
+  setFeatureTimeMs,
+  vectorSourceForLayer,
+} from '@/src/mainview/utils/featureTimeMs';
 import { markerIcon } from '@/src/shared/icons';
 import { maybeProxied } from '@/src/shared/proxy';
 import { debounce, getCssVarValue, loadFile, throttle } from '@/src/tools';
@@ -3148,18 +3152,19 @@ export class OpenLayersAdapter implements IMapAdapter {
   convertFeatureToMs(args: string) {
     const json = JSON.parse(args);
     const { id: layerId, selectedFeature } = json;
-    const olLayer = this.getLayer(layerId);
-    const source = olLayer?.getSource() as VectorSource | undefined;
+    // A layer with several grammar layers, or on a feature store, is a layer
+    // group with no source of its own, so resolve the source by id.
+    const source = vectorSourceForLayer(
+      this._model.getLayer(layerId),
+      this.getLayer(layerId),
+      this._sources,
+    );
 
     if (!source) {
       return;
     }
 
-    source.forEachFeature(feature => {
-      const time = feature.get(selectedFeature);
-      const parsedTime = typeof time === 'string' ? Date.parse(time) : time;
-      feature.set(`${selectedFeature}ms`, parsedTime);
-    });
+    setFeatureTimeMs(source, selectedFeature);
   }
 
   onZoomToPosition(id: string) {

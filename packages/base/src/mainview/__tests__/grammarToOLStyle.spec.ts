@@ -835,6 +835,53 @@ describe('grammarToOLStyle — OL runtime evaluation', () => {
     // First two palette colors must be distinct (palette is not degenerate)
     expect(color_a).not.toEqual(color_b);
   });
+
+  it('layer-level between guard hides features outside the range', () => {
+    // The temporal controller narrows a layer this way (issue #2025); an
+    // unguarded rule under a guarded layer must still only draw in range.
+    const red = [255, 0, 0, 1] as [number, number, number, number];
+    const style = grammarToOLStyle({
+      layers: [
+        {
+          id: 'gl',
+          when: [{ type: 'between', field: 'timems', min: 10, max: 20 }],
+          whenOp: 'all',
+          rules: [
+            {
+              id: '1',
+              mappings: [
+                {
+                  scale: { scheme: 'constant_rgba', params: { value: red } },
+                  encodings: ['fill-color'],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    }) as any;
+
+    expect(style['fill-color'][0]).toBe('case');
+    expect(style['fill-color'][1]).toEqual([
+      'all',
+      ['>=', ['get', 'timems'], 10],
+      ['<=', ['get', 'timems'], 20],
+    ]);
+
+    const fill = (timems: number) =>
+      evaluate(style['fill-color'], ColorType, { timems });
+    // Inclusive at both ends.
+    expect(fill(10)).toEqual(red);
+    expect(fill(15)).toEqual(red);
+    expect(fill(20)).toEqual(red);
+    // Outside the window there is no applicable rule, so the typed zero
+    // (a fully transparent colour) wins and the feature is not drawn.
+    expect(fill(9)).toEqual([0, 0, 0, 0]);
+    expect(fill(21)).toEqual([0, 0, 0, 0]);
+    // A feature without the field compares false and is hidden as well.
+    // (MapLibre needs an explicit type guard for this; see grammerToMLStyle.)
+    expect(evaluate(style['fill-color'], ColorType, {})).toEqual([0, 0, 0, 0]);
+  });
 });
 
 describe('extractEncodingFieldValues', () => {
