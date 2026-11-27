@@ -105,8 +105,8 @@ packages:
   '@jupyter/web-components@0.16.7':
     resolution: {integrity: sha512-1a8awgvvP9J9pCV5vBRuQxdBk29764qiMJsJYEndrWH3cB/FlaO+sZIBm4OTf56Eqdgl8R3/ZSLM1+3mgXOkPg==}
 
-  '@jupyter/ydoc@4.1.1':
-    resolution: {integrity: sha512-fO6WMy2j+Hu+/SjfLycCQZq2OIPBPJtdgrY02mgaHUAsGJ+THQ9JmVgm/Lbai4x1+npXT663FJwVm7z0zJd3Pw==}
+  '@jupyter/ydoc@4.2.1':
+    resolution: {integrity: sha512-xk+7yEEuAYu78J0kn4Z+qqwCtb1nhgtEkF+nrDfWz2lJNdKPiEiWbB2cpqjQmupVJWUJWI4LMBDQgXqoSHHnBg==}
 
   '@jupyterlab/application@4.6.1':
     resolution: {integrity: sha512-n188POIQZmymoMNX/KSz5SfH2rEXO3307kokDa7NmdCjXR6JFtjSjJINvfRQwbpoj7dMbVSD9mn0Qz4F8bFsrw==}
@@ -1581,7 +1581,7 @@ snapshots:
       '@microsoft/fast-foundation': 2.50.0
       '@microsoft/fast-web-utilities': 5.4.1
 
-  '@jupyter/ydoc@4.1.1':
+  '@jupyter/ydoc@4.2.1':
     dependencies:
       '@jupyterlab/nbformat': 4.6.1
       '@lumino/coreutils': 2.2.3
@@ -1661,7 +1661,7 @@ snapshots:
     dependencies:
       '@codemirror/state': 6.7.1
       '@codemirror/view': 6.43.6
-      '@jupyter/ydoc': 4.1.1
+      '@jupyter/ydoc': 4.2.1
       '@jupyterlab/apputils': 4.7.1
       '@jupyterlab/attachments': 4.6.1(react@18.3.1)
       '@jupyterlab/codeeditor': 4.6.1
@@ -1694,7 +1694,7 @@ snapshots:
   '@jupyterlab/codeeditor@4.6.1':
     dependencies:
       '@codemirror/state': 6.7.1
-      '@jupyter/ydoc': 4.1.1
+      '@jupyter/ydoc': 4.2.1
       '@jupyterlab/apputils': 4.7.1
       '@jupyterlab/coreutils': 6.6.1
       '@jupyterlab/nbformat': 4.6.1
@@ -1735,7 +1735,7 @@ snapshots:
       '@codemirror/search': 6.7.1
       '@codemirror/state': 6.7.1
       '@codemirror/view': 6.43.6
-      '@jupyter/ydoc': 4.1.1
+      '@jupyter/ydoc': 4.2.1
       '@jupyterlab/codeeditor': 4.6.1
       '@jupyterlab/coreutils': 6.6.1
       '@jupyterlab/documentsearch': 4.6.1
@@ -1756,7 +1756,7 @@ snapshots:
 
   '@jupyterlab/console@4.6.1(react@18.3.1)':
     dependencies:
-      '@jupyter/ydoc': 4.1.1
+      '@jupyter/ydoc': 4.2.1
       '@jupyterlab/apputils': 4.7.1
       '@jupyterlab/cells': 4.6.1
       '@jupyterlab/codeeditor': 4.6.1
@@ -1793,7 +1793,7 @@ snapshots:
       '@codemirror/state': 6.7.1
       '@codemirror/view': 6.43.6
       '@jupyter/react-components': 0.16.7
-      '@jupyter/ydoc': 4.1.1
+      '@jupyter/ydoc': 4.2.1
       '@jupyterlab/application': 4.6.1(react@18.3.1)
       '@jupyterlab/apputils': 4.7.1
       '@jupyterlab/cells': 4.6.1
@@ -1851,7 +1851,7 @@ snapshots:
 
   '@jupyterlab/docregistry@4.6.1':
     dependencies:
-      '@jupyter/ydoc': 4.1.1
+      '@jupyter/ydoc': 4.2.1
       '@jupyterlab/apputils': 4.7.1
       '@jupyterlab/codeeditor': 4.6.1
       '@jupyterlab/coreutils': 6.6.1
@@ -1918,7 +1918,7 @@ snapshots:
 
   '@jupyterlab/fileeditor@4.6.1':
     dependencies:
-      '@jupyter/ydoc': 4.1.1
+      '@jupyter/ydoc': 4.2.1
       '@jupyterlab/apputils': 4.7.1
       '@jupyterlab/codeeditor': 4.6.1
       '@jupyterlab/codemirror': 4.6.1(react@18.3.1)
@@ -2025,7 +2025,7 @@ snapshots:
 
   '@jupyterlab/notebook@4.6.1':
     dependencies:
-      '@jupyter/ydoc': 4.1.1
+      '@jupyter/ydoc': 4.2.1
       '@jupyterlab/apputils': 4.7.1
       '@jupyterlab/cells': 4.6.1
       '@jupyterlab/codeeditor': 4.6.1
@@ -2116,7 +2116,7 @@ snapshots:
 
   '@jupyterlab/services@7.6.1(react@18.3.1)':
     dependencies:
-      '@jupyter/ydoc': 4.1.1
+      '@jupyter/ydoc': 4.2.1
       '@jupyterlab/coreutils': 6.6.1
       '@jupyterlab/nbformat': 4.6.1
       '@jupyterlab/settingregistry': 4.6.1(react@18.3.1)
