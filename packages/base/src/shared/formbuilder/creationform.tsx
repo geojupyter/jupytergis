@@ -12,9 +12,9 @@ import { UUID } from '@lumino/coreutils';
 import { Signal } from '@lumino/signaling';
 import React, { useEffect, useMemo, useRef } from 'react';
 
-import { deepCopy, getGeoPackageTableNames } from '@/src/index';
 import { paletteSymbology } from '@/src/features/layers/symbology/paletteSymbology';
 import { openGeoTiff } from '@/src/features/metadata/providers/geoTiffProvider';
+import { deepCopy, getGeoPackageTableNames } from '@/src/index';
 import { getLayerTypeForm, getSourceTypeForm } from './formselectors';
 
 export interface ICreationFormProps {
@@ -387,6 +387,17 @@ export function CreationForm(props: ICreationFormProps) {
     return schema;
   }, [sourceType, createLayer, formSchemaRegistry]);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Focus the name field when the dialog opens, so the user can start typing
+  // right away. The layer section is rendered first, so this is the layer name
+  // when creating a layer, and the source name when only creating a source.
+  useEffect(() => {
+    containerRef.current
+      ?.querySelector<HTMLInputElement>('input#root_name')
+      ?.focus();
+  }, []);
+
   if (createLayer && !layerType) {
     console.error('Cannot create a layer without specifying its type');
     return null;
@@ -403,29 +414,7 @@ export function CreationForm(props: ICreationFormProps) {
   }
 
   return (
-    <div>
-      {createSource && sourceSchema && (
-        <div>
-          <h3>Source Properties</h3>
-          <SourceForm
-            formContext="create"
-            model={model}
-            filePath={filePath}
-            schema={sourceSchema}
-            sourceData={initialSourceData}
-            syncData={(properties: IDict) => {
-              sourceFormDataRef.current = properties;
-            }}
-            cancel={cancel}
-            formChangedSignal={sourceFormChangedSignal}
-            formErrorSignal={formErrorSignal}
-            dialogOptions={dialogOptions}
-            sourceType={sourceType}
-            formSchemaRegistry={formSchemaRegistry}
-          />
-        </div>
-      )}
-
+    <div ref={containerRef}>
       {createLayer && layerSchema && (
         <div>
           <h3>Layer Properties</h3>
@@ -443,6 +432,28 @@ export function CreationForm(props: ICreationFormProps) {
             sourceFormChangedSignal={sourceFormChangedSignal}
             formErrorSignal={formErrorSignal}
             dialogOptions={dialogOptions}
+            formSchemaRegistry={formSchemaRegistry}
+          />
+        </div>
+      )}
+
+      {createSource && sourceSchema && (
+        <div>
+          <h3>Source Properties</h3>
+          <SourceForm
+            formContext="create"
+            model={model}
+            filePath={filePath}
+            schema={sourceSchema}
+            sourceData={initialSourceData}
+            syncData={(properties: IDict) => {
+              sourceFormDataRef.current = properties;
+            }}
+            cancel={cancel}
+            formChangedSignal={sourceFormChangedSignal}
+            formErrorSignal={formErrorSignal}
+            dialogOptions={dialogOptions}
+            sourceType={sourceType}
             formSchemaRegistry={formSchemaRegistry}
           />
         </div>
