@@ -1926,7 +1926,13 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
           />
         ) : null}
 
-        <div className="jGIS-Mainview-Container" ref={this.props.containerRef}>
+        <div
+          // Only while presenting, so story arrows miss layer rename fields.
+          className={`jGIS-Mainview-Container${
+            isSpectaPresentation ? ' jgis-story-presentation' : ''
+          }`}
+          ref={this.props.containerRef}
+        >
           {displayTemporalController ? (
             <TemporalSlider model={this._model} filterStates={filterStates} />
           ) : null}
