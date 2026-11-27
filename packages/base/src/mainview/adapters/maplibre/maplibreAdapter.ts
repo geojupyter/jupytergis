@@ -19,6 +19,8 @@ import type {
   IGeoTiffSource,
   IGeoTiffLayer,
   IMarkerSource,
+  IOpenEOTileLayer,
+  IOpenEOTileSource,
   IPolygonSource,
   IRasterLayer,
   IRasterSource,
@@ -61,6 +63,7 @@ import { toLonLat, transformExtent } from 'ol/proj';
 import proj4 from 'proj4';
 
 import { IDrawToolAdapter } from '@/src/features/draw-tool';
+import { openEOTileServiceUrl } from '@/src/features/layers/openeo/OpenEOTileLayer';
 import {
   grammarToMapLibreLayers,
   MapLibreSubLayerType,
@@ -91,6 +94,11 @@ import {
   compileCogColorExpression,
   compileCogColorFunction,
 } from '../maplibre/cogColorFunction';
+import {
+  openEOProtocol,
+  openEOTilesUrl,
+  setOpenEOColorFunction,
+} from '../maplibre/openEOProtocol';
 
 const WORLD_EXTENT = [-180, -85.051129, 180, 85.051129];
 type MLCoordinates = [number, number];
@@ -101,6 +109,7 @@ const registerProtocol = (): void => {
     return;
   }
   addProtocol('cog', cogProtocol);
+  addProtocol('openeo', openEOProtocol);
   cogProtocolRegistred = true;
 };
 
@@ -606,6 +615,20 @@ export class MapLibreAdapter implements IMapAdapter {
           break;
         }
 
+        case 'OpenEOTileSource': {
+          const tilesUrl = openEOTilesUrl(
+            await openEOTileServiceUrl(source.parameters as IOpenEOTileSource),
+          );
+          this._openEOTiles.set(id, tilesUrl);
+
+          this._map.addSource(id, {
+            type: 'raster',
+            tiles: [tilesUrl],
+            tileSize: 256,
+          });
+          break;
+        }
+
         case 'RasterDemSource': {
           const sourceParameters = source.parameters as IRasterDemSource;
           this._map.addSource(id, {
@@ -708,6 +731,12 @@ export class MapLibreAdapter implements IMapAdapter {
     this._sourcesWithData.delete(id);
     this._revokeObjectUrls(id);
     this._forgetCogSource(id);
+
+    const openEOTiles = this._openEOTiles.get(id);
+    if (openEOTiles) {
+      setOpenEOColorFunction(openEOTiles);
+      this._openEOTiles.delete(id);
+    }
   }
 
   async updateSource(id: string, source: IJGISSource): Promise<void> {
@@ -959,6 +988,31 @@ export class MapLibreAdapter implements IMapAdapter {
       setColorFunction(info.url, undefined);
       this._cogSources.delete(sourceId);
     }
+  }
+
+  private _applyOpenEOSymbology(sourceId: string, layer: IJGISLayer): void {
+    const tilesUrl = this._openEOTiles.get(sourceId);
+    if (!tilesUrl) {
+      return;
+    }
+
+    const state = (layer.parameters as IOpenEOTileLayer).symbologyState as
+      | IGrammarSymbologyState
+      | undefined;
+
+    // OpenLayers styles the raw values of OpenEO tiles.
+    setOpenEOColorFunction(
+      tilesUrl,
+      state &&
+        compileCogColorFunction(state, {
+          normalize: false,
+          onWarn: message =>
+            this._log(
+              'warning',
+              `MapLibreAdapter: OpenEO layer "${layer.name}": ${message}`,
+            ),
+        }),
+    );
   }
 
   private _applyCogSymbology(sourceId: string, layer: IJGISLayer): void {
@@ -1508,11 +1562,18 @@ export class MapLibreAdapter implements IMapAdapter {
     try {
       switch (layer.type) {
         case 'RasterLayer':
-        case 'GeoTiffLayer': {
-          const parameters = layer.parameters as IRasterLayer | IGeoTiffLayer;
+        case 'GeoTiffLayer':
+        case 'OpenEOTileLayer': {
+          const parameters = layer.parameters as
+            | IRasterLayer
+            | IGeoTiffLayer
+            | IOpenEOTileLayer;
 
           if (layer.type === 'GeoTiffLayer') {
             this._applyCogSymbology(sourceId, layer);
+          }
+          if (layer.type === 'OpenEOTileLayer') {
+            this._applyOpenEOSymbology(sourceId, layer);
           }
 
           this._map.addLayer({
@@ -1723,10 +1784,12 @@ export class MapLibreAdapter implements IMapAdapter {
 
     switch (layer.type) {
       case 'RasterLayer':
-      case 'GeoTiffLayer': {
+      case 'GeoTiffLayer':
+      case 'OpenEOTileLayer': {
         const layerParameters = layer.parameters as
           | IRasterLayer
-          | IGeoTiffLayer;
+          | IGeoTiffLayer
+          | IOpenEOTileLayer;
         this._map.setPaintProperty(
           id,
           'raster-opacity',
@@ -1734,7 +1797,7 @@ export class MapLibreAdapter implements IMapAdapter {
         );
         this._map.setLayoutProperty(id, 'visibility', visibility);
 
-        if (layer.type === 'GeoTiffLayer') {
+        if (layer.type === 'GeoTiffLayer' || layer.type === 'OpenEOTileLayer') {
           const next = layerParameters as IGeoTiffLayer;
           const previous = oldLayer?.parameters;
           // Opacity drags also land here; only repaint for a style change.
@@ -1744,7 +1807,11 @@ export class MapLibreAdapter implements IMapAdapter {
             JSON.stringify(previous?.color) !== JSON.stringify(next.color);
 
           if (styleChanged) {
-            this._applyCogSymbology(next.source, layer);
+            if (layer.type === 'GeoTiffLayer') {
+              this._applyCogSymbology(next.source, layer);
+            } else {
+              this._applyOpenEOSymbology(next.source, layer);
+            }
             this._refreshRasterLayer(id, next.source, layer);
           }
         }
@@ -2638,6 +2705,7 @@ export class MapLibreAdapter implements IMapAdapter {
   private _sourcesWithData = new Set<string>();
   private _objectUrls = new Map<string, string[]>();
   private _cogSources = new Map<string, ICogSourceInfo>();
+  private _openEOTiles = new Map<string, string>();
   private _geojsonData = new Map<string, GeoJSONFeature | FeatureCollection>();
   private _terrainLayerId: string | null = null;
   private _layerSubIds = new Map<string, string[]>();
