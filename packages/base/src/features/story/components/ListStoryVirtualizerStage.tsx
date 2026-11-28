@@ -64,11 +64,6 @@ interface IListStoryVirtualizerListProps {
   scrollToIndexRef: React.MutableRefObject<(index: number) => void>;
 }
 
-// todo ehhhh dont really like dumb wrappers like this
-function isMarkdownSegment(item: IStorySegmentViewItem | undefined): boolean {
-  return getSegmentDisplayMode(item?.activeSlide) === 'markdown';
-}
-
 function markdownWidthClass(
   isMap: boolean,
   fullWidth: boolean,
@@ -80,10 +75,12 @@ function markdownWidthClass(
     return '';
   }
 
+  const isMarkdown = (item: IStorySegmentViewItem | undefined): boolean =>
+    getSegmentDisplayMode(item?.activeSlide) === 'markdown';
+
   const joinsPrevious =
-    !markdownSegmentGap && isMarkdownSegment(items[segmentIndex - 1]);
-  const joinsNext =
-    !markdownSegmentGap && isMarkdownSegment(items[segmentIndex + 1]);
+    !markdownSegmentGap && isMarkdown(items[segmentIndex - 1]);
+  const joinsNext = !markdownSegmentGap && isMarkdown(items[segmentIndex + 1]);
   const roundTop = segmentIndex !== 0 && !joinsPrevious;
   const roundBottom = segmentIndex !== items.length - 1 && !joinsNext;
 
@@ -102,7 +99,6 @@ function markdownWidthClass(
   return '';
 }
 
-//todo wrapper?
 function gapAfter(
   items: IStorySegmentViewItem[],
   index: number,
@@ -123,7 +119,6 @@ function gapAfter(
   );
 }
 
-// todo is this still necessary? reference the Variable (or Pretext?) example in the tanstack docs
 function estimateRowSize(
   items: IStorySegmentViewItem[],
   index: number,
@@ -136,8 +131,7 @@ function estimateRowSize(
   }
 
   const mode = getSegmentDisplayMode(item.activeSlide);
-  // todo dont think content is clear name
-  const content =
+  const contentHeight =
     mode === 'map'
       ? viewportHeight
       : estimateMarkdownHeight(
@@ -145,7 +139,9 @@ function estimateRowSize(
         viewportHeight,
       );
 
-  return content + gapAfter(items, index, viewportHeight, markdownSegmentGap);
+  return (
+    contentHeight + gapAfter(items, index, viewportHeight, markdownSegmentGap)
+  );
 }
 
 function ListStoryVirtualizerList({
@@ -164,12 +160,12 @@ function ListStoryVirtualizerList({
 
   const contentHeightsRef = useRef(new Map<string, number>());
   const itemsRef = useRef(items);
-  const viewportRef = useRef(viewportHeight);
+  const viewportRef = useRef(0);
   const gapFlagRef = useRef(markdownSegmentGap);
 
   itemsRef.current = items;
-  viewportRef.current = viewportHeight;
   gapFlagRef.current = markdownSegmentGap;
+  viewportRef.current = viewportHeight;
 
   const measureElement = useCallback((element: HTMLDivElement) => {
     const index = Number(element.getAttribute('data-index'));
@@ -189,7 +185,6 @@ function ListStoryVirtualizerList({
     }
 
     // Markdown content only grows until the story revision clears this cache.
-    //todo do we need revision number? cant edit mid story
     if (measured > 0) {
       const next = Math.max(
         contentHeightsRef.current.get(item.id) ?? 0,
@@ -214,14 +209,9 @@ function ListStoryVirtualizerList({
   });
 
   useLayoutEffect(() => {
-    // Drop the markdown floor when the story or a layer changes. Remounting
-    // would also reset scrollTop, and segment overrides emit layersChanged.
-    contentHeightsRef.current.clear();
-    virtualizer.measure();
-  }, [storyRevision, virtualizer]);
-
-  //todo whats all this
-  useLayoutEffect(() => {
+    // scrollRect is null during the first render, then set from offsetHeight.
+    // A later resize does not rerender when the visible range stays put, so
+    // this observer is what updates the map pane and the spacer.
     const scroller = scrollContainerRef.current;
     if (!scroller) {
       return;
@@ -229,6 +219,7 @@ function ListStoryVirtualizerList({
 
     const update = (): void => {
       const next = scroller.clientHeight;
+      viewportRef.current = next;
       setViewportHeight((prev) => (prev === next ? prev : next));
     };
 
@@ -239,17 +230,24 @@ function ListStoryVirtualizerList({
     return () => observer.disconnect();
   }, [scrollContainerRef]);
 
+  useLayoutEffect(() => {
+    // Drop the markdown floor when the story or a layer changes. Remeasure
+    // only mounted rows. virtualizer.measure() would wipe every cached size.
+    contentHeightsRef.current.clear();
+    virtualizer.elementsCache.forEach((node) => {
+      virtualizer.measureElement(node);
+    });
+  }, [storyRevision, virtualizer]);
+
   scrollToIndexRef.current = (index: number) => {
     const position = items.findIndex((item) => item.index === index);
     if (position < 0) {
       return;
     }
 
-    //todo the docs have a caveat for this function. do we need to worry?
     virtualizer.scrollToIndex(position, { align: 'start', behavior: 'auto' });
   };
 
-  //todo why are we tracking offset? Shouldnt the library handle that?
   const scrollOffset = virtualizer.scrollOffset ?? 0;
   const totalSize = virtualizer.getTotalSize();
 
@@ -308,7 +306,6 @@ function ListStoryVirtualizerList({
             const mode = getSegmentDisplayMode(item.activeSlide);
             const isMap = mode === 'map';
             const alignSelf = segmentPaneAlignment(
-              //todo legacy shit. do we care?
               getSegmentPaneAlignment(item.activeSlide?.content, mode),
             );
             const spacer = gapAfter(
@@ -328,21 +325,26 @@ function ListStoryVirtualizerList({
                   top: 0,
                   left: 0,
                   width: '100%',
-                  //todo why the transform
                   transform: `translateY(${virtualRow.start}px)`,
                 }}
               >
                 <div
                   data-story-row-content
-                  //todo would rather have full classnames in the ternary so they're searchable
-                  className={`jgis-story-segment-overlay-pane jgis-story-${isMap ? 'map' : 'markdown'
-                    }-scroll-pane${markdownWidthClass(
+                  className={[
+                    'jgis-story-segment-overlay-pane',
+                    isMap
+                      ? 'jgis-story-map-scroll-pane'
+                      : 'jgis-story-markdown-scroll-pane',
+                    markdownWidthClass(
                       isMap,
                       fullWidth,
                       item.index,
                       items,
                       markdownSegmentGap,
-                    )}`}
+                    ).trim(),
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
                   style={{
                     position: 'relative',
                     width: '100%',
@@ -356,7 +358,6 @@ function ListStoryVirtualizerList({
                       : { height: 'auto', maxHeight: 'none' }),
                   }}
                 >
-                  {/* //todo use a registry? */}
                   {isMap ? (
                     <ListStoryMapOverlayPanel
                       model={model}
@@ -400,7 +401,6 @@ export function ListStoryVirtualizerStage({
   addLayer,
   removeLayer,
 }: IListStoryVirtualizerStageProps): JSX.Element {
-  //todo revision again
   const [storyRevision, setStoryRevision] = useState(0);
   const overrideLayerEntriesRef = useRef<IOverrideLayerEntry[]>([]);
   const scrollToIndexRef = useRef<(index: number) => void>(() => undefined);
@@ -448,7 +448,6 @@ export function ListStoryVirtualizerStage({
 
   return (
     <>
-      {/* //todo  I LOVE REGISTRIES NOW */}
       {isMobile ? (
         <ListStoryTitleBarMobile {...titleBarProps} />
       ) : (
