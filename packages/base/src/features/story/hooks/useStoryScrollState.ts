@@ -1,15 +1,11 @@
 import { RefObject, useEffect, useRef } from 'react';
 
 /**
- * Specta story column scroll container + optional sentinel tracking.
- * - `scrollContainerRef`: list + single attach here (`#jgis-story-segment-panel`).
- * - With `sentinelsEnabled: false` (list mode), only the ref is used.
- * - `getAtTop` / `getAtBottom`: guided wheel edges (column mode).
+ * Specta column scroll container and edge sentinels.
+ * `getAtTop` / `getAtBottom` are the guided wheel edges.
  */
 interface IUseStoryScrollStateParams {
   currentIndex: number;
-  /** When false, only exposes scrollContainerRef (list story virtual track). */
-  sentinelsEnabled?: boolean;
 }
 
 interface IUseStoryScrollStateResult {
@@ -22,7 +18,6 @@ interface IUseStoryScrollStateResult {
 
 export function useStoryScrollState({
   currentIndex,
-  sentinelsEnabled = true,
 }: IUseStoryScrollStateParams): IUseStoryScrollStateResult {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const topSentinelRef = useRef<HTMLDivElement>(null);
@@ -31,10 +26,6 @@ export function useStoryScrollState({
   const atBottomRef = useRef(false);
 
   useEffect(() => {
-    if (!sentinelsEnabled) {
-      return;
-    }
-
     const root = scrollContainerRef.current;
     const topEl = topSentinelRef.current;
     const bottomEl = bottomSentinelRef.current;
@@ -59,7 +50,7 @@ export function useStoryScrollState({
     observer.observe(bottomEl);
 
     return () => observer.disconnect();
-  }, [currentIndex, sentinelsEnabled]);
+  }, [currentIndex]);
 
   return {
     scrollContainerRef,

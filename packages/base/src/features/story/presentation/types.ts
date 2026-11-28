@@ -7,7 +7,6 @@ import type {
 import type { RefObject } from 'react';
 
 import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
-import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
 
 export type StoryPresentationMode = 'column' | 'verticalScroll';
 
@@ -39,7 +38,6 @@ export type IStoryPresentationMobileChromeProps = IStoryPresentationChromeProps;
 interface IStoryStageBaseProps {
   model: IJupyterGISModel;
   isMobile: boolean;
-  segmentTransition: IListStorySegmentTransition | null;
   stageRef: RefObject<HTMLDivElement>;
   controlsToolbarRef: RefObject<HTMLDivElement>;
   initialLayersReady: boolean;
@@ -51,9 +49,6 @@ interface IStoryStageBaseProps {
 export interface IVerticalScrollStoryStageProps extends IStoryStageBaseProps {
   presentationMode: 'verticalScroll';
   storyScrollContainerRef: RefObject<HTMLDivElement>;
-  onSegmentTransitionChange: (
-    payload: IListStorySegmentTransition | null,
-  ) => void;
 }
 
 export interface IColumnStoryStageProps extends IStoryStageBaseProps {
