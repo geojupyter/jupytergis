@@ -1,12 +1,12 @@
 import { IIdentifiedFeature } from '@jupytergis/schema';
 import React from 'react';
 
-import { AttributeRowEditor } from './AttributeEditors';
-import { FeatureRow } from './FeatureRow';
 import {
   IAttributeEditorActions,
   IAttributeEditorState,
 } from '../types/editorTypes';
+import { AttributeRowEditor } from './AttributeEditors';
+import { FeatureRow } from './FeatureRow';
 
 interface IFeatureAttributeListProps {
   feature: IIdentifiedFeature;
@@ -26,7 +26,18 @@ export const FeatureAttributeList: React.FC<IFeatureAttributeListProps> = ({
   return (
     <div className="jgis-attribute-rows">
       {Object.entries(feature)
-        .filter(([_, value]) => typeof value !== 'object' || value === null)
+        .flatMap(([key, value]): [string, string][] => {
+          if (typeof value === 'string') {
+            return [[key, value]];
+          }
+          if (typeof value === 'number' || typeof value === 'boolean') {
+            return [[key, String(value)]];
+          }
+          if (value == null) {
+            return [[key, '']];
+          }
+          return [];
+        })
         .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
         .map(([key, value]) => {
           const isEditingThisRow =

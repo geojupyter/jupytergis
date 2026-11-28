@@ -15,6 +15,7 @@ import { exitStoryIdentifyMode } from '@/src/features/story/utils/exitStoryIdent
 import { getSegmentDisplayMode } from '@/src/features/story/utils/listStoryScrollTrack';
 import { Button } from '@/src/shared/components/Button';
 import { infoIcon } from '@/src/shared/icons';
+
 import { RenderedStoryMarkdown } from './components/RenderedStoryMarkdown';
 import StoryImageCaptionSection from './components/StoryImageCaptionSection';
 import StoryImageSection from './components/StoryImageSection';
@@ -35,7 +36,7 @@ interface IStoryViewerPanelProps {
   segmentContainerRef?: RefObject<HTMLDivElement>;
   storyData: IJGISStoryMap | null;
   currentIndex: number;
-  activeSlide: IStorySegmentLayer['parameters'] | undefined;
+  activeSlide: IStorySegmentLayer | undefined;
   layerName: string;
   /** Omit for list-story overlay; required when segment nav is shown. */
   segmentNav?: IStoryViewerPanelSegmentNav;
@@ -200,8 +201,6 @@ function StoryViewerPanel({
             <StoryImageSection
               imageUrl={activeSlide.content.image}
               imageLoaded={imageLoaded}
-              layerName={layerName ?? ''}
-              slideNumber={currentIndex}
               navSlot={navPlacement === 'over-image' ? navSlot : null}
             />
           ) : null}

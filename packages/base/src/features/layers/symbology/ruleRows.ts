@@ -22,7 +22,7 @@ function sameFields(a?: string[], b?: string[]): boolean {
 }
 
 export function rulesToRows(rules: IEncodingRule[]): IGrammarRow[] {
-  return rules.flatMap(rule =>
+  return rules.flatMap((rule) =>
     rule.mappings.map((mapping, mi) => ({
       // Keep the rule id as the row id where it is unambiguous, so React keys
       // stay stable across dialog opens.
@@ -125,7 +125,11 @@ export function shadowedRowEncodings(
     // Sorted because the shared document does not keep a predicate's key order.
     const guard = when?.length
       ? JSON.stringify([
-          when.map(p => Object.entries(p).sort()),
+          when.map((p) =>
+            Object.entries(p).sort(([keyA], [keyB]) =>
+              keyA.localeCompare(keyB),
+            ),
+          ),
           whenOp ?? 'all',
         ])
       : '';
@@ -134,12 +138,12 @@ export function shadowedRowEncodings(
 
     for (const { row } of group.rows) {
       const dead = row.encodings.filter(
-        encoding => unguarded.has(encoding) || claimed.has(encoding),
+        (encoding) => unguarded.has(encoding) || claimed.has(encoding),
       );
       if (dead.length > 0) {
         shadowed.set(row.id, new Set(dead));
       }
-      row.encodings.forEach(encoding => claimed.add(encoding));
+      row.encodings.forEach((encoding) => claimed.add(encoding));
     }
   }
   return shadowed;

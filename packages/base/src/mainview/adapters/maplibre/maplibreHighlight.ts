@@ -26,7 +26,7 @@ export class MapLibreHighlight {
   /** Replace the highlighted features. */
   set(features: Feature[]): void {
     this._ensureLayers();
-    this._source()?.setData({
+    void this._source()?.setData({
       type: 'FeatureCollection',
       features: toPLainFeatures(features),
     });
@@ -35,7 +35,7 @@ export class MapLibreHighlight {
 
   clear(): void {
     if (this._map.getSource(SOURCE_ID)) {
-      this._source()?.setData({ type: 'FeatureCollection', features: [] });
+      void this._source()?.setData({ type: 'FeatureCollection', features: [] });
     }
   }
 

@@ -4,7 +4,6 @@ import {
   IDict,
   IJGISFormSchemaRegistry,
   IJGISLayer,
-  IJGISLayerDocChange,
   IJGISSource,
   IJupyterGISModel,
   ILayerGalleryEntry,
@@ -19,6 +18,7 @@ import {
   useFollowedState,
 } from '@/src/features/follow/useFollowedState';
 import { CreationFormWrapper } from '@/src/features/layers/layerCreationFormDialog';
+
 import CUSTOM_RASTER_IMAGE from '../../../custom_raster.png';
 
 interface ILayerBrowserDialogProps {
@@ -56,9 +56,9 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
     setCreatingCustomRaster,
   );
 
-  const providers = [...new Set(registry.map(item => item.provider))];
+  const providers = [...new Set(registry.map((item) => item.provider))];
 
-  const filteredGallery = galleryWithCategory.filter(item =>
+  const filteredGallery = galleryWithCategory.filter((item) =>
     item.name.toLowerCase().includes(searchTerm),
   );
 
@@ -73,11 +73,11 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   /**
    * Track which layers are currently added to the map
    */
-  const handleLayerChange = (_: any, change: IJGISLayerDocChange) => {
+  const handleLayerChange = () => {
     // The split is to get rid of the 'Layer' part of the name to match the names in the gallery
     setActiveLayers(
       Object.values(model.sharedModel.layers).map(
-        layer => layer.name.split(' ')[0],
+        (layer) => layer.name.split(' ')[0],
       ),
     );
   };
@@ -95,7 +95,9 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
 
     const filteredGallery = sameAsOld
       ? registry
-      : registry.filter(item => item.provider?.includes(categoryTab.innerText));
+      : registry.filter((item) =>
+          item.provider?.includes(categoryTab.innerText),
+        );
 
     setGalleryWithCategory(filteredGallery);
     setSearchTerm('');
@@ -132,7 +134,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
 
   if (creatingCustomRaster) {
     // Disconnect any previous handler
-    okSignalPromise.promise.then(value => {
+    void okSignalPromise.promise.then((value) => {
       value.disconnect(cancel, this);
     });
 
@@ -163,7 +165,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
   }
 
   // Ok is like cancel in the case of gallery item selections
-  okSignalPromise.promise.then(value => {
+  void okSignalPromise.promise.then((value) => {
     value.connect(cancel, this);
   });
 
@@ -183,7 +185,7 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
           </div>
         </div>
         <div className="jGIS-layer-browser-categories">
-          {providers.map(provider => (
+          {providers.map((provider) => (
             <span
               className="jGIS-layer-browser-category"
               onClick={handleCategoryClick}
@@ -199,9 +201,15 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
           onClick={() => handleCustomTileClick()}
         >
           <div className="jGIS-layer-browser-tile-img-container">
-            <img className="jGIS-layer-browser-img" src={CUSTOM_RASTER_IMAGE} />
+            <img
+              className="jGIS-layer-browser-img"
+              src={CUSTOM_RASTER_IMAGE}
+            />
             <div className="jGIS-layer-browser-icon">
-              <FontAwesomeIcon style={{ height: 20 }} icon={faPlus} />
+              <FontAwesomeIcon
+                style={{ height: 20 }}
+                icon={faPlus}
+              />
             </div>
           </div>
           <div className="jGIS-layer-browser-text-container">
@@ -215,20 +223,29 @@ export const LayerBrowserComponent: React.FC<ILayerBrowserDialogProps> = ({
             </p>
           </div>
         </div>
-        {filteredGallery.map(tile => (
+        {filteredGallery.map((tile) => (
           <div
             className="jGIS-layer-browser-tile"
             onClick={() => handleTileClick(tile)}
           >
             <div className="jGIS-layer-browser-tile-img-container">
-              <img className="jGIS-layer-browser-img" src={tile.thumbnail} />
+              <img
+                className="jGIS-layer-browser-img"
+                src={tile.thumbnail}
+              />
               {activeLayers.indexOf(tile.name) === -1 ? (
                 <div className="jGIS-layer-browser-icon">
-                  <FontAwesomeIcon style={{ height: 20 }} icon={faPlus} />
+                  <FontAwesomeIcon
+                    style={{ height: 20 }}
+                    icon={faPlus}
+                  />
                 </div>
               ) : (
                 <div className="jGIS-layer-browser-icon jGIS-layer-browser-added">
-                  <FontAwesomeIcon style={{ height: 20 }} icon={faCheck} />
+                  <FontAwesomeIcon
+                    style={{ height: 20 }}
+                    icon={faCheck}
+                  />
                   <p className="jGIS-layer-browser-text-general">Added!</p>
                 </div>
               )}

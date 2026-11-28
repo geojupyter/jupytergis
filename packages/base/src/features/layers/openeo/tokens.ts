@@ -91,7 +91,7 @@ export function rememberedOpenEOServers(): string[] {
     const raw = window.localStorage.getItem(OPENEO_SERVERS_KEY);
     const parsed = raw ? JSON.parse(raw) : null;
     return Array.isArray(parsed)
-      ? parsed.filter(s => typeof s === 'string')
+      ? parsed.filter((s) => typeof s === 'string')
       : [];
   } catch {
     return [];
@@ -100,7 +100,7 @@ export function rememberedOpenEOServers(): string[] {
 
 /** Remembers a server so a reload knows where to pick the session back up. */
 export function rememberOpenEOServer(server: string): void {
-  const servers = rememberedOpenEOServers().filter(s => s !== server);
+  const servers = rememberedOpenEOServers().filter((s) => s !== server);
   servers.push(server);
   try {
     window.localStorage.setItem(OPENEO_SERVERS_KEY, JSON.stringify(servers));

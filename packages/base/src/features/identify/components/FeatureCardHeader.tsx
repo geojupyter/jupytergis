@@ -4,6 +4,7 @@ import React from 'react';
 
 import { Button } from '@/src/shared/components/Button';
 import { CollapsibleHeader } from '@/src/shared/components/Collapsible';
+
 import { getFeatureIdentifier } from '../utils/getFeatureIdentifier';
 
 interface IFeatureCardHeaderProps extends React.ComponentPropsWithoutRef<'div'> {
@@ -48,7 +49,7 @@ export const FeatureCardHeader = React.forwardRef<
               <Button
                 size="icon-sm"
                 variant="ghost"
-                onClick={e => {
+                onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   onToggleFloater();
@@ -62,7 +63,7 @@ export const FeatureCardHeader = React.forwardRef<
             <Button
               size="icon-sm"
               variant="ghost"
-              onClick={e => {
+              onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 onHighlightFeature(feature);

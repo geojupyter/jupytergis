@@ -67,7 +67,7 @@ export class ConsoleView extends BoxPanel {
     super.dispose();
   }
   execute() {
-    this._consolePanel.console.execute(false);
+    void this._consolePanel.console.execute(false);
   }
 
   protected onResize(msg: Widget.ResizeMessage): void {

@@ -1,6 +1,5 @@
 import { IJGISFormSchemaRegistry, IJupyterGISModel } from '@jupytergis/schema';
 import type { IEditorServices } from '@jupyterlab/codeeditor';
-import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import { Trash2 } from 'lucide-react';
 import React, { useEffect, useState } from 'react';
@@ -56,14 +55,12 @@ import { JGIS_NARROW_BREAKPOINT } from '@/src/shared/hooks/useIsMobile';
 export interface IStoryEditorDialogBodyProps {
   model: IJupyterGISModel;
   commands: CommandRegistry;
-  state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   editorServices: IEditorServices;
 }
 
 function SegmentEditor({
   model,
-  state,
   segment,
   editorServices,
   canRemoveSegment,
@@ -77,7 +74,6 @@ function SegmentEditor({
   isTextSegmentWidthFull,
 }: {
   model: IJupyterGISModel;
-  state: IStateDB;
   segment: IStorySegmentViewItem;
   editorServices: IEditorServices;
   canRemoveSegment: boolean;
@@ -118,7 +114,7 @@ function SegmentEditor({
             value={displayTitle}
             placeholder="Enter Segment Title..."
             aria-label="Segment title"
-            onChange={title => {
+            onChange={(title) => {
               onLayerNameChange(title);
             }}
           />
@@ -134,7 +130,10 @@ function SegmentEditor({
         </Button>
       </div>
 
-      <SegmentModePicker value={segmentMode} onChange={onContentModeChange} />
+      <SegmentModePicker
+        value={segmentMode}
+        onChange={onContentModeChange}
+      />
 
       {segmentMode === 'map' ? (
         <label className="jgis-story-editor-toggle-row jgis-story-editor-label justify-start!">
@@ -153,7 +152,7 @@ function SegmentEditor({
               label="Panel width"
               layout="block"
               value={segment.activeSlide?.content?.panelWidth}
-              onChange={panelWidth => {
+              onChange={(panelWidth) => {
                 onContentChange({ panelWidth });
               }}
               presets={MAP_PANEL_WIDTH_PRESETS}
@@ -162,7 +161,7 @@ function SegmentEditor({
           ) : null}
           <SegmentPaneAlignmentPicker
             value={paneAlignment}
-            onChange={alignment => {
+            onChange={(alignment) => {
               onContentChange({ paneAlignment: alignment });
             }}
           />
@@ -171,7 +170,10 @@ function SegmentEditor({
 
       {segmentMode === 'map' ? (
         <>
-          <StoryEditorSection triggerText="Map view" defaultOpen>
+          <StoryEditorSection
+            triggerText="Map view"
+            defaultOpen
+          >
             <div className="jgis-story-editor-stack jgis-story-editor-stack--tight">
               <p className="jgis-story-editor-help">
                 Set the map view by panning and zooming on the map, or preview
@@ -202,24 +204,28 @@ function SegmentEditor({
             </div>
           </StoryEditorSection>
 
-          <StoryEditorSection triggerText="Content" defaultOpen>
+          <StoryEditorSection
+            triggerText="Content"
+            defaultOpen
+          >
             <div className="jgis-story-editor-stack">
               <SegmentImageUrlField
                 value={imageUrl}
-                onChange={nextImageUrl => {
+                onChange={(nextImageUrl) => {
                   onContentChange({ image: nextImageUrl });
                 }}
               />
               <SegmentImageCaptionField
                 value={imageCaption}
-                onChange={caption => onContentChange({ imageCaption: caption })}
+                onChange={(caption) =>
+                  onContentChange({ imageCaption: caption })
+                }
               />
               <SegmentMarkdownEditor
                 model={model}
                 segmentId={segment.id}
                 editorServices={editorServices}
                 initialMarkdown={markdown}
-                rows={4}
               />
             </div>
           </StoryEditorSection>
@@ -231,7 +237,6 @@ function SegmentEditor({
           >
             <SegmentLayerOverrides
               model={model}
-              state={state}
               segmentId={segment.id}
               isMobile={isMobile}
             />
@@ -246,7 +251,7 @@ function SegmentEditor({
               <NativeSelect
                 size="sm"
                 value={transitionType}
-                onChange={event => {
+                onChange={(event) => {
                   onTransitionChange({
                     type: event.target.value as SegmentTransitionPatch['type'],
                   });
@@ -269,7 +274,7 @@ function SegmentEditor({
                   disabled={isImmediateTransition}
                   aria-label="Transition duration"
                   style={{ maxWidth: '10rem' }}
-                  onValueChange={value => {
+                  onValueChange={(value) => {
                     const time = Array.isArray(value) ? value[0] : value;
                     onTransitionChange({ time });
                   }}
@@ -280,14 +285,16 @@ function SegmentEditor({
           </StoryEditorSection>
         </>
       ) : (
-        <StoryEditorSection triggerText="Content" defaultOpen>
+        <StoryEditorSection
+          triggerText="Content"
+          defaultOpen
+        >
           <SegmentMarkdownEditor
             model={model}
             segmentId={segment.id}
             editorServices={editorServices}
             initialMarkdown={markdown}
             tall
-            rows={10}
           />
         </StoryEditorSection>
       )}
@@ -306,7 +313,6 @@ function SegmentEditorEmptyState(): JSX.Element {
 export function StoryEditorDialogBody({
   model,
   commands,
-  state,
   editorServices,
 }: IStoryEditorDialogBodyProps): JSX.Element {
   const {
@@ -351,7 +357,10 @@ export function StoryEditorDialogBody({
   }, []);
 
   return (
-    <div className="jgis-story-editor" tabIndex={-1}>
+    <div
+      className="jgis-story-editor"
+      tabIndex={-1}
+    >
       <StoryEditorHeaderBar
         model={model}
         story={story}
@@ -375,24 +384,23 @@ export function StoryEditorDialogBody({
             <SegmentEditor
               key={selectedSegment.id}
               model={model}
-              state={state}
               segment={selectedSegment}
               editorServices={editorServices}
               canRemoveSegment={canRemoveSegment}
               isMobile={isMobile}
-              onContentModeChange={mode => {
+              onContentModeChange={(mode) => {
                 updateSegmentContentMode(selectedSegment.id, mode);
               }}
-              onContentChange={patch => {
+              onContentChange={(patch) => {
                 updateSegmentContent(selectedSegment.id, patch);
               }}
-              onLayerNameChange={name => {
+              onLayerNameChange={(name) => {
                 updateSegmentLayerName(selectedSegment.id, name);
               }}
-              onEnableIdentifyChange={enableIdentify => {
+              onEnableIdentifyChange={(enableIdentify) => {
                 updateSegmentEnableIdentify(selectedSegment.id, enableIdentify);
               }}
-              onTransitionChange={patch => {
+              onTransitionChange={(patch) => {
                 updateSegmentTransition(selectedSegment.id, patch);
               }}
               onRemoveSegment={removeSegment}

@@ -29,7 +29,7 @@ function schemaIsCallback(schema: any): boolean {
     return false;
   }
   if (Array.isArray(schema)) {
-    return schema.some(s => schemaIsCallback(s));
+    return schema.some((s) => schemaIsCallback(s));
   }
   if (typeof schema !== 'object') {
     return false;
@@ -93,8 +93,8 @@ function checkCallbackArgs(
 export async function validateProcessGraphLocally(
   processGraph: Record<string, any>,
   processes: any[] | undefined,
-  userProcesses?: any[] | undefined,
-  parameters?: any[] | undefined,
+  userProcesses?: any[],
+  parameters?: any[],
 ): Promise<IValidationError[]> {
   if (!processes || processes.length === 0) {
     return [];
@@ -228,7 +228,7 @@ export function mergeValidationErrors(
   // Dedupe by (process, argument) "subject", keeping the most actionable
   // message — preserving original order otherwise.
   const bestForSubject = new Map<string, { idx: number; prio: number }>();
-  const kept = new Array<boolean>(all.length).fill(true);
+  const kept = Array.from({ length: all.length }, () => true);
   for (let i = 0; i < all.length; i++) {
     const subject = extractSubject(all[i].message);
     if (!subject) {
@@ -251,7 +251,7 @@ export function mergeValidationErrors(
 export async function validateProcessGraph(
   connectionInfo: IOpenEOConnectionInfo,
   processGraph: Record<string, any>,
-  parameters?: any[] | undefined,
+  parameters?: any[],
 ): Promise<IValidationError[]> {
   // Lazily imported so the pure validators above (used in unit tests) don't
   // pull OpenEOTileLayer's @jupyterlab/apputils dependency into the module
@@ -263,7 +263,7 @@ export async function validateProcessGraph(
     process_graph: processGraph,
     ...(parameters?.length ? { parameters } : {}),
   } as any);
-  return (result as any[]).map(e => ({
+  return (result as any[]).map((e) => ({
     code: e?.code,
     message: e?.message ?? String(e),
   }));

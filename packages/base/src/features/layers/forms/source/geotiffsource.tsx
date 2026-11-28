@@ -3,14 +3,15 @@ import { showErrorMessage } from '@jupyterlab/apputils';
 import { RJSFSchema, UiSchema } from '@rjsf/utils';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import { FileSelectorWidget } from '@/src/shared/formbuilder/objectform/fileselectorwidget';
+import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import {
   processBaseSchema,
   removeFormEntry,
 } from '@/src/shared/formbuilder/objectform/schemaUtils';
 import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy, getMimeType } from '@/src/tools';
+
 import type { ISourceFormProps } from './sourceform';
 
 export function GeoTiffSourcePropertiesForm(
@@ -140,7 +141,7 @@ export function GeoTiffSourcePropertiesForm(
       handleChangeBase(data);
 
       if (data.urls) {
-        validateUrls(data.urls, false);
+        void validateUrls(data.urls, false);
       }
     },
     [handleChangeBase, validateUrls],
@@ -152,7 +153,7 @@ export function GeoTiffSourcePropertiesForm(
 
       if (!valid) {
         if (errors.length > 0) {
-          showErrorMessage('Invalid URLs', errors[0]);
+          void showErrorMessage('Invalid URLs', errors[0]);
         }
 
         return;
@@ -164,7 +165,7 @@ export function GeoTiffSourcePropertiesForm(
   );
 
   useEffect(() => {
-    validateUrls(formData?.urls, false);
+    void validateUrls(formData?.urls, false);
   }, []);
 
   if (!hasSchema) {

@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import type { IBaseFormProps } from '@/src/types';
+
 import { MapExtentToggle } from './MapExtentToggle';
 import { useMapExtent } from './useMapExtent';
 
@@ -105,7 +106,7 @@ export function ClipRasterByExtentForm(
   );
 
   const handleTopChange = useCallback(
-    (data: IDict) => setFormData(prev => ({ ...prev, ...data })),
+    (data: IDict) => setFormData((prev) => ({ ...prev, ...data })),
     [setFormData],
   );
 
@@ -113,7 +114,7 @@ export function ClipRasterByExtentForm(
     (data: IDict) => {
       // When using map extent, rjsf may strip disabled-looking fields on some
       // browsers; always restore the cached extent values to be safe.
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         ...data,
         ...(mapExtentActive ? extentRef.current : {}),
@@ -123,7 +124,7 @@ export function ClipRasterByExtentForm(
   );
 
   const handleBottomChange = useCallback(
-    (data: IDict) => setFormData(prev => ({ ...prev, ...data })),
+    (data: IDict) => setFormData((prev) => ({ ...prev, ...data })),
     [setFormData],
   );
 
@@ -138,7 +139,7 @@ export function ClipRasterByExtentForm(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const extent = toggle(e.target.checked);
       if (extent) {
-        setFormData(prev => ({ ...prev, ...extent }));
+        setFormData((prev) => ({ ...prev, ...extent }));
       }
     },
     [toggle, setFormData],

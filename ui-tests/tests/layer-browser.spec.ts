@@ -1,3 +1,5 @@
+import path from 'path';
+
 import {
   IJupyterLabPageFixture,
   expect,
@@ -5,73 +7,6 @@ import {
   test,
 } from '@jupyterlab/galata';
 import { Locator } from '@playwright/test';
-import path from 'path';
-
-const TEST_REGISTRY = {
-  OpenStreetMap: {
-    Mapnik: {
-      thumbnailPath: 'rasterlayer_gallery/OpenStreetMap-Mapnik.png',
-      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-      max_zoom: 19,
-      html_attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      attribution: '(C) OpenStreetMap contributors',
-      name: 'OpenStreetMap.Mapnik',
-    },
-  },
-  Strava: {
-    All: {
-      thumbnailPath: 'rasterlayer_gallery/Strava-All.png',
-      url: 'https://heatmap-external-a.strava.com/tiles/all/hot/{z}/{x}/{y}.png',
-      max_zoom: 15,
-      attribution:
-        'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      html_attribution:
-        'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      name: 'Strava.All',
-    },
-    Ride: {
-      thumbnailPath: 'rasterlayer_gallery/Strava-Ride.png',
-      url: 'https://heatmap-external-a.strava.com/tiles/ride/hot/{z}/{x}/{y}.png',
-      max_zoom: 15,
-      attribution:
-        'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      html_attribution:
-        'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      name: 'Strava.Ride',
-    },
-    Run: {
-      thumbnailPath: 'rasterlayer_gallery/Strava-Run.png',
-      url: 'https://heatmap-external-a.strava.com/tiles/run/bluered/{z}/{x}/{y}.png',
-      max_zoom: 15,
-      attribution:
-        'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      html_attribution:
-        'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      name: 'Strava.Run',
-    },
-    Water: {
-      thumbnailPath: 'rasterlayer_gallery/Strava-Water.png',
-      url: 'https://heatmap-external-a.strava.com/tiles/water/blue/{z}/{x}/{y}.png',
-      max_zoom: 15,
-      attribution:
-        'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      html_attribution:
-        'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      name: 'Strava.Water',
-    },
-    Winter: {
-      thumbnailPath: 'rasterlayer_gallery/Strava-Winter.png',
-      url: 'https://heatmap-external-a.strava.com/tiles/winter/hot/{z}/{x}/{y}.png',
-      max_zoom: 15,
-      attribution:
-        'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      html_attribution:
-        'Map tiles by <a href="https://labs.strava.com/heatmap">Strava 2021</a>',
-      name: 'Strava.Winter',
-    },
-  },
-};
 
 async function openLayerBrowser(
   page: IJupyterLabPageFixture,

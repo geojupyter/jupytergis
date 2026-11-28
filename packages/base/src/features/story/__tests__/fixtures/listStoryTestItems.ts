@@ -15,6 +15,9 @@ export function storyItem(
     index,
     layerName: id,
     activeSlide: {
+      zoom: 0,
+      extent: [],
+      transition: { type: 'linear', time: 0 },
       content: {
         contentMode,
         markdown,

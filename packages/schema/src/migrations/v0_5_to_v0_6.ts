@@ -174,7 +174,7 @@ function _migrateStorySegmentCaptions(
 }
 
 function _migrateAnnotations(doc: Record<string, any>): Record<string, any> {
-  const metadata = { ...(doc.metadata ?? {}) };
+  const metadata = { ...doc.metadata };
   const annotations: Record<string, any> =
     doc.annotations &&
     typeof doc.annotations === 'object' &&

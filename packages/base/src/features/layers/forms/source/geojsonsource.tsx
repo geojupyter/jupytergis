@@ -5,14 +5,15 @@ import { UiSchema } from '@rjsf/utils';
 import { Ajv, type ValidateFunction } from 'ajv';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import { FileSelectorWidget } from '@/src/shared/formbuilder/objectform/fileselectorwidget';
+import { SchemaForm } from '@/src/shared/formbuilder/objectform/SchemaForm';
 import {
   processBaseSchema,
   removeFormEntry,
 } from '@/src/shared/formbuilder/objectform/schemaUtils';
 import { useSchemaFormState } from '@/src/shared/formbuilder/objectform/useSchemaFormState';
 import { deepCopy, loadFile } from '@/src/tools';
+
 import type { ISourceFormProps } from './sourceform';
 
 export function GeoJSONSourcePropertiesForm(
@@ -81,7 +82,13 @@ export function GeoJSONSourcePropertiesForm(
           }
         } catch (e) {
           valid = false;
-          error = `"${path}" is not a valid GeoJSON file: ${e}`;
+          const detail =
+            e instanceof Error
+              ? e.message
+              : typeof e === 'string'
+                ? e
+                : 'Unknown error';
+          error = `"${path}" is not a valid GeoJSON file: ${detail}`;
         }
       }
 
@@ -89,7 +96,7 @@ export function GeoJSONSourcePropertiesForm(
         nextErrors.path = { __errors: [error] };
 
         if (validateGeoJSON.errors?.length) {
-          validateGeoJSON.errors.reverse().forEach(err => {
+          validateGeoJSON.errors.reverse().forEach((err) => {
             (nextErrors.path.__errors as string[]).push(err.message ?? '');
           });
         }
@@ -142,7 +149,7 @@ export function GeoJSONSourcePropertiesForm(
       handleChangeBase(data);
 
       if (data.path !== undefined) {
-        validatePath(data.path);
+        void validatePath(data.path);
       }
     },
     [handleChangeBase, validatePath],
@@ -151,7 +158,7 @@ export function GeoJSONSourcePropertiesForm(
   const handleSubmit = useCallback(
     (data: IDict) => {
       if (extraErrors?.path?.__errors?.length >= 1) {
-        showErrorMessage('Invalid file', extraErrors.path.__errors[0]);
+        void showErrorMessage('Invalid file', extraErrors.path.__errors[0]);
 
         return;
       }
@@ -174,7 +181,7 @@ export function GeoJSONSourcePropertiesForm(
 
   useEffect(() => {
     if (formData?.path) {
-      validatePath(formData?.path);
+      void validatePath(formData?.path);
     }
   }, []);
 

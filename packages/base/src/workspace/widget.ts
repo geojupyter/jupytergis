@@ -58,7 +58,7 @@ export class JupyterGISDocumentWidget
     this.model.syncPointer(undefined);
   }
 
-  onResize = (msg: any): void => {
+  onResize = (): void => {
     window.dispatchEvent(new Event('resize'));
   };
 }
@@ -129,7 +129,7 @@ export class JupyterGISPanel extends SplitPanel {
 
     const readyPromise = model.sharedModel.initialSyncReady;
 
-    readyPromise.then(async () => {
+    void readyPromise.then(async () => {
       this._initModel({ model, commandRegistry });
       if (this._state) {
         const stored = await this._state.fetch(

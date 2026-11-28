@@ -61,49 +61,14 @@ jobs:
         shell: bash -l {0}
         run: pnpm run build
 
-      - name: Lint
-        id: oxlint
-        continue-on-error: true
-        shell: bash -l {0}
-        run: pnpm run oxlint:check
-
-      - name: Check formatting
-        id: oxfmt
-        continue-on-error: true
+      # Oxlint prints GitHub annotations itself when GITHUB_ACTIONS is set.
+      # One step so a lint failure still runs the format check.
+      - name: Lint and format
         shell: bash -l {0}
         run: |
+          set +e
+          pnpm run oxlint:check
+          lint_rc=$?
           pnpm run oxfmt:check
-          rc=$?
-
-          if [ $rc -ne 0 ]; then
-            # Show what was changed -- useful if CI is reporting an error and
-            # local oxfmt run is not (╯°□°)╯︵ ┻━┻
-            pnpm run oxfmt
-            git diff
-            git restore .
-          fi
-
-          exit $rc
-
-      - name: Report
-        env:
-          OXLINT_OUTCOME: ${{ steps.oxlint.outcome }}
-          OXFMT_OUTCOME: ${{ steps.oxfmt.outcome }}
-        run: |
-          failed=0
-
-          if [ "${OXLINT_OUTCOME}" == "success" ]; then
-            echo "🎉 Oxlint check passed"
-          else
-            echo "❌ Oxlint check failed"
-            failed=1
-          fi
-
-          if [ "${OXFMT_OUTCOME}" == "success" ]; then
-            echo "🎉 Oxfmt format check passed"
-          else
-            echo "❌ Oxfmt format check failed"
-            failed=1
-          fi
-
-          exit $failed
+          fmt_rc=$?
+          exit $((lint_rc || fmt_rc))

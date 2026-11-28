@@ -1,5 +1,6 @@
-import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
+
+import { expect, galata, test } from '@jupyterlab/galata';
 
 const FILENAME = 'panel-test.jGIS';
 const MOBILE_VIEWPORT = { width: 390, height: 844 };
@@ -20,7 +21,7 @@ test.describe('#mobilePanel', () => {
   });
 
   test('merged panel is visible on mobile viewport', async ({ page }) => {
-    page.setViewportSize(MOBILE_VIEWPORT);
+    await page.setViewportSize(MOBILE_VIEWPORT);
     await page.filebrowser.open(`testDir/${FILENAME}`);
     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
 
@@ -31,7 +32,7 @@ test.describe('#mobilePanel', () => {
   test('separate left/right panels are not shown on mobile', async ({
     page,
   }) => {
-    page.setViewportSize(MOBILE_VIEWPORT);
+    await page.setViewportSize(MOBILE_VIEWPORT);
     await page.filebrowser.open(`testDir/${FILENAME}`);
     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
 
@@ -45,7 +46,7 @@ test.describe('#mobilePanel', () => {
   test('merged panel is shown on desktop viewport when the screen is small', async ({
     page,
   }) => {
-    page.setViewportSize(DESKTOP_VIEWPORT);
+    await page.setViewportSize(DESKTOP_VIEWPORT);
     await page.filebrowser.open(`testDir/${FILENAME}`);
     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
 
@@ -53,7 +54,7 @@ test.describe('#mobilePanel', () => {
   });
 
   test('pill indicator is visible on mobile', async ({ page }) => {
-    page.setViewportSize(MOBILE_VIEWPORT);
+    await page.setViewportSize(MOBILE_VIEWPORT);
     await page.filebrowser.open(`testDir/${FILENAME}`);
     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
 
@@ -61,7 +62,7 @@ test.describe('#mobilePanel', () => {
   });
 
   test('clicking a tab switches the active tab', async ({ page }) => {
-    page.setViewportSize(MOBILE_VIEWPORT);
+    await page.setViewportSize(MOBILE_VIEWPORT);
     await page.filebrowser.open(`testDir/${FILENAME}`);
     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
 
@@ -70,7 +71,6 @@ test.describe('#mobilePanel', () => {
 
     // Click the second enabled tab
     const secondTab = triggers.nth(1);
-    const secondTabName = await secondTab.textContent();
     await secondTab.click();
 
     // That tab should now be active
@@ -80,12 +80,10 @@ test.describe('#mobilePanel', () => {
     await triggers.nth(0).click();
     await expect(triggers.nth(0)).toHaveAttribute('data-active', '');
     await expect(secondTab).not.toHaveAttribute('data-active');
-
-    console.log(`Tab switching verified for: ${secondTabName}`);
   });
 
   test('dragging tab list vertically resizes the panel', async ({ page }) => {
-    page.setViewportSize(MOBILE_VIEWPORT);
+    await page.setViewportSize(MOBILE_VIEWPORT);
     await page.filebrowser.open(`testDir/${FILENAME}`);
     await page.locator('div.jGIS-Spinner').waitFor({ state: 'hidden' });
 

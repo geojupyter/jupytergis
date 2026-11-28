@@ -33,16 +33,13 @@ dependencies = [
   "sidecar>=0.7.0",
 ]
 dynamic = ["version", "description", "authors", "urls", "keywords"]
-license = {file = "LICENSE"}
+license = { file = "LICENSE" }
 name = "jupytergis_lab"
 readme = "README.md"
 requires-python = ">=3.12"
 
 [project.optional-dependencies]
-tiler = [
-  "jupyter-tiler>=0.8.1",
-  "sniffio",
-]
+tiler = ["jupyter-tiler>=0.8.1", "sniffio"]
 
 [tool.hatch.version]
 source = "nodejs"
@@ -66,7 +63,7 @@ build-function = "hatch_jupyter_builder.npm_builder"
 dependencies = ["hatch-jupyter-builder>=0.5"]
 ensured-targets = [
   "jupytergis_lab/labextension/static/style.js",
-  "jupytergis_lab/labextension/package.json"
+  "jupytergis_lab/labextension/package.json",
 ]
 skip-if-exists = ["jupytergis_lab/labextension/static/style.js"]
 

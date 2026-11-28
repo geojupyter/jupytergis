@@ -106,18 +106,13 @@ export class JupyterGISModel implements IJupyterGISModel {
       window.addEventListener('beforeunload', this._onPageExit);
       window.addEventListener('pagehide', this._onPageExit);
     }
-    this._sharedModel.metadataChanged.connect(
-      this._metadataChangedHandler,
-      this,
-    );
+    this._sharedModel.metadataChanged.connect(this._metadataChangedHandler);
     this._sharedModel.annotationsChanged.connect(
       this._annotationsChangedHandler,
-      this,
     );
-    this._sharedModel.presetsChanged.connect(this._presetsChangedHandler, this);
+    this._sharedModel.presetsChanged.connect(this._presetsChangedHandler);
     this._sharedModel.featureStoresChanged.connect(
       this._featureStoresChangedHandler,
-      this,
     );
     this.annotationModel = annotationModel;
     this.settingRegistry = settingRegistry;
@@ -128,10 +123,11 @@ export class JupyterGISModel implements IJupyterGISModel {
 
     this._viewState = {};
 
-    this.settingsReady = new Promise(resolve => {
+    this.settingsReady = new Promise((resolve) => {
       this._settingsReadyResolve = resolve;
     });
-    this.initSettings();
+
+    void this.initSettings();
   }
 
   /**
@@ -155,7 +151,7 @@ export class JupyterGISModel implements IJupyterGISModel {
             DEFAULT_SETTINGS,
           ) as (keyof IJupyterGISSettings)[];
 
-          keys.forEach(key => {
+          keys.forEach((key) => {
             if (oldSettings[key] !== newSettings[key]) {
               this._settingsChanged.emit(key);
             }
@@ -225,7 +221,7 @@ export class JupyterGISModel implements IJupyterGISModel {
       this._tileFeatureCache.set(sourceId, featureSet);
     }
     const before = featureSet.size;
-    features.forEach(feature => featureSet.add(feature));
+    features.forEach((feature) => featureSet.add(feature));
     if (featureSet.size > before) {
       this._tileFeaturesChanged.emit(sourceId);
     }
@@ -244,7 +240,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     const keysUnchanged =
       previousKeys !== undefined &&
       previousKeys.size === nextKeys.size &&
-      [...previousKeys].every(key => nextKeys.has(key));
+      [...previousKeys].every((key) => nextKeys.has(key));
 
     this._tileFeatureCache.set(sourceId, new Set(features.values()));
     this._tileFeatureCacheKeys.set(sourceId, nextKeys);
@@ -466,22 +462,6 @@ export class JupyterGISModel implements IJupyterGISModel {
     this._zoomToPositionSignal.emit(id);
   }
 
-  private _metadataChangedHandler(_: IJupyterGISDoc, args: MapChange) {
-    this._sharedMetadataChanged.emit(args);
-  }
-
-  private _annotationsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
-    this._sharedAnnotationsChanged.emit(args);
-  }
-
-  private _presetsChangedHandler(_: IJupyterGISDoc, args: MapChange) {
-    this._sharedPresetsChanged.emit(args);
-  }
-
-  private _featureStoresChangedHandler(_: IJupyterGISDoc, args: MapChange) {
-    this._featureStoresChanged.emit(args);
-  }
-
   dispose(): void {
     this._storyPreviewActive = false;
     if (this._isDisposed) {
@@ -544,7 +524,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     return JSON.parse(this.toString());
   }
 
-  fromJSON(data: PartialJSONObject): void {
+  fromJSON(_data: PartialJSONObject): void {
     // nothing to do
   }
 
@@ -734,7 +714,7 @@ export class JupyterGISModel implements IJupyterGISModel {
         ([storyMapId, storyMap]) => {
           if (storyMap.storySegments?.includes(layer_id)) {
             const updatedStorySegments = storyMap.storySegments.filter(
-              id => id !== layer_id,
+              (id) => id !== layer_id,
             );
             this.sharedModel.updateStoryMap(storyMapId, {
               ...storyMap,
@@ -866,7 +846,7 @@ export class JupyterGISModel implements IJupyterGISModel {
     emitter?: string,
   ): void {
     const current = {
-      ...(this.localState?.drawCustomAttributes?.value ?? {}),
+      ...this.localState?.drawCustomAttributes?.value,
     };
 
     current[layerId] = {
@@ -936,7 +916,7 @@ export class JupyterGISModel implements IJupyterGISModel {
   setDialogStateKey(key: string, value: unknown, emitter?: string): void {
     this.syncDialogState(
       {
-        ...(this.localState?.dialogState?.value ?? {}),
+        ...this.localState?.dialogState?.value,
         [key]: value,
       },
       emitter,
@@ -1648,11 +1628,11 @@ export class JupyterGISModel implements IJupyterGISModel {
     const fields: readonly AwarenessFieldKey[] = AWARENESS_FIELD_KEYS;
     const localClientId = this.getClientId();
 
-    changedClientIds.forEach(clientId => {
+    changedClientIds.forEach((clientId) => {
       const previousState = this._previousClientStates.get(clientId);
       const currentState = clients.get(clientId);
 
-      fields.forEach(field => {
+      fields.forEach((field) => {
         const previousValue = previousState?.[field];
         const currentValue = currentState?.[field];
 
@@ -1876,6 +1856,30 @@ export class JupyterGISModel implements IJupyterGISModel {
   private _sharedAnnotationsChanged = new Signal<this, MapChange>(this);
   private _sharedPresetsChanged = new Signal<this, MapChange>(this);
   private _featureStoresChanged = new Signal<this, MapChange>(this);
+  private readonly _metadataChangedHandler = (
+    _: IJupyterGISDoc,
+    args: MapChange,
+  ) => {
+    this._sharedMetadataChanged.emit(args);
+  };
+  private readonly _annotationsChangedHandler = (
+    _: IJupyterGISDoc,
+    args: MapChange,
+  ) => {
+    this._sharedAnnotationsChanged.emit(args);
+  };
+  private readonly _presetsChangedHandler = (
+    _: IJupyterGISDoc,
+    args: MapChange,
+  ) => {
+    this._sharedPresetsChanged.emit(args);
+  };
+  private readonly _featureStoresChangedHandler = (
+    _: IJupyterGISDoc,
+    args: MapChange,
+  ) => {
+    this._featureStoresChanged.emit(args);
+  };
   private _zoomToPositionSignal = new Signal<this, string>(this);
 
   private _addFeatureAsMsSignal = new Signal<this, string>(this);

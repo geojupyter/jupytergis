@@ -25,7 +25,7 @@ function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
   } | null>(null);
 
   const index = wmsCollection
-    ? wmsCollections.findIndex(item => item.id === wmsCollection.id)
+    ? wmsCollections.findIndex((item) => item.id === wmsCollection.id)
     : -1;
   const selectedLayer =
     wmsCollection && wmsCollection.layers.length > 0
@@ -123,11 +123,11 @@ function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
           id="jgis-stac-wms-layer"
           className="w-full"
           value={wmsLayerKey(selectedLayer)}
-          onChange={event => {
+          onChange={(event) => {
             handleLayerChange(event.target.value);
           }}
         >
-          {wmsCollection.layers.map(layer => (
+          {wmsCollection.layers.map((layer) => (
             <NativeSelectOption
               key={wmsLayerKey(layer)}
               value={wmsLayerKey(layer)}
@@ -136,7 +136,10 @@ function StacWmsCollectionResult({ model }: IStacWmsCollectionResultProps) {
             </NativeSelectOption>
           ))}
         </NativeSelect>
-        <Button className="jgis-stac-wms-result-add" onClick={handleAddToMap}>
+        <Button
+          className="jgis-stac-wms-result-add"
+          onClick={handleAddToMap}
+        >
           Add to map
         </Button>
       </article>
@@ -154,7 +157,7 @@ function CollectionPreview({ href, model }: ICollectionPreviewProps) {
   const [isHidden, setIsHidden] = useState(false);
 
   const handleError = useCallback(() => {
-    void maybeProxied(href, model).then(proxied => {
+    void maybeProxied(href, model).then((proxied) => {
       if (src !== proxied) {
         setSrc(proxied);
         return;
@@ -187,7 +190,9 @@ function selectedWmsLayer(
   choice: { collectionId: string; layerKey: string } | null,
 ): ICatalogWmsEndpoint {
   if (choice?.collectionId === collectionId) {
-    const match = layers.find(layer => wmsLayerKey(layer) === choice.layerKey);
+    const match = layers.find(
+      (layer) => wmsLayerKey(layer) === choice.layerKey,
+    );
     if (match) {
       return match;
     }

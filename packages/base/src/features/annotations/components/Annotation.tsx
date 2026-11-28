@@ -59,7 +59,7 @@ const Annotation: React.FC<IAnnotationProps> = ({
     <div className="jGIS-Annotation">
       {children}
       <div>
-        {contents.map(content => {
+        {contents.map((content) => {
           return (
             <Message
               user={content.user}
@@ -75,8 +75,8 @@ const Annotation: React.FC<IAnnotationProps> = ({
           rows={3}
           placeholder={'Ctrl+Enter to submit'}
           value={messageContent}
-          onChange={e => setMessageContent(e.currentTarget.value)}
-          onKeyDown={e => {
+          onChange={(e) => setMessageContent(e.currentTarget.value)}
+          onKeyDown={(e) => {
             if (e.ctrlKey && e.key === 'Enter') {
               handleSubmit();
             }
@@ -84,7 +84,10 @@ const Annotation: React.FC<IAnnotationProps> = ({
         />
       </div>
       <div className="jGIS-Annotation-Buttons">
-        <Button className="jp-mod-styled jp-mod-warn" onClick={handleDelete}>
+        <Button
+          className="jp-mod-styled jp-mod-warn"
+          onClick={handleDelete}
+        >
           <FontAwesomeIcon icon={faTrash} />
         </Button>
         {jgisModel && (
@@ -95,7 +98,10 @@ const Annotation: React.FC<IAnnotationProps> = ({
             <FontAwesomeIcon icon={faArrowsToDot} />
           </Button>
         )}
-        <Button className="jp-mod-styled jp-mod-accept" onClick={handleSubmit}>
+        <Button
+          className="jp-mod-styled jp-mod-accept"
+          onClick={handleSubmit}
+        >
           <FontAwesomeIcon icon={faPaperPlane} />
         </Button>
       </div>

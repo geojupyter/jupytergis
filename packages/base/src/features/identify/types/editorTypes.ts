@@ -19,7 +19,7 @@ export interface IAttributeEditorActions {
   onEditAttribute: (
     rowIndex: number,
     attributeKey: string,
-    value: unknown,
+    value: string,
   ) => void;
   onDeleteAttribute: (
     feature: IIdentifiedFeature,

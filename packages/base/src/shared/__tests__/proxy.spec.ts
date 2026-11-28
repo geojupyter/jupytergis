@@ -18,8 +18,13 @@ const model = {
 function mockFetch(corsAllowed: (url: string) => boolean, reachable = true) {
   global.fetch = jest.fn(
     async (input: RequestInfo | URL, init?: RequestInit) => {
-      const ok =
-        init?.mode === 'no-cors' ? reachable : corsAllowed(String(input));
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.href
+            : input.url;
+      const ok = init?.mode === 'no-cors' ? reachable : corsAllowed(url);
       if (!ok) {
         throw new TypeError('Failed to fetch');
       }
@@ -30,7 +35,7 @@ function mockFetch(corsAllowed: (url: string) => boolean, reachable = true) {
 
 describe('maybeProxied', () => {
   it('proxies only the CDSE URLs that CORS blocks', async () => {
-    mockFetch(url => url.includes('/.well-known/'));
+    mockFetch((url) => url.includes('/.well-known/'));
     const wellKnown = `${CDSE}/.well-known/openid-configuration`;
     const device = `${CDSE}/protocol/openid-connect/auth/device`;
 

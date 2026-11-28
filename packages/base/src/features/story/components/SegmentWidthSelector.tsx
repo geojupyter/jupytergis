@@ -64,7 +64,7 @@ export function SegmentWidthSelector({
   size,
 }: ISegmentWidthSelectorPickerProps): JSX.Element {
   const resolved = resolveCssWidth(value);
-  const matchedPreset = presets.find(preset => preset.value === resolved);
+  const matchedPreset = presets.find((preset) => preset.value === resolved);
   const parsed = parseCssWidth(resolved) ?? { amount: '', unit: '%' };
   const [isCustom, setIsCustom] = useState(() => matchedPreset === undefined);
   const [amount, setAmount] = useState(parsed.amount);
@@ -77,7 +77,7 @@ export function SegmentWidthSelector({
 
   useEffect(() => {
     const nextResolved = resolveCssWidth(value);
-    const nextPreset = presets.find(preset => preset.value === nextResolved);
+    const nextPreset = presets.find((preset) => preset.value === nextResolved);
     const nextParsed = parseCssWidth(nextResolved) ?? {
       amount: '',
       unit: '%',
@@ -127,7 +127,7 @@ export function SegmentWidthSelector({
       className="[&_[data-slot=toggle-group-item]:first-child]:rounded-l-[0.5rem] [&_[data-slot=toggle-group-item]:last-child]:rounded-r-[0.5rem]"
       aria-label={presetGroupAriaLabel}
       value={toggleValue ? [toggleValue] : []}
-      onValueChange={next => {
+      onValueChange={(next) => {
         const selected = next[0];
         if (!selected) {
           return;
@@ -142,7 +142,7 @@ export function SegmentWidthSelector({
           return;
         }
 
-        const preset = presets.find(item => item.id === selected);
+        const preset = presets.find((item) => item.id === selected);
         if (!preset) {
           return;
         }
@@ -152,8 +152,12 @@ export function SegmentWidthSelector({
         onChange(preset.value);
       }}
     >
-      {presets.map(preset => (
-        <ToggleGroupItem key={preset.id} value={preset.id} title={preset.value}>
+      {presets.map((preset) => (
+        <ToggleGroupItem
+          key={preset.id}
+          value={preset.id}
+          title={preset.value}
+        >
           {preset.label}
         </ToggleGroupItem>
       ))}
@@ -170,7 +174,7 @@ export function SegmentWidthSelector({
           inputMode="decimal"
           value={amount}
           data-lm-suppress-shortcuts="true"
-          onChange={event => {
+          onChange={(event) => {
             const nextAmount = sanitizeCssAmountInput(event.target.value);
             setAmount(nextAmount);
             commitCustomWidth(nextAmount, unit);
@@ -179,14 +183,17 @@ export function SegmentWidthSelector({
         <NativeSelect
           aria-label={`${label} unit`}
           value={unit}
-          onChange={event => {
+          onChange={(event) => {
             const nextUnit = event.target.value;
             setUnit(nextUnit as (typeof CSS_WIDTH_UNITS)[number]);
             commitCustomWidth(amount, nextUnit);
           }}
         >
-          {CSS_WIDTH_UNITS.map(unitOption => (
-            <NativeSelectOption key={unitOption} value={unitOption}>
+          {CSS_WIDTH_UNITS.map((unitOption) => (
+            <NativeSelectOption
+              key={unitOption}
+              value={unitOption}
+            >
               {unitOption}
             </NativeSelectOption>
           ))}

@@ -1,5 +1,6 @@
-import { expect, galata, test } from '@jupyterlab/galata';
 import path from 'path';
+
+import { expect, galata, test } from '@jupyterlab/galata';
 
 test.use({ autoGoto: false });
 
@@ -24,21 +25,21 @@ test.describe('UI Test', () => {
         'Failed to load resource: the server responded with a status of 404 ()',
         'https://planetarycomputer.microsoft.com/api/data/v1/vector/collections/ms-buildings/tilesets/global-footprints/tiles/',
       ];
-      page.setViewportSize({ width: 1920, height: 1080 });
-      page.on('console', message => {
+      void page.setViewportSize({ width: 1920, height: 1080 });
+      page.on('console', (message) => {
         if (message.type() === 'error') {
           for (let pattern of unrelatedErrors) {
             if (message.text().includes(pattern)) {
               return;
             }
           }
-          console.log('CONSOLE ERROR', message);
+
           errors += 1;
         }
       });
     });
 
-    test.afterEach(async ({ page }) => {
+    test.afterEach(async () => {
       errors = 0;
     });
 

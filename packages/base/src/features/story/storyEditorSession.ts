@@ -7,12 +7,12 @@ import type {
   IRenderMimeRegistry,
   IUrlResolverFactory,
 } from '@jupyterlab/rendermime';
-import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 
 import { CommandIDs } from '@/src/constants';
 import { launchFollowable } from '@/src/features/follow/followDialogs';
 import type { JupyterGISTracker } from '@/src/types';
+
 import { StoryEditorWidget } from './storyEditorDialog';
 import {
   StoryMapBarController,
@@ -43,7 +43,6 @@ interface IModelEditorState {
 
 interface ISharedEditorContext {
   commands: CommandRegistry;
-  state: IStateDB;
   formSchemaRegistry: IJGISFormSchemaRegistry;
   tracker: JupyterGISTracker;
   editorServices: IEditorServices;
@@ -88,7 +87,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
     dialog: StoryEditorWidget,
     model: IJupyterGISModel,
     commands: CommandRegistry,
-    state: IStateDB,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     tracker: JupyterGISTracker,
     editorServices: IEditorServices,
@@ -97,7 +95,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
   ): void {
     this._context = {
       commands,
-      state,
       formSchemaRegistry,
       tracker,
       editorServices,
@@ -114,7 +111,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
   public async openEditor(
     model: IJupyterGISModel,
     commands: CommandRegistry,
-    state: IStateDB,
     formSchemaRegistry: IJGISFormSchemaRegistry,
     tracker: JupyterGISTracker,
     editorServices: IEditorServices,
@@ -123,7 +119,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
   ): Promise<void> {
     this._context = {
       commands,
-      state,
       formSchemaRegistry,
       tracker,
       editorServices,
@@ -289,7 +284,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
       this.clearInteractionForModel(model, { restorePanels: true });
     }
 
-    this._context?.tracker.forEach(widget => {
+    this._context?.tracker.forEach((widget) => {
       const model = widget.model;
       if (model?.isStoryPreviewActive()) {
         model.setStoryPreviewActive(false);
@@ -431,7 +426,7 @@ export class StoryEditorSession implements IStoryMapBarHost {
     }
 
     let found = false;
-    this._context.tracker.forEach(widget => {
+    this._context.tracker.forEach((widget) => {
       const model = widget.model;
       if (!found && model?.isStoryPreviewActive()) {
         found = true;
@@ -460,7 +455,6 @@ export class StoryEditorSession implements IStoryMapBarHost {
     const dialog = new StoryEditorWidget({
       model,
       commands: this._context.commands,
-      state: this._context.state,
       formSchemaRegistry: this._context.formSchemaRegistry,
       editorServices: this._context.editorServices,
       rendermime: this._context.rendermime,

@@ -1,4 +1,5 @@
 import { loadFile } from '@/src/tools';
+
 import { ILayerMetadata, ISourceMetadataContext } from '../types';
 import { buildCrsMetadata, transformExtent } from '../utils/crs';
 
@@ -28,7 +29,8 @@ export async function vectorProvider(
     return { notes: ['Could not read this source’s vector data.'] };
   }
 
-  const native = data.bbox?.length >= 4 ? data.bbox : computeBbox(features);
+  const native =
+    data.bbox && data.bbox.length >= 4 ? data.bbox : computeBbox(features);
 
   return {
     // Everything JupyterGIS loads through this path is GeoJSON, which RFC 7946
@@ -54,13 +56,22 @@ export async function vectorProvider(
 }
 
 /**
+ * Parsed vector data this provider reads. Every supported format arrives as a
+ * GeoJSON feature collection, or nothing when the source has no data yet.
+ */
+interface IVectorGeoJson {
+  features?: unknown;
+  bbox?: number[];
+}
+
+/**
  * Read the source's data through the same loader the map uses, so a file that
  * is already open is served from cache.
  */
 async function readGeoJson({
   model,
   source,
-}: ISourceMetadataContext): Promise<any | undefined> {
+}: ISourceMetadataContext): Promise<IVectorGeoJson | undefined> {
   const parameters = source.parameters ?? {};
 
   if (parameters.path) {

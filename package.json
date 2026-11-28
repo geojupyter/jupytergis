@@ -51,8 +51,11 @@
     "watch": "lerna watch -- lerna run build --scope=\\$LERNA_PACKAGE_NAME --include-dependents",
     "build:lab": "lerna run"
   },
-  "devDependencies": {
+  "dependencies": {
     "@types/jest": "^30.0.0",
+    "ts-jest": "^29.4.15"
+  },
+  "devDependencies": {
     "@types/webpack-env": "^1.18.5",
     "@typescript/native": "npm:typescript@^7.0.2",
     "copy-webpack-plugin": "^10.0.0",
@@ -66,7 +69,6 @@
     "py2vega-ts": "^0.1.2",
     "react-draggable": "4.5.0",
     "rimraf": "^3.0.2",
-    "ts-jest": "^29.4.9",
     "typescript": "npm:@typescript/typescript6@^6.0.2",
     "vega2ol": "^1.2.0",
     "webpack": "^5.76.3",

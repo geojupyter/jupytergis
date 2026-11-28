@@ -20,6 +20,7 @@ import {
   IColorMap,
   drawColorRamp,
 } from '@/src/features/layers/symbology/colorRampUtils';
+
 import ColorRampSelectorEntry from './ColorRampSelectorEntry';
 
 interface IColorRampSelectorProps {
@@ -88,7 +89,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
     }
     canvas.style.visibility = 'hidden';
 
-    const ramp = colorMaps.find(c => c.name === rampName);
+    const ramp = colorMaps.find((c) => c.name === rampName);
     if (!ramp) {
       return;
     }
@@ -113,7 +114,10 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
   }, []);
 
   return (
-    <div ref={containerRef} className="jp-gis-canvas-button-wrapper">
+    <div
+      ref={containerRef}
+      className="jp-gis-canvas-button-wrapper"
+    >
       <Button
         id="jp-gis-canvas-button"
         onClick={toggleDropdown}
@@ -132,7 +136,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
       <div
         className={`jp-gis-color-ramp-dropdown ${isOpen ? 'jp-gis-open' : ''}`}
       >
-        {colorMaps.map(item => (
+        {colorMaps.map((item) => (
           <ColorRampSelectorEntry
             key={item.name}
             colorMap={item}
@@ -145,7 +149,7 @@ const ColorRampSelector: React.FC<IColorRampSelectorProps> = ({
           <input
             type="checkbox"
             checked={reverse}
-            onChange={e => setReverse(e.target.checked)}
+            onChange={(e) => setReverse(e.target.checked)}
           />
           Reverse Color Map
         </label>

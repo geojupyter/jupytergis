@@ -69,7 +69,7 @@ import { extractEncodingFieldValues } from '@/src/mainview/adapters/openlayers/g
 import { markerIcon } from '@/src/shared/icons';
 import { maybeProxied } from '@/src/shared/proxy';
 import { debounce, loadFile, throttle } from '@/src/tools';
-import { MapLibreHighlight } from './maplibreHighlight';
+
 import { ClientPointer } from '../../CollaboratorPointers';
 import {
   IMapAdapter,
@@ -91,6 +91,7 @@ import {
   compileCogColorExpression,
   compileCogColorFunction,
 } from '../maplibre/cogColorFunction';
+import { MapLibreHighlight } from './maplibreHighlight';
 
 const WORLD_EXTENT = [-180, -85.051129, 180, 85.051129];
 type MLCoordinates = [number, number];
@@ -230,7 +231,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
     this._setupViewEvents();
 
-    await new Promise<void>(resolve => {
+    await new Promise<void>((resolve) => {
       if (this._map.loaded()) {
         resolve();
         return;
@@ -262,7 +263,7 @@ export class MapLibreAdapter implements IMapAdapter {
         ? undefined
         : this._navigationControl,
     ];
-    controls.forEach(control => control && this._unmountControl(control));
+    controls.forEach((control) => control && this._unmountControl(control));
     this._scaleControl = undefined;
     this._fullscreenControl = undefined;
     this._navigationControl = undefined;
@@ -363,7 +364,7 @@ export class MapLibreAdapter implements IMapAdapter {
       this._updateScale();
     });
 
-    this._map.on('mousemove', event => {
+    this._map.on('mousemove', (event) => {
       this._lastPointerCoord = [event.lngLat.lng, event.lngLat.lat];
 
       this._syncPointer(this._lastPointerCoord);
@@ -373,15 +374,15 @@ export class MapLibreAdapter implements IMapAdapter {
       this._syncPointer(null);
     });
 
-    this._map.on('click', event => {
-      this._identifyFeature(event);
+    this._map.on('click', (event) => {
+      void this._identifyFeature(event);
     });
 
-    this._map.on('click', event => {
-      this._addMarker(event);
+    this._map.on('click', (event) => {
+      void this._addMarker(event);
     });
 
-    this._map.on('contextmenu', event => {
+    this._map.on('contextmenu', (event) => {
       event.preventDefault();
 
       this._callbacks?.onContextMenu?.(
@@ -397,7 +398,7 @@ export class MapLibreAdapter implements IMapAdapter {
       }
     });
 
-    this._map.on('sourcedata', event => {
+    this._map.on('sourcedata', (event) => {
       if (event.tile && !this._sourcesWithData.has(event.sourceId)) {
         this._sourcesWithData.add(event.sourceId);
         this._callbacks?.onSourceDataLoaded?.(event.sourceId);
@@ -558,7 +559,6 @@ export class MapLibreAdapter implements IMapAdapter {
                     ])}`;
 
               featureMap.set(featureId || `${sourceLayer}:${index}`, {
-                ...feature,
                 getProperties: () => feature.properties ?? {},
               } as unknown as FeatureLike);
             });
@@ -736,7 +736,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
     // Every JGIS layer currently drawn from this source.
     const dependentIds = Object.keys(layers).filter(
-      layerId =>
+      (layerId) =>
         layers[layerId].parameters?.source === sourceId &&
         this._layerSubIds.has(layerId),
     );
@@ -749,19 +749,19 @@ export class MapLibreAdapter implements IMapAdapter {
 
     // Remember where each dependent sits in the style: the first style layer
     // above it that is not itself being rebuilt.
-    const styleIds = this._map.getStyle().layers.map(l => l.id);
+    const styleIds = this._map.getStyle().layers.map((l) => l.id);
     const dependentSubIds = new Set(
-      dependentIds.flatMap(layerId => this._layerSubIds.get(layerId) ?? []),
+      dependentIds.flatMap((layerId) => this._layerSubIds.get(layerId) ?? []),
     );
     const placements = dependentIds
-      .map(layerId => {
+      .map((layerId) => {
         const positions = (this._layerSubIds.get(layerId) ?? [])
-          .map(subId => styleIds.indexOf(subId))
-          .filter(position => position >= 0);
+          .map((subId) => styleIds.indexOf(subId))
+          .filter((position) => position >= 0);
         const top = positions.length ? Math.max(...positions) : -1;
         const beforeId =
           top >= 0
-            ? styleIds.slice(top + 1).find(sid => !dependentSubIds.has(sid))
+            ? styleIds.slice(top + 1).find((sid) => !dependentSubIds.has(sid))
             : undefined;
         return { layerId, top, beforeId };
       })
@@ -894,7 +894,7 @@ export class MapLibreAdapter implements IMapAdapter {
   }
 
   private _revokeObjectUrls(sourceId: string): void {
-    this._objectUrls.get(sourceId)?.forEach(u => URL.revokeObjectURL(u));
+    this._objectUrls.get(sourceId)?.forEach((u) => URL.revokeObjectURL(u));
     this._objectUrls.delete(sourceId);
   }
 
@@ -1004,7 +1004,7 @@ export class MapLibreAdapter implements IMapAdapter {
     sourceId: string,
     layer: IJGISLayer,
   ): void {
-    const ids = this._map.getStyle().layers.map(l => l.id);
+    const ids = this._map.getStyle().layers.map((l) => l.id);
     const beforeId = ids[ids.indexOf(id) + 1];
     const visible = layer.visible ?? true;
     const parameters = layer.parameters as IGeoTiffLayer;
@@ -1148,7 +1148,7 @@ export class MapLibreAdapter implements IMapAdapter {
     event: IMapClickEvent,
   ): void {
     // A layer that failed to build has no style layers to query.
-    const subIds = (this._layerSubIds.get(layerId) ?? []).filter(subId =>
+    const subIds = (this._layerSubIds.get(layerId) ?? []).filter((subId) =>
       this._map.getLayer(subId),
     );
     if (subIds.length === 0) {
@@ -1243,7 +1243,7 @@ export class MapLibreAdapter implements IMapAdapter {
     }
 
     // Every band is NaN where nothing is drawn (outside the file, nodata).
-    if (values.length === 0 || values.every(v => Number.isNaN(v))) {
+    if (values.every((v) => Number.isNaN(v))) {
       this._publishIdentified([]);
       this._highlight?.clear();
       return;
@@ -1348,7 +1348,7 @@ export class MapLibreAdapter implements IMapAdapter {
     const data = this._geojsonData.get(sourceId);
     const rows =
       data?.type === 'FeatureCollection'
-        ? data.features.map(f => f.properties ?? {})
+        ? data.features.map((f) => f.properties ?? {})
         : data?.type === 'Feature'
           ? [data.properties ?? {}]
           : [];
@@ -1370,7 +1370,7 @@ export class MapLibreAdapter implements IMapAdapter {
     }
     this._layerSubIds.set(
       id,
-      specs.map(s => s.id),
+      specs.map((s) => s.id),
     );
   }
 
@@ -1402,7 +1402,7 @@ export class MapLibreAdapter implements IMapAdapter {
         return;
       }
 
-      await this._buildMapLayer(id, layer, index);
+      await this._buildMapLayer(id, layer);
 
       if (sourceId) {
         this._sourceToLayerMap.set(sourceId, id);
@@ -1430,11 +1430,7 @@ export class MapLibreAdapter implements IMapAdapter {
     }
   }
 
-  private async _buildMapLayer(
-    id: string,
-    layer: IJGISLayer,
-    index?: number,
-  ): Promise<void> {
+  private async _buildMapLayer(id: string, layer: IJGISLayer): Promise<void> {
     const sourceId = layer.parameters?.source;
 
     if (!sourceId) {
@@ -1661,7 +1657,7 @@ export class MapLibreAdapter implements IMapAdapter {
     const subIds = this._layerSubIds.get(id);
 
     return (
-      subIds !== undefined && subIds.every(subId => this._map.getLayer(subId))
+      subIds !== undefined && subIds.every((subId) => this._map.getLayer(subId))
     );
   }
 
@@ -1710,7 +1706,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
     const subIds = this._layerSubIds.get(id);
 
-    if (!subIds || !subIds.every(subId => this._map.getLayer(subId))) {
+    if (!subIds || !subIds.every((subId) => this._map.getLayer(subId))) {
       this._log(
         'error',
         `MapLibreAdapter: cannot update layer ${id} - layer not found in adapter`,
@@ -1794,7 +1790,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
         if (Array.isArray(params.symbologyState?.layers)) {
           // Same as OL's _syncGrammarSubLayers: recompile and swap, keep z-position.
-          const ids = this._map.getStyle().layers.map(l => l.id);
+          const ids = this._map.getStyle().layers.map((l) => l.id);
           const beforeId = ids[ids.indexOf(subIds[subIds.length - 1]) + 1];
           for (const subId of subIds) {
             this._map.removeLayer(subId);
@@ -1866,7 +1862,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
     // Remove layers that are no longer in the `layerIds` list.
     const target = new Set(layerIds);
-    for (const id of [...this._layerSubIds.keys()]) {
+    for (const id of this._layerSubIds.keys()) {
       if (!target.has(id) && !this._loadingLayers.has(id)) {
         this.removeLayer(id);
       }
@@ -1920,8 +1916,8 @@ export class MapLibreAdapter implements IMapAdapter {
 
   private _applyLayerOrder(): void {
     const desired = this._layerOrder
-      .flatMap(layerId => this._layerSubIds.get(layerId) ?? [])
-      .filter(subId => this._map.getLayer(subId));
+      .flatMap((layerId) => this._layerSubIds.get(layerId) ?? [])
+      .filter((subId) => this._map.getLayer(subId));
 
     if (desired.length === 0) {
       return;
@@ -1930,8 +1926,8 @@ export class MapLibreAdapter implements IMapAdapter {
     const wanted = new Set(desired);
     const current = this._map
       .getStyle()
-      .layers.map(styleLayer => styleLayer.id)
-      .filter(styleId => wanted.has(styleId));
+      .layers.map((styleLayer) => styleLayer.id)
+      .filter((styleId) => wanted.has(styleId));
     let start = 0;
     while (start < desired.length && current[start] === desired[start]) {
       start++;
@@ -2094,7 +2090,7 @@ export class MapLibreAdapter implements IMapAdapter {
         zoom,
         ...angles,
         duration,
-        easing: t => t,
+        easing: (t) => t,
         freezeElevation: true,
       });
       return;
@@ -2186,7 +2182,7 @@ export class MapLibreAdapter implements IMapAdapter {
       'touchZoomRotate',
       'touchPitch',
     ];
-    handlers.forEach(name => {
+    handlers.forEach((name) => {
       const handler = this._map[name] as unknown as {
         enable: () => void;
         disable: () => void;
@@ -2287,7 +2283,7 @@ export class MapLibreAdapter implements IMapAdapter {
 
     const features = this._featuresFromGeoJson(data);
 
-    features.forEach(feature => {
+    features.forEach((feature) => {
       if (!feature.properties) {
         feature.properties = {};
       }
@@ -2297,7 +2293,7 @@ export class MapLibreAdapter implements IMapAdapter {
     });
 
     const source = this._map.getSource(sourceId) as GeoJSONSource;
-    source?.setData(data);
+    void source?.setData(data);
   }
 
   /**
@@ -2424,7 +2420,7 @@ export class MapLibreAdapter implements IMapAdapter {
       visitCoords((geometry as any).coordinates);
     };
 
-    this._featuresFromGeoJson(data).forEach(feature =>
+    this._featuresFromGeoJson(data).forEach((feature) =>
       visitGeometry(feature.geometry),
     );
 

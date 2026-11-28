@@ -150,7 +150,10 @@ export function OpenEOSignin({
       {!isAnonymous && (
         <label className="jp-openeo-field">
           <span>Login method</span>
-          <select className="jp-mod-styled" disabled>
+          <select
+            className="jp-mod-styled"
+            disabled
+          >
             <option>
               {isBasic
                 ? 'User Credentials (default)'
@@ -166,7 +169,7 @@ export function OpenEOSignin({
           <input
             type="text"
             value={clientId}
-            onChange={e => setClientId(e.target.value)}
+            onChange={(e) => setClientId(e.target.value)}
             disabled={busy}
           />
         </label>
@@ -180,7 +183,7 @@ export function OpenEOSignin({
               type="text"
               autoComplete="username"
               value={username}
-              onChange={e => setUsername(e.target.value)}
+              onChange={(e) => setUsername(e.target.value)}
               onKeyDown={onEnter}
               disabled={busy}
             />
@@ -191,7 +194,7 @@ export function OpenEOSignin({
               type="password"
               autoComplete="current-password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               onKeyDown={onEnter}
               disabled={busy}
             />
@@ -210,7 +213,11 @@ export function OpenEOSignin({
       {code && (
         <div className="jp-openeo-signin-code">
           Open{' '}
-          <a href={code.verificationUri} target="_blank" rel="noreferrer">
+          <a
+            href={code.verificationUri}
+            target="_blank"
+            rel="noreferrer"
+          >
             {code.verificationUri}
           </a>{' '}
           and enter the code <code>{code.userCode}</code>.

@@ -8,6 +8,7 @@ import {
 import { JupyterFrontEnd } from '@jupyterlab/application';
 import { CommandRegistry } from '@lumino/commands';
 
+import { JupyterGISTracker } from '../../types';
 import {
   selectedLayerIsOfType,
   processLayer,
@@ -16,7 +17,6 @@ import {
   clipRasterByVector,
   clipVectorByMaskLayer,
 } from './index';
-import { JupyterGISTracker } from '../../types';
 
 export function replaceInSql(
   sql: string,
@@ -57,7 +57,7 @@ export function addProcessingCommands(
 ) {
   for (const processingElement of ProcessingMerge) {
     const schemaKey = Object.keys(processingSchemas).find(
-      k =>
+      (k) =>
         k.toLowerCase() === processingElement.description.toLowerCase() ||
         k.toLowerCase() === processingElement.name.toLowerCase(),
     );

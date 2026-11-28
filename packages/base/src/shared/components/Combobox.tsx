@@ -54,7 +54,12 @@ function createComboboxVirtualHighlightHandler(
 }
 
 function ComboboxValue({ ...props }: ComboboxPrimitive.Value.Props) {
-  return <ComboboxPrimitive.Value data-slot="combobox-value" {...props} />;
+  return (
+    <ComboboxPrimitive.Value
+      data-slot="combobox-value"
+      {...props}
+    />
+  );
 }
 
 function ComboboxTrigger({
@@ -81,7 +86,10 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
       className={cn(className)}
       {...props}
       render={
-        <InputGroupButton variant="ghost" size="icon-xs">
+        <InputGroupButton
+          variant="ghost"
+          size="icon-xs"
+        >
           <XIcon className="pointer-events-none" />
         </InputGroupButton>
       }
@@ -273,7 +281,7 @@ function ComboboxVirtualizedList<T>({
         className="pointer-events-none relative w-full"
         style={{ height: totalSize }}
       >
-        {virtualizer.getVirtualItems().map(virtualItem => {
+        {virtualizer.getVirtualItems().map((virtualItem) => {
           const item = filteredItems[virtualItem.index];
           if (!item) {
             return null;
@@ -332,7 +340,10 @@ function ComboboxLabel({
 
 function ComboboxCollection({ ...props }: ComboboxPrimitive.Collection.Props) {
   return (
-    <ComboboxPrimitive.Collection data-slot="combobox-collection" {...props} />
+    <ComboboxPrimitive.Collection
+      data-slot="combobox-collection"
+      {...props}
+    />
   );
 }
 
@@ -402,7 +413,10 @@ function ComboboxChip({
           className="-ml-1 opacity-50 hover:opacity-100"
           data-slot="combobox-chip-remove"
           render={
-            <Button variant="ghost" size="icon-xs">
+            <Button
+              variant="ghost"
+              size="icon-xs"
+            >
               <XIcon className="pointer-events-none" />
             </Button>
           }

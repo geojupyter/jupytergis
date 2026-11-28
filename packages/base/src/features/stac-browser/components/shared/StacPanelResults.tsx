@@ -2,6 +2,7 @@ import React from 'react';
 
 import { useStacResultsContext } from '@/src/features/stac-browser/context/StacResultsContext';
 import { Button } from '@/src/shared/components/Button';
+import { LoadingIcon } from '@/src/shared/components/loading';
 import {
   Pagination,
   PaginationContent,
@@ -11,7 +12,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/src/shared/components/Pagination';
-import { LoadingIcon } from '@/src/shared/components/loading';
 
 function getPageItems(
   currentPage: number,
@@ -55,8 +55,8 @@ const StacPanelResults = () => {
     executeQueryWithPage,
   } = useStacResultsContext();
 
-  const isNext = paginationLinks.some(link => link.rel === 'next');
-  const isPrev = paginationLinks.some(link =>
+  const isNext = paginationLinks.some((link) => link.rel === 'next');
+  const isPrev = paginationLinks.some((link) =>
     ['prev', 'previous'].includes(link.rel),
   );
 
@@ -74,21 +74,24 @@ const StacPanelResults = () => {
                   return;
                 }
                 setCurrentPage(Math.max(currentPage - 1, 1));
-                handlePaginationClick('previous');
+                void handlePaginationClick('previous');
               }}
             />
           </PaginationItem>
           {totalPages === 1 ? (
             // One page, display current page number and keep active
             <PaginationItem>
-              <PaginationLink size={'icon-xs'} isActive={true}>
+              <PaginationLink
+                size={'icon-xs'}
+                isActive={true}
+              >
                 {currentPage}
               </PaginationLink>
             </PaginationItem>
           ) : results.length !== 0 ? (
             // Multiple pages, display fancy pagination numbers
             <>
-              {getPageItems(currentPage, totalPages).map(pageNumber => {
+              {getPageItems(currentPage, totalPages).map((pageNumber) => {
                 if (pageNumber === 'ellipsis') {
                   return (
                     <PaginationItem key="ellipsis">
@@ -137,7 +140,7 @@ const StacPanelResults = () => {
                   return;
                 }
                 setCurrentPage(currentPage + 1);
-                handlePaginationClick('next');
+                void handlePaginationClick('next');
               }}
             />
           </PaginationItem>
@@ -147,7 +150,7 @@ const StacPanelResults = () => {
         {isLoading ? (
           <LoadingIcon size="3x" />
         ) : (
-          results.map(result => (
+          results.map((result) => (
             <Button
               key={result.id}
               variant="outline"

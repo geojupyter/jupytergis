@@ -35,7 +35,7 @@ function fakeModel(options: IFakeModelOptions): IJupyterGISModel {
 }
 
 const labels = (metadata: { general: { label: string }[] }) =>
-  metadata.general.map(field => field.label);
+  metadata.general.map((field) => field.label);
 
 describe('getLayerMetadata', () => {
   it('describes a layer together with its source', async () => {
@@ -87,7 +87,7 @@ describe('getLayerMetadata', () => {
 
     const metadata = await getLayerMetadata(model, 'layer1');
     const values = Object.fromEntries(
-      metadata.general.map(field => [field.label, field.value]),
+      metadata.general.map((field) => [field.label, field.value]),
     );
 
     expect(values['Layer type']).toBe('GeoTiff Layer');
@@ -172,6 +172,8 @@ describe('getLayerMetadata', () => {
   });
 
   it('rejects an id that is neither a layer nor a source', async () => {
-    await expect(getLayerMetadata(fakeModel({}), 'nope')).rejects.toThrow();
+    await expect(getLayerMetadata(fakeModel({}), 'nope')).rejects.toThrow(
+      'Select a layer or source to see its information.',
+    );
   });
 });

@@ -13,16 +13,19 @@
   "author": {
     "name": "JupyterGIS contributors"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/geojupyter/jupytergis.git"
+  },
+  "style": "style/index.css",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
     "style/**/*.{css,js,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "main": "lib/index.js",
   "types": "lib/types.d.ts",
-  "style": "style/index.css",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/geojupyter/jupytergis.git"
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "test": "jest",
@@ -33,12 +36,12 @@
     "build:schema:js": "echo 'Generating TypeScript types from schema...' && json2ts -i src/schema -o src/_interface --no-unknownAny --unreachableDefinitions --cwd ./src/schema && node ./scripts/add-schema-version.js && cp -R ./src/_interface/* ./lib/_interface/.",
     "build:schema:py": "echo 'Generating Python types from schema...' && node scripts/preprocess-schemas-for-python-type-generation.js && datamodel-codegen --input ./temp-schema --output ../../python/jupytergis_core/jupytergis_core/schema/interfaces --output-model-type pydantic_v2.BaseModel --use-annotated --input-file-type jsonschema --set-default-enum-member --use-one-literal-as-default && rm -rf ./temp-schema",
     "build:prod": "pnpm run clean && pnpm run build:schema && pnpm run build:lib",
-    "build:lib": "tsc -b",
+    "build:lib": "tsc -b tsconfig.build.json",
     "build:dev": "pnpm run build",
-    "clean": "rimraf tsconfig.tsbuildinfo",
-    "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
+    "clean": "rimraf tsconfig.tsbuildinfo tsconfig.build.tsbuildinfo",
+    "clean:lib": "rimraf lib tsconfig.tsbuildinfo tsconfig.build.tsbuildinfo",
     "clean:all": "pnpm run clean:lib",
-    "watch": "tsc -w"
+    "watch": "tsc -w -p tsconfig.build.json"
   },
   "dependencies": {
     "@apidevtools/json-schema-ref-parser": "^9.0.9",
@@ -61,8 +64,5 @@
     "source-map-loader": "^3.0.0",
     "ts-loader": "^9.2.6",
     "typescript": "npm:@typescript/typescript6@^6.0.2"
-  },
-  "publishConfig": {
-    "access": "public"
   }
 }

@@ -31,11 +31,11 @@ function sharedFixtureNames(fromV: string, toV: string): string[] {
     return [];
   }
   const fromNames = new Set(
-    fs.readdirSync(fromDir).filter(n => n.endsWith('.jGIS')),
+    fs.readdirSync(fromDir).filter((n) => n.endsWith('.jGIS')),
   );
   return fs
     .readdirSync(toDir)
-    .filter(n => n.endsWith('.jGIS') && fromNames.has(n))
+    .filter((n) => n.endsWith('.jGIS') && fromNames.has(n))
     .sort();
 }
 
@@ -48,7 +48,7 @@ describe('document migrations', () => {
         it.todo('no shared fixtures found');
       } else {
         for (const name of names) {
-          it(name, () => {
+          it(`${name}`, () => {
             const doc = JSON.parse(
               fs.readFileSync(path.join(FIXTURES_ROOT, fromV, name), 'utf8'),
             );

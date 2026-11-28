@@ -13,8 +13,8 @@ import { Contents, ServerConnection } from '@jupyterlab/services';
 import { VectorTile } from '@mapbox/vector-tile';
 import { GeoPackageAPI, GeoPackageTileRetriever } from '@ngageoint/geopackage';
 import { compressors } from 'hyparquet-compressors';
-import { Source } from 'ol/source';
 import loadGpkg from 'ol-load-geopackage';
+import { Source } from 'ol/source';
 import Protobuf from 'pbf';
 import shp from 'shpjs';
 
@@ -25,6 +25,7 @@ import {
 } from '@/src/features/layers/openeo/OpenEOTileLayer';
 import { DEFAULT_STROKE_WIDTH } from '@/src/features/layers/symbology/colorRampUtils';
 import { maybeProxied } from '@/src/shared/proxy';
+
 import { getGdal } from './gdal';
 
 export const debounce = (
@@ -127,7 +128,7 @@ export async function requestAPI<T>(
   if (data.length > 0) {
     try {
       data = JSON.parse(data);
-    } catch (error) {
+    } catch {
       console.error(
         'Jupyter API request failed -- not a JSON response body:',
         response,
@@ -167,7 +168,7 @@ export function createDefaultLayerRegistry(
    * Generate object to hold thumbnail URLs
    */
   const importAll = (r: __WebpackModuleApi.RequireContext) => {
-    r.keys().forEach(key => {
+    r.keys().forEach((key) => {
       const imageName = key.replace('./', '').replace(/\.\w+$/, '');
       LAYER_THUMBNAILS[imageName] = r(key);
     });
@@ -189,7 +190,7 @@ export function createDefaultLayerRegistry(
       layerBrowserRegistry.addRegistryLayer(tile);
     } else {
       /* nested layer provider */
-      Object.keys(layerProvider).forEach(mapName => {
+      Object.keys(layerProvider).forEach((mapName) => {
         const tile = convertToRegistryEntry(
           layerProvider[mapName]['name'],
           layerProvider[mapName],
@@ -213,7 +214,7 @@ export function createDefaultLayerRegistry(
   function convertToRegistryEntry(
     entry: string,
     layerProvider: { [x: string]: any },
-    provider?: string | undefined,
+    provider?: string,
   ): ILayerGalleryEntry {
     return {
       name: entry,
@@ -337,7 +338,7 @@ export const openDatabase = () => {
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open('GeoTIFFCache', 1);
 
-    request.onupgradeneeded = event => {
+    request.onupgradeneeded = () => {
       const db = request.result;
       if (!db.objectStoreNames.contains('files')) {
         db.createObjectStore('files', { keyPath: 'url' });
@@ -360,7 +361,7 @@ export const openDatabase = () => {
 export const saveToIndexedDB = async (
   key: string,
   file: any,
-  metadata?: any | undefined,
+  metadata?: any,
 ) => {
   const db = await openDatabase();
   return new Promise<void>((resolve, reject) => {
@@ -384,7 +385,7 @@ export const getFromIndexedDB = async (key: string) => {
   return new Promise<
     | {
         file: any;
-        metadata?: any | undefined;
+        metadata?: any;
       }
     | undefined
   >((resolve, reject) => {
@@ -400,6 +401,22 @@ export const getFromIndexedDB = async (key: string) => {
 export const isJupyterLite = () => {
   return document.querySelectorAll('[data-jupyter-lite-root]')[0] !== undefined;
 };
+
+/**
+ * Text for a caught value. `catch` bindings are `unknown`, so this is the
+ * string that can go into a log message.
+ */
+export function errorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  return 'Unknown error';
+}
 
 type ConnectionErrorLike = {
   code?: string;
@@ -493,11 +510,11 @@ export const loadGeoTiff = async (
   let fileBlob: Blob | null = null;
 
   if (!file) {
-    fileBlob = await fetchWithProxies(url, model, async response =>
+    fileBlob = await fetchWithProxies(url, model, async (response) =>
       response.blob(),
     );
     if (!fileBlob) {
-      showErrorMessage('Network error', `Failed to fetch ${url}`);
+      void showErrorMessage('Network error', `Failed to fetch ${url}`);
       throw new Error(`Failed to fetch ${url}`);
     }
   } else {
@@ -574,7 +591,7 @@ function loadGeoPackageVectorFile(
       }
       return tableMap;
     } catch (e: any) {
-      showErrorMessage('Failed to load GeoPackage file', e);
+      void showErrorMessage('Failed to load GeoPackage file', e);
       throw e;
     }
   })();
@@ -603,10 +620,10 @@ async function loadGeoPackageRasterFile(
       }
 
       const geoPackage = await GeoPackageAPI.open(bytes);
-      const tileTables = await geoPackage.getTileTables();
+      const tileTables = geoPackage.getTileTables();
       const tableMap: GpkgTable = {};
 
-      tileTables.forEach(tableName => {
+      tileTables.forEach((tableName) => {
         const tileDao = geoPackage.getTileDao(tableName);
 
         const tileWidth = tileDao.tileMatrices[0].tile_width;
@@ -620,7 +637,7 @@ async function loadGeoPackageRasterFile(
 
       return tableMap;
     } catch (error: any) {
-      showErrorMessage(
+      void showErrorMessage(
         `Failed to load GeoPackage file: ${cacheFilename}`,
         error,
       );
@@ -636,7 +653,7 @@ async function loadGkpgFromUrl(
   filepath: string,
   model: IJupyterGISModel,
 ): Promise<Uint8Array> {
-  const response = await fetchWithProxies(filepath, model, async response => {
+  const response = await fetchWithProxies(filepath, model, async (response) => {
     const arrayBuffer = await response.arrayBuffer();
     return new Uint8Array(arrayBuffer);
   });
@@ -720,7 +737,7 @@ export const loadFile = async (fileInfo: {
         const geojson = await fetchWithProxies(
           filepath,
           model,
-          async response => {
+          async (response) => {
             const arrayBuffer = await response.arrayBuffer();
             return shp(arrayBuffer);
           },
@@ -731,7 +748,7 @@ export const loadFile = async (fileInfo: {
           return geojson;
         }
 
-        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        void showErrorMessage('Network error', `Failed to fetch ${filepath}`);
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
@@ -745,7 +762,7 @@ export const loadFile = async (fileInfo: {
         const geojson = await fetchWithProxies(
           filepath,
           model,
-          async response => response.json(),
+          async (response) => response.json(),
         );
 
         if (geojson) {
@@ -753,7 +770,7 @@ export const loadFile = async (fileInfo: {
           return geojson;
         }
 
-        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        void showErrorMessage('Network error', `Failed to fetch ${filepath}`);
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
@@ -766,11 +783,11 @@ export const loadFile = async (fileInfo: {
         const fileBlob = await fetchWithProxies(
           filepath,
           model,
-          async response => response.blob(),
+          async (response) => response.blob(),
         );
 
         if (!fileBlob) {
-          showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+          void showErrorMessage('Network error', `Failed to fetch ${filepath}`);
           throw new Error(`Failed to fetch ${filepath}`);
         }
 
@@ -801,7 +818,7 @@ export const loadFile = async (fileInfo: {
           return geojson;
         }
 
-        showErrorMessage('Network error', `Failed to fetch ${filepath}`);
+        void showErrorMessage('Network error', `Failed to fetch ${filepath}`);
         throw new Error(`Failed to fetch ${filepath}`);
       }
 
@@ -855,7 +872,7 @@ export const loadFile = async (fileInfo: {
         const { contentsManager } = model;
         const base = absolutePath.slice(0, -4);
         const [dbf, prj, cpg] = await Promise.all(
-          ['.dbf', '.prj', '.cpg'].map(async ext => {
+          ['.dbf', '.prj', '.cpg'].map(async (ext) => {
             const sibling = await contentsManager
               .get(base + ext, { content: true })
               .catch(() => undefined);
@@ -1181,8 +1198,7 @@ const fileToArrayBuffer = async (
 
 export const getFeatureAttributes = <T>(
   featureProperties: Record<string, Set<any>>,
-  predicate: (key: string, value: any) => boolean = (key: string, value) =>
-    true,
+  predicate: (key: string, value: any) => boolean = () => true,
 ): Record<string, Set<T>> => {
   const filteredRecord: Record<string, Set<T>> = {};
 
@@ -1392,9 +1408,9 @@ export async function fetchBackendCatalog(
       (typeof formats?.getOutputTypes === 'function'
         ? formats.getOutputTypes()
         : formats?.data?.output) ?? {};
-    const outputFormats: IFileFormat[] = Object.keys(outputRaw).map(id => ({
+    const outputFormats: IFileFormat[] = Object.keys(outputRaw).map((id) => ({
       id,
-      ...(outputRaw[id] ?? {}),
+      ...outputRaw[id],
     }));
     // listUserProcesses() returns a ResponseArray of UserProcess entities;
     // flatten each to plain metadata (id/parameters/…) via toJSON so the

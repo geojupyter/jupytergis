@@ -1,8 +1,8 @@
 import * as React from 'react';
 
 import { IBandMetadata, IPyramidMetadata, IVectorMetadata } from '../types';
-import { MetadataSection } from './MetadataSection';
 import { formatNumber, formatRange } from '../utils/format';
+import { MetadataSection } from './MetadataSection';
 
 const cellClass = 'px-2 py-1 text-left align-top';
 const headerClass = `${cellClass} font-medium text-muted-foreground`;
@@ -26,11 +26,11 @@ export const tableHeaderClass = headerClass;
  * One row per band, with whatever the format could tell us about it.
  */
 export const BandTable: React.FC<{ bands: IBandMetadata[] }> = ({ bands }) => {
-  const hasDataType = bands.some(band => band.dataType);
-  const hasColorInterpretation = bands.some(band => band.colorInterpretation);
-  const hasNoData = bands.some(band => band.noData !== undefined);
+  const hasDataType = bands.some((band) => band.dataType);
+  const hasColorInterpretation = bands.some((band) => band.colorInterpretation);
+  const hasNoData = bands.some((band) => band.noData !== undefined);
   const hasRange = bands.some(
-    band => band.minimum !== undefined || band.maximum !== undefined,
+    (band) => band.minimum !== undefined || band.maximum !== undefined,
   );
 
   return (
@@ -52,8 +52,11 @@ export const BandTable: React.FC<{ bands: IBandMetadata[] }> = ({ bands }) => {
           </tr>
         </thead>
         <tbody>
-          {bands.map(band => (
-            <tr key={band.band} className="border-b border-border/50">
+          {bands.map((band) => (
+            <tr
+              key={band.band}
+              className="border-b border-border/50"
+            >
               <td className={cellClass}>{band.band}</td>
               <td className={cellClass}>{band.name}</td>
               {hasDataType ? (
@@ -96,7 +99,10 @@ export const PyramidTable: React.FC<{ pyramid: IPyramidMetadata }> = ({
     : undefined;
 
   return (
-    <MetadataSection title="Tile pyramid" summary={summary}>
+    <MetadataSection
+      title="Tile pyramid"
+      summary={summary}
+    >
       {tiled !== undefined || tileWidth ? (
         <p className="m-0 text-xs text-muted-foreground">
           {tiled
@@ -121,7 +127,7 @@ export const PyramidTable: React.FC<{ pyramid: IPyramidMetadata }> = ({
             </tr>
           </thead>
           <tbody>
-            {levels.map(level => (
+            {levels.map((level) => (
               <tr
                 key={`${level.level}-${level.name ?? ''}`}
                 className="border-b border-border/50"
@@ -178,8 +184,11 @@ export const VectorTable: React.FC<{ vector: IVectorMetadata }> = ({
             </tr>
           </thead>
           <tbody>
-            {fields.map(field => (
-              <tr key={field.name} className="border-b border-border/50">
+            {fields.map((field) => (
+              <tr
+                key={field.name}
+                className="border-b border-border/50"
+              >
                 <td className={cellClass}>{field.name}</td>
                 <td className={`${cellClass} font-mono`}>{field.type}</td>
               </tr>

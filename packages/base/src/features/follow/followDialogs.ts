@@ -98,7 +98,7 @@ function makeReadOnly(dialog: Dialog<any>): void {
     }
   };
 
-  BLOCKED_EVENTS.forEach(name => body.addEventListener(name, block, true));
+  BLOCKED_EVENTS.forEach((name) => body.addEventListener(name, block, true));
 }
 
 const POINTER_INTERVAL = 33;
@@ -242,7 +242,7 @@ export function shareDialogViewOn(
     model.updateDialogView(
       {
         scroll: {
-          ...(model.localState?.dialogView?.value?.scroll ?? {}),
+          ...model.localState?.dialogView?.value?.scroll,
           [path]: target.scrollTop / range,
         },
       },
@@ -280,7 +280,10 @@ function shareDialogView(
  */
 export function pointerElement(user: User.IIdentity | undefined): HTMLElement {
   const color = user?.color ?? 'var(--jp-brand-color1)';
-  const [width, height, , , path] = faArrowPointer.icon;
+  const [width, height, , , iconPathData] = faArrowPointer.icon;
+  const path = Array.isArray(iconPathData)
+    ? iconPathData.join(' ')
+    : iconPathData;
 
   const wrapper = document.createElement('div');
   wrapper.className = 'jGIS-Popup-Wrapper jgis-follow-pointer';
@@ -413,7 +416,7 @@ export class FollowDialogMirror implements IDisposable {
     this._close();
   }
 
-  private _sync(): void {
+  private _sync = (): void => {
     const remoteUser = this._model.localState?.remoteUser;
 
     const descriptor = remoteUser
@@ -465,7 +468,7 @@ export class FollowDialogMirror implements IDisposable {
     // A dismissed mirror stays dismissed: only the leader's next change
     // reopens one.
     dialog.launch().catch(() => undefined);
-  }
+  };
 
   private _close(): void {
     this._stopMirroringView?.();

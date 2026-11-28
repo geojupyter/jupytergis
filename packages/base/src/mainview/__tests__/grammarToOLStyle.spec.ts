@@ -528,8 +528,6 @@ describe('grammarToOLStyle — scalar scale', () => {
               params: {
                 domain: [0, 100],
                 range: [1, 20],
-                mode: 'equal interval',
-                nStops: 3,
                 fallback: 5,
               },
             },
@@ -553,8 +551,6 @@ describe('grammarToOLStyle — scalar scale', () => {
               params: {
                 domain: [0, 100],
                 range: [1, 10],
-                mode: 'equal interval',
-                nStops: 2,
                 fallback: 1,
               },
             },

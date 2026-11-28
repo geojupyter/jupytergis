@@ -23,7 +23,12 @@ const CollaboratorPill: React.FC<{ user: User.IIdentity }> = ({ user }) => {
     // Rebuild only when what the pill renders changes, not on every pointer move.
   }, [user.display_name, user.initials, user.avatar_url, user.color]);
 
-  return <div className="jGIS-Remote-Pointer-Pill-Host" ref={host} />;
+  return (
+    <div
+      className="jGIS-Remote-Pointer-Pill-Host"
+      ref={host}
+    />
+  );
 };
 
 const CollaboratorPointers: React.FC<ICollaboratorPointersProps> = ({

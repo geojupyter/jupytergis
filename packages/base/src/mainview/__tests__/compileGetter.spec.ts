@@ -84,8 +84,8 @@ function deckContext(
       ({
         type: 'PolygonSource',
         parameters,
-      }) as IJGISSource,
-    getter: expression => compileGetter(expression),
+      }) as unknown as IJGISSource,
+    getter: (expression) => compileGetter(expression),
     log: () => undefined,
   };
 }
@@ -162,7 +162,9 @@ describe('source record fields', () => {
       deckContext([record], { polygonField: 'ring' }),
     );
     const props = (
-      created as { props: { getPolygon: (row: unknown) => unknown } }
+      created as unknown as {
+        props: { getPolygon: (row: unknown) => unknown };
+      }
     ).props;
 
     expect(props.getPolygon(record)).toEqual(record.ring);

@@ -101,11 +101,10 @@ function mountGeodesSearch(model: IJupyterGISModel) {
   }
 
   function Harness(): JSX.Element {
-    return React.createElement(
-      StacResultsProvider,
-      { model },
-      React.createElement(Inner),
-    );
+    return React.createElement(StacResultsProvider, {
+      model,
+      children: React.createElement(Inner),
+    });
   }
 
   act(() => {

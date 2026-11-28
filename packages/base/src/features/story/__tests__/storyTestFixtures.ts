@@ -1,7 +1,6 @@
-import { jest } from '@jest/globals';
-
 import { STORY_TYPE } from '@/src/types';
 import { JupyterGISPanel } from '@/src/workspace/widget';
+
 import type { StoryEditorSession } from '../storyEditorSession';
 
 export function createMainViewPanel(
@@ -28,7 +27,7 @@ export function createMainViewPanel(
 export function createDialog() {
   return {
     close: jest.fn(),
-    launch: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+    launch: jest.fn<Promise<unknown>, []>().mockResolvedValue({}),
     show: jest.fn(),
     hide: jest.fn(),
     activate: jest.fn(),
@@ -71,7 +70,7 @@ export function createCommands() {
     execute: jest.fn(),
     isToggled: jest.fn(() => false),
     notifyCommandChanged: jest.fn(),
-  } as unknown as import('@lumino/commands').CommandRegistry;
+  };
 }
 export function createTracker(
   model: ReturnType<typeof createModel>,
@@ -82,7 +81,7 @@ export function createTracker(
       model,
       content: createMainViewPanel(document.createElement('div')),
     },
-    ...extraModels.map(extraModel => ({
+    ...extraModels.map((extraModel) => ({
       model: extraModel,
       content: createMainViewPanel(document.createElement('div')),
     })),
@@ -135,8 +134,7 @@ export function attachSession(
   session.attachDialog(
     dialog as never,
     model as never,
-    commands,
-    {} as never,
+    commands as never,
     {} as never,
     tracker as never,
     {} as never,

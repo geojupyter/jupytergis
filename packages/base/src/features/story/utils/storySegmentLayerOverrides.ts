@@ -54,7 +54,7 @@ export function getLayerOverrideEntry(
   overrides: IStorySegmentLayer['layerOverride'] | undefined,
   targetLayerId: string,
 ): LayerOverrideItem | undefined {
-  return overrides?.find(entry => entry.targetLayer === targetLayerId);
+  return overrides?.find((entry) => entry.targetLayer === targetLayerId);
 }
 
 function getBaseVisible(layer: IJGISLayer): boolean {
@@ -174,7 +174,7 @@ function upsertLayerOverride(
   mutate: (entry: LayerOverrideItem) => LayerOverrideItem,
 ): LayerOverrideItem[] {
   const index = overrides.findIndex(
-    entry => entry.targetLayer === targetLayerId,
+    (entry) => entry.targetLayer === targetLayerId,
   );
   const draft =
     index >= 0
@@ -221,7 +221,7 @@ export function buildSegmentLayerRows(
       ? (segment.parameters as IStorySegmentLayer).layerOverride
       : undefined;
 
-  return getMapLayerIds(model).flatMap(layerId => {
+  return getMapLayerIds(model).flatMap((layerId) => {
     const layer = model.getLayer(layerId);
     if (!layer) {
       return [];
@@ -274,7 +274,7 @@ export function setSegmentLayerVisibility(
     [...(parameters.layerOverride ?? [])],
     targetLayer,
     targetLayerId,
-    entry => {
+    (entry) => {
       const next = { ...entry };
       if (visible === baseVisible) {
         delete next.visible;
@@ -316,7 +316,7 @@ export function setSegmentLayerOpacity(
     [...(parameters.layerOverride ?? [])],
     targetLayer,
     targetLayerId,
-    entry => {
+    (entry) => {
       const next = { ...entry };
       if (opacity === baseOpacity) {
         delete next.opacity;
@@ -348,7 +348,7 @@ export function resetSegmentLayerOverride(
   const parameters = segment.parameters as IStorySegmentLayer;
   const layerOverride = parameters.layerOverride ?? [];
   const index = layerOverride.findIndex(
-    entry => entry.targetLayer === targetLayerId,
+    (entry) => entry.targetLayer === targetLayerId,
   );
 
   if (index < 0) {

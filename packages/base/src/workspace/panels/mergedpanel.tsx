@@ -8,14 +8,14 @@ import { IStateDB } from '@jupyterlab/statedb';
 import { CommandRegistry } from '@lumino/commands';
 import * as React from 'react';
 
-import { ITabConfig, TabbedPanel } from './components/TabbedPanel';
-import { LayersBodyComponent } from './components/layers';
-import { useLayerTree } from './hooks/useLayerTree';
-import { useRightPanelOptions } from './hooks/useRightPanelOptions';
-import { useUIState } from './hooks/useUIState';
 import { AnnotationsPanel } from '../../features/annotations';
 import { IdentifyPanelComponent } from '../../features/identify/IdentifyPanel';
 import StacPanel from '../../features/stac-browser/components/StacPanel';
+import { LayersBodyComponent } from './components/layers';
+import { ITabConfig, TabbedPanel } from './components/TabbedPanel';
+import { useLayerTree } from './hooks/useLayerTree';
+import { useRightPanelOptions } from './hooks/useRightPanelOptions';
+import { useUIState } from './hooks/useUIState';
 
 export interface IMergedPanelProps {
   model: IJupyterGISModel;
@@ -26,7 +26,7 @@ export interface IMergedPanelProps {
   annotationModel: IAnnotationModel;
 }
 
-export const MergedPanel: React.FC<IMergedPanelProps> = props => {
+export const MergedPanel: React.FC<IMergedPanelProps> = (props) => {
   const [leftPanelOpen] = useUIState('leftPanelOpen', props.model);
   const [rightPanelOpen] = useUIState('rightPanelOpen', props.model);
 
@@ -155,7 +155,7 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
     },
   ];
 
-  const enabledTabNames = tabs.filter(t => t.enabled).map(t => t.name);
+  const enabledTabNames = tabs.filter((t) => t.enabled).map((t) => t.name);
   const effectiveCurTab = enabledTabNames.includes(curTab)
     ? curTab
     : (enabledTabNames[0] ?? '');
@@ -180,11 +180,11 @@ export const MergedPanel: React.FC<IMergedPanelProps> = props => {
       <TabbedPanel
         tabs={tabs}
         curTab={effectiveCurTab}
-        onTabClick={name => {
+        onTabClick={(name) => {
           if (isDraggingRef.current) {
             return;
           }
-          setCurTab(prev => (prev === name ? '' : name));
+          setCurTab((prev) => (prev === name ? '' : name));
         }}
         onTabListMouseDown={onTabListMouseDown}
         onTabListTouchStart={onTabListTouchStart}
