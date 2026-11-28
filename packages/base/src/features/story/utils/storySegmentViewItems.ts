@@ -30,6 +30,7 @@ export function buildStorySegmentViewItems(
   return items;
 }
 
+//todo this doesnt seem worth it
 export function getStorySegmentDisplayTitle(
   item: IStorySegmentViewItem,
 ): string {
@@ -40,6 +41,7 @@ export function getStoryMarkdownFromSlide(
   activeSlide: IStorySegmentViewItem['activeSlide'],
 ): string {
   const markdown = activeSlide?.content?.markdown;
+
   return typeof markdown === 'string' ? markdown : '';
 }
 

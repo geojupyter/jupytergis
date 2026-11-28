@@ -454,6 +454,30 @@
   pointer-events: none;
 }
 
+.jgis-story-virtualizer-scroll {
+  scrollbar-width: none;
+  background: transparent;
+}
+
+.jgis-story-virtualizer-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.jgis-story-virtualizer-scroll:not(.jgis-story-mobile-list-scroll) {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: var(--jgis-story-title-bar-height);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: 5;
+}
+
+.jgis-story-stage--verticalScroll .jgis-controls-toolbar {
+  z-index: 6;
+}
+
 .jgis-mobile-specta-trigger-wrapper {
   position: fixed;
   bottom: 0.125rem;

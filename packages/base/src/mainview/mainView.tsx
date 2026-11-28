@@ -1465,9 +1465,8 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
       const deltaY = accumulatedDeltaY;
       accumulatedDeltaY = 0;
 
-      // Don't want to handle next/prev logic in list mode
+      // Vertical scroll is the browser scrolling the virtualizer element.
       if (isVerticalScrollPresentation(getStoryPresentationMode(storyType))) {
-        scrollContainer.scrollBy({ top: deltaY });
         return;
       }
 
@@ -1504,6 +1503,18 @@ export class MainView extends React.Component<IMainViewProps, IStates> {
 
     const handleScroll = (event: Event) => {
       const wheelEvent = event as WheelEvent;
+      const verticalScroll = isVerticalScrollPresentation(
+        getStoryPresentationMode(
+          this._model.getSelectedStory().story?.storyType,
+        ),
+      );
+
+      if (verticalScroll) {
+        if (wheelEvent.ctrlKey) {
+          event.preventDefault();
+        }
+        return;
+      }
 
       // A map segment card taller than the stage scrolls its own text first;
       // the story only takes the wheel once the card reaches its edge.
