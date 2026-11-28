@@ -4,11 +4,7 @@ import type {
   IStorySegmentLayer,
 } from '@jupytergis/schema';
 
-import type {
-  IListStoryMarkdownSegment,
-  IStorySegmentViewItem,
-} from '@/src/features/story/types/types';
-import { getSegmentDisplayMode } from './listStoryScrollTrack';
+import type { IStorySegmentViewItem } from '@/src/features/story/types/types';
 
 export function buildStorySegmentViewItems(
   model: IJupyterGISModel,
@@ -30,6 +26,7 @@ export function buildStorySegmentViewItems(
   return items;
 }
 
+//todo this doesnt seem worth it
 export function getStorySegmentDisplayTitle(
   item: IStorySegmentViewItem,
 ): string {
@@ -40,17 +37,6 @@ export function getStoryMarkdownFromSlide(
   activeSlide: IStorySegmentViewItem['activeSlide'],
 ): string {
   const markdown = activeSlide?.content?.markdown;
-  return typeof markdown === 'string' ? markdown : '';
-}
 
-export function getListStoryMarkdownSegmentsFromItems(
-  items: IStorySegmentViewItem[],
-): IListStoryMarkdownSegment[] {
-  return items
-    .filter(item => getSegmentDisplayMode(item.activeSlide) === 'markdown')
-    .map(item => ({
-      id: item.id,
-      index: item.index,
-      markdown: getStoryMarkdownFromSlide(item.activeSlide),
-    }));
+  return typeof markdown === 'string' ? markdown : '';
 }

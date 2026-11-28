@@ -33,7 +33,7 @@ export function ColumnPresentationDesktop({
     bottomSentinelRef,
     getAtTop,
     getAtBottom,
-  } = useStoryScrollState({ currentIndex, sentinelsEnabled: true });
+  } = useStoryScrollState({ currentIndex });
 
   const spectaPresentationStyle = useMemo(
     () => getSpectaPresentationCssVars(storyData),

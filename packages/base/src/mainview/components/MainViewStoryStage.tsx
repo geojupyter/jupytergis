@@ -1,16 +1,14 @@
 import type { IJGISLayer, IJupyterGISModel } from '@jupytergis/schema';
 import React, { type RefObject } from 'react';
 
-import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 import { StoryStage } from '@/src/features/story/presentation/StoryStage';
 import type { StoryPresentationMode } from '@/src/features/story/presentation/types';
-import type { IListStorySegmentTransition } from '@/src/features/story/types/types';
+import type { IStoryViewerPanelHandle } from '@/src/features/story/StoryViewerPanel';
 
 export interface IMainViewStoryStageProps {
   model: IJupyterGISModel;
   storyPresentationMode: StoryPresentationMode;
   isMobile: boolean;
-  segmentTransition: IListStorySegmentTransition | null;
   initialLayersReady: boolean;
   isSpectaPresentation: boolean;
   stageRef: RefObject<HTMLDivElement>;
@@ -20,9 +18,6 @@ export interface IMainViewStoryStageProps {
   storyViewerPanelRef: RefObject<IStoryViewerPanelHandle>;
   addLayer: (id: string, layer: IJGISLayer, index: number) => Promise<void>;
   removeLayer: (id: string) => void;
-  onSegmentTransitionChange: (
-    payload: IListStorySegmentTransition | null,
-  ) => void;
   onSegmentTransitionEnd: () => void;
 }
 
@@ -31,7 +26,6 @@ export function MainViewStoryStage({
   model,
   storyPresentationMode,
   isMobile,
-  segmentTransition,
   initialLayersReady,
   isSpectaPresentation,
   stageRef,
@@ -41,7 +35,6 @@ export function MainViewStoryStage({
   storyViewerPanelRef,
   addLayer,
   removeLayer,
-  onSegmentTransitionChange,
   onSegmentTransitionEnd,
 }: IMainViewStoryStageProps): JSX.Element {
   if (storyPresentationMode === 'verticalScroll') {
@@ -50,7 +43,6 @@ export function MainViewStoryStage({
         model={model}
         presentationMode="verticalScroll"
         isMobile={isMobile}
-        segmentTransition={segmentTransition}
         stageRef={stageRef}
         controlsToolbarRef={controlsToolbarRef}
         initialLayersReady={initialLayersReady}
@@ -58,7 +50,6 @@ export function MainViewStoryStage({
         addLayer={addLayer}
         removeLayer={removeLayer}
         storyScrollContainerRef={storyScrollContainerRef}
-        onSegmentTransitionChange={onSegmentTransitionChange}
       />
     );
   }
@@ -68,7 +59,6 @@ export function MainViewStoryStage({
       model={model}
       presentationMode="column"
       isMobile={isMobile}
-      segmentTransition={segmentTransition}
       stageRef={stageRef}
       controlsToolbarRef={controlsToolbarRef}
       initialLayersReady={initialLayersReady}
